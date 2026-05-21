@@ -1,0 +1,128 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #fbf9f3;
+  --foreground: #1b1c18;
+  --primary: #595f3d;
+  --primary-strong: #434a2a;
+  --primary-soft: #e0e7bb;
+  --accent: #ffffff;
+  --accent-foreground: #1b1c18;
+  --border: #dbdad4;
+  --muted: #efeee7;
+  --muted-foreground: #46483e;
+  --card: #ffffff;
+  --card-elevated: #f5f4ed;
+  --success: #5b8f62;
+  --danger: #b45e5e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(224, 231, 187, 0.45), transparent 28%),
+    radial-gradient(circle at top right, rgba(217, 226, 208, 0.55), transparent 22%),
+    linear-gradient(180deg, #fbf9f3 0%, #f6f4ee 100%);
+  color: var(--foreground);
+  font-family: var(--font-body), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: #f5f4ed;
+  padding: 0.875rem 1rem;
+  color: var(--foreground);
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(89, 95, 61, 0.12);
+}
+
+@layer components {
+  .page-wrap {
+    @apply mx-auto w-full max-w-app px-4 md:px-10;
+  }
+
+  .section-gap {
+    @apply py-6 md:py-10;
+  }
+
+  .card {
+    @apply rounded-lg bg-card p-6 shadow-serene;
+  }
+
+  .card-muted {
+    @apply rounded-lg bg-card-elevated p-6;
+  }
+
+  .eyebrow {
+    @apply font-label text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground;
+  }
+
+  .headline-xl {
+    @apply font-display text-4xl font-semibold tracking-[-0.02em] md:text-5xl;
+  }
+
+  .headline-lg {
+    @apply font-display text-2xl font-semibold tracking-[-0.02em] md:text-[2rem];
+  }
+
+  .headline-md {
+    @apply font-display text-xl font-medium;
+  }
+
+  .metric {
+    font-variant-numeric: tabular-nums;
+    @apply font-display tracking-[-0.02em];
+  }
+
+  .app-grid {
+    @apply grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)];
+  }
+
+  .wallet-grid {
+    @apply grid gap-4 md:grid-cols-2 xl:grid-cols-3;
+  }
+
+  .data-grid {
+    @apply grid gap-4 lg:grid-cols-12;
+  }
+
+  .soft-ring {
+    box-shadow: inset 0 0 0 1px rgba(89, 95, 61, 0.08);
+  }
+}

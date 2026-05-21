@@ -1,0 +1,74 @@
+import { notFound } from "next/navigation";
+import { requireUser } from "@/lib/auth";
+import { buildMonthlyReport, getWalletBundle } from "@/lib/data";
+import { AppShell } from "@/components/app-shell";
+import { EmptyState } from "@/components/ui/empty-state";
+import { WalletTabs } from "@/components/wallet-tabs";
+import { formatCurrency } from "@/lib/utils";
+
+export default async function ReportsPage({ params }: { params: Promise<{ walletId: string }> }) {
+  const { walletId } = await params;
+  const active = `/wallets/${walletId}/reports`;
+  const { user } = await requireUser();
+  const bundle = await getWalletBundle(user.id, walletId);
+
+  if (!bundle) {
+    notFound();
+  }
+
+  const monthlyReport = buildMonthlyReport(bundle.transactions);
+  const maxIncome = Math.max(...monthlyReport.map((item) => Math.max(item.income, item.expense)), 1);
+
+  return (
+    <AppShell
+      currentPath={active}
+      title="Laporan"
+      subtitle={`Laporan ${bundle.wallet.name}`}
+      userName={bundle.shell.userName}
+      walletCount={bundle.shell.walletCount}
+      budgetCount={bundle.shell.budgetCount}
+      memberCount={bundle.shell.memberCount}
+      primaryWalletId={bundle.shell.primaryWalletId}
+      currentWalletId={walletId}
+    >
+      <WalletTabs walletId={walletId} active={active} />
+      <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="card">
+          <p className="eyebrow">Tren bulanan</p>
+          <h3 className="headline-md mt-2">Income vs expense</h3>
+          {monthlyReport.length === 0 ? <div className="mt-6"><EmptyState title="Belum ada data laporan" description="Setelah transaksi masuk, tren bulanan income dan expense akan muncul di sini." /></div> : null}
+          <div className="mt-8 grid grid-cols-5 gap-3">
+            {monthlyReport.map((row) => (
+              <div key={row.month} className="flex flex-col items-center gap-3">
+                <div className="flex h-64 items-end gap-2">
+                  <div className="w-5 rounded-full bg-[#bec4a0]" style={{ height: `${(row.income / maxIncome) * 100}%` }} />
+                  <div className="w-5 rounded-full bg-primary" style={{ height: `${(row.expense / maxIncome) * 100}%` }} />
+                </div>
+                <p className="font-label text-xs text-muted-foreground">{row.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="card">
+          <p className="eyebrow">Insight</p>
+          <h3 className="headline-md mt-2">Ringkasan bulan berjalan</h3>
+          <div className="mt-6 space-y-3">
+            <div className="rounded-xl bg-muted p-4">
+              <p className="text-sm text-muted-foreground">Pemasukan</p>
+              <p className="metric mt-2 text-2xl">{formatCurrency(monthlyReport.at(-1)?.income ?? 0)}</p>
+            </div>
+            <div className="rounded-xl bg-muted p-4">
+              <p className="text-sm text-muted-foreground">Pengeluaran</p>
+              <p className="metric mt-2 text-2xl">{formatCurrency(monthlyReport.at(-1)?.expense ?? 0)}</p>
+            </div>
+            <div className="rounded-xl bg-muted p-4">
+              <p className="text-sm text-muted-foreground">Budget tersisa</p>
+              <p className="metric mt-2 text-2xl">{formatCurrency(Math.max(bundle.wallet.budgetThisMonth - bundle.wallet.spentThisMonth, 0))}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </AppShell>
+  );
+}

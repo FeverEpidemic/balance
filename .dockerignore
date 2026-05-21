@@ -1,0 +1,11 @@
+.env
+.env.*
+.git
+.gitignore
+.next
+backups
+node_modules
+npm-debug.log
+README.md
+DESIGN.md
+PLAN.md
