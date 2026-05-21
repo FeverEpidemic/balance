@@ -47,6 +47,28 @@ export default async function WalletsPage({
               </select>
             </label>
           </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="block">
+              <span className="mb-2 block font-label text-sm text-muted-foreground">Preset setup</span>
+              <select name="setup_preset" defaultValue="standard">
+                <option value="minimal">Minimal</option>
+                <option value="standard">Standard</option>
+                <option value="family">Family</option>
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-2 block font-label text-sm text-muted-foreground">Preset budget</span>
+              <select name="budget_preset" defaultValue="balanced">
+                <option value="none">Tanpa budget otomatis</option>
+                <option value="light">Light</option>
+                <option value="balanced">Balanced</option>
+                <option value="ambitious">Ambitious</option>
+              </select>
+            </label>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Preset setup menentukan kategori dan template transaksi awal. Preset budget akan membuat limit bulan berjalan yang masih bisa Anda ubah nanti.
+          </p>
           {params.error ? <Notice tone="error">{params.error}</Notice> : null}
           {params.message ? <Notice tone="success">{params.message}</Notice> : null}
           <SubmitButton pendingText="Membuat wallet...">Buat wallet baru</SubmitButton>

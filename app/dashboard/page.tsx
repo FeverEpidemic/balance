@@ -14,7 +14,7 @@ export default async function DashboardPage() {
     <AppShell
       currentPath="/dashboard"
       title="Dashboard"
-      subtitle="Ringkasan finansial keluarga"
+      subtitle="Ringkasan finansial kamu"
       userName={dashboard.shell.userName}
       walletCount={dashboard.shell.walletCount}
       budgetCount={dashboard.shell.budgetCount}

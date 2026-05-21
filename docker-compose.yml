@@ -12,18 +12,17 @@ services:
       NODE_ENV: production
       HOSTNAME: 0.0.0.0
       PORT: 3000
-    depends_on:
-      - db
-      - auth
-      - rest
+      NEXT_TELEMETRY_DISABLED: 1
+    restart: unless-stopped
     expose:
       - "3000"
 
   proxy:
     image: caddy:2.9-alpine
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
+    restart: unless-stopped
     depends_on:
       - app
-      - kong
     ports:
       - "80:80"
       - "443:443"
@@ -32,134 +31,6 @@ services:
       - caddy_data:/data
       - caddy_config:/config
 
-  db:
-    image: supabase/postgres:15.8.1.049
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - db_data:/var/lib/postgresql/data
-      - ./supabase/migrations:/docker-entrypoint-initdb.d:ro
-    expose:
-      - "5432"
-
-  kong:
-    image: kong:2.8.1
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      KONG_DATABASE: "off"
-      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
-      KONG_PROXY_ACCESS_LOG: /dev/stdout
-      KONG_ADMIN_ACCESS_LOG: /dev/stdout
-      KONG_PROXY_ERROR_LOG: /dev/stderr
-      KONG_ADMIN_ERROR_LOG: /dev/stderr
-      KONG_ADMIN_LISTEN: 0.0.0.0:8001
-    volumes:
-      - ./infra/kong.yml:/var/lib/kong/kong.yml:ro
-    expose:
-      - "8000"
-      - "8001"
-
-  auth:
-    image: supabase/gotrue:v2.177.0
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      GOTRUE_API_HOST: 0.0.0.0
-      GOTRUE_API_PORT: 9999
-      GOTRUE_DB_DRIVER: postgres
-      GOTRUE_DB_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?search_path=auth
-      GOTRUE_SITE_URL: ${APP_SITE_URL}
-      GOTRUE_URI_ALLOW_LIST: ${APP_SITE_URL}
-      GOTRUE_JWT_ADMIN_ROLES: service_role
-      GOTRUE_JWT_AUD: authenticated
-      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
-      GOTRUE_JWT_SECRET: ${SUPABASE_JWT_SECRET}
-      GOTRUE_EXTERNAL_EMAIL_ENABLED: "true"
-      GOTRUE_MAILER_AUTOCONFIRM: "false"
-      GOTRUE_SMTP_HOST: ${SMTP_HOST}
-      GOTRUE_SMTP_PORT: ${SMTP_PORT}
-      GOTRUE_SMTP_USER: ${SMTP_USER}
-      GOTRUE_SMTP_PASS: ${SMTP_PASS}
-      GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_FROM}
-      GOTRUE_SMTP_SENDER_NAME: balance
-    depends_on:
-      - db
-    expose:
-      - "9999"
-
-  rest:
-    image: postgrest/postgrest:v12.2.8
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      PGRST_DB_URI: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      PGRST_DB_SCHEMAS: public
-      PGRST_DB_ANON_ROLE: anon
-      PGRST_JWT_SECRET: ${SUPABASE_JWT_SECRET}
-    depends_on:
-      - db
-    expose:
-      - "3000"
-
-  meta:
-    image: supabase/postgres-meta:v0.91.0
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      PG_META_DB_HOST: db
-      PG_META_DB_PORT: 5432
-      PG_META_DB_NAME: ${POSTGRES_DB}
-      PG_META_DB_USER: ${POSTGRES_USER}
-      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
-    depends_on:
-      - db
-    expose:
-      - "8080"
-
-  studio:
-    image: supabase/studio:2025.11.26-sha-8f096b5
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      STUDIO_PG_META_URL: http://meta:8080
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      SUPABASE_URL: http://kong:8000
-      SUPABASE_PUBLIC_URL: ${SUPABASE_PUBLIC_URL}
-      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
-      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_ROLE_KEY}
-    depends_on:
-      - kong
-      - meta
-    expose:
-      - "3000"
-
-  backup:
-    image: postgres:15-alpine
-    restart: unless-stopped
-    env_file:
-      - .env
-    environment:
-      PGPASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - ./backups:/backups
-      - ./scripts/backup.sh:/usr/local/bin/backup.sh:ro
-    entrypoint: ["/bin/sh", "-c"]
-    command: "chmod +x /usr/local/bin/backup.sh && while true; do /usr/local/bin/backup.sh; sleep 86400; done"
-    depends_on:
-      - db
-
 volumes:
-  db_data:
   caddy_data:
   caddy_config:

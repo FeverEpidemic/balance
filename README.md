@@ -28,10 +28,10 @@ If you want to use Supabase Cloud instead of the self-hosted Docker stack in thi
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
-SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY
+SUPABASE_SECRET_KEY=YOUR_SECRET_KEY
 ```
 
-4. Keep `SUPABASE_SERVICE_ROLE_KEY` server-side only. Never expose it in browser code.
+4. Keep `SUPABASE_SECRET_KEY` server-side only. Never expose it in browser code.
 5. Apply both schema migrations:
    - [supabase/migrations/0001_balance_mvp.sql](/d:/Project/balance/supabase/migrations/0001_balance_mvp.sql)
    - [supabase/migrations/0002_balance_auth_sync.sql](/d:/Project/balance/supabase/migrations/0002_balance_auth_sync.sql)
@@ -49,6 +49,10 @@ Recommended migration workflow for hosted Supabase:
 ```
 
 After that, run the frontend normally with `npm run dev`.
+
+Compatibility note:
+- The app now prefers `SUPABASE_SECRET_KEY`.
+- `SUPABASE_SERVICE_ROLE_KEY` is still accepted as a fallback for older setups.
 
 ## Hosted vs Self-Hosted
 

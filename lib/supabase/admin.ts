@@ -1,14 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
-import { getServiceRoleKey, getSupabaseUrl } from "@/lib/env";
+import { getSupabaseServerKey, getSupabaseUrl } from "@/lib/env";
 
 export function createAdminClient() {
-  const serviceRoleKey = getServiceRoleKey();
+  const serverKey = getSupabaseServerKey();
 
-  if (!serviceRoleKey) {
+  if (!serverKey) {
     return null;
   }
 
-  return createClient(getSupabaseUrl(), serviceRoleKey, {
+  return createClient(getSupabaseUrl(), serverKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
