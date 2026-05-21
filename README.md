@@ -82,4 +82,4 @@ If the VPS itself is already ARM64, Docker will build the correct architecture n
 ## Notes
 
 - The core UI now reads and writes live data for auth, wallets, transactions, budgets, templates, and settlements.
-- Member invitation email delivery is not yet wired to outbound SMTP logic in the app layer, although the database model already supports invitations.
+- Member invitation email delivery now uses SMTP from the app layer. Fill `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, and `SMTP_FROM` before testing invite emails.

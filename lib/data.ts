@@ -79,6 +79,18 @@ type SettlementRow = {
   note: string | null;
 };
 
+type InvitationStatus = "pending" | "accepted" | "revoked" | "expired";
+
+type WalletInvitationRow = {
+  id: string;
+  wallet_id: string;
+  invited_email: string;
+  role: WalletRole;
+  status: InvitationStatus;
+  expires_at: string;
+  created_at: string;
+};
+
 export type ShellData = {
   userName: string;
   walletCount: number;
@@ -127,6 +139,7 @@ export type WalletBundle = {
   profileMap: Map<string, ProfileRow>;
   categories: CategoryRow[];
   budgets: BudgetRow[];
+  invitations: WalletInvitationRow[];
   members: WalletMemberRow[];
   settlements: SettlementRow[];
   templates: TemplateRow[];
@@ -312,6 +325,25 @@ async function querySettlements(walletIds: string[]) {
   return (data ?? []) as SettlementRow[];
 }
 
+async function queryWalletInvitations(walletIds: string[]) {
+  if (walletIds.length === 0) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("wallet_invitations")
+    .select("id, wallet_id, invited_email, role, status, expires_at, created_at")
+    .in("wallet_id", walletIds)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as WalletInvitationRow[];
+}
+
 function sumBalance(transactions: TransactionRow[]) {
   return transactions.reduce((total, transaction) => {
     return total + (transaction.kind === "income" ? transaction.amount : -transaction.amount);
@@ -468,7 +500,7 @@ export const getWalletBundle = cache(async (userId: string, walletId: string) =>
     return null;
   }
 
-  const [shell, wallets, memberRows, categories, budgets, transactions, templates, settlements] = await Promise.all([
+  const [shell, wallets, memberRows, categories, budgets, transactions, templates, settlements, invitations] = await Promise.all([
     getShellData(userId),
     queryWallets([walletId]),
     queryWalletMembers([walletId]),
@@ -476,7 +508,8 @@ export const getWalletBundle = cache(async (userId: string, walletId: string) =>
     queryBudgets([walletId], month),
     queryTransactions([walletId]),
     queryTemplates([walletId]),
-    querySettlements([walletId])
+    querySettlements([walletId]),
+    queryWalletInvitations([walletId])
   ]);
 
   const wallet = wallets[0];
@@ -503,6 +536,7 @@ export const getWalletBundle = cache(async (userId: string, walletId: string) =>
     profileMap,
     categories,
     budgets,
+    invitations,
     members: memberRows,
     settlements,
     templates,

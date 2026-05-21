@@ -9,6 +9,7 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string; message?: string; next?: string }>;
 }) {
   const params = await searchParams;
+  const registerHref = params.next ? `/register?next=${encodeURIComponent(params.next)}` : "/register";
 
   return (
     <main className="page-wrap section-gap">
@@ -45,7 +46,7 @@ export default async function LoginPage({
             </form>
             <p className="mt-4 text-sm text-muted-foreground">
               Belum punya akun?{" "}
-              <Button href="/register" variant="ghost" className="px-0 py-0">
+              <Button href={registerHref} variant="ghost" className="px-0 py-0">
                 Daftar di sini
               </Button>
             </p>

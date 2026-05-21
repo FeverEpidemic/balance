@@ -1,4 +1,6 @@
-export function Notice({ tone = "info", children }: { tone?: "info" | "error" | "success"; children: string }) {
+import type { ReactNode } from "react";
+
+export function Notice({ tone = "info", children }: { tone?: "info" | "error" | "success"; children: ReactNode }) {
   const tones = {
     info: "bg-[rgba(89,95,61,0.08)] text-primary-strong",
     error: "bg-[rgba(180,94,94,0.12)] text-danger",

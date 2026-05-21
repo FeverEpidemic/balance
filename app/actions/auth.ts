@@ -36,8 +36,11 @@ export async function signup(formData: FormData) {
   const fullName = String(formData.get("full_name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const next = String(formData.get("next") ?? "/wallets?message=Akun aktif. Buat wallet pertama Anda.");
   const headerStore = await headers();
   const origin = headerStore.get("origin") ?? getSiteUrl();
+  const confirmUrl = new URL("/auth/confirm", origin);
+  confirmUrl.searchParams.set("next", next);
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
@@ -47,7 +50,7 @@ export async function signup(formData: FormData) {
       data: {
         full_name: fullName
       },
-      emailRedirectTo: `${origin}/auth/confirm?next=/dashboard`
+      emailRedirectTo: confirmUrl.toString()
     }
   });
 
@@ -61,7 +64,7 @@ export async function signup(formData: FormData) {
 
   if (data.session) {
     revalidatePath("/", "layout");
-    redirect("/wallets?message=Akun aktif. Buat wallet pertama Anda.");
+    redirect(next);
   }
 
   redirect(toMessage("/register", "message", "Cek email Anda untuk verifikasi akun sebelum login."));
