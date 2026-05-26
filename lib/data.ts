@@ -53,6 +53,18 @@ type TransactionRow = {
   split_type: "equal" | "custom" | null;
 };
 
+type InvitationRow = {
+  id: string;
+  wallet_id: string;
+  invited_email: string;
+  role: WalletRole;
+  token: string;
+  status: string;
+  invited_by: string;
+  expires_at: string;
+  created_at: string;
+};
+
 type TransactionSplitRow = {
   wallet_id: string;
   owed_amount: number;
@@ -131,6 +143,7 @@ export type WalletBundle = {
   settlements: SettlementRow[];
   templates: TemplateRow[];
   transactions: TransactionRow[];
+  invitations: InvitationRow[];
   wallet: WalletSummary;
 };
 
@@ -291,6 +304,25 @@ async function queryTemplates(walletIds: string[]) {
   }
 
   return (data ?? []) as TemplateRow[];
+}
+
+async function queryInvitations(walletIds: string[]) {
+  if (walletIds.length === 0) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("wallet_invitations")
+    .select("id, wallet_id, invited_email, role, token, status, invited_by, expires_at, created_at")
+    .in("wallet_id", walletIds)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as InvitationRow[];
 }
 
 async function querySettlements(walletIds: string[]) {
@@ -468,7 +500,7 @@ export const getWalletBundle = cache(async (userId: string, walletId: string) =>
     return null;
   }
 
-  const [shell, wallets, memberRows, categories, budgets, transactions, templates, settlements] = await Promise.all([
+  const [shell, wallets, memberRows, categories, budgets, transactions, templates, settlements, invitations] = await Promise.all([
     getShellData(userId),
     queryWallets([walletId]),
     queryWalletMembers([walletId]),
@@ -476,7 +508,8 @@ export const getWalletBundle = cache(async (userId: string, walletId: string) =>
     queryBudgets([walletId], month),
     queryTransactions([walletId]),
     queryTemplates([walletId]),
-    querySettlements([walletId])
+    querySettlements([walletId]),
+    queryInvitations([walletId])
   ]);
 
   const wallet = wallets[0];
@@ -507,6 +540,7 @@ export const getWalletBundle = cache(async (userId: string, walletId: string) =>
     settlements,
     templates,
     transactions,
+    invitations,
     wallet: summaries[0]
   } satisfies WalletBundle;
 });

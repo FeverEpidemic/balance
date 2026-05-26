@@ -16,6 +16,17 @@
 2. Install dependencies with `npm install`.
 3. Start the frontend with `npm run dev`.
 
+## Test Email Invitation Locally
+
+Untuk self-hosted local stack, file `.env.example` sudah menyiapkan SMTP default ke `Mailpit`.
+
+1. Copy `.env.example` ke `.env`.
+2. Jalankan stack self-hosted dengan `docker compose -f docker-compose.self-hosted.yml up --build`.
+3. Buka inbox lokal di `http://localhost:8025`.
+4. Buat invitation dari halaman anggota wallet, lalu cek email masuk di Mailpit.
+
+Kalau ingin memakai SMTP sungguhan, ganti `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, dan `SMTP_FROM` di `.env`.
+
 ## Use Hosted Supabase
 
 If you want to use Supabase Cloud instead of the self-hosted Docker stack in this repo, use this setup:
@@ -82,4 +93,4 @@ If the VPS itself is already ARM64, Docker will build the correct architecture n
 ## Notes
 
 - The core UI now reads and writes live data for auth, wallets, transactions, budgets, templates, and settlements.
-- Member invitation email delivery is not yet wired to outbound SMTP logic in the app layer, although the database model already supports invitations.
+- Member invitation email delivery is wired through `lib/email.ts` and server action invitation. Untuk local testing tanpa provider email eksternal, gunakan Mailpit dari `docker-compose.self-hosted.yml`.

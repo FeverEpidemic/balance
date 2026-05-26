@@ -14,11 +14,14 @@ type ButtonProps = {
   className?: string;
   href?: string;
   variant?: keyof typeof variants;
+  type?: "button" | "submit" | "reset";
+  size?: "sm" | "md";
 };
 
-export function Button({ children, className, href, variant = "primary" }: ButtonProps) {
+export function Button({ children, className, href, variant = "primary", type, size = "md" }: ButtonProps) {
   const styles = cn(
-    "inline-flex items-center justify-center rounded-lg px-4 py-3 font-label text-sm font-medium transition",
+    "inline-flex items-center justify-center rounded-lg font-label text-sm font-medium transition",
+    size === "sm" ? "px-3 py-2" : "px-4 py-3",
     variants[variant],
     className
   );
@@ -31,5 +34,5 @@ export function Button({ children, className, href, variant = "primary" }: Butto
     );
   }
 
-  return <button className={styles}>{children}</button>;
+  return <button type={type} className={styles}>{children}</button>;
 }
