@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Notice } from "@/components/ui/notice";
 import { WalletTabs } from "@/components/wallet-tabs";
+import { InvitationShareActions } from "@/components/invitation-share-actions";
+import { getSiteUrl } from "@/lib/env";
 
 export default async function MembersPage({
   params,
@@ -24,6 +26,9 @@ export default async function MembersPage({
   if (!bundle) {
     notFound();
   }
+
+  const pendingInvitations = bundle.invitations.filter((invite) => invite.status === "pending");
+  const siteUrl = getSiteUrl();
 
   return (
     <AppShell
@@ -46,6 +51,9 @@ export default async function MembersPage({
         <div className="card">
           <p className="eyebrow">Undang anggota</p>
           <h3 className="headline-md mt-2">Aktifkan kolaborasi wallet</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Balance akan mencoba mengirim email otomatis. Jika pengiriman belum berhasil, undangan tetap tersimpan dan Anda bisa membagikan tautannya secara manual.
+          </p>
           {bundle.wallet.role === "owner" ? (
             <form action={createWalletInvitation} className="mt-6 grid gap-4">
               <input type="hidden" name="wallet_id" value={walletId} />
@@ -70,28 +78,33 @@ export default async function MembersPage({
 
           <div className="mt-6 space-y-3">
             <p className="font-label text-sm text-muted-foreground">Undangan aktif</p>
-            {bundle.invitations.filter((invite) => invite.status === "pending").length === 0 ? (
+            {pendingInvitations.length === 0 ? (
               <p className="text-sm text-muted-foreground">Belum ada undangan yang menunggu respons.</p>
             ) : (
-              bundle.invitations
-                .filter((invite) => invite.status === "pending")
-                .map((invite) => (
-                  <div key={invite.id} className="rounded-xl bg-muted p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="font-medium">{invite.invited_email}</p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Berlaku sampai{" "}
-                          {new Intl.DateTimeFormat("id-ID", {
-                            dateStyle: "medium",
-                            timeStyle: "short"
-                          }).format(new Date(invite.expires_at))}
-                        </p>
-                      </div>
-                      <Badge>{invite.role}</Badge>
+              pendingInvitations.map((invite) => (
+                <div key={invite.id} className="rounded-xl bg-muted p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="font-medium">{invite.invited_email}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Berlaku sampai{" "}
+                        {new Intl.DateTimeFormat("id-ID", {
+                          dateStyle: "medium",
+                          timeStyle: "short"
+                        }).format(new Date(invite.expires_at))}
+                      </p>
                     </div>
+                    <Badge>{invite.role}</Badge>
                   </div>
-                ))
+                  {bundle.wallet.role === "owner" ? (
+                    <InvitationShareActions
+                      inviteUrl={`${siteUrl}/invite/${invite.token}`}
+                      invitedEmail={invite.invited_email}
+                      walletName={bundle.wallet.name}
+                    />
+                  ) : null}
+                </div>
+              ))
             )}
           </div>
         </div>

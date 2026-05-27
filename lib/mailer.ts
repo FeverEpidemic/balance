@@ -10,19 +10,35 @@ type WalletInviteEmailPayload = {
   expiresAt: string;
 };
 
+type DeliveryProvider = "smtp" | "mxroute_api";
+
+function getDeliveryProvider(host: string) {
+  const rawProvider = process.env.EMAIL_DELIVERY_PROVIDER?.trim().toLowerCase();
+
+  if (rawProvider === "smtp" || rawProvider === "mxroute_api") {
+    return rawProvider;
+  }
+
+  const normalizedHost = host.toLowerCase();
+  if (
+    normalizedHost.includes("mxroute") ||
+    normalizedHost.includes("mxrouting") ||
+    normalizedHost.includes("mxlogin")
+  ) {
+    return "mxroute_api";
+  }
+
+  return "smtp";
+}
+
 export async function sendWalletInvitationEmail(payload: WalletInviteEmailPayload) {
   const config = getSmtpConfig();
 
   if (!config) {
     throw new Error("SMTP belum dikonfigurasi. Isi SMTP_HOST, SMTP_PORT, dan SMTP_FROM untuk mengirim undangan.");
   }
-
-  const transporter = nodemailer.createTransport({
-    host: config.host,
-    port: config.port,
-    secure: config.secure,
-    auth: config.auth
-  });
+  const provider: DeliveryProvider = getDeliveryProvider(config.host);
+  const smtpApiUrl = process.env.MXROUTE_SMTP_API_URL?.trim() || "https://smtpapi.mxroute.com/";
 
   const expiresLabel = new Intl.DateTimeFormat("id-ID", {
     dateStyle: "medium",
@@ -54,6 +70,53 @@ export async function sendWalletInvitationEmail(payload: WalletInviteEmailPayloa
       <p>Undangan ini berlaku sampai ${escapeHtml(expiresLabel)}.</p>
     </div>
   `;
+
+  if (provider === "mxroute_api") {
+    const username = config.auth?.user ?? config.from;
+    const password = config.auth?.pass;
+
+    if (!password) {
+      throw new Error("MXroute API membutuhkan SMTP_USER dan SMTP_PASS yang valid.");
+    }
+
+    const response = await fetch(smtpApiUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        server: config.host,
+        username,
+        password,
+        from: config.from,
+        to: payload.invitedEmail,
+        subject,
+        body: html
+      })
+    });
+
+    const rawBody = await response.text();
+    let apiResult: { success?: boolean; message?: string } | null = null;
+
+    try {
+      apiResult = rawBody ? (JSON.parse(rawBody) as { success?: boolean; message?: string }) : null;
+    } catch {
+      apiResult = null;
+    }
+
+    if (!response.ok || apiResult?.success === false) {
+      throw new Error(apiResult?.message || `MXroute API mengembalikan status ${response.status}.`);
+    }
+
+    return;
+  }
+
+  const transporter = nodemailer.createTransport({
+    host: config.host,
+    port: config.port,
+    secure: config.secure,
+    auth: config.auth
+  });
 
   await transporter.sendMail({
     from: config.from,

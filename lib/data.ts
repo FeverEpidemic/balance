@@ -86,6 +86,7 @@ type WalletInvitationRow = {
   wallet_id: string;
   invited_email: string;
   role: WalletRole;
+  token: string;
   status: InvitationStatus;
   expires_at: string;
   created_at: string;
@@ -333,7 +334,7 @@ async function queryWalletInvitations(walletIds: string[]) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("wallet_invitations")
-    .select("id, wallet_id, invited_email, role, status, expires_at, created_at")
+    .select("id, wallet_id, invited_email, role, token, status, expires_at, created_at")
     .in("wallet_id", walletIds)
     .order("created_at", { ascending: false });
 

@@ -305,6 +305,7 @@ export async function createWalletInvitation(formData: FormData) {
 
   const headerStore = await headers();
   const inviteUrl = new URL(`/invite/${invitation.token}`, buildOrigin(headerStore)).toString();
+  let deliveryMessage = `Undangan berhasil dikirim ke ${invitedEmail}.`;
 
   try {
     await sendWalletInvitationEmail({
@@ -317,11 +318,16 @@ export async function createWalletInvitation(formData: FormData) {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Gagal mengirim email undangan.";
-    redirect(withMessage(redirectPath, "error", message));
+    console.error("createWalletInvitation:email-delivery-failed", {
+      walletId,
+      invitedEmail,
+      message
+    });
+    deliveryMessage = "Undangan berhasil dibuat, tetapi email otomatis belum terkirim. Salin tautan undangan dari daftar undangan aktif.";
   }
 
   revalidatePath(redirectPath);
-  redirect(withMessage(redirectPath, "message", `Undangan berhasil dikirim ke ${invitedEmail}.`));
+  redirect(withMessage(redirectPath, "message", deliveryMessage));
 }
 
 export async function acceptWalletInvitation(formData: FormData) {
