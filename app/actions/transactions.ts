@@ -1,24 +1,25 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { parseNumberInput } from "@/lib/finance";
 import { requireUser } from "@/lib/auth";
+import { getNullableText, getNumericValue, getStringValue, redirectToWalletSection, revalidateWalletPaths } from "@/app/actions/_shared";
 
-function redirectToTransactions(walletId: string, type: "error" | "message", message: string) {
-  redirect(`/wallets/${walletId}/transactions?${new URLSearchParams({ [type]: message }).toString()}`);
+function readTransactionForm(formData: FormData) {
+  return {
+    walletId: getStringValue(formData, "wallet_id"),
+    transactionId: getStringValue(formData, "transaction_id"),
+    kind: getStringValue(formData, "kind") || "expense",
+    categoryId: getStringValue(formData, "category_id"),
+    note: getNullableText(formData, "note"),
+    amount: getNumericValue(formData, "amount")
+  };
 }
 
 export async function createTransaction(formData: FormData) {
-  const walletId = String(formData.get("wallet_id") ?? "");
-  const kind = String(formData.get("kind") ?? "expense");
-  const categoryId = String(formData.get("category_id") ?? "");
-  const note = String(formData.get("note") ?? "").trim();
-  const amount = parseNumberInput(formData.get("amount"));
+  const { walletId, kind, categoryId, note, amount } = readTransactionForm(formData);
   const { supabase, user } = await requireUser();
 
   if (!amount || amount <= 0) {
-    redirectToTransactions(walletId, "error", "Nominal transaksi harus lebih besar dari nol.");
+    redirectToWalletSection(walletId, "transactions", "error", "Nominal transaksi harus lebih besar dari nol.");
   }
 
   const { error } = await supabase.from("transactions").insert({
@@ -26,36 +27,33 @@ export async function createTransaction(formData: FormData) {
     category_id: categoryId || null,
     kind,
     amount,
-    note: note || null,
+    note,
     created_by: user.id,
     updated_by: user.id
   });
 
   if (error) {
-    redirectToTransactions(walletId, "error", error.message);
+    redirectToWalletSection(walletId, "transactions", "error", error.message);
   }
 
-  revalidatePath("/dashboard");
-  revalidatePath(`/wallets/${walletId}`);
-  revalidatePath(`/wallets/${walletId}/transactions`);
-  redirectToTransactions(walletId, "message", "Transaksi berhasil disimpan.");
+  revalidateWalletPaths(walletId, {
+    includeDashboard: true,
+    includeOverview: true,
+    sections: ["transactions"]
+  });
+  redirectToWalletSection(walletId, "transactions", "message", "Transaksi berhasil disimpan.");
 }
 
 export async function updateTransaction(formData: FormData) {
-  const walletId = String(formData.get("wallet_id") ?? "");
-  const transactionId = String(formData.get("transaction_id") ?? "");
-  const kind = String(formData.get("kind") ?? "expense");
-  const categoryId = String(formData.get("category_id") ?? "");
-  const note = String(formData.get("note") ?? "").trim();
-  const amount = parseNumberInput(formData.get("amount"));
+  const { walletId, transactionId, kind, categoryId, note, amount } = readTransactionForm(formData);
   const { supabase, user } = await requireUser();
 
   if (!transactionId) {
-    redirectToTransactions(walletId, "error", "Transaksi tidak ditemukan.");
+    redirectToWalletSection(walletId, "transactions", "error", "Transaksi tidak ditemukan.");
   }
 
   if (!amount || amount <= 0) {
-    redirectToTransactions(walletId, "error", "Nominal transaksi harus lebih besar dari nol.");
+    redirectToWalletSection(walletId, "transactions", "error", "Nominal transaksi harus lebih besar dari nol.");
   }
 
   const { error } = await supabase
@@ -64,39 +62,42 @@ export async function updateTransaction(formData: FormData) {
       kind,
       category_id: categoryId || null,
       amount,
-      note: note || null,
+      note,
       updated_by: user.id
     })
     .eq("id", transactionId)
     .eq("wallet_id", walletId);
 
   if (error) {
-    redirectToTransactions(walletId, "error", error.message);
+    redirectToWalletSection(walletId, "transactions", "error", error.message);
   }
 
-  revalidatePath("/dashboard");
-  revalidatePath(`/wallets/${walletId}`);
-  revalidatePath(`/wallets/${walletId}/transactions`);
-  redirectToTransactions(walletId, "message", "Transaksi berhasil diperbarui.");
+  revalidateWalletPaths(walletId, {
+    includeDashboard: true,
+    includeOverview: true,
+    sections: ["transactions"]
+  });
+  redirectToWalletSection(walletId, "transactions", "message", "Transaksi berhasil diperbarui.");
 }
 
 export async function deleteTransaction(formData: FormData) {
-  const walletId = String(formData.get("wallet_id") ?? "");
-  const transactionId = String(formData.get("transaction_id") ?? "");
+  const { walletId, transactionId } = readTransactionForm(formData);
   const { supabase } = await requireUser();
 
   if (!transactionId) {
-    redirectToTransactions(walletId, "error", "Transaksi tidak ditemukan.");
+    redirectToWalletSection(walletId, "transactions", "error", "Transaksi tidak ditemukan.");
   }
 
   const { error } = await supabase.from("transactions").delete().eq("id", transactionId).eq("wallet_id", walletId);
 
   if (error) {
-    redirectToTransactions(walletId, "error", error.message);
+    redirectToWalletSection(walletId, "transactions", "error", error.message);
   }
 
-  revalidatePath("/dashboard");
-  revalidatePath(`/wallets/${walletId}`);
-  revalidatePath(`/wallets/${walletId}/transactions`);
-  redirectToTransactions(walletId, "message", "Transaksi berhasil dihapus.");
+  revalidateWalletPaths(walletId, {
+    includeDashboard: true,
+    includeOverview: true,
+    sections: ["transactions"]
+  });
+  redirectToWalletSection(walletId, "transactions", "message", "Transaksi berhasil dihapus.");
 }

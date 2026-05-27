@@ -11,9 +11,15 @@ import { ensureProfileForUser } from "@/lib/profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentMonthKey } from "@/lib/finance";
 import { getBudgetPresetRows, getStarterCategories, getStarterTemplates, type BudgetPreset, type WalletSetupPreset } from "@/lib/wallet-starter-templates";
+import { getStringValue, getTrimmedValue, redirectWithMessage } from "@/app/actions/_shared";
 
-function withMessage(path: string, type: "error" | "message", message: string) {
-  return `${path}?${new URLSearchParams({ [type]: message }).toString()}`;
+function readWalletForm(formData: FormData) {
+  return {
+    name: getTrimmedValue(formData, "name"),
+    kind: (getStringValue(formData, "kind") || "personal") as "personal" | "shared",
+    setupPreset: (getStringValue(formData, "setup_preset") || "standard") as WalletSetupPreset,
+    budgetPreset: (getStringValue(formData, "budget_preset") || "balanced") as BudgetPreset
+  };
 }
 
 function normalizeEmail(value: string) {
@@ -42,15 +48,12 @@ function buildOrigin(headerStore: Headers) {
 }
 
 export async function createWallet(formData: FormData) {
-  const name = String(formData.get("name") ?? "").trim();
-  const kind = String(formData.get("kind") ?? "personal") as "personal" | "shared";
-  const setupPreset = String(formData.get("setup_preset") ?? "standard") as WalletSetupPreset;
-  const budgetPreset = String(formData.get("budget_preset") ?? "balanced") as BudgetPreset;
+  const { name, kind, setupPreset, budgetPreset } = readWalletForm(formData);
   const { supabase, user } = await requireUser();
   const profile = await ensureProfileForUser(user);
 
   if (!profile) {
-    redirect(withMessage("/wallets", "error", "Profile belum sinkron. Jalankan migrasi 0002 atau isi SUPABASE_SECRET_KEY."));
+    redirectWithMessage("/wallets", "error", "Profile belum sinkron. Jalankan migrasi 0002 atau isi SUPABASE_SECRET_KEY.");
   }
 
   const { data: wallet, error: walletError } = await supabase
@@ -66,7 +69,7 @@ export async function createWallet(formData: FormData) {
     .single();
 
   if (walletError || !wallet) {
-    redirect(withMessage("/wallets", "error", walletError?.message ?? "Gagal membuat wallet."));
+    redirectWithMessage("/wallets", "error", walletError?.message ?? "Gagal membuat wallet.");
   }
 
   const { error: memberError } = await supabase.from("wallet_members").insert({
@@ -78,7 +81,7 @@ export async function createWallet(formData: FormData) {
   });
 
   if (memberError) {
-    redirect(withMessage("/wallets", "error", memberError.message));
+    redirectWithMessage("/wallets", "error", memberError.message);
   }
 
   const starterCategories = getStarterCategories();
@@ -98,7 +101,7 @@ export async function createWallet(formData: FormData) {
     .select("id, name, kind");
 
   if (categoryError || !createdCategories) {
-    redirect(withMessage("/wallets", "error", categoryError?.message ?? "Gagal membuat kategori default."));
+    redirectWithMessage("/wallets", "error", categoryError?.message ?? "Gagal membuat kategori default.");
   }
 
   const categoryMap = new Map(
@@ -138,7 +141,7 @@ export async function createWallet(formData: FormData) {
     const { error: templateError } = await supabase.from("transaction_templates").insert(templateRows);
 
     if (templateError) {
-      redirect(withMessage("/wallets", "error", templateError.message));
+      redirectWithMessage("/wallets", "error", templateError.message);
     }
   }
 
@@ -160,7 +163,7 @@ export async function createWallet(formData: FormData) {
     const { error: budgetError } = await supabase.from("budgets").insert(budgetRows);
 
     if (budgetError) {
-      redirect(withMessage("/wallets", "error", budgetError.message));
+      redirectWithMessage("/wallets", "error", budgetError.message);
     }
   }
 

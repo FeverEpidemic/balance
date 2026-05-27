@@ -1,9 +1,16 @@
+import { formatCurrency } from "@/lib/utils";
+
 export function parseNumberInput(value: FormDataEntryValue | null) {
   if (typeof value !== "string") {
     return null;
   }
 
-  const normalized = value.replace(/[^\d.-]/g, "");
+  const normalized = value.replace(/[^\d-]/g, "");
+
+  if (!normalized || normalized === "-") {
+    return null;
+  }
+
   const parsed = Number(normalized);
 
   return Number.isFinite(parsed) ? parsed : null;
@@ -31,5 +38,5 @@ export function describeBudgetUsage(used: number, limit: number) {
   }
 
   const percentage = Math.round((used / limit) * 100);
-  return `${used.toLocaleString("id-ID")} dari ${limit.toLocaleString("id-ID")} (${percentage}%)`;
+  return `${formatCurrency(used)} dari ${formatCurrency(limit)} (${percentage}%)`;
 }
