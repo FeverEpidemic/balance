@@ -2,14 +2,10 @@ FROM node:22-alpine AS base
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
-FROM base AS deps
-RUN apk add --no-cache libc6-compat
-COPY package.json package-lock.json ./
-RUN npm ci
-
 FROM base AS builder
 RUN apk add --no-cache libc6-compat
-COPY --from=deps /app/node_modules ./node_modules
+COPY package.json package-lock.json ./
+RUN npm ci && npm cache clean --force
 COPY . .
 RUN npm run build
 

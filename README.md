@@ -93,4 +93,6 @@ If the VPS itself is already ARM64, Docker will build the correct architecture n
 ## Notes
 
 - The core UI now reads and writes live data for auth, wallets, transactions, budgets, templates, and settlements.
-- Member invitation email delivery is wired through `lib/email.ts` and server action invitation. Untuk local testing tanpa provider email eksternal, gunakan Mailpit dari `docker-compose.self-hosted.yml`.
+- Member invitation email delivery now supports SMTP biasa dan `MXroute SMTP API` dari app layer. Fill `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, and `SMTP_FROM` before testing invite emails.
+- Jika memakai MXroute, set `EMAIL_DELIVERY_PROVIDER=mxroute_api`, isi `SMTP_HOST` dengan hostname server MXroute Anda, dan biarkan `MXROUTE_SMTP_API_URL` ke `https://smtpapi.mxroute.com/` kecuali Anda punya endpoint khusus.
+- Saat email otomatis gagal, undangan wallet tetap tersimpan dan owner bisa menyalin atau membagikan tautan undangan dari halaman anggota wallet.

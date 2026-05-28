@@ -2,12 +2,17 @@
   "name": "balance",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:unit": "vitest run"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
@@ -20,13 +25,14 @@
   "devDependencies": {
     "@types/node": "^22.15.21",
     "@types/nodemailer": "^8.0.0",
-    "@types/react": "^19.1.6",
-    "@types/react-dom": "^19.1.5",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.21",
     "eslint": "^8.57.1",
     "eslint-config-next": "^15.3.2",
     "postcss": "^8.5.4",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^0.34.6"
   }
 }

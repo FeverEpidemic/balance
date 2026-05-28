@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { signup } from "@/app/actions/auth";
 import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -5,9 +6,10 @@ import { SubmitButton } from "@/components/ui/submit-button";
 export default async function RegisterPage({
   searchParams
 }: {
-  searchParams: Promise<{ error?: string; message?: string }>;
+  searchParams: Promise<{ error?: string; message?: string; next?: string }>;
 }) {
   const params = await searchParams;
+  const loginHref = params.next ? `/login?next=${encodeURIComponent(params.next)}` : "/login";
 
   return (
     <main className="page-wrap section-gap">
@@ -19,6 +21,7 @@ export default async function RegisterPage({
           {params.message ? <Notice tone="success">{params.message}</Notice> : null}
         </div>
         <form action={signup} className="mt-8 grid gap-4 md:grid-cols-2">
+          <input type="hidden" name="next" value={params.next ?? "/wallets?message=Akun aktif. Buat wallet pertama Anda."} />
           <label className="block">
             <span className="mb-2 block font-label text-sm text-muted-foreground">Nama lengkap</span>
             <input name="full_name" placeholder="Ilham Pratama" required />
@@ -37,6 +40,12 @@ export default async function RegisterPage({
             </SubmitButton>
           </div>
         </form>
+        <p className="mt-4 text-sm text-muted-foreground">
+          Sudah punya akun?{" "}
+          <Button href={loginHref} variant="ghost" className="px-0 py-0">
+            Login di sini
+          </Button>
+        </p>
       </div>
     </main>
   );
