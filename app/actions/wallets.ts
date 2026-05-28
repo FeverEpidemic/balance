@@ -11,7 +11,7 @@ import { ensureProfileForUser } from "@/lib/profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentMonthKey } from "@/lib/finance";
 import { getBudgetPresetRows, getStarterCategories, getStarterTemplates, type BudgetPreset, type WalletSetupPreset } from "@/lib/wallet-starter-templates";
-import { getStringValue, getTrimmedValue, redirectWithMessage } from "@/app/actions/_shared";
+import { getStringValue, getTrimmedValue, redirectWithMessage, withMessage } from "@/app/actions/_shared";
 
 function readWalletForm(formData: FormData) {
   return {
