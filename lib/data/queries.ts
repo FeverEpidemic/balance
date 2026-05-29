@@ -180,7 +180,7 @@ export async function queryInvitations(walletIds: string[]) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("wallet_invitations")
-    .select("id, wallet_id, invited_email, role, token, status, invited_by, expires_at, created_at")
+    .select("id, wallet_id, role, token, status, invited_by, expires_at, created_at")
     .in("wallet_id", walletIds)
     .order("created_at", { ascending: false });
 

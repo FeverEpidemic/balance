@@ -51,7 +51,6 @@ export type TransactionRow = {
 export type InvitationRow = {
   id: string;
   wallet_id: string;
-  invited_email: string;
   role: WalletRole;
   token: string;
   status: string;

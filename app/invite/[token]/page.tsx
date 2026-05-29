@@ -9,7 +9,6 @@ import { SubmitButton } from "@/components/ui/submit-button";
 type InviteRecord = {
   id: string;
   wallet_id: string;
-  invited_email: string;
   role: "owner" | "editor" | "viewer";
   status: "pending" | "accepted" | "revoked" | "expired";
   expires_at: string;
@@ -36,7 +35,7 @@ export default async function InvitePage({
   if (admin) {
     const { data } = await admin
       .from("wallet_invitations")
-      .select("id, wallet_id, invited_email, role, status, expires_at")
+      .select("id, wallet_id, role, status, expires_at")
       .eq("token", token)
       .maybeSingle();
 
@@ -50,7 +49,6 @@ export default async function InvitePage({
 
   const nextHref = encodeURIComponent(`/invite/${token}`);
   const isExpired = invitation ? new Date(invitation.expires_at).getTime() < Date.now() : false;
-  const emailMatches = invitation && user?.email ? user.email.toLowerCase() === invitation.invited_email.toLowerCase() : false;
 
   return (
     <main className="page-wrap section-gap">
@@ -74,8 +72,8 @@ export default async function InvitePage({
           <>
             <p className="mt-4 text-muted-foreground">
               Anda diundang ke <span className="font-label text-foreground">{walletName}</span> sebagai{" "}
-              <span className="font-label text-foreground">{invitation.role}</span> dengan email{" "}
-              <span className="font-label text-foreground">{invitation.invited_email}</span>.
+              <span className="font-label text-foreground">{invitation.role}</span>. Jika Anda menerima undangan ini,
+              akun yang sedang login akan ditambahkan ke wallet tersebut.
             </p>
             <p className="mt-3 text-sm text-muted-foreground">
               Berlaku sampai{" "}
@@ -101,10 +99,6 @@ export default async function InvitePage({
                 Daftar akun baru
               </Button>
             </div>
-          ) : !emailMatches ? (
-            <Notice tone="error">
-              Anda login sebagai {user.email}. Masuklah dengan email {invitation.invited_email} untuk menerima undangan ini.
-            </Notice>
           ) : (
             <form action={acceptWalletInvitation}>
               <input type="hidden" name="token" value={token} />

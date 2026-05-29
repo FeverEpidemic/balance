@@ -16,16 +16,17 @@
 2. Install dependencies with `npm install`.
 3. Start the frontend with `npm run dev`.
 
-## Test Email Invitation Locally
+## Test Wallet Invitation Locally
 
-Untuk self-hosted local stack, file `.env.example` sudah menyiapkan SMTP default ke `Mailpit`.
+Untuk self-hosted local stack, file `.env.example` sudah menyiapkan email Auth Supabase ke `Mailpit`.
 
 1. Copy `.env.example` ke `.env`.
 2. Jalankan stack self-hosted dengan `docker compose -f docker-compose.self-hosted.yml up --build`.
 3. Buka inbox lokal di `http://localhost:8025`.
-4. Buat invitation dari halaman anggota wallet, lalu cek email masuk di Mailpit.
+4. Daftar akun baru dan cek email verifikasi masuk di Mailpit bila Auth email aktif.
+5. Buat invitation dari halaman anggota wallet, lalu salin atau bagikan tautan `/invite/[token]` yang dihasilkan.
 
-Kalau ingin memakai SMTP sungguhan, ganti `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, dan `SMTP_FROM` di `.env`.
+Kalau ingin memakai SMTP sungguhan untuk email Auth Supabase, ganti `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, dan `SMTP_FROM` di `.env`.
 
 ## Use Hosted Supabase
 
@@ -43,9 +44,11 @@ SUPABASE_SECRET_KEY=YOUR_SECRET_KEY
 ```
 
 4. Keep `SUPABASE_SECRET_KEY` server-side only. Never expose it in browser code.
-5. Apply both schema migrations:
+5. Apply all schema migrations:
    - [supabase/migrations/0001_balance_mvp.sql](/d:/Project/balance/supabase/migrations/0001_balance_mvp.sql)
    - [supabase/migrations/0002_balance_auth_sync.sql](/d:/Project/balance/supabase/migrations/0002_balance_auth_sync.sql)
+   - [supabase/migrations/0003_fix_wallet_rls_recursion.sql](/d:/Project/balance/supabase/migrations/0003_fix_wallet_rls_recursion.sql)
+   - [supabase/migrations/0004_wallet_invites_token_only.sql](/d:/Project/balance/supabase/migrations/0004_wallet_invites_token_only.sql)
 
 Recommended migration workflow for hosted Supabase:
 
@@ -93,6 +96,13 @@ If the VPS itself is already ARM64, Docker will build the correct architecture n
 ## Notes
 
 - The core UI now reads and writes live data for auth, wallets, transactions, budgets, templates, and settlements.
-- Member invitation email delivery now supports SMTP biasa dan `MXroute SMTP API` dari app layer. Fill `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, and `SMTP_FROM` before testing invite emails.
-- Jika memakai MXroute, set `EMAIL_DELIVERY_PROVIDER=mxroute_api`, isi `SMTP_HOST` dengan hostname server MXroute Anda, dan biarkan `MXROUTE_SMTP_API_URL` ke `https://smtpapi.mxroute.com/` kecuali Anda punya endpoint khusus.
-- Saat email otomatis gagal, undangan wallet tetap tersimpan dan owner bisa menyalin atau membagikan tautan undangan dari halaman anggota wallet.
+- Wallet member invitations are token-based. Owner membuat tautan `/invite/[token]` dari halaman anggota, lalu membagikannya ke calon anggota.
+- SMTP di stack ini tetap dipakai untuk email Auth Supabase seperti verifikasi signup, bukan lagi untuk invitation wallet.
+
+- run buat build docker images
+
+docker buildx build \
+  --platform linux/arm64 \
+  -t ilham827/balance-app:latest \
+  -t ilham827/balance-app:arm64 \
+  --push .

@@ -1,9 +1,11 @@
-FROM node:22-alpine AS base
+ARG BUILDPLATFORM
+ARG TARGETPLATFORM
+
+FROM --platform=$BUILDPLATFORM node:22-alpine AS base
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
 FROM base AS builder
-RUN apk add --no-cache libc6-compat
 COPY package.json package-lock.json ./
 RUN npm ci && npm cache clean --force
 COPY . .
@@ -15,8 +17,6 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
-
-RUN apk add --no-cache libc6-compat
 
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
