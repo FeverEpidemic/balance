@@ -5,11 +5,11 @@ import { cn } from "@/lib/utils";
 
 type InvitationShareActionsProps = {
   inviteUrl: string;
-  invitedEmail: string;
+  role: "owner" | "editor" | "viewer";
   walletName: string;
 };
 
-export function InvitationShareActions({ inviteUrl, invitedEmail, walletName }: InvitationShareActionsProps) {
+export function InvitationShareActions({ inviteUrl, role, walletName }: InvitationShareActionsProps) {
   const [feedback, setFeedback] = useState<string | null>(null);
 
   async function handleCopy() {
@@ -47,7 +47,7 @@ export function InvitationShareActions({ inviteUrl, invitedEmail, walletName }: 
 
   return (
     <div className="mt-3 rounded-lg border border-outline-variant bg-surface-container-lowest p-3">
-      <p className="text-xs font-medium text-foreground">Tautan undangan untuk {invitedEmail}</p>
+      <p className="text-xs font-medium text-foreground">Tautan undangan untuk role {role}</p>
       <a
         href={inviteUrl}
         target="_blank"

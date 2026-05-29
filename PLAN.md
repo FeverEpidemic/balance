@@ -36,8 +36,8 @@ Tech defaults:
 
 - Register and login with email/password.
 - Create personal or shared wallet.
-- Invite wallet member by email.
-- Accept invite after login or registration.
+- Create token-based wallet invitation link.
+- Accept invite after login or registration using the token link.
 - Add income or expense quickly from mobile web.
 - Add split details for shared expenses.
 - Record manual settlement between members.
@@ -89,7 +89,7 @@ Authenticated:
 
 Auth:
 - Register, login, logout, and protected route redirects.
-- Invite acceptance for existing and newly registered users.
+- Invite acceptance for existing and newly registered users via token link.
 
 Security:
 - User cannot access private wallets where they are not a member.

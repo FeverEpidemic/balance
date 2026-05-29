@@ -27,6 +27,7 @@ export function AppShell({
   currentWalletId?: string | null;
 }) {
   const walletId = currentWalletId ?? primaryWalletId;
+  const logoutButtonClassName = "rounded-full bg-primary-soft px-3 py-2 font-label text-xs text-primary-strong";
   const navItems = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/wallets", label: "Wallet" },
@@ -49,7 +50,7 @@ export function AppShell({
               <p className="mt-3 text-sm text-muted-foreground">{userName}</p>
             </div>
             <form action={logout}>
-              <button className="rounded-full bg-primary-soft px-3 py-2 font-label text-xs text-primary-strong">Keluar</button>
+              <button className={logoutButtonClassName}>Keluar</button>
             </form>
           </div>
           <nav className="mt-8 space-y-2">
@@ -70,6 +71,12 @@ export function AppShell({
 
         <main className="min-w-0">
           <header className="mb-4 rounded-xl bg-[rgba(255,255,255,0.62)] px-4 py-4 backdrop-blur md:px-6">
+            <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
+              <p className="text-sm text-muted-foreground">{userName}</p>
+              <form action={logout}>
+                <button className={logoutButtonClassName}>Keluar</button>
+              </form>
+            </div>
             <p className="eyebrow">{title}</p>
             <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>

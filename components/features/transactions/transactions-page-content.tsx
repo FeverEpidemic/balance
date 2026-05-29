@@ -7,7 +7,7 @@ import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { WalletTabs } from "@/components/wallet-tabs";
 import type { TransactionsPageData } from "@/lib/data";
-import { formatCurrency, formatShortDate } from "@/lib/utils";
+import { formatCurrency, formatShortDate, getTodayDateString, toDateInputValue } from "@/lib/utils";
 
 export function TransactionsPageContent({
   data,
@@ -65,6 +65,10 @@ export function TransactionsPageContent({
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">Catatan</span>
               <input name="note" placeholder="Belanja bulanan supermarket" />
+            </label>
+            <label className="block">
+              <span className="mb-2 block font-label text-sm text-muted-foreground">Tanggal transaksi</span>
+              <input name="happened_at" type="date" defaultValue={getTodayDateString()} required />
             </label>
             <SubmitButton pendingText="Menyimpan transaksi...">Simpan transaksi</SubmitButton>
           </form>
@@ -133,6 +137,10 @@ export function TransactionsPageContent({
                     <label className="block">
                       <span className="mb-2 block font-label text-xs text-muted-foreground">Catatan</span>
                       <input name="note" defaultValue={transaction.note ?? ""} placeholder="Opsional" />
+                    </label>
+                    <label className="block">
+                      <span className="mb-2 block font-label text-xs text-muted-foreground">Tanggal transaksi</span>
+                      <input name="happened_at" type="date" defaultValue={toDateInputValue(transaction.happenedAt)} required />
                     </label>
                     <div className="flex flex-wrap gap-2 md:col-span-2">
                       <SubmitButton pendingText="Menyimpan..." variant="soft">
