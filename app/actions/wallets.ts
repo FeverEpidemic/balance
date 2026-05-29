@@ -1,16 +1,18 @@
 "use server";
 
 import { randomBytes } from "node:crypto";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
-import { getSiteUrl } from "@/lib/env";
-import { sendWalletInvitationEmail } from "@/lib/mailer";
 import { ensureProfileForUser } from "@/lib/profile";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentMonthKey } from "@/lib/finance";
 import { getBudgetPresetRows, getStarterCategories, getStarterTemplates, type BudgetPreset, type WalletSetupPreset } from "@/lib/wallet-starter-templates";
+import {
+  MAX_WALLET_MEMBERS,
+  WALLET_ACCEPT_INVITATION_FULL_MESSAGE,
+  WALLET_CAPACITY_REACHED_MESSAGE
+} from "@/lib/wallet-capacity";
 import { getStringValue, getTrimmedValue, redirectWithMessage, withMessage } from "@/app/actions/_shared";
 
 function readWalletForm(formData: FormData) {
@@ -22,29 +24,29 @@ function readWalletForm(formData: FormData) {
   };
 }
 
-function normalizeEmail(value: string) {
-  return value.trim().toLowerCase();
-}
-
 function membersPath(walletId: string) {
   return `/wallets/${walletId}/members`;
 }
 
-function buildOrigin(headerStore: Headers) {
-  const origin = headerStore.get("origin");
+async function getWalletCapacitySnapshot(client: any, walletId: string) {
+  const memberQuery = client.from("wallet_members").select("*", { count: "exact", head: true }).eq("wallet_id", walletId);
+  const invitationQuery = client
+    .from("wallet_invitations")
+    .select("*", { count: "exact", head: true })
+    .eq("wallet_id", walletId)
+    .eq("status", "pending");
 
-  if (origin) {
-    return origin;
-  }
+  const [memberResult, invitationResult] = await Promise.all([memberQuery, invitationQuery]);
 
-  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  return {
+    memberCount: memberResult.count ?? 0,
+    pendingInvitationCount: invitationResult.count ?? 0,
+    error: memberResult.error ?? invitationResult.error
+  };
+}
 
-  if (host) {
-    const protocol = headerStore.get("x-forwarded-proto") ?? (getSiteUrl().startsWith("https://") ? "https" : "http");
-    return `${protocol}://${host}`;
-  }
-
-  return getSiteUrl();
+function isWalletCapacityError(message: string) {
+  return message.includes("wallet_member_limit_reached");
 }
 
 export async function createWallet(formData: FormData) {
@@ -174,26 +176,16 @@ export async function createWallet(formData: FormData) {
 
 export async function createWalletInvitation(formData: FormData) {
   const walletId = String(formData.get("wallet_id") ?? "").trim();
-  const invitedEmail = normalizeEmail(String(formData.get("invited_email") ?? ""));
   const role = String(formData.get("role") ?? "viewer").trim() as "editor" | "viewer";
   const redirectPath = membersPath(walletId);
   const { supabase, user } = await requireUser();
-  const admin = createAdminClient();
 
   if (!walletId) {
     redirect(withMessage("/wallets", "error", "Wallet tidak ditemukan."));
   }
 
-  if (!invitedEmail) {
-    redirect(withMessage(redirectPath, "error", "Email undangan wajib diisi."));
-  }
-
   if (!["editor", "viewer"].includes(role)) {
     redirect(withMessage(redirectPath, "error", "Peran undangan tidak valid."));
-  }
-
-  if (!admin) {
-    redirect(withMessage(redirectPath, "error", "SUPABASE_SECRET_KEY wajib diisi agar undangan dapat diproses."));
   }
 
   const profile = await ensureProfileForUser(user);
@@ -202,10 +194,9 @@ export async function createWalletInvitation(formData: FormData) {
     redirect(withMessage(redirectPath, "error", "Profile belum sinkron. Jalankan migrasi 0002 atau isi SUPABASE_SECRET_KEY."));
   }
 
-  const [{ data: membership, error: membershipError }, { data: wallet, error: walletError }, { data: inviterProfile, error: inviterError }] = await Promise.all([
+  const [{ data: membership, error: membershipError }, { data: wallet, error: walletError }] = await Promise.all([
     supabase.from("wallet_members").select("role").eq("wallet_id", walletId).eq("user_id", user.id).maybeSingle(),
-    supabase.from("wallets").select("id, name").eq("id", walletId).maybeSingle(),
-    supabase.from("profiles").select("full_name, email").eq("id", user.id).maybeSingle()
+    supabase.from("wallets").select("id, name").eq("id", walletId).maybeSingle()
   ]);
 
   if (membershipError || membership?.role !== "owner") {
@@ -216,60 +207,20 @@ export async function createWalletInvitation(formData: FormData) {
     redirect(withMessage(redirectPath, "error", walletError?.message ?? "Wallet tidak ditemukan."));
   }
 
-  if (inviterError) {
-    redirect(withMessage(redirectPath, "error", inviterError.message));
+  const capacity = await getWalletCapacitySnapshot(supabase, walletId);
+
+  if (capacity.error) {
+    redirect(withMessage(redirectPath, "error", capacity.error.message));
   }
 
-  if (normalizeEmail(user.email ?? "") === invitedEmail) {
-    redirect(withMessage(redirectPath, "error", "Anda sudah menjadi pemilik wallet ini. Tidak perlu mengundang email sendiri."));
-  }
-
-  const { data: invitedProfile, error: invitedProfileError } = await admin
-    .from("profiles")
-    .select("id, email")
-    .ilike("email", invitedEmail)
-    .maybeSingle();
-
-  if (invitedProfileError) {
-    redirect(withMessage(redirectPath, "error", invitedProfileError.message));
-  }
-
-  if (invitedProfile?.id) {
-    const { data: existingMember, error: existingMemberError } = await admin
-      .from("wallet_members")
-      .select("id")
-      .eq("wallet_id", walletId)
-      .eq("user_id", invitedProfile.id)
-      .maybeSingle();
-
-    if (existingMemberError) {
-      redirect(withMessage(redirectPath, "error", existingMemberError.message));
-    }
-
-    if (existingMember) {
-      redirect(withMessage(redirectPath, "error", "Email tersebut sudah menjadi anggota wallet."));
-    }
-  }
-
-  const { data: existingInvitation, error: existingInvitationError } = await supabase
-    .from("wallet_invitations")
-    .select("id")
-    .eq("wallet_id", walletId)
-    .ilike("invited_email", invitedEmail)
-    .in("status", ["pending", "expired"])
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (existingInvitationError) {
-    redirect(withMessage(redirectPath, "error", existingInvitationError.message));
+  if (capacity.memberCount + capacity.pendingInvitationCount >= MAX_WALLET_MEMBERS) {
+    redirect(withMessage(redirectPath, "error", WALLET_CAPACITY_REACHED_MESSAGE));
   }
 
   const token = randomBytes(24).toString("hex");
   const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString();
   const invitationPayload = {
     wallet_id: walletId,
-    invited_email: invitedEmail,
     role,
     token,
     status: "pending" as const,
@@ -279,26 +230,11 @@ export async function createWalletInvitation(formData: FormData) {
     updated_by: user.id
   };
 
-  const invitationResult = existingInvitation
-    ? await supabase
-        .from("wallet_invitations")
-        .update({
-          role,
-          token,
-          status: "pending",
-          invited_by: user.id,
-          expires_at: expiresAt,
-          accepted_by: null,
-          updated_by: user.id
-        })
-        .eq("id", existingInvitation.id)
-        .select("id, token, invited_email, role, expires_at")
-        .single()
-    : await supabase
-        .from("wallet_invitations")
-        .insert(invitationPayload)
-        .select("id, token, invited_email, role, expires_at")
-        .single();
+  const invitationResult = await supabase
+    .from("wallet_invitations")
+    .insert(invitationPayload)
+    .select("id, token, role, expires_at")
+    .single();
 
   const { data: invitation, error: invitationError } = invitationResult;
 
@@ -306,31 +242,8 @@ export async function createWalletInvitation(formData: FormData) {
     redirect(withMessage(redirectPath, "error", invitationError?.message ?? "Gagal membuat undangan wallet."));
   }
 
-  const headerStore = await headers();
-  const inviteUrl = new URL(`/invite/${invitation.token}`, buildOrigin(headerStore)).toString();
-  let deliveryMessage = `Undangan berhasil dikirim ke ${invitedEmail}.`;
-
-  try {
-    await sendWalletInvitationEmail({
-      inviteUrl,
-      invitedEmail: invitation.invited_email,
-      inviterName: inviterProfile?.full_name || inviterProfile?.email || user.email || "Pemilik wallet",
-      role: invitation.role,
-      walletName: wallet.name,
-      expiresAt: invitation.expires_at
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Gagal mengirim email undangan.";
-    console.error("createWalletInvitation:email-delivery-failed", {
-      walletId,
-      invitedEmail,
-      message
-    });
-    deliveryMessage = "Undangan berhasil dibuat, tetapi email otomatis belum terkirim. Salin tautan undangan dari daftar undangan aktif.";
-  }
-
   revalidatePath(redirectPath);
-  redirect(withMessage(redirectPath, "message", deliveryMessage));
+  redirect(withMessage(redirectPath, "message", `Tautan undangan ${invitation.role} berhasil dibuat.`));
 }
 
 export async function acceptWalletInvitation(formData: FormData) {
@@ -354,16 +267,12 @@ export async function acceptWalletInvitation(formData: FormData) {
 
   const { data: invitation, error: invitationError } = await admin
     .from("wallet_invitations")
-    .select("id, wallet_id, invited_email, role, status, expires_at")
+    .select("id, wallet_id, role, status, expires_at")
     .eq("token", token)
     .maybeSingle();
 
   if (invitationError || !invitation) {
     redirect(withMessage(`/invite/${token}`, "error", invitationError?.message ?? "Undangan tidak ditemukan."));
-  }
-
-  if (normalizeEmail(user.email ?? "") !== normalizeEmail(invitation.invited_email)) {
-    redirect(withMessage(`/invite/${token}`, "error", `Undangan ini hanya bisa diterima oleh ${invitation.invited_email}.`));
   }
 
   if (invitation.status === "accepted") {
@@ -398,34 +307,29 @@ export async function acceptWalletInvitation(formData: FormData) {
   }
 
   if (!existingMember) {
-    const { error: insertMemberError } = await admin.from("wallet_members").insert({
-      wallet_id: invitation.wallet_id,
-      user_id: user.id,
-      role: invitation.role,
-      created_by: user.id,
-      updated_by: user.id
-    });
+    const capacity = await getWalletCapacitySnapshot(admin, invitation.wallet_id);
 
-    if (insertMemberError) {
-      redirect(withMessage(`/invite/${token}`, "error", insertMemberError.message));
+    if (capacity.error) {
+      redirect(withMessage(`/invite/${token}`, "error", capacity.error.message));
+    }
+
+    if (capacity.memberCount + capacity.pendingInvitationCount > MAX_WALLET_MEMBERS) {
+      redirect(withMessage(`/invite/${token}`, "error", WALLET_ACCEPT_INVITATION_FULL_MESSAGE));
     }
   }
 
-  const { error: acceptError } = await admin
-    .from("wallet_invitations")
-    .update({
-      status: "accepted",
-      accepted_by: user.id,
-      updated_by: user.id
-    })
-    .eq("id", invitation.id);
+  const { data: acceptedWalletId, error: acceptError } = await admin.rpc("accept_wallet_invitation_atomic", {
+    invitation_token: token,
+    accepting_user_id: user.id
+  });
 
-  if (acceptError) {
-    redirect(withMessage(`/invite/${token}`, "error", acceptError.message));
+  if (acceptError || !acceptedWalletId) {
+    const errorMessage = acceptError?.message ?? "Gagal menerima undangan wallet.";
+    redirect(withMessage(`/invite/${token}`, "error", isWalletCapacityError(errorMessage) ? WALLET_ACCEPT_INVITATION_FULL_MESSAGE : errorMessage));
   }
 
   revalidatePath("/dashboard");
   revalidatePath("/wallets");
-  revalidatePath(membersPath(invitation.wallet_id));
-  redirect(withMessage(`/wallets/${invitation.wallet_id}`, "message", "Undangan berhasil diterima."));
+  revalidatePath(membersPath(acceptedWalletId));
+  redirect(withMessage(`/wallets/${acceptedWalletId}`, "message", "Undangan berhasil diterima."));
 }
