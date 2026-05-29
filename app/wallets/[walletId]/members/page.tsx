@@ -9,6 +9,7 @@ import { Notice } from "@/components/ui/notice";
 import { WalletTabs } from "@/components/wallet-tabs";
 import { InvitationShareActions } from "@/components/invitation-share-actions";
 import { getSiteUrl } from "@/lib/env";
+import { MAX_WALLET_MEMBERS, summarizeWalletCapacity } from "@/lib/wallet-capacity";
 
 export default async function MembersPage({
   params,
@@ -28,6 +29,7 @@ export default async function MembersPage({
   }
 
   const pendingInvitations = bundle.invitations.filter((invite) => invite.status === "pending");
+  const capacity = summarizeWalletCapacity(bundle.members, bundle.invitations);
   const siteUrl = getSiteUrl();
 
   return (
@@ -52,24 +54,35 @@ export default async function MembersPage({
           <p className="eyebrow">Undang anggota</p>
           <h3 className="headline-md mt-2">Aktifkan kolaborasi wallet</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Balance akan mencoba mengirim email otomatis. Jika pengiriman belum berhasil, undangan tetap tersimpan dan Anda bisa membagikan tautannya secara manual.
+            Buat tautan undangan berbasis token, lalu bagikan ke calon anggota yang ingin Anda tambahkan ke wallet ini.
           </p>
+          <div className="mt-4 rounded-xl bg-muted p-4">
+            <p className="font-label text-sm text-muted-foreground">Kapasitas wallet</p>
+            <p className="mt-2 metric text-2xl">
+              {capacity.occupiedSlots}/{MAX_WALLET_MEMBERS}
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {capacity.memberCount} anggota aktif + {capacity.pendingInvitationCount} undangan pending. Owner juga dihitung dalam batas ini.
+            </p>
+          </div>
           {bundle.wallet.role === "owner" ? (
-            <form action={createWalletInvitation} className="mt-6 grid gap-4">
-              <input type="hidden" name="wallet_id" value={walletId} />
-              <label className="block">
-                <span className="mb-2 block font-label text-sm text-muted-foreground">Email anggota</span>
-                <input name="invited_email" type="email" placeholder="partner@email.com" required />
-              </label>
-              <label className="block">
-                <span className="mb-2 block font-label text-sm text-muted-foreground">Hak akses</span>
-                <select name="role" defaultValue="viewer">
-                  <option value="viewer">Viewer</option>
-                  <option value="editor">Editor</option>
-                </select>
-              </label>
-              <SubmitButton pendingText="Mengirim undangan...">Kirim undangan email</SubmitButton>
-            </form>
+            capacity.isFull ? (
+              <div className="mt-6">
+                <Notice>Wallet sudah penuh. Selesaikan atau batalkan undangan pending sebelum menambah anggota baru.</Notice>
+              </div>
+            ) : (
+              <form action={createWalletInvitation} className="mt-6 grid gap-4">
+                <input type="hidden" name="wallet_id" value={walletId} />
+                <label className="block">
+                  <span className="mb-2 block font-label text-sm text-muted-foreground">Hak akses</span>
+                  <select name="role" defaultValue="viewer">
+                    <option value="viewer">Viewer</option>
+                    <option value="editor">Editor</option>
+                  </select>
+                </label>
+                <SubmitButton pendingText="Membuat tautan...">Buat tautan undangan</SubmitButton>
+              </form>
+            )
           ) : (
             <div className="mt-6">
               <Notice>Hanya owner wallet yang dapat mengundang anggota baru.</Notice>
@@ -85,7 +98,7 @@ export default async function MembersPage({
                 <div key={invite.id} className="rounded-xl bg-muted p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="font-medium">{invite.invited_email}</p>
+                      <p className="font-medium">Undangan {invite.role}</p>
                       <p className="mt-1 text-sm text-muted-foreground">
                         Berlaku sampai{" "}
                         {new Intl.DateTimeFormat("id-ID", {
@@ -99,7 +112,7 @@ export default async function MembersPage({
                   {bundle.wallet.role === "owner" ? (
                     <InvitationShareActions
                       inviteUrl={`${siteUrl}/invite/${invite.token}`}
-                      invitedEmail={invite.invited_email}
+                      role={invite.role}
                       walletName={bundle.wallet.name}
                     />
                   ) : null}
