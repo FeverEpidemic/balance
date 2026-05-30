@@ -7,6 +7,15 @@ import type {
   DashboardCategorySpend,
   DashboardData,
   DashboardRecentTransaction,
+  RecurringTransactionListItem,
+  RecurringTransactionRow,
+  RecurringTransactionsPageData,
+  SavingContributionItem,
+  SavingEntryListItem,
+  SavingEntryRow,
+  SavingListItem,
+  SavingRow,
+  SavingsPageData,
   ShellData,
   TemplateRow,
   TransactionRow,
@@ -24,10 +33,49 @@ function isSameMonth(dateValue: string, month: string) {
   return dateValue.slice(0, 7) === month;
 }
 
+function formatRecurringFrequencyLabel(row: RecurringTransactionRow) {
+  const intervalLabel = row.interval_count > 1 ? `${row.interval_count} ` : "";
+
+  if (row.frequency === "daily") {
+    return row.interval_count > 1 ? `Setiap ${intervalLabel}hari` : "Harian";
+  }
+
+  if (row.frequency === "weekly") {
+    return row.interval_count > 1 ? `Setiap ${intervalLabel}minggu` : "Mingguan";
+  }
+
+  return row.interval_count > 1 ? `Setiap ${intervalLabel}bulan` : "Bulanan";
+}
+
 export function sumBalance(transactions: TransactionRow[]) {
   return transactions.reduce((total, transaction) => {
     return total + (transaction.kind === "income" ? transaction.amount : -transaction.amount);
   }, 0);
+}
+
+export function sumSavingFlow(entries: SavingEntryRow[]) {
+  return entries.reduce((total, entry) => total + (entry.entry_type === "deposit" ? entry.amount : -entry.amount), 0);
+}
+
+export function sumSavingBalance(savings: SavingRow[]) {
+  return savings.reduce((total, saving) => total + saving.current_balance, 0);
+}
+
+export function buildWalletBalanceSummary(args: {
+  transactions: TransactionRow[];
+  savings: SavingRow[];
+  savingEntries: SavingEntryRow[];
+}) {
+  const transactionBalance = sumBalance(args.transactions);
+  const savingFlow = sumSavingFlow(args.savingEntries);
+  const savingBalance = sumSavingBalance(args.savings);
+  const availableBalance = transactionBalance - savingFlow;
+
+  return {
+    availableBalance,
+    savingBalance,
+    totalBalance: availableBalance + savingBalance
+  };
 }
 
 export function getCurrentUserRole(memberships: WalletMemberRow[], walletId: string): WalletRole {
@@ -48,14 +96,18 @@ export function buildWalletSummaries(args: {
   wallets: WalletRow[];
   memberRows: WalletMemberRow[];
   transactions: TransactionRow[];
+  savings: SavingRow[];
+  savingEntries: SavingEntryRow[];
   budgets: BudgetRow[];
   month: string;
 }) {
-  const { memberships, wallets, memberRows, transactions, budgets, month } = args;
+  const { memberships, wallets, memberRows, transactions, savings, savingEntries, budgets, month } = args;
   const currentRange = getMonthDateRange(month);
   const roleByWallet = new Map(memberships.map((membership) => [membership.wallet_id, membership.role]));
   const memberCountByWallet = new Map<string, number>();
   const transactionByWallet = new Map<string, TransactionRow[]>();
+  const savingByWallet = new Map<string, SavingRow[]>();
+  const savingEntriesByWallet = new Map<string, SavingEntryRow[]>();
   const budgetByWallet = new Map<string, BudgetRow[]>();
 
   memberRows.forEach((row) => {
@@ -68,6 +120,18 @@ export function buildWalletSummaries(args: {
     transactionByWallet.set(row.wallet_id, current);
   });
 
+  savings.forEach((row) => {
+    const current = savingByWallet.get(row.wallet_id) ?? [];
+    current.push(row);
+    savingByWallet.set(row.wallet_id, current);
+  });
+
+  savingEntries.forEach((row) => {
+    const current = savingEntriesByWallet.get(row.wallet_id) ?? [];
+    current.push(row);
+    savingEntriesByWallet.set(row.wallet_id, current);
+  });
+
   budgets.forEach((row) => {
     const current = budgetByWallet.get(row.wallet_id) ?? [];
     current.push(row);
@@ -77,10 +141,17 @@ export function buildWalletSummaries(args: {
   return wallets
     .map((wallet) => {
       const walletTransactions = transactionByWallet.get(wallet.id) ?? [];
+      const walletSavings = savingByWallet.get(wallet.id) ?? [];
+      const walletSavingEntries = savingEntriesByWallet.get(wallet.id) ?? [];
       const monthExpenses = walletTransactions
         .filter((row) => row.kind === "expense" && row.happened_at.slice(0, 10) >= currentRange.start && row.happened_at.slice(0, 10) <= currentRange.end)
         .reduce((total, row) => total + row.amount, 0);
       const monthBudget = (budgetByWallet.get(wallet.id) ?? []).reduce((total, row) => total + row.amount, 0);
+      const balances = buildWalletBalanceSummary({
+        transactions: walletTransactions,
+        savings: walletSavings,
+        savingEntries: walletSavingEntries
+      });
 
       return {
         id: wallet.id,
@@ -88,7 +159,9 @@ export function buildWalletSummaries(args: {
         kind: wallet.kind,
         role: roleByWallet.get(wallet.id) ?? "viewer",
         members: memberCountByWallet.get(wallet.id) ?? 0,
-        balance: sumBalance(walletTransactions),
+        availableBalance: balances.availableBalance,
+        savingBalance: balances.savingBalance,
+        totalBalance: balances.totalBalance,
         spentThisMonth: monthExpenses,
         budgetThisMonth: monthBudget
       } satisfies WalletSummary;
@@ -150,8 +223,123 @@ export function buildTransactionListItems(transactions: TransactionRow[], catego
     happenedAt: transaction.happened_at,
     splitType: transaction.split_type,
     splitLabel: transaction.split_type === "equal" ? "Split rata" : transaction.split_type === "custom" ? "Split custom" : "-",
-    title: transaction.note || (transaction.kind === "income" ? "Pemasukan" : "Pengeluaran")
+    title: transaction.note || (transaction.kind === "income" ? "Pemasukan" : "Pengeluaran"),
+    isRecurring: Boolean(transaction.recurring_transaction_id)
   }));
+}
+
+export function buildRecurringTransactionListItems(recurringTransactions: RecurringTransactionRow[], categories: CategoryRow[]) {
+  const categoryById = new Map(categories.map((category) => [category.id, category]));
+
+  return [...recurringTransactions]
+    .sort((left, right) => {
+      const statusRank = { active: 0, paused: 1, ended: 2 };
+      return statusRank[left.status] - statusRank[right.status] || left.next_run_at.localeCompare(right.next_run_at);
+    })
+    .map((row) => ({
+      id: row.id,
+      kind: row.kind,
+      categoryId: row.category_id,
+      categoryName: row.category_id ? categoryById.get(row.category_id)?.name ?? "Tanpa kategori" : "Tanpa kategori",
+      amount: row.amount,
+      note: row.note,
+      frequency: row.frequency,
+      intervalCount: row.interval_count,
+      frequencyLabel: formatRecurringFrequencyLabel(row),
+      startDate: row.start_date,
+      endDate: row.end_date,
+      nextRunAt: row.next_run_at,
+      nextRunLabel: new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(row.next_run_at)),
+      status: row.status,
+      lastGeneratedAt: row.last_generated_at
+    })) satisfies RecurringTransactionListItem[];
+}
+
+export function buildSavingContributionItems(args: {
+  walletKind: WalletRow["kind"];
+  entries: SavingEntryRow[];
+  memberRows: WalletMemberRow[];
+  profileMap: Map<string, { full_name: string | null; email: string | null }>;
+}) {
+  const { walletKind, entries, memberRows, profileMap } = args;
+
+  if (walletKind !== "shared") {
+    return [] satisfies SavingContributionItem[];
+  }
+
+  const totals = new Map<string, number>();
+
+  entries
+    .filter((entry) => entry.entry_type === "deposit" && entry.member_user_id)
+    .forEach((entry) => {
+      const memberUserId = entry.member_user_id as string;
+      totals.set(memberUserId, (totals.get(memberUserId) ?? 0) + entry.amount);
+    });
+
+  return memberRows
+    .map((member) => {
+      const profile = profileMap.get(member.user_id);
+      return {
+        memberUserId: member.user_id,
+        memberName: profile?.full_name || profile?.email || member.user_id,
+        totalContributed: totals.get(member.user_id) ?? 0
+      } satisfies SavingContributionItem;
+    })
+    .filter((item) => item.totalContributed > 0)
+    .sort((left, right) => right.totalContributed - left.totalContributed || left.memberName.localeCompare(right.memberName, "id-ID"));
+}
+
+export function buildSavingListItems(args: {
+  wallet: WalletRow;
+  savings: SavingRow[];
+  savingEntries: SavingEntryRow[];
+  memberRows: WalletMemberRow[];
+  profileMap: Map<string, { full_name: string | null; email: string | null }>;
+}) {
+  const entriesBySaving = new Map<string, SavingEntryRow[]>();
+
+  args.savingEntries.forEach((entry) => {
+    const current = entriesBySaving.get(entry.saving_id) ?? [];
+    current.push(entry);
+    entriesBySaving.set(entry.saving_id, current);
+  });
+
+  return args.savings.map((saving) => {
+    const entries = (entriesBySaving.get(saving.id) ?? [])
+      .map((entry) => {
+        const profile = entry.member_user_id ? args.profileMap.get(entry.member_user_id) : null;
+
+        return {
+          id: entry.id,
+          type: entry.entry_type,
+          amount: entry.amount,
+          happenedAt: entry.happened_at,
+          note: entry.note,
+          memberUserId: entry.member_user_id,
+          memberName: profile?.full_name || profile?.email || null
+        } satisfies SavingEntryListItem;
+      })
+      .sort((left, right) => right.happenedAt.localeCompare(left.happenedAt));
+
+    const progressRatio = saving.target_amount && saving.target_amount > 0 ? Math.min((saving.current_balance / saving.target_amount) * 100, 100) : 0;
+
+    return {
+      id: saving.id,
+      name: saving.name,
+      currentBalance: saving.current_balance,
+      targetAmount: saving.target_amount,
+      progressRatio,
+      progressLabel: saving.target_amount && saving.target_amount > 0 ? `${Math.round(progressRatio)}% dari target` : "Tanpa target",
+      isArchived: saving.is_archived,
+      entries,
+      contributions: buildSavingContributionItems({
+        walletKind: args.wallet.kind,
+        entries,
+        memberRows: args.memberRows,
+        profileMap: args.profileMap
+      })
+    } satisfies SavingListItem;
+  });
 }
 
 export function buildBudgetProgressItems(args: {
@@ -191,16 +379,20 @@ export function createDashboardData(args: {
   budgets: BudgetRow[];
   recentTransactions: TransactionRow[];
   allTransactions: TransactionRow[];
+  savings: SavingRow[];
+  savingEntries: SavingEntryRow[];
   categories: CategoryRow[];
   splits: TransactionSplitRow[];
   month: string;
 }) {
-  const { shell, memberships, wallets, memberRows, budgets, recentTransactions, allTransactions, categories, splits, month } = args;
+  const { shell, memberships, wallets, memberRows, budgets, recentTransactions, allTransactions, savings, savingEntries, categories, splits, month } = args;
   const walletSummaries = buildWalletSummaries({
     memberships,
     wallets,
     memberRows,
     transactions: allTransactions,
+    savings,
+    savingEntries,
     budgets,
     month
   });
@@ -208,7 +400,9 @@ export function createDashboardData(args: {
 
   return {
     shell,
-    totalBalance: walletSummaries.reduce((total, wallet) => total + wallet.balance, 0),
+    totalAvailableBalance: walletSummaries.reduce((total, wallet) => total + wallet.availableBalance, 0),
+    totalSavingBalance: walletSummaries.reduce((total, wallet) => total + wallet.savingBalance, 0),
+    totalBalance: walletSummaries.reduce((total, wallet) => total + wallet.totalBalance, 0),
     totalExpenseThisMonth: currentMonthTransactions.filter((row) => row.kind === "expense").reduce((total, row) => total + row.amount, 0),
     outstandingSplit: splits.reduce((total, row) => total + Math.max(row.owed_amount - row.paid_amount, 0), 0),
     wallets: walletSummaries,
@@ -225,15 +419,19 @@ export function createWalletOverviewData(args: {
   categories: CategoryRow[];
   budgets: BudgetRow[];
   transactions: TransactionRow[];
+  savings: SavingRow[];
+  savingEntries: SavingEntryRow[];
   templates: TemplateRow[];
   month: string;
 }) {
-  const { shell, wallet, memberships, memberRows, categories, budgets, transactions, templates, month } = args;
+  const { shell, wallet, memberships, memberRows, categories, budgets, transactions, savings, savingEntries, templates, month } = args;
   const [summary] = buildWalletSummaries({
     memberships,
     wallets: [wallet],
     memberRows,
     transactions,
+    savings,
+    savingEntries,
     budgets,
     month
   });
@@ -304,6 +502,59 @@ export function createBudgetsPageData(args: {
       month: selectedMonth
     })
   } satisfies BudgetsPageData;
+}
+
+export function createRecurringTransactionsPageData(args: {
+  shell: ShellData;
+  wallet: WalletRow;
+  memberships: WalletMemberRow[];
+  categories: CategoryRow[];
+  recurringTransactions: RecurringTransactionRow[];
+}) {
+  const { shell, wallet, memberships, categories, recurringTransactions } = args;
+  const formCategories = categories.filter((category) => category.kind === "expense" || category.kind === "income");
+
+  return {
+    shell,
+    walletId: wallet.id,
+    walletName: wallet.name,
+    currentUserRole: getCurrentUserRole(memberships, wallet.id),
+    categories: formCategories,
+    recurringTransactions: buildRecurringTransactionListItems(
+      recurringTransactions.filter((row) => row.wallet_id === wallet.id),
+      formCategories
+    )
+  } satisfies RecurringTransactionsPageData;
+}
+
+export function createSavingsPageData(args: {
+  shell: ShellData;
+  wallet: WalletRow;
+  memberships: WalletMemberRow[];
+  memberRows: WalletMemberRow[];
+  profileMap: Map<string, { full_name: string | null; email: string | null }>;
+  savings: SavingRow[];
+  savingEntries: SavingEntryRow[];
+  walletSummary: WalletSummary;
+}) {
+  const { shell, wallet, memberships, memberRows, profileMap, savings, savingEntries, walletSummary } = args;
+
+  return {
+    shell,
+    walletId: wallet.id,
+    walletName: wallet.name,
+    walletKind: wallet.kind,
+    currentUserRole: getCurrentUserRole(memberships, wallet.id),
+    walletSummary,
+    members: memberRows,
+    savings: buildSavingListItems({
+      wallet,
+      savings: savings.filter((saving) => saving.wallet_id === wallet.id),
+      savingEntries: savingEntries.filter((entry) => entry.wallet_id === wallet.id),
+      memberRows,
+      profileMap
+    })
+  } satisfies SavingsPageData;
 }
 
 export function buildMonthlyReport(transactions: TransactionRow[]) {

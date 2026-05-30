@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 const tabs = [
   { slug: "", label: "Ringkasan" },
   { slug: "/transactions", label: "Transaksi" },
+  { slug: "/savings", label: "Saving" },
+  { slug: "/recurring", label: "Recurring" },
   { slug: "/budgets", label: "Budget" },
   { slug: "/reports", label: "Laporan" },
   { slug: "/members", label: "Anggota" },

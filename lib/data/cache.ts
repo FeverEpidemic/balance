@@ -5,6 +5,8 @@ export const DASHBOARD_CACHE_TTL_SECONDS = 60;
 export const WALLET_OVERVIEW_CACHE_TTL_SECONDS = 90;
 export const TRANSACTIONS_CACHE_TTL_SECONDS = 90;
 export const BUDGETS_CACHE_TTL_SECONDS = 120;
+export const RECURRING_CACHE_TTL_SECONDS = 90;
+export const SAVINGS_CACHE_TTL_SECONDS = 90;
 
 export function getDashboardCacheKey(userId: string) {
   return `user:${userId}:dashboard`;
@@ -20,6 +22,14 @@ export function getTransactionsCacheKey(userId: string, walletId: string, month:
 
 export function getBudgetsCacheKey(userId: string, walletId: string, month: string) {
   return `wallet:${walletId}:user:${userId}:budgets:${month}`;
+}
+
+export function getRecurringCacheKey(userId: string, walletId: string) {
+  return `wallet:${walletId}:user:${userId}:recurring`;
+}
+
+export function getSavingsCacheKey(userId: string, walletId: string) {
+  return `wallet:${walletId}:user:${userId}:savings`;
 }
 
 export async function invalidateDashboardCache(userId?: string) {

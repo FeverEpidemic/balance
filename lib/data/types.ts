@@ -1,6 +1,9 @@
 export type WalletRole = "owner" | "editor" | "viewer";
 export type WalletKind = "personal" | "shared";
 export type TransactionKind = "income" | "expense";
+export type RecurringFrequency = "daily" | "weekly" | "monthly";
+export type RecurringStatus = "active" | "paused" | "ended";
+export type SavingEntryType = "deposit" | "withdraw";
 
 export type ProfileRow = {
   id: string;
@@ -46,6 +49,24 @@ export type TransactionRow = {
   happened_at: string;
   note: string | null;
   split_type: "equal" | "custom" | null;
+  recurring_transaction_id: string | null;
+  recurring_scheduled_for: string | null;
+};
+
+export type RecurringTransactionRow = {
+  id: string;
+  wallet_id: string;
+  category_id: string | null;
+  kind: TransactionKind;
+  amount: number;
+  note: string | null;
+  frequency: RecurringFrequency;
+  interval_count: number;
+  start_date: string;
+  end_date: string | null;
+  next_run_at: string;
+  status: RecurringStatus;
+  last_generated_at: string | null;
 };
 
 export type InvitationRow = {
@@ -85,6 +106,26 @@ export type SettlementRow = {
   note: string | null;
 };
 
+export type SavingRow = {
+  id: string;
+  wallet_id: string;
+  name: string;
+  target_amount: number | null;
+  current_balance: number;
+  is_archived: boolean;
+};
+
+export type SavingEntryRow = {
+  id: string;
+  saving_id: string;
+  wallet_id: string;
+  entry_type: SavingEntryType;
+  amount: number;
+  happened_at: string;
+  note: string | null;
+  member_user_id: string | null;
+};
+
 export type ShellData = {
   userName: string;
   walletCount: number;
@@ -99,7 +140,9 @@ export type WalletSummary = {
   kind: WalletKind;
   role: WalletRole;
   members: number;
-  balance: number;
+  availableBalance: number;
+  savingBalance: number;
+  totalBalance: number;
   spentThisMonth: number;
   budgetThisMonth: number;
 };
@@ -124,6 +167,8 @@ export type DashboardCategorySpend = {
 
 export type DashboardData = {
   shell: ShellData;
+  totalAvailableBalance: number;
+  totalSavingBalance: number;
   totalBalance: number;
   totalExpenseThisMonth: number;
   outstandingSplit: number;
@@ -138,6 +183,9 @@ export type WalletBundle = {
   categories: CategoryRow[];
   budgets: BudgetRow[];
   members: WalletMemberRow[];
+  recurringTransactions: RecurringTransactionRow[];
+  savings: SavingRow[];
+  savingEntries: SavingEntryRow[];
   settlements: SettlementRow[];
   templates: TemplateRow[];
   transactions: TransactionRow[];
@@ -164,6 +212,45 @@ export type WalletOverviewData = {
   roleSummary: WalletRoleSummary[];
 };
 
+export type SavingEntryListItem = {
+  id: string;
+  type: SavingEntryType;
+  amount: number;
+  happenedAt: string;
+  note: string | null;
+  memberUserId: string | null;
+  memberName: string | null;
+};
+
+export type SavingContributionItem = {
+  memberUserId: string;
+  memberName: string;
+  totalContributed: number;
+};
+
+export type SavingListItem = {
+  id: string;
+  name: string;
+  currentBalance: number;
+  targetAmount: number | null;
+  progressRatio: number;
+  progressLabel: string;
+  isArchived: boolean;
+  entries: SavingEntryListItem[];
+  contributions: SavingContributionItem[];
+};
+
+export type SavingsPageData = {
+  shell: ShellData;
+  walletId: string;
+  walletName: string;
+  walletKind: WalletKind;
+  currentUserRole: WalletRole;
+  walletSummary: WalletSummary;
+  members: WalletMemberRow[];
+  savings: SavingListItem[];
+};
+
 export type TransactionListItem = {
   id: string;
   kind: TransactionKind;
@@ -175,6 +262,7 @@ export type TransactionListItem = {
   splitType: "equal" | "custom" | null;
   splitLabel: string;
   title: string;
+  isRecurring: boolean;
 };
 
 export type TransactionsPageData = {
@@ -185,6 +273,33 @@ export type TransactionsPageData = {
   selectedMonth: string;
   categories: CategoryRow[];
   transactions: TransactionListItem[];
+};
+
+export type RecurringTransactionListItem = {
+  id: string;
+  kind: TransactionKind;
+  categoryId: string | null;
+  categoryName: string;
+  amount: number;
+  note: string | null;
+  frequency: RecurringFrequency;
+  intervalCount: number;
+  frequencyLabel: string;
+  startDate: string;
+  endDate: string | null;
+  nextRunAt: string;
+  nextRunLabel: string;
+  status: RecurringStatus;
+  lastGeneratedAt: string | null;
+};
+
+export type RecurringTransactionsPageData = {
+  shell: ShellData;
+  walletId: string;
+  walletName: string;
+  currentUserRole: WalletRole;
+  categories: CategoryRow[];
+  recurringTransactions: RecurringTransactionListItem[];
 };
 
 export type BudgetProgressItem = {

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { parseNumberInput } from "@/lib/finance";
 
 export type MessageType = "error" | "message";
-export type WalletSection = "transactions" | "budgets" | "members" | "settlements" | "templates" | "reports";
+export type WalletSection = "transactions" | "budgets" | "members" | "settlements" | "templates" | "reports" | "recurring" | "savings";
 
 export function withMessage(path: string, type: MessageType, message: string) {
   return `${path}?${new URLSearchParams({ [type]: message }).toString()}`;

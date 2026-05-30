@@ -26,6 +26,26 @@ services:
     expose:
       - "3000"
 
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    image: balance-app:latest
+    platform: ${DOCKER_PLATFORM:-linux/arm64}
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      SCHEDULER_SUPABASE_URL: http://kong:8000
+      RECURRING_SCHEDULER_INTERVAL_MS: ${RECURRING_SCHEDULER_INTERVAL_MS:-60000}
+      RECURRING_SCHEDULER_BATCH_SIZE: ${RECURRING_SCHEDULER_BATCH_SIZE:-50}
+    command: ["node", "scripts/run-recurring-scheduler.mjs"]
+    depends_on:
+      - kong
+      - db
+      - rest
+
   proxy:
     image: caddy:2.9-alpine
     depends_on:

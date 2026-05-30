@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   buildMonthlyReport,
+  buildRecurringTransactionListItems,
   buildWalletSummaries,
+  createRecurringTransactionsPageData,
   createBudgetsPageData,
   createDashboardData,
   createTransactionsPageData
@@ -9,6 +11,7 @@ import {
 import type {
   BudgetRow,
   CategoryRow,
+  RecurringTransactionRow,
   ShellData,
   TransactionRow,
   TransactionSplitRow,
@@ -53,11 +56,29 @@ const budgets: BudgetRow[] = [
 ];
 
 const transactions: TransactionRow[] = [
-  { id: "t1", wallet_id: "w1", category_id: "c1", kind: "expense", amount: 200000, happened_at: "2026-05-10", note: "Belanja mingguan", split_type: null },
-  { id: "t2", wallet_id: "w1", category_id: "c2", kind: "income", amount: 2000000, happened_at: "2026-05-01", note: null, split_type: null },
-  { id: "t3", wallet_id: "w1", category_id: "c3", kind: "expense", amount: 800000, happened_at: "2026-05-02", note: "Bayar kontrakan", split_type: "equal" },
-  { id: "t4", wallet_id: "w1", category_id: "c1", kind: "expense", amount: 100000, happened_at: "2026-04-15", note: null, split_type: null },
-  { id: "t5", wallet_id: "w2", category_id: "c4", kind: "expense", amount: 150000, happened_at: "2026-05-11", note: "Ojek", split_type: null }
+  { id: "t1", wallet_id: "w1", category_id: "c1", kind: "expense", amount: 200000, happened_at: "2026-05-10", note: "Belanja mingguan", split_type: null, recurring_transaction_id: "r1", recurring_scheduled_for: "2026-05-10T00:00:00.000Z" },
+  { id: "t2", wallet_id: "w1", category_id: "c2", kind: "income", amount: 2000000, happened_at: "2026-05-01", note: null, split_type: null, recurring_transaction_id: null, recurring_scheduled_for: null },
+  { id: "t3", wallet_id: "w1", category_id: "c3", kind: "expense", amount: 800000, happened_at: "2026-05-02", note: "Bayar kontrakan", split_type: "equal", recurring_transaction_id: null, recurring_scheduled_for: null },
+  { id: "t4", wallet_id: "w1", category_id: "c1", kind: "expense", amount: 100000, happened_at: "2026-04-15", note: null, split_type: null, recurring_transaction_id: null, recurring_scheduled_for: null },
+  { id: "t5", wallet_id: "w2", category_id: "c4", kind: "expense", amount: 150000, happened_at: "2026-05-11", note: "Ojek", split_type: null, recurring_transaction_id: null, recurring_scheduled_for: null }
+];
+
+const recurringTransactions: RecurringTransactionRow[] = [
+  {
+    id: "r1",
+    wallet_id: "w1",
+    category_id: "c1",
+    kind: "expense",
+    amount: 200000,
+    note: "Belanja mingguan",
+    frequency: "weekly",
+    interval_count: 1,
+    start_date: "2026-05-01",
+    end_date: null,
+    next_run_at: "2026-06-05T00:00:00.000Z",
+    status: "active",
+    last_generated_at: "2026-05-29T00:00:00.000Z"
+  }
 ];
 
 const splits: TransactionSplitRow[] = [{ wallet_id: "w1", owed_amount: 300000, paid_amount: 100000 }];
@@ -127,7 +148,33 @@ describe("data mappers", () => {
       title: "Pemasukan",
       categoryName: "Gaji"
     });
+    expect(pageData.transactions[0].isRecurring).toBe(true);
     expect(pageData.currentUserRole).toBe("owner");
+  });
+
+  it("builds recurring transaction list items with labels", () => {
+    const items = buildRecurringTransactionListItems(recurringTransactions, categories.filter((category) => category.wallet_id === "w1"));
+
+    expect(items[0]).toMatchObject({
+      id: "r1",
+      categoryName: "Makan",
+      frequencyLabel: "Mingguan",
+      status: "active"
+    });
+  });
+
+  it("creates recurring page data for a wallet", () => {
+    const pageData = createRecurringTransactionsPageData({
+      shell,
+      wallet: wallets[0],
+      memberships,
+      categories: categories.filter((category) => category.wallet_id === "w1"),
+      recurringTransactions
+    });
+
+    expect(pageData.currentUserRole).toBe("owner");
+    expect(pageData.recurringTransactions).toHaveLength(1);
+    expect(pageData.recurringTransactions[0].nextRunLabel).toBeTruthy();
   });
 
   it("creates budget progress rows with usage labels", () => {

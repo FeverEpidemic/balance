@@ -5,6 +5,7 @@
 ## Included
 
 - Responsive App Router pages for login, register, invite, dashboard, wallets, transactions, budgets, reports, members, settlements, and templates
+- Recurring transaction management with daily, weekly, and monthly schedules plus background scheduler processing
 - Design tokens and UI system derived from the provided serene finance theme
 - Supabase-hosted SSR auth integration for Next.js App Router
 - Supabase-ready schema with RLS for wallets, members, invitations, budgets, transactions, splits, settlements, and templates
@@ -42,6 +43,7 @@ If you want to use Supabase Cloud instead of the self-hosted Docker stack in thi
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
+SCHEDULER_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 SUPABASE_SECRET_KEY=YOUR_SECRET_KEY
 ```
@@ -99,6 +101,7 @@ If the VPS itself is already ARM64, Docker will build the correct architecture n
 ## Notes
 
 - The core UI now reads and writes live data for auth, wallets, transactions, budgets, templates, and settlements.
+- Recurring transaction generation runs via the `scheduler` service in Docker Compose and calls the database RPC with the server key.
 - Wallet member invitations are token-based. Owner membuat tautan `/invite/[token]` dari halaman anggota, lalu membagikannya ke calon anggota.
 - SMTP di stack ini tetap dipakai untuk email Auth Supabase seperti verifikasi signup, bukan lagi untuk invitation wallet.
 

@@ -5,7 +5,10 @@ import type {
   CategoryRow,
   InvitationRow,
   ProfileRow,
+  RecurringTransactionRow,
   SettlementRow,
+  SavingEntryRow,
+  SavingRow,
   TemplateRow,
   TransactionRow,
   TransactionSplitRow,
@@ -81,7 +84,7 @@ export async function queryTransactions(walletIds: string[], limit?: number) {
   const supabase = await createClient();
   let query = supabase
     .from("transactions")
-    .select("id, wallet_id, category_id, kind, amount, happened_at, note, split_type")
+    .select("id, wallet_id, category_id, kind, amount, happened_at, note, split_type, recurring_transaction_id, recurring_scheduled_for")
     .in("wallet_id", walletIds)
     .order("happened_at", { ascending: false });
 
@@ -96,6 +99,64 @@ export async function queryTransactions(walletIds: string[], limit?: number) {
   }
 
   return (data ?? []) as TransactionRow[];
+}
+
+export async function queryRecurringTransactions(walletIds: string[]) {
+  if (walletIds.length === 0) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("recurring_transactions")
+    .select("id, wallet_id, category_id, kind, amount, note, frequency, interval_count, start_date, end_date, next_run_at, status, last_generated_at")
+    .in("wallet_id", walletIds)
+    .order("next_run_at", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as RecurringTransactionRow[];
+}
+
+export async function querySavings(walletIds: string[]) {
+  if (walletIds.length === 0) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("savings")
+    .select("id, wallet_id, name, target_amount, current_balance, is_archived")
+    .in("wallet_id", walletIds)
+    .order("is_archived", { ascending: true })
+    .order("name");
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as SavingRow[];
+}
+
+export async function querySavingEntries(walletIds: string[]) {
+  if (walletIds.length === 0) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("saving_entries")
+    .select("id, saving_id, wallet_id, entry_type, amount, happened_at, note, member_user_id")
+    .in("wallet_id", walletIds)
+    .order("happened_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as SavingEntryRow[];
 }
 
 export async function queryCategories(walletIds: string[]) {

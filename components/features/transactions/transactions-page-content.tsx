@@ -1,6 +1,7 @@
 import { createTransaction, deleteTransaction, updateTransaction } from "@/app/actions/transactions";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
@@ -95,7 +96,10 @@ export function TransactionsPageContent({
               <div key={transaction.id} className="rounded-xl bg-muted p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="font-medium">{transaction.title}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-medium">{transaction.title}</p>
+                      {transaction.isRecurring ? <Badge>Recurring</Badge> : null}
+                    </div>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {transaction.categoryName} - {transaction.splitLabel}
                     </p>
