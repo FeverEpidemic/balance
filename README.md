@@ -28,6 +28,9 @@ Untuk self-hosted local stack, file `.env.example` sudah menyiapkan email Auth S
 
 Kalau ingin memakai SMTP sungguhan untuk email Auth Supabase, ganti `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, dan `SMTP_FROM` di `.env`.
 
+Redis cache v1 untuk read path dashboard dan wallet utama juga aktif di stack self-hosted ini. Default lokalnya memakai `REDIS_URL=redis://redis:6379`. Jika ingin mematikan cache sementara, set `REDIS_ENABLED=false`.
+Untuk observability ringan, aktifkan `REDIS_METRICS_ENABLED=true`. Aplikasi akan mencetak summary hit, miss, write, error, dan invalidation ke stdout setiap `REDIS_METRICS_INTERVAL_MS` milidetik.
+
 ## Use Hosted Supabase
 
 If you want to use Supabase Cloud instead of the self-hosted Docker stack in this repo, use this setup:

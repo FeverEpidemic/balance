@@ -1,7 +1,16 @@
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { dateStringToISO, getTodayDateString, isValidDateString, toDateInputValue } from "../../lib/utils";
 
 describe("date utilities", () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-29T08:00:00.000Z"));
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   it("returns today's date in HTML date input format", () => {
     expect(getTodayDateString()).toBe("2026-05-29");
   });

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { parseNumberInput } from "@/lib/finance";
 import { requireUser } from "@/lib/auth";
+import { invalidateWalletCache } from "@/lib/data/cache";
 
 function redirectToTemplates(walletId: string, type: "error" | "message", message: string) {
   redirect(`/wallets/${walletId}/templates?${new URLSearchParams({ [type]: message }).toString()}`);
@@ -33,6 +34,7 @@ export async function createTemplate(formData: FormData) {
     redirectToTemplates(walletId, "error", error.message);
   }
 
+  await invalidateWalletCache(walletId);
   revalidatePath(`/wallets/${walletId}/templates`);
   redirectToTemplates(walletId, "message", "Template berhasil disimpan.");
 }

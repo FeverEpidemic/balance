@@ -1,6 +1,7 @@
 "use server";
 
 import { requireUser } from "@/lib/auth";
+import { invalidateWalletReadCaches } from "@/lib/data/cache";
 import { getNumericValue, getStringValue, redirectToWalletSection, revalidateWalletPaths } from "@/app/actions/_shared";
 
 function readBudgetForm(formData: FormData) {
@@ -39,7 +40,9 @@ export async function createBudget(formData: FormData) {
     redirectToWalletSection(walletId, "budgets", "error", error.message);
   }
 
+  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
   revalidateWalletPaths(walletId, {
+    includeDashboard: true,
     includeOverview: true,
     sections: ["budgets"]
   });
@@ -73,7 +76,9 @@ export async function updateBudget(formData: FormData) {
     redirectToWalletSection(walletId, "budgets", "error", error.message);
   }
 
+  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
   revalidateWalletPaths(walletId, {
+    includeDashboard: true,
     includeOverview: true,
     sections: ["budgets"]
   });
@@ -94,7 +99,9 @@ export async function deleteBudget(formData: FormData) {
     redirectToWalletSection(walletId, "budgets", "error", error.message);
   }
 
+  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
   revalidateWalletPaths(walletId, {
+    includeDashboard: true,
     includeOverview: true,
     sections: ["budgets"]
   });

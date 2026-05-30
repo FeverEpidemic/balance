@@ -23,3 +23,15 @@ export function getSupabaseServerKey() {
 export function getSiteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL ?? process.env.APP_SITE_URL ?? "http://localhost:3000";
 }
+
+export function getRedisUrl() {
+  return process.env.REDIS_URL?.trim() || null;
+}
+
+export function getRedisEnabled() {
+  return process.env.REDIS_ENABLED?.trim() || null;
+}
+
+export function getRedisKeyPrefix() {
+  return process.env.REDIS_KEY_PREFIX?.trim() || "balance";
+}

@@ -1,6 +1,7 @@
 "use server";
 
 import { requireUser } from "@/lib/auth";
+import { invalidateWalletReadCaches } from "@/lib/data/cache";
 import { getNullableText, getNumericValue, getStringValue, redirectToWalletSection, revalidateWalletPaths } from "@/app/actions/_shared";
 import { dateStringToISO, isValidDateString } from "@/lib/utils";
 
@@ -43,6 +44,7 @@ export async function createTransaction(formData: FormData) {
     redirectToWalletSection(walletId, "transactions", "error", error.message);
   }
 
+  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
   revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
@@ -84,6 +86,7 @@ export async function updateTransaction(formData: FormData) {
     redirectToWalletSection(walletId, "transactions", "error", error.message);
   }
 
+  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
   revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
@@ -106,6 +109,7 @@ export async function deleteTransaction(formData: FormData) {
     redirectToWalletSection(walletId, "transactions", "error", error.message);
   }
 
+  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
   revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,

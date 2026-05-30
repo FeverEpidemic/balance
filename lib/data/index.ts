@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { getCurrentMonthKey } from "@/lib/finance";
+import { redisCache } from "@/lib/redis";
 import {
   buildMonthlyReport,
   buildWalletSummaries,
@@ -8,6 +9,16 @@ import {
   createTransactionsPageData,
   createWalletOverviewData
 } from "@/lib/data/mappers";
+import {
+  BUDGETS_CACHE_TTL_SECONDS,
+  DASHBOARD_CACHE_TTL_SECONDS,
+  getBudgetsCacheKey,
+  getDashboardCacheKey,
+  getTransactionsCacheKey,
+  getWalletOverviewCacheKey,
+  TRANSACTIONS_CACHE_TTL_SECONDS,
+  WALLET_OVERVIEW_CACHE_TTL_SECONDS
+} from "@/lib/data/cache";
 import {
   queryBudgets,
   queryCategories,
@@ -54,30 +65,32 @@ export const getShellData = cache(async (userId: string) => {
 });
 
 export const getDashboardData = cache(async (userId: string) => {
-  const month = getCurrentMonthKey();
-  const { memberships, walletIds } = await getMembershipContext(userId);
-  const [shell, wallets, memberRows, budgets, recentTransactions, categories, splits, allTransactions] = await Promise.all([
-    getShellData(userId),
-    queryWallets(walletIds),
-    queryWalletMembers(walletIds),
-    queryBudgets(walletIds, month),
-    queryTransactions(walletIds, 8),
-    queryCategories(walletIds),
-    queryTransactionSplits(walletIds),
-    queryTransactions(walletIds)
-  ]);
+  return redisCache.getOrSet(getDashboardCacheKey(userId), DASHBOARD_CACHE_TTL_SECONDS, async () => {
+    const month = getCurrentMonthKey();
+    const { memberships, walletIds } = await getMembershipContext(userId);
+    const [shell, wallets, memberRows, budgets, recentTransactions, categories, splits, allTransactions] = await Promise.all([
+      getShellData(userId),
+      queryWallets(walletIds),
+      queryWalletMembers(walletIds),
+      queryBudgets(walletIds, month),
+      queryTransactions(walletIds, 8),
+      queryCategories(walletIds),
+      queryTransactionSplits(walletIds),
+      queryTransactions(walletIds)
+    ]);
 
-  return createDashboardData({
-    shell,
-    memberships,
-    wallets,
-    memberRows,
-    budgets,
-    recentTransactions,
-    allTransactions,
-    categories,
-    splits,
-    month
+    return createDashboardData({
+      shell,
+      memberships,
+      wallets,
+      memberRows,
+      budgets,
+      recentTransactions,
+      allTransactions,
+      categories,
+      splits,
+      month
+    });
   });
 });
 
@@ -135,100 +148,106 @@ export const getWalletBundle = cache(async (userId: string, walletId: string) =>
 });
 
 export const getWalletOverviewData = cache(async (userId: string, walletId: string) => {
-  const month = getCurrentMonthKey();
-  const { memberships, walletIds } = await getMembershipContext(userId);
+  return redisCache.getOrSet(getWalletOverviewCacheKey(userId, walletId), WALLET_OVERVIEW_CACHE_TTL_SECONDS, async () => {
+    const month = getCurrentMonthKey();
+    const { memberships, walletIds } = await getMembershipContext(userId);
 
-  if (!walletIds.includes(walletId)) {
-    return null;
-  }
+    if (!walletIds.includes(walletId)) {
+      return null;
+    }
 
-  const [shell, wallets, memberRows, categories, budgets, transactions, templates] = await Promise.all([
-    getShellData(userId),
-    queryWallets([walletId]),
-    queryWalletMembers([walletId]),
-    queryCategories([walletId]),
-    queryBudgets([walletId], month),
-    queryTransactions([walletId]),
-    queryTemplates([walletId])
-  ]);
+    const [shell, wallets, memberRows, categories, budgets, transactions, templates] = await Promise.all([
+      getShellData(userId),
+      queryWallets([walletId]),
+      queryWalletMembers([walletId]),
+      queryCategories([walletId]),
+      queryBudgets([walletId], month),
+      queryTransactions([walletId]),
+      queryTemplates([walletId])
+    ]);
 
-  const wallet = wallets[0];
+    const wallet = wallets[0];
 
-  if (!wallet) {
-    return null;
-  }
+    if (!wallet) {
+      return null;
+    }
 
-  return createWalletOverviewData({
-    shell,
-    wallet,
-    memberships,
-    memberRows,
-    categories,
-    budgets,
-    transactions,
-    templates,
-    month
+    return createWalletOverviewData({
+      shell,
+      wallet,
+      memberships,
+      memberRows,
+      categories,
+      budgets,
+      transactions,
+      templates,
+      month
+    });
   });
 });
 
 export const getTransactionsPageData = cache(async (userId: string, walletId: string, selectedMonth: string) => {
-  const { memberships, walletIds } = await getMembershipContext(userId);
+  return redisCache.getOrSet(getTransactionsCacheKey(userId, walletId, selectedMonth), TRANSACTIONS_CACHE_TTL_SECONDS, async () => {
+    const { memberships, walletIds } = await getMembershipContext(userId);
 
-  if (!walletIds.includes(walletId)) {
-    return null;
-  }
+    if (!walletIds.includes(walletId)) {
+      return null;
+    }
 
-  const [shell, wallets, categories, transactions] = await Promise.all([
-    getShellData(userId),
-    queryWallets([walletId]),
-    queryCategories([walletId]),
-    queryTransactions([walletId])
-  ]);
+    const [shell, wallets, categories, transactions] = await Promise.all([
+      getShellData(userId),
+      queryWallets([walletId]),
+      queryCategories([walletId]),
+      queryTransactions([walletId])
+    ]);
 
-  const wallet = wallets[0];
+    const wallet = wallets[0];
 
-  if (!wallet) {
-    return null;
-  }
+    if (!wallet) {
+      return null;
+    }
 
-  return createTransactionsPageData({
-    shell,
-    wallet,
-    memberships,
-    categories,
-    transactions,
-    selectedMonth
+    return createTransactionsPageData({
+      shell,
+      wallet,
+      memberships,
+      categories,
+      transactions,
+      selectedMonth
+    });
   });
 });
 
 export const getBudgetsPageData = cache(async (userId: string, walletId: string, selectedMonth: string) => {
-  const { memberships, walletIds } = await getMembershipContext(userId);
+  return redisCache.getOrSet(getBudgetsCacheKey(userId, walletId, selectedMonth), BUDGETS_CACHE_TTL_SECONDS, async () => {
+    const { memberships, walletIds } = await getMembershipContext(userId);
 
-  if (!walletIds.includes(walletId)) {
-    return null;
-  }
+    if (!walletIds.includes(walletId)) {
+      return null;
+    }
 
-  const [shell, wallets, categories, budgets, transactions] = await Promise.all([
-    getShellData(userId),
-    queryWallets([walletId]),
-    queryCategories([walletId]),
-    queryBudgets([walletId], selectedMonth),
-    queryTransactions([walletId])
-  ]);
+    const [shell, wallets, categories, budgets, transactions] = await Promise.all([
+      getShellData(userId),
+      queryWallets([walletId]),
+      queryCategories([walletId]),
+      queryBudgets([walletId], selectedMonth),
+      queryTransactions([walletId])
+    ]);
 
-  const wallet = wallets[0];
+    const wallet = wallets[0];
 
-  if (!wallet) {
-    return null;
-  }
+    if (!wallet) {
+      return null;
+    }
 
-  return createBudgetsPageData({
-    shell,
-    wallet,
-    memberships,
-    categories,
-    budgets,
-    transactions,
-    selectedMonth
+    return createBudgetsPageData({
+      shell,
+      wallet,
+      memberships,
+      categories,
+      budgets,
+      transactions,
+      selectedMonth
+    });
   });
 });

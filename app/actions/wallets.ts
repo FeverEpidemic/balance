@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { ensureProfileForUser } from "@/lib/profile";
+import { invalidateDashboardCache, invalidateWalletReadCaches } from "@/lib/data/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentMonthKey } from "@/lib/finance";
 import { getBudgetPresetRows, getStarterCategories, getStarterTemplates, type BudgetPreset, type WalletSetupPreset } from "@/lib/wallet-starter-templates";
@@ -169,6 +170,7 @@ export async function createWallet(formData: FormData) {
     }
   }
 
+  await invalidateDashboardCache();
   revalidatePath("/dashboard");
   revalidatePath("/wallets");
   redirect(`/wallets/${wallet.id}`);
@@ -242,6 +244,7 @@ export async function createWalletInvitation(formData: FormData) {
     redirect(withMessage(redirectPath, "error", invitationError?.message ?? "Gagal membuat undangan wallet."));
   }
 
+  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
   revalidatePath(redirectPath);
   redirect(withMessage(redirectPath, "message", `Tautan undangan ${invitation.role} berhasil dibuat.`));
 }
@@ -328,6 +331,7 @@ export async function acceptWalletInvitation(formData: FormData) {
     redirect(withMessage(`/invite/${token}`, "error", isWalletCapacityError(errorMessage) ? WALLET_ACCEPT_INVITATION_FULL_MESSAGE : errorMessage));
   }
 
+  await invalidateWalletReadCaches(acceptedWalletId, { includeDashboards: true });
   revalidatePath("/dashboard");
   revalidatePath("/wallets");
   revalidatePath(membersPath(acceptedWalletId));
