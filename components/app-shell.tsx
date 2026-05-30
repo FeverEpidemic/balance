@@ -46,7 +46,7 @@ export function AppShell({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="eyebrow">balance</p>
-              <h1 className="headline-md mt-2">Keuangan tenang untuk rumah tangga</h1>
+              <h1 className="headline-md mt-2">Keuangan yang terstruktur menciptakan ketenangan pikiran</h1>
               <p className="mt-3 text-sm text-muted-foreground">{userName}</p>
             </div>
             <form action={logout}>
@@ -82,7 +82,7 @@ export function AppShell({
               <div>
                 <h2 className="headline-lg">{subtitle}</h2>
                 <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                  Mobile-first, ringan, dan terstruktur untuk pemasukan, pengeluaran, split bill, budget, dan laporan bulanan.
+                  Mari kita cek overview keuangan kamu dan catat agar pikiran selalu tenang dan
                 </p>
               </div>
               <div className="grid grid-cols-3 gap-2 rounded-xl bg-card p-2 shadow-serene">

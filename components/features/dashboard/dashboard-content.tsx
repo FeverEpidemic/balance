@@ -94,7 +94,7 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="eyebrow">Transaksi terbaru</p>
-            <h3 className="headline-md mt-2">Alur cepat untuk mobile entry dan review</h3>
+            <h3 className="headline-md mt-2">Coba cek yuk transaksi terakhir kamu</h3>
           </div>
           <Button href={dashboard.shell.primaryWalletId ? `/wallets/${dashboard.shell.primaryWalletId}/transactions` : "/wallets"}>Tambah transaksi</Button>
         </div>
