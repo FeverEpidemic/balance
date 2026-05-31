@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { sanitizeRedirectPath, withAuthMessage } from "@/lib/auth-flow";
+import { getSiteUrl } from "@/lib/env";
 import { ensureProfileForUser } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 
@@ -7,11 +8,10 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const next = sanitizeRedirectPath(requestUrl.searchParams.get("next"));
-  const nextUrl = new URL(next, request.url);
-  const redirectTo = request.nextUrl.clone();
+  const siteUrl = getSiteUrl();
 
   if (!code) {
-    redirectTo.pathname = "/auth/error";
+    const redirectTo = new URL("/auth/error", siteUrl);
     redirectTo.search = withAuthMessage(
       "/auth/error",
       "message",
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
-    redirectTo.pathname = "/auth/error";
+    const redirectTo = new URL("/auth/error", siteUrl);
     redirectTo.search = withAuthMessage(
       "/auth/error",
       "message",
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirectTo.pathname = "/auth/error";
+    const redirectTo = new URL("/auth/error", siteUrl);
     redirectTo.search = withAuthMessage(
       "/auth/error",
       "message",
@@ -52,7 +52,6 @@ export async function GET(request: NextRequest) {
 
   await ensureProfileForUser(user);
 
-  redirectTo.pathname = nextUrl.pathname;
-  redirectTo.search = nextUrl.search;
+  const redirectTo = new URL(next, siteUrl);
   return NextResponse.redirect(redirectTo);
 }
