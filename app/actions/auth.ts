@@ -4,24 +4,20 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { sanitizeRedirectPath, withAuthMessage } from "@/lib/auth-flow";
 import { ensureProfileForUser } from "@/lib/profile";
 import { getSiteUrl } from "@/lib/env";
-
-function toMessage(path: string, key: "error" | "message", value: string) {
-  const params = new URLSearchParams({ [key]: value });
-  return `${path}?${params.toString()}`;
-}
 
 export async function login(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const next = String(formData.get("next") ?? "/dashboard");
+  const next = sanitizeRedirectPath(String(formData.get("next") ?? "/dashboard"));
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
-    redirect(toMessage("/login", "error", error.message));
+    redirect(withAuthMessage("/login", "error", error.message, next));
   }
 
   if (data.user) {
@@ -29,14 +25,17 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect(next || "/dashboard");
+  redirect(next);
 }
 
 export async function signup(formData: FormData) {
   const fullName = String(formData.get("full_name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const next = String(formData.get("next") ?? "/wallets?message=Akun aktif. Buat wallet pertama Anda.");
+  const next = sanitizeRedirectPath(
+    String(formData.get("next") ?? "/wallets?message=Akun aktif. Buat wallet pertama Anda."),
+    "/wallets?message=Akun aktif. Buat wallet pertama Anda."
+  );
   const headerStore = await headers();
   const origin = headerStore.get("origin") ?? getSiteUrl();
   const confirmUrl = new URL("/auth/confirm", origin);
@@ -55,7 +54,7 @@ export async function signup(formData: FormData) {
   });
 
   if (error) {
-    redirect(toMessage("/register", "error", error.message));
+    redirect(withAuthMessage("/register", "error", error.message, next, "/wallets?message=Akun aktif. Buat wallet pertama Anda."));
   }
 
   if (data.user) {
@@ -67,7 +66,15 @@ export async function signup(formData: FormData) {
     redirect(next);
   }
 
-  redirect(toMessage("/register", "message", "Cek email Anda untuk verifikasi akun sebelum login."));
+  redirect(
+    withAuthMessage(
+      "/register",
+      "message",
+      "Cek email Anda untuk verifikasi akun sebelum login.",
+      next,
+      "/wallets?message=Akun aktif. Buat wallet pertama Anda."
+    )
+  );
 }
 
 export async function logout() {

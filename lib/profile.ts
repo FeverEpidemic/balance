@@ -18,7 +18,7 @@ export async function ensureProfileForUser(user: User) {
 
   const payload = {
     id: user.id,
-    full_name: user.user_metadata.full_name ?? null,
+    full_name: user.user_metadata.full_name ?? user.user_metadata.name ?? null,
     email: user.email ?? null,
     default_currency: "IDR"
   };

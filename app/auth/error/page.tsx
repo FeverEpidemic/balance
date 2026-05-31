@@ -1,12 +1,15 @@
 import Link from "next/link";
 import { Notice } from "@/components/ui/notice";
+import { sanitizeRedirectPath } from "@/lib/auth-flow";
 
 export default async function AuthErrorPage({
   searchParams
 }: {
-  searchParams: Promise<{ message?: string }>;
+  searchParams: Promise<{ message?: string; next?: string }>;
 }) {
   const params = await searchParams;
+  const safeNext = sanitizeRedirectPath(params.next);
+  const loginHref = safeNext === "/dashboard" ? "/login" : `/login?next=${encodeURIComponent(safeNext)}`;
 
   return (
     <main className="page-wrap section-gap">
@@ -17,7 +20,7 @@ export default async function AuthErrorPage({
           <Notice tone="error">{params.message ?? "Tautan autentikasi tidak dapat diproses."}</Notice>
         </div>
         <div className="mt-6">
-          <Link href="/login" className="font-label text-sm text-primary">
+          <Link href={loginHref} className="font-label text-sm text-primary">
             Kembali ke login
           </Link>
         </div>

@@ -19,5 +19,5 @@ export async function requireUser() {
 }
 
 export function getUserDisplayName(user: User, fullName?: string | null) {
-  return fullName || user.user_metadata.full_name || user.email || "Pengguna";
+  return fullName || user.user_metadata.full_name || user.user_metadata.name || user.email || "Pengguna";
 }

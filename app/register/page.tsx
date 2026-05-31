@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { signup } from "@/app/actions/auth";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { getSiteUrl } from "@/lib/env";
 
 export default async function RegisterPage({
   searchParams
@@ -10,6 +12,10 @@ export default async function RegisterPage({
 }) {
   const params = await searchParams;
   const loginHref = params.next ? `/login?next=${encodeURIComponent(params.next)}` : "/login";
+  const callbackUrl = new URL("/auth/callback", getSiteUrl());
+  if (params.next) {
+    callbackUrl.searchParams.set("next", params.next);
+  }
 
   return (
     <main className="page-wrap section-gap">
@@ -19,6 +25,14 @@ export default async function RegisterPage({
         <div className="mt-6 space-y-3">
           {params.error ? <Notice tone="error">{params.error}</Notice> : null}
           {params.message ? <Notice tone="success">{params.message}</Notice> : null}
+        </div>
+        <div className="mt-8 space-y-4">
+          <GoogleSignInButton callbackUrl={callbackUrl.toString()} label="Daftar dengan Google" />
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <div className="h-px flex-1 bg-border" />
+            <span>atau isi data akun</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
         </div>
         <form action={signup} className="mt-8 grid gap-4 md:grid-cols-2">
           <input type="hidden" name="next" value={params.next ?? "/wallets?message=Akun aktif. Buat wallet pertama Anda."} />
