@@ -2,6 +2,24 @@
 
 ## [Unreleased] — 2026-06-01
 
+### Added — PWA Installability v1
+
+#### Fitur Baru
+- **Balance kini bisa di-install sebagai app:** Tambah manifest, icon PWA, metadata mobile web app, dan service worker ringan agar browser modern mengenali Balance sebagai installable PWA.
+- **Prompt install halus di landing page:** Homepage publik sekarang bisa menampilkan ajakan install yang ringan, hanya pada browser yang mendukung dan bisa disembunyikan per perangkat.
+- **Fallback offline lebih rapi:** Saat navigasi gagal karena tidak ada koneksi, user akan diarahkan ke halaman offline sederhana berbahasa Indonesia tanpa mencoba menyimpan data wallet secara offline.
+- **PWA bisa diuji di localhost:** Registrasi service worker kini juga aktif di `localhost` agar flow install bisa dites saat development, bukan hanya setelah deploy production.
+- **Asset inti PWA tidak lagi tertahan auth middleware:** `sw.js`, `manifest.webmanifest`, dan halaman offline sekarang bisa diakses publik agar browser dapat mengenali installability dengan benar.
+- **Asset `public/` kini ikut masuk ke image production:** File seperti `sw.js`, icon PWA, dan favicon sekarang dicopy ke stage runtime Docker agar tidak `404` setelah deploy ke VPS.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `app/layout.tsx`, `app/manifest.ts` | Tambah metadata PWA, manifest native Next, dan registrasi service worker yang aman untuk production. |
+| `app/page.tsx`, `components/pwa/*`, `components/ui/button.tsx` | Tambah prompt install di landing page dan dukungan event click pada button shared. |
+| `app/offline/page.tsx`, `public/sw.js`, `public/*` | Tambah halaman fallback offline, service worker kustom, dan icon/icon favicon PWA dasar. |
+| `Dockerfile`, `middleware.ts` | Pastikan asset PWA publik lolos auth middleware dan ikut tersalin ke image runtime production. |
+
 ### Changed — Homepage Jadi Landing Page
 
 #### Perubahan UX

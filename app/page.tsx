@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
@@ -79,6 +80,7 @@ export default async function HomePage() {
               Masuk
             </Button>
           </div>
+          <InstallPrompt />
           <div className="mt-8 flex flex-wrap gap-3">
             <Badge>Bahasa Indonesia</Badge>
             <Badge>Wallet pribadi & bersama</Badge>
