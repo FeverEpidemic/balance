@@ -20,8 +20,10 @@ export function WalletOverviewContent({ data }: { data: WalletOverviewData }) {
       currentWalletId={data.walletId}
     >
       <WalletTabs walletId={data.walletId} active={active} />
-      <section className="grid gap-4 md:grid-cols-3">
-        <StatCard label="Saldo wallet" value={data.wallet.balance} detail="Akumulasi income dikurangi expense pada wallet ini" />
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <StatCard label="Saldo tersedia" value={data.wallet.availableBalance} detail="Saldo di luar bucket saving wallet ini" />
+        <StatCard label="Saldo saving" value={data.wallet.savingBalance} detail="Total saldo yang sudah dipisahkan ke saving" />
+        <StatCard label="Total saldo" value={data.wallet.totalBalance} detail="Gabungan saldo tersedia dan saving" />
         <StatCard label="Budget bulan ini" value={data.wallet.budgetThisMonth} detail="Total budget yang aktif untuk bulan berjalan" />
         <StatCard label="Expense bulan ini" value={data.wallet.spentThisMonth} detail="Pengeluaran bulan berjalan pada wallet ini" />
       </section>

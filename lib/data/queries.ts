@@ -84,7 +84,7 @@ export async function queryTransactions(walletIds: string[], limit?: number) {
   const supabase = await createClient();
   let query = supabase
     .from("transactions")
-    .select("id, wallet_id, category_id, kind, amount, happened_at, note, split_type, recurring_transaction_id, recurring_scheduled_for")
+    .select("id, wallet_id, category_id, kind, amount, happened_at, note, split_type, recurring_transaction_id, recurring_scheduled_for, saving_entry_id")
     .in("wallet_id", walletIds)
     .order("happened_at", { ascending: false });
 

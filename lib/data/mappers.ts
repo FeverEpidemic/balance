@@ -67,9 +67,8 @@ export function buildWalletBalanceSummary(args: {
   savingEntries: SavingEntryRow[];
 }) {
   const transactionBalance = sumBalance(args.transactions);
-  const savingFlow = sumSavingFlow(args.savingEntries);
   const savingBalance = sumSavingBalance(args.savings);
-  const availableBalance = transactionBalance - savingFlow;
+  const availableBalance = transactionBalance;
 
   return {
     availableBalance,
@@ -223,8 +222,11 @@ export function buildTransactionListItems(transactions: TransactionRow[], catego
     happenedAt: transaction.happened_at,
     splitType: transaction.split_type,
     splitLabel: transaction.split_type === "equal" ? "Split rata" : transaction.split_type === "custom" ? "Split custom" : "-",
-    title: transaction.note || (transaction.kind === "income" ? "Pemasukan" : "Pengeluaran"),
-    isRecurring: Boolean(transaction.recurring_transaction_id)
+    title:
+      transaction.note ||
+      (transaction.saving_entry_id ? (transaction.kind === "income" ? "Tarik saving" : "Setor saving") : transaction.kind === "income" ? "Pemasukan" : "Pengeluaran"),
+    isRecurring: Boolean(transaction.recurring_transaction_id),
+    isSavingLinked: Boolean(transaction.saving_entry_id)
   }));
 }
 
@@ -305,7 +307,8 @@ export function buildSavingListItems(args: {
   });
 
   return args.savings.map((saving) => {
-    const entries = (entriesBySaving.get(saving.id) ?? [])
+    const rawEntries = entriesBySaving.get(saving.id) ?? [];
+    const entries = rawEntries
       .map((entry) => {
         const profile = entry.member_user_id ? args.profileMap.get(entry.member_user_id) : null;
 
@@ -334,7 +337,7 @@ export function buildSavingListItems(args: {
       entries,
       contributions: buildSavingContributionItems({
         walletKind: args.wallet.kind,
-        entries,
+        entries: rawEntries,
         memberRows: args.memberRows,
         profileMap: args.profileMap
       })
@@ -547,6 +550,13 @@ export function createSavingsPageData(args: {
     currentUserRole: getCurrentUserRole(memberships, wallet.id),
     walletSummary,
     members: memberRows,
+    memberOptions: memberRows.map((member) => {
+      const profile = profileMap.get(member.user_id);
+      return {
+        userId: member.user_id,
+        name: profile?.full_name || profile?.email || member.user_id
+      };
+    }),
     savings: buildSavingListItems({
       wallet,
       savings: savings.filter((saving) => saving.wallet_id === wallet.id),

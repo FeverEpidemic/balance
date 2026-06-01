@@ -5,6 +5,8 @@ import { invalidateWalletReadCaches } from "@/lib/data/cache";
 import { getNullableText, getNumericValue, getStringValue, redirectToWalletSection, revalidateWalletPaths } from "@/app/actions/_shared";
 import { dateStringToISO, isValidDateString } from "@/lib/utils";
 
+const LINKED_SAVING_TRANSACTION_MESSAGE = "Transaksi dari saving otomatis dibuat sistem. Ubah mutasinya dari tab Saving.";
+
 function readTransactionForm(formData: FormData) {
   return {
     walletId: getStringValue(formData, "wallet_id"),
@@ -15,6 +17,33 @@ function readTransactionForm(formData: FormData) {
     amount: getNumericValue(formData, "amount"),
     happenedAt: getStringValue(formData, "happened_at")
   };
+}
+
+function mapTransactionError(message: string) {
+  if (message.includes("saving_transaction_managed_by_entries")) {
+    return LINKED_SAVING_TRANSACTION_MESSAGE;
+  }
+
+  return message;
+}
+
+async function getTransactionLinkState(
+  supabase: Awaited<ReturnType<typeof requireUser>>["supabase"],
+  walletId: string,
+  transactionId: string
+) {
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("id, saving_entry_id")
+    .eq("id", transactionId)
+    .eq("wallet_id", walletId)
+    .maybeSingle();
+
+  if (error || !data) {
+    redirectToWalletSection(walletId, "transactions", "error", "Transaksi tidak ditemukan.");
+  }
+
+  return data;
 }
 
 export async function createTransaction(formData: FormData) {
@@ -41,7 +70,7 @@ export async function createTransaction(formData: FormData) {
   });
 
   if (error) {
-    redirectToWalletSection(walletId, "transactions", "error", error.message);
+    redirectToWalletSection(walletId, "transactions", "error", mapTransactionError(error.message));
   }
 
   await invalidateWalletReadCaches(walletId, { includeDashboards: true });
@@ -69,6 +98,12 @@ export async function updateTransaction(formData: FormData) {
     redirectToWalletSection(walletId, "transactions", "error", "Nominal transaksi harus lebih besar dari nol.");
   }
 
+  const linkedState = await getTransactionLinkState(supabase, walletId, transactionId);
+
+  if (linkedState.saving_entry_id) {
+    redirectToWalletSection(walletId, "transactions", "error", LINKED_SAVING_TRANSACTION_MESSAGE);
+  }
+
   const { error } = await supabase
     .from("transactions")
     .update({
@@ -83,7 +118,7 @@ export async function updateTransaction(formData: FormData) {
     .eq("wallet_id", walletId);
 
   if (error) {
-    redirectToWalletSection(walletId, "transactions", "error", error.message);
+    redirectToWalletSection(walletId, "transactions", "error", mapTransactionError(error.message));
   }
 
   await invalidateWalletReadCaches(walletId, { includeDashboards: true });
@@ -103,10 +138,16 @@ export async function deleteTransaction(formData: FormData) {
     redirectToWalletSection(walletId, "transactions", "error", "Transaksi tidak ditemukan.");
   }
 
+  const linkedState = await getTransactionLinkState(supabase, walletId, transactionId);
+
+  if (linkedState.saving_entry_id) {
+    redirectToWalletSection(walletId, "transactions", "error", LINKED_SAVING_TRANSACTION_MESSAGE);
+  }
+
   const { error } = await supabase.from("transactions").delete().eq("id", transactionId).eq("wallet_id", walletId);
 
   if (error) {
-    redirectToWalletSection(walletId, "transactions", "error", error.message);
+    redirectToWalletSection(walletId, "transactions", "error", mapTransactionError(error.message));
   }
 
   await invalidateWalletReadCaches(walletId, { includeDashboards: true });

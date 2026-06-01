@@ -32,6 +32,7 @@ export function AppShell({
     { href: "/dashboard", label: "Dashboard" },
     { href: "/wallets", label: "Wallet" },
     { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: "Transaksi" },
+    { href: walletId ? `/wallets/${walletId}/savings` : "/wallets", label: "Saving" },
     { href: walletId ? `/wallets/${walletId}/budgets` : "/wallets", label: "Budget" },
     { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: "Laporan" },
     { href: walletId ? `/wallets/${walletId}/members` : "/wallets", label: "Anggota" },

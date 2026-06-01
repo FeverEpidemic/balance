@@ -18,7 +18,12 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
       primaryWalletId={dashboard.shell.primaryWalletId}
     >
       <section className="grid gap-4 md:grid-cols-3">
-        <StatCard label="Total saldo" value={dashboard.totalBalance} detail="Akumulasi seluruh wallet aktif" />
+        <StatCard label="Saldo tersedia" value={dashboard.totalAvailableBalance} detail="Saldo wallet di luar bucket saving" />
+        <StatCard label="Saldo saving" value={dashboard.totalSavingBalance} detail="Akumulasi bucket saving seluruh wallet" />
+        <StatCard label="Total saldo" value={dashboard.totalBalance} detail="Gabungan saldo tersedia dan saldo saving" />
+      </section>
+
+      <section className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <StatCard label="Pengeluaran bulan ini" value={dashboard.totalExpenseThisMonth} detail="Expense seluruh wallet untuk bulan berjalan" />
         <StatCard label="Outstanding split" value={dashboard.outstandingSplit} detail="Akumulasi sisa split yang belum tertutup" />
       </section>
@@ -52,7 +57,17 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
                   </div>
                   <span className="inline-flex rounded-full bg-[rgba(89,95,61,0.1)] px-3 py-1 font-label text-xs text-primary-strong">{wallet.role}</span>
                 </div>
-                <p className="metric mt-4 text-2xl">{formatCurrency(wallet.balance)}</p>
+                <p className="metric mt-4 text-2xl">{formatCurrency(wallet.totalBalance)}</p>
+                <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-xl bg-white/70 p-3">
+                    <p className="text-muted-foreground">Available</p>
+                    <p className="metric mt-2">{formatCurrency(wallet.availableBalance)}</p>
+                  </div>
+                  <div className="rounded-xl bg-white/70 p-3">
+                    <p className="text-muted-foreground">Saving</p>
+                    <p className="metric mt-2">{formatCurrency(wallet.savingBalance)}</p>
+                  </div>
+                </div>
                 <div className="mt-4 h-2 rounded-full bg-white">
                   <div
                     className="h-2 rounded-full bg-primary"

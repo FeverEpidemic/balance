@@ -51,6 +51,7 @@ export type TransactionRow = {
   split_type: "equal" | "custom" | null;
   recurring_transaction_id: string | null;
   recurring_scheduled_for: string | null;
+  saving_entry_id: string | null;
 };
 
 export type RecurringTransactionRow = {
@@ -248,6 +249,7 @@ export type SavingsPageData = {
   currentUserRole: WalletRole;
   walletSummary: WalletSummary;
   members: WalletMemberRow[];
+  memberOptions: Array<{ userId: string; name: string }>;
   savings: SavingListItem[];
 };
 
@@ -263,6 +265,7 @@ export type TransactionListItem = {
   splitLabel: string;
   title: string;
   isRecurring: boolean;
+  isSavingLinked: boolean;
 };
 
 export type TransactionsPageData = {

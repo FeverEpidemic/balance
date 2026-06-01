@@ -29,6 +29,14 @@ Untuk self-hosted local stack, file `.env.example` sudah menyiapkan email Auth S
 
 Kalau ingin memakai SMTP sungguhan untuk email Auth Supabase, ganti `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, dan `SMTP_FROM` di `.env`.
 
+Jika ingin mencoba login Google pada stack self-hosted lokal, isi juga:
+
+```env
+GOTRUE_EXTERNAL_GOOGLE_ENABLED=true
+GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID=your_google_client_id
+GOTRUE_EXTERNAL_GOOGLE_SECRET=your_google_client_secret
+```
+
 Redis cache v1 untuk read path dashboard dan wallet utama juga aktif di stack self-hosted ini. Default lokalnya memakai `REDIS_URL=redis://redis:6379`. Jika ingin mematikan cache sementara, set `REDIS_ENABLED=false`.
 Untuk observability ringan, aktifkan `REDIS_METRICS_ENABLED=true`. Aplikasi akan mencetak summary hit, miss, write, error, dan invalidation ke stdout setiap `REDIS_METRICS_INTERVAL_MS` milidetik.
 
@@ -54,6 +62,11 @@ SUPABASE_SECRET_KEY=YOUR_SECRET_KEY
    - [supabase/migrations/0002_balance_auth_sync.sql](/d:/Project/balance/supabase/migrations/0002_balance_auth_sync.sql)
    - [supabase/migrations/0003_fix_wallet_rls_recursion.sql](/d:/Project/balance/supabase/migrations/0003_fix_wallet_rls_recursion.sql)
    - [supabase/migrations/0004_wallet_invites_token_only.sql](/d:/Project/balance/supabase/migrations/0004_wallet_invites_token_only.sql)
+   - [supabase/migrations/0005_wallet_member_capacity.sql](/d:/Project/balance/supabase/migrations/0005_wallet_member_capacity.sql)
+   - [supabase/migrations/0006_recurring_transactions.sql](/d:/Project/balance/supabase/migrations/0006_recurring_transactions.sql)
+   - [supabase/migrations/0007_savings.sql](/d:/Project/balance/supabase/migrations/0007_savings.sql)
+   - [supabase/migrations/0008_saving_entry_transactions.sql](/d:/Project/balance/supabase/migrations/0008_saving_entry_transactions.sql)
+   - [supabase/migrations/0009_google_oauth_profile_name_fallback.sql](/d:/Project/balance/supabase/migrations/0009_google_oauth_profile_name_fallback.sql)
 
 Recommended migration workflow for hosted Supabase:
 
@@ -67,6 +80,11 @@ Recommended migration workflow for hosted Supabase:
 {{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email
 ```
 
+6. If you want Google login, enable the Google provider in Supabase Auth and configure:
+   - Google OAuth redirect URI: `https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback`
+   - Authorized JavaScript origin: your frontend origin, for example `http://localhost:3000` or `https://balance.yourdomain.com`
+   - App callback route handled by this repo: `https://YOUR_APP_DOMAIN/auth/callback`
+
 After that, run the frontend normally with `npm run dev`.
 
 Compatibility note:
@@ -79,6 +97,55 @@ Compatibility note:
 - Use the included `docker-compose.yml` if you specifically want full infrastructure ownership on your own VPS.
 - For this repo, the frontend can work with either model as long as the env vars point to the correct project.
 
+## Google Login Setup
+
+Flow Google login di aplikasi ini memakai Supabase OAuth lalu mengembalikan user ke callback aplikasi `SITE_URL/auth/callback`. Parameter `next` tetap dipertahankan untuk deep-link internal seperti `/invite/[token]`.
+
+### Hosted Supabase
+
+1. Aktifkan provider Google di dashboard Supabase pada menu `Authentication > Providers`.
+2. Isi Google Client ID dan Client Secret dari Google Cloud Console.
+3. Tambahkan redirect URI Supabase berikut ke OAuth client Google:
+
+```text
+https://YOUR_PROJECT_REF.supabase.co/auth/v1/callback
+```
+
+4. Tambahkan origin frontend Anda ke daftar authorized JavaScript origins, misalnya:
+
+```text
+http://localhost:3000
+https://balance.yourdomain.com
+```
+
+5. Pastikan `NEXT_PUBLIC_SITE_URL` atau `APP_SITE_URL` mengarah ke domain aplikasi frontend, karena aplikasi ini akan menerima user kembali di:
+
+```text
+https://YOUR_APP_DOMAIN/auth/callback
+```
+
+### Self-Hosted Supabase
+
+Untuk stack `docker-compose.self-hosted.yml`, isi env berikut di `.env`:
+
+```env
+GOTRUE_EXTERNAL_GOOGLE_ENABLED=true
+GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID=your_google_client_id
+GOTRUE_EXTERNAL_GOOGLE_SECRET=your_google_client_secret
+```
+
+Tambahkan redirect URI Supabase self-hosted ke Google Cloud sesuai base URL Auth Anda, misalnya:
+
+```text
+http://localhost:8000/auth/v1/callback
+https://supabase.yourdomain.com/auth/v1/callback
+```
+
+Pastikan juga:
+- `APP_SITE_URL` mengarah ke domain aplikasi Next.js, misalnya `http://localhost:3000` atau `https://balance.yourdomain.com`
+- `GOTRUE_URI_ALLOW_LIST` mengizinkan `APP_SITE_URL` dan `APP_SITE_URL/auth/callback`
+- `NEXT_PUBLIC_SITE_URL` atau `APP_SITE_URL` di frontend memakai origin yang sama dengan route callback `/auth/callback`
+
 ## Docker Build for ARM64 VPS
 
 The app now includes a production `Dockerfile` with multi-stage build and Next.js `standalone` output, so it can be built natively on an `arm64` VPS.
@@ -90,10 +157,23 @@ The app now includes a production `Dockerfile` with multi-stage build and Next.j
 DOCKER_PLATFORM=linux/arm64 docker compose up --build -d
 ```
 
+Pastikan `.env` sudah berisi nilai publik yang dipakai saat build image:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
+NEXT_PUBLIC_SITE_URL=https://YOUR_APP_DOMAIN
+```
+
 3. If you want to build the app image only:
 
 ```bash
-docker build --platform linux/arm64 -t balance-app:latest .
+docker build \
+  --platform linux/arm64 \
+  --build-arg NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co \
+  --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY \
+  --build-arg NEXT_PUBLIC_SITE_URL=https://YOUR_APP_DOMAIN \
+  -t balance-app:latest .
 ```
 
 If the VPS itself is already ARM64, Docker will build the correct architecture natively. The `DOCKER_PLATFORM` variable is kept in Compose so the target platform stays explicit.
@@ -109,6 +189,9 @@ If the VPS itself is already ARM64, Docker will build the correct architecture n
 
 docker buildx build \
   --platform linux/arm64 \
+  --build-arg NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co \
+  --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY \
+  --build-arg NEXT_PUBLIC_SITE_URL=https://YOUR_APP_DOMAIN \
   -t ilham827/balance-app:latest \
   -t ilham827/balance-app:arm64 \
   --push .

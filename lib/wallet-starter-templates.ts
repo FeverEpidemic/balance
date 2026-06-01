@@ -3,6 +3,8 @@ type TransactionKind = "income" | "expense";
 type SplitType = "equal" | "custom" | null;
 export type WalletSetupPreset = "minimal" | "standard" | "family";
 export type BudgetPreset = "none" | "light" | "balanced" | "ambitious";
+export const SAVING_EXPENSE_CATEGORY_NAME = "Tabungan";
+export const SAVING_WITHDRAWAL_CATEGORY_NAME = "Pencairan Tabungan";
 
 type StarterCategory = {
   key: string;
@@ -53,7 +55,8 @@ const STARTER_CATEGORIES: StarterCategory[] = [
   { key: "family", name: "Keluarga", kind: "expense", color: "#8a5f73", budgetable: true },
   { key: "charity", name: "Donasi/Zakat", kind: "expense", color: "#66806a", budgetable: true },
   { key: "debt", name: "Cicilan", kind: "expense", color: "#7b5f5f", budgetable: true },
-  { key: "saving", name: "Tabungan", kind: "expense", color: "#5d7a74", budgetable: true },
+  { key: "saving", name: SAVING_EXPENSE_CATEGORY_NAME, kind: "expense", color: "#5d7a74", budgetable: true },
+  { key: "saving_withdrawal", name: SAVING_WITHDRAWAL_CATEGORY_NAME, kind: "income", color: "#7a9d8f", budgetable: false },
   { key: "emergency", name: "Dana Darurat", kind: "expense", color: "#4f6a64", budgetable: true },
   { key: "admin", name: "Biaya Admin", kind: "expense", color: "#717171", budgetable: true }
 ];

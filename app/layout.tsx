@@ -19,7 +19,7 @@ const label = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "balance",
+  title: "Balance | Healthy Financial Healthy Mind",
   description: "Aplikasi keuangan rumah tangga yang tenang, ringan, dan mobile responsive."
 };
 

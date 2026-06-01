@@ -91,8 +91,18 @@ export function WalletsPageContent({
               </div>
               <Badge>{wallet.role}</Badge>
             </div>
-            <p className="metric mt-6 text-3xl">{formatCurrency(wallet.balance)}</p>
-            <div className="mt-6 grid grid-cols-3 gap-3 text-sm">
+            <p className="metric mt-6 text-3xl">{formatCurrency(wallet.totalBalance)}</p>
+            <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
+              <div className="rounded-xl bg-muted p-3">
+                <p className="text-muted-foreground">Available</p>
+                <p className="metric mt-2">{formatCurrency(wallet.availableBalance)}</p>
+              </div>
+              <div className="rounded-xl bg-muted p-3">
+                <p className="text-muted-foreground">Saving</p>
+                <p className="metric mt-2">{formatCurrency(wallet.savingBalance)}</p>
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
               <div className="rounded-xl bg-muted p-3">
                 <p className="text-muted-foreground">Spent</p>
                 <p className="metric mt-2">{formatCurrency(wallet.spentThisMonth)}</p>

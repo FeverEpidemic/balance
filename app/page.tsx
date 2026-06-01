@@ -18,7 +18,7 @@ export default async function HomePage() {
     <main className="page-wrap section-gap">
       <section className="grid items-center gap-8 py-8 lg:grid-cols-[1.1fr_0.9fr] lg:py-16">
         <div>
-          <p className="eyebrow">balance</p>
+          <p className="eyebrow">Balance | Healthy Financial Healthy Mind</p>
           <h1 className="headline-xl mt-4 max-w-3xl">Keuangan pribadi yang terasa jernih, bukan melelahkan.</h1>
           <p className="mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
             Catat pemasukan dan pengeluaran, atur budget per kategori, bagi tagihan, dan lihat laporan bulanan dalam satu alur yang rapi untuk layar mobile maupun desktop.

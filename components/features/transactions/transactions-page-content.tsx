@@ -18,6 +18,7 @@ export function TransactionsPageContent({
   feedback: { error?: string; message?: string };
 }) {
   const active = `/wallets/${data.walletId}/transactions`;
+  const canMutate = data.currentUserRole === "owner" || data.currentUserRole === "editor";
 
   return (
     <AppShell
@@ -99,6 +100,7 @@ export function TransactionsPageContent({
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-medium">{transaction.title}</p>
                       {transaction.isRecurring ? <Badge>Recurring</Badge> : null}
+                      {transaction.isSavingLinked ? <Badge>Saving</Badge> : null}
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {transaction.categoryName} - {transaction.splitLabel}
@@ -111,55 +113,63 @@ export function TransactionsPageContent({
                     <p className="mt-1 text-sm text-muted-foreground">{formatShortDate(transaction.happenedAt)}</p>
                   </div>
                 </div>
-                <details className="mt-4 rounded-xl bg-white/80 p-3">
-                  <summary className="cursor-pointer font-label text-sm text-muted-foreground">Edit transaksi</summary>
-                  <form action={updateTransaction} className="mt-3 grid gap-3 md:grid-cols-2">
-                    <input type="hidden" name="wallet_id" value={data.walletId} />
-                    <input type="hidden" name="transaction_id" value={transaction.id} />
-                    <label className="block">
-                      <span className="mb-2 block font-label text-xs text-muted-foreground">Jenis</span>
-                      <select name="kind" defaultValue={transaction.kind}>
-                        <option value="expense">Pengeluaran</option>
-                        <option value="income">Pemasukan</option>
-                      </select>
-                    </label>
-                    <label className="block">
-                      <span className="mb-2 block font-label text-xs text-muted-foreground">Kategori</span>
-                      <select name="category_id" defaultValue={transaction.categoryId ?? ""}>
-                        <option value="">Tanpa kategori</option>
-                        {data.categories.map((category) => (
-                          <option key={category.id} value={category.id}>
-                            {category.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="block">
-                      <span className="mb-2 block font-label text-xs text-muted-foreground">Nominal</span>
-                      <input name="amount" defaultValue={String(transaction.amount)} inputMode="numeric" required />
-                    </label>
-                    <label className="block">
-                      <span className="mb-2 block font-label text-xs text-muted-foreground">Catatan</span>
-                      <input name="note" defaultValue={transaction.note ?? ""} placeholder="Opsional" />
-                    </label>
-                    <label className="block">
-                      <span className="mb-2 block font-label text-xs text-muted-foreground">Tanggal transaksi</span>
-                      <input name="happened_at" type="date" defaultValue={toDateInputValue(transaction.happenedAt)} required />
-                    </label>
-                    <div className="flex flex-wrap gap-2 md:col-span-2">
-                      <SubmitButton pendingText="Menyimpan..." variant="soft">
-                        Update transaksi
-                      </SubmitButton>
-                    </div>
-                  </form>
-                </details>
-                <form action={deleteTransaction} className="mt-2">
-                  <input type="hidden" name="wallet_id" value={data.walletId} />
-                  <input type="hidden" name="transaction_id" value={transaction.id} />
-                  <ConfirmSubmitButton confirmMessage="Hapus transaksi ini?" pendingText="Menghapus..." variant="ghost">
-                    Hapus transaksi
-                  </ConfirmSubmitButton>
-                </form>
+                {transaction.isSavingLinked ? (
+                  <div className="mt-4 rounded-xl bg-white/80 p-3 text-sm text-muted-foreground">
+                    Transaksi ini dibuat otomatis dari tab Saving dan tidak bisa diedit atau dihapus dari sini.
+                  </div>
+                ) : canMutate ? (
+                  <>
+                    <details className="mt-4 rounded-xl bg-white/80 p-3">
+                      <summary className="cursor-pointer font-label text-sm text-muted-foreground">Edit transaksi</summary>
+                      <form action={updateTransaction} className="mt-3 grid gap-3 md:grid-cols-2">
+                        <input type="hidden" name="wallet_id" value={data.walletId} />
+                        <input type="hidden" name="transaction_id" value={transaction.id} />
+                        <label className="block">
+                          <span className="mb-2 block font-label text-xs text-muted-foreground">Jenis</span>
+                          <select name="kind" defaultValue={transaction.kind}>
+                            <option value="expense">Pengeluaran</option>
+                            <option value="income">Pemasukan</option>
+                          </select>
+                        </label>
+                        <label className="block">
+                          <span className="mb-2 block font-label text-xs text-muted-foreground">Kategori</span>
+                          <select name="category_id" defaultValue={transaction.categoryId ?? ""}>
+                            <option value="">Tanpa kategori</option>
+                            {data.categories.map((category) => (
+                              <option key={category.id} value={category.id}>
+                                {category.name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        <label className="block">
+                          <span className="mb-2 block font-label text-xs text-muted-foreground">Nominal</span>
+                          <input name="amount" defaultValue={String(transaction.amount)} inputMode="numeric" required />
+                        </label>
+                        <label className="block">
+                          <span className="mb-2 block font-label text-xs text-muted-foreground">Catatan</span>
+                          <input name="note" defaultValue={transaction.note ?? ""} placeholder="Opsional" />
+                        </label>
+                        <label className="block">
+                          <span className="mb-2 block font-label text-xs text-muted-foreground">Tanggal transaksi</span>
+                          <input name="happened_at" type="date" defaultValue={toDateInputValue(transaction.happenedAt)} required />
+                        </label>
+                        <div className="flex flex-wrap gap-2 md:col-span-2">
+                          <SubmitButton pendingText="Menyimpan..." variant="soft">
+                            Update transaksi
+                          </SubmitButton>
+                        </div>
+                      </form>
+                    </details>
+                    <form action={deleteTransaction} className="mt-2">
+                      <input type="hidden" name="wallet_id" value={data.walletId} />
+                      <input type="hidden" name="transaction_id" value={transaction.id} />
+                      <ConfirmSubmitButton confirmMessage="Hapus transaksi ini?" pendingText="Menghapus..." variant="ghost">
+                        Hapus transaksi
+                      </ConfirmSubmitButton>
+                    </form>
+                  </>
+                ) : null}
               </div>
             ))}
           </div>
