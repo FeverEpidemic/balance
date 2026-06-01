@@ -22,10 +22,10 @@ export function WalletOverviewContent({ data }: { data: WalletOverviewData }) {
       <WalletTabs walletId={data.walletId} active={active} />
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <StatCard label="Saldo tersedia" value={data.wallet.availableBalance} detail="Saldo di luar bucket saving wallet ini" />
-        <StatCard label="Saldo saving" value={data.wallet.savingBalance} detail="Total saldo yang sudah dipisahkan ke saving" />
-        <StatCard label="Total saldo" value={data.wallet.totalBalance} detail="Gabungan saldo tersedia dan saving" />
-        <StatCard label="Budget bulan ini" value={data.wallet.budgetThisMonth} detail="Total budget yang aktif untuk bulan berjalan" />
-        <StatCard label="Expense bulan ini" value={data.wallet.spentThisMonth} detail="Pengeluaran bulan berjalan pada wallet ini" />
+        <StatCard label="Saldo tabungan" value={data.wallet.savingBalance} detail="Total saldo yang sudah dipisahkan ke tabungan" />
+        <StatCard label="Total saldo" value={data.wallet.totalBalance} detail="Gabungan saldo tersedia dan tabungan" />
+        <StatCard label="Anggaran bulan ini" value={data.wallet.budgetThisMonth} detail="Total anggaran aktif untuk bulan berjalan" />
+        <StatCard label="Pengeluaran bulan ini" value={data.wallet.spentThisMonth} detail="Pengeluaran bulan berjalan pada wallet ini" />
       </section>
       <section className="mt-4 wallet-grid">
         <div className="card md:col-span-2">
@@ -33,23 +33,23 @@ export function WalletOverviewContent({ data }: { data: WalletOverviewData }) {
           <h3 className="headline-md mt-2">Data inti wallet</h3>
           {!data.hasTransactions ? (
             <div className="mt-6">
-              <EmptyState title="Wallet masih kosong" description="Mulai dari transaksi pertama atau buat budget kategori untuk membentuk pola keuangan wallet ini." />
+              <EmptyState title="Wallet masih kosong" description="Mulai dari transaksi pertama atau buat anggaran kategori untuk membentuk pola keuangan wallet ini." />
             </div>
           ) : (
             <div className="mt-6 grid gap-3 md:grid-cols-2">
-              <div className="rounded-xl bg-muted p-4">
+              <div className="info-tile">
                 <p className="font-medium">Transaksi</p>
                 <p className="mt-2 text-sm text-muted-foreground">{data.transactionCount} transaksi sudah tercatat.</p>
               </div>
-              <div className="rounded-xl bg-muted p-4">
+              <div className="info-tile">
                 <p className="font-medium">Kategori</p>
-                <p className="mt-2 text-sm text-muted-foreground">{data.categoryCount} kategori aktif untuk income dan expense.</p>
+                <p className="mt-2 text-sm text-muted-foreground">{data.categoryCount} kategori aktif untuk pemasukan dan pengeluaran.</p>
               </div>
-              <div className="rounded-xl bg-muted p-4">
-                <p className="font-medium">Budget</p>
-                <p className="mt-2 text-sm text-muted-foreground">{data.activeBudgetCount} budget kategori aktif pada bulan berjalan.</p>
+              <div className="info-tile">
+                <p className="font-medium">Anggaran</p>
+                <p className="mt-2 text-sm text-muted-foreground">{data.activeBudgetCount} anggaran kategori aktif pada bulan berjalan.</p>
               </div>
-              <div className="rounded-xl bg-muted p-4">
+              <div className="info-tile">
                 <p className="font-medium">Template</p>
                 <p className="mt-2 text-sm text-muted-foreground">{data.templateCount} template transaksi siap dipakai ulang.</p>
               </div>
@@ -59,9 +59,9 @@ export function WalletOverviewContent({ data }: { data: WalletOverviewData }) {
         <div className="card">
           <p className="eyebrow">Hak akses</p>
           <h3 className="headline-md mt-2">Peran anggota wallet</h3>
-          <div className="mt-6 space-y-3 text-sm">
+          <div className="mt-6 stack-list text-sm">
             {data.roleSummary.map((role) => (
-              <div key={role.role} className="rounded-xl bg-muted p-4">
+              <div key={role.role} className="list-card">
                 <p className="font-medium capitalize">{role.role}</p>
                 <p className="mt-2 text-muted-foreground">
                   {role.count} anggota dengan peran {role.role}.

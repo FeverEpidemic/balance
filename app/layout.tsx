@@ -20,7 +20,7 @@ const label = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Balance | Healthy Financial Healthy Mind",
+  title: "Balance | Keuangan yang lebih tenang",
   description: "Aplikasi keuangan rumah tangga yang tenang, ringan, dan mobile responsive.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {

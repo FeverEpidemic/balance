@@ -35,18 +35,20 @@ export default async function ReportsPage({ params }: { params: Promise<{ wallet
       <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="card">
           <p className="eyebrow">Tren bulanan</p>
-          <h3 className="headline-md mt-2">Income vs expense</h3>
-          {monthlyReport.length === 0 ? <div className="mt-6"><EmptyState title="Belum ada data laporan" description="Setelah transaksi masuk, tren bulanan income dan expense akan muncul di sini." /></div> : null}
-          <div className="mt-8 grid grid-cols-5 gap-3">
+          <h3 className="headline-md mt-2">Pemasukan vs pengeluaran</h3>
+          {monthlyReport.length === 0 ? <div className="mt-6"><EmptyState title="Belum ada data laporan" description="Setelah transaksi masuk, tren bulanan pemasukan dan pengeluaran akan muncul di sini." /></div> : null}
+          <div className="mt-8 overflow-x-auto">
+            <div className="grid min-w-[340px] grid-cols-5 gap-3 sm:gap-4">
             {monthlyReport.map((row) => (
-              <div key={row.month} className="flex flex-col items-center gap-3">
-                <div className="flex h-64 items-end gap-2">
-                  <div className="w-5 rounded-full bg-[#bec4a0]" style={{ height: `${(row.income / maxIncome) * 100}%` }} />
-                  <div className="w-5 rounded-full bg-primary" style={{ height: `${(row.expense / maxIncome) * 100}%` }} />
+              <div key={row.month} className="flex min-w-[52px] flex-col items-center gap-3">
+                <div className="flex h-56 items-end gap-2 sm:h-64">
+                  <div className="w-4 rounded-full bg-[#bec4a0] sm:w-5" style={{ height: `${(row.income / maxIncome) * 100}%` }} />
+                  <div className="w-4 rounded-full bg-primary sm:w-5" style={{ height: `${(row.expense / maxIncome) * 100}%` }} />
                 </div>
                 <p className="font-label text-xs text-muted-foreground">{row.label}</p>
               </div>
             ))}
+            </div>
           </div>
         </div>
 
@@ -54,16 +56,16 @@ export default async function ReportsPage({ params }: { params: Promise<{ wallet
           <p className="eyebrow">Insight</p>
           <h3 className="headline-md mt-2">Ringkasan bulan berjalan</h3>
           <div className="mt-6 space-y-3">
-            <div className="rounded-xl bg-muted p-4">
+            <div className="info-tile">
               <p className="text-sm text-muted-foreground">Pemasukan</p>
               <p className="metric mt-2 text-2xl">{formatCurrency(monthlyReport.at(-1)?.income ?? 0)}</p>
             </div>
-            <div className="rounded-xl bg-muted p-4">
+            <div className="info-tile">
               <p className="text-sm text-muted-foreground">Pengeluaran</p>
               <p className="metric mt-2 text-2xl">{formatCurrency(monthlyReport.at(-1)?.expense ?? 0)}</p>
             </div>
-            <div className="rounded-xl bg-muted p-4">
-              <p className="text-sm text-muted-foreground">Budget tersisa</p>
+            <div className="info-tile">
+              <p className="text-sm text-muted-foreground">Sisa anggaran</p>
               <p className="metric mt-2 text-2xl">{formatCurrency(Math.max(bundle.wallet.budgetThisMonth - bundle.wallet.spentThisMonth, 0))}</p>
             </div>
           </div>

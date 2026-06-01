@@ -42,7 +42,7 @@ export default async function TemplatesPage({
       <section className="grid gap-4 xl:grid-cols-[0.85fr_1.15fr]">
         <div className="card">
           <p className="eyebrow">Buat template</p>
-          <h3 className="headline-md mt-2">Transaksi cepat tanpa recurring otomatis</h3>
+          <h3 className="headline-md mt-2">Transaksi cepat tanpa aturan otomatis</h3>
           <div className="mt-4 space-y-3">
             {query.error ? <Notice tone="error">{query.error}</Notice> : null}
             {query.message ? <Notice tone="success">{query.message}</Notice> : null}
@@ -86,10 +86,10 @@ export default async function TemplatesPage({
         <div className="card">
           <p className="eyebrow">Template aktif</p>
           <h3 className="headline-md mt-2">Siap dipakai saat entry transaksi</h3>
-          <div className="mt-6 space-y-3">
-            {bundle.templates.length === 0 ? <EmptyState title="Belum ada template" description="Simpan nominal dan kategori favorit Anda agar transaksi rutin bisa diulang lebih cepat." /> : null}
+          <div className="mt-6 stack-list">
+            {bundle.templates.length === 0 ? <EmptyState title="Belum ada template" description="Simpan nominal dan kategori favorit kamu agar transaksi rutin bisa diulang lebih cepat." /> : null}
             {bundle.templates.map((template) => (
-              <div key={template.name} className="flex flex-col gap-3 rounded-xl bg-muted p-4 md:flex-row md:items-center md:justify-between">
+              <div key={template.name} className="list-card flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
                   <p className="font-medium">{template.name}</p>
                   <p className="mt-1 text-sm text-muted-foreground">{bundle.categories.find((item) => item.id === template.category_id)?.name ?? template.kind}</p>

@@ -29,8 +29,8 @@ export default async function SettlementsPage({
   return (
     <AppShell
       currentPath={active}
-      title="Settlement"
-      subtitle={`Settlement manual ${bundle.wallet.name}`}
+      title="Pelunasan"
+      subtitle={`Pelunasan manual ${bundle.wallet.name}`}
       userName={bundle.shell.userName}
       walletCount={bundle.shell.walletCount}
       budgetCount={bundle.shell.budgetCount}
@@ -41,7 +41,7 @@ export default async function SettlementsPage({
       <WalletTabs walletId={walletId} active={active} />
       <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="card">
-          <p className="eyebrow">Tambah settlement</p>
+          <p className="eyebrow">Tambah pelunasan</p>
           <h3 className="headline-md mt-2">Kurangi saldo hutang antar anggota</h3>
           <div className="mt-4 space-y-3">
             {query.error ? <Notice tone="error">{query.error}</Notice> : null}
@@ -83,25 +83,25 @@ export default async function SettlementsPage({
               <span className="mb-2 block font-label text-sm text-muted-foreground">Catatan</span>
               <input name="note" placeholder="Opsional" />
             </label>
-            <SubmitButton pendingText="Menyimpan settlement...">Simpan settlement</SubmitButton>
+            <SubmitButton pendingText="Menyimpan pelunasan...">Simpan pelunasan</SubmitButton>
           </form>
         </div>
         <div className="card">
-          <p className="eyebrow">Outstanding</p>
-          <h3 className="headline-md mt-2">Daftar settlement</h3>
-          <div className="mt-6 space-y-3">
-            {bundle.settlements.length === 0 ? <EmptyState title="Belum ada settlement" description="Settlement manual yang Anda simpan akan tercatat di sini." /> : null}
+          <p className="eyebrow">Tagihan terbuka</p>
+          <h3 className="headline-md mt-2">Daftar pelunasan</h3>
+          <div className="mt-6 stack-list">
+            {bundle.settlements.length === 0 ? <EmptyState title="Belum ada pelunasan" description="Pelunasan manual yang kamu simpan akan tercatat di sini." /> : null}
             {bundle.settlements.map((item) => {
               const payer = bundle.profileMap.get(item.payer_user_id);
               const payee = bundle.profileMap.get(item.payee_user_id);
               return (
-              <div key={item.id} className="rounded-xl bg-muted p-4">
-                <div className="flex items-center justify-between gap-3">
+              <div key={item.id} className="list-card">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div>
                     <p className="font-medium">
                       {(payer?.full_name || payer?.email || "Pengguna")} ke {(payee?.full_name || payee?.email || "Pengguna")}
                     </p>
-                    <p className="mt-1 text-sm text-muted-foreground">{item.note || "Settlement manual"}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{item.note || "Pelunasan manual"}</p>
                   </div>
                   <p className="metric">{formatCurrency(item.amount)}</p>
                 </div>

@@ -29,7 +29,7 @@ export function WalletsPageContent({
       <section className="mb-4 grid gap-4 rounded-2xl bg-white/75 p-4 shadow-serene xl:grid-cols-[1fr_360px]">
         <div>
           <p className="headline-md">Wallet terorganisir per tujuan dan per anggota.</p>
-          <p className="mt-2 text-sm text-muted-foreground">Setiap wallet memiliki kategori, budget, anggota, split, dan laporan bulanan sendiri.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Setiap wallet memiliki kategori, anggaran, anggota, split bill, dan laporan bulanan sendiri.</p>
         </div>
         <form action={createWallet} className="grid gap-3 rounded-2xl bg-muted p-4">
           <div className="grid gap-3 md:grid-cols-2">
@@ -40,32 +40,32 @@ export function WalletsPageContent({
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">Jenis</span>
               <select name="kind" defaultValue="personal">
-                <option value="personal">Personal</option>
-                <option value="shared">Shared</option>
+                <option value="personal">Pribadi</option>
+                <option value="shared">Bersama</option>
               </select>
             </label>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">Preset setup</span>
+              <span className="mb-2 block font-label text-sm text-muted-foreground">Preset awal</span>
               <select name="setup_preset" defaultValue="standard">
                 <option value="minimal">Minimal</option>
-                <option value="standard">Standard</option>
-                <option value="family">Family</option>
+                <option value="standard">Standar</option>
+                <option value="family">Keluarga</option>
               </select>
             </label>
             <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">Preset budget</span>
+              <span className="mb-2 block font-label text-sm text-muted-foreground">Preset anggaran</span>
               <select name="budget_preset" defaultValue="balanced">
-                <option value="none">Tanpa budget otomatis</option>
-                <option value="light">Light</option>
-                <option value="balanced">Balanced</option>
-                <option value="ambitious">Ambitious</option>
+                <option value="none">Tanpa anggaran otomatis</option>
+                <option value="light">Ringan</option>
+                <option value="balanced">Seimbang</option>
+                <option value="ambitious">Agresif</option>
               </select>
             </label>
           </div>
           <p className="text-xs text-muted-foreground">
-            Preset setup menentukan kategori dan template transaksi awal. Preset budget akan membuat limit bulan berjalan yang masih bisa Anda ubah nanti.
+            Preset awal menentukan kategori dan template transaksi. Preset anggaran akan membuat limit bulan berjalan yang masih bisa kamu ubah nanti.
           </p>
           {feedback.error ? <Notice tone="error">{feedback.error}</Notice> : null}
           {feedback.message ? <Notice tone="success">{feedback.message}</Notice> : null}
@@ -78,7 +78,7 @@ export function WalletsPageContent({
           <div className="md:col-span-2 xl:col-span-3">
             <EmptyState
               title="Belum ada wallet"
-              description="Gunakan form di atas untuk membuat wallet personal atau shared. Setelah itu Anda bisa mulai membuat transaksi, budget, dan laporan."
+              description="Gunakan form di atas untuk membuat wallet pribadi atau bersama. Setelah itu kamu bisa mulai membuat transaksi, anggaran, dan laporan."
             />
           </div>
         ) : null}
@@ -92,27 +92,27 @@ export function WalletsPageContent({
               <Badge>{wallet.role}</Badge>
             </div>
             <p className="metric mt-6 text-3xl">{formatCurrency(wallet.totalBalance)}</p>
-            <div className="mt-6 grid grid-cols-2 gap-3 text-sm">
-              <div className="rounded-xl bg-muted p-3">
-                <p className="text-muted-foreground">Available</p>
+            <div className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
+              <div className="info-tile">
+                <p className="text-muted-foreground">Saldo siap pakai</p>
                 <p className="metric mt-2">{formatCurrency(wallet.availableBalance)}</p>
               </div>
-              <div className="rounded-xl bg-muted p-3">
-                <p className="text-muted-foreground">Saving</p>
+              <div className="info-tile">
+                <p className="text-muted-foreground">Saldo tabungan</p>
                 <p className="metric mt-2">{formatCurrency(wallet.savingBalance)}</p>
               </div>
             </div>
-            <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
-              <div className="rounded-xl bg-muted p-3">
-                <p className="text-muted-foreground">Spent</p>
+            <div className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+              <div className="info-tile">
+                <p className="text-muted-foreground">Terpakai</p>
                 <p className="metric mt-2">{formatCurrency(wallet.spentThisMonth)}</p>
               </div>
-              <div className="rounded-xl bg-muted p-3">
-                <p className="text-muted-foreground">Budget</p>
+              <div className="info-tile">
+                <p className="text-muted-foreground">Anggaran</p>
                 <p className="metric mt-2">{formatCurrency(wallet.budgetThisMonth)}</p>
               </div>
-              <div className="rounded-xl bg-muted p-3">
-                <p className="text-muted-foreground">Member</p>
+              <div className="info-tile">
+                <p className="text-muted-foreground">Anggota</p>
                 <p className="metric mt-2">{wallet.members}</p>
               </div>
             </div>

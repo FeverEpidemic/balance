@@ -11,6 +11,12 @@ import { InvitationShareActions } from "@/components/invitation-share-actions";
 import { getSiteUrl } from "@/lib/env";
 import { MAX_WALLET_MEMBERS, summarizeWalletCapacity } from "@/lib/wallet-capacity";
 
+function getRoleLabel(role: "owner" | "editor" | "viewer") {
+  if (role === "owner") return "Pemilik";
+  if (role === "editor") return "Editor";
+  return "Lihat saja";
+}
+
 export default async function MembersPage({
   params,
   searchParams
@@ -54,9 +60,9 @@ export default async function MembersPage({
           <p className="eyebrow">Undang anggota</p>
           <h3 className="headline-md mt-2">Aktifkan kolaborasi wallet</h3>
           <p className="mt-2 text-sm text-muted-foreground">
-            Buat tautan undangan berbasis token, lalu bagikan ke calon anggota yang ingin Anda tambahkan ke wallet ini.
+            Buat tautan undangan berbasis token, lalu bagikan ke calon anggota yang ingin kamu tambahkan ke wallet ini.
           </p>
-          <div className="mt-4 rounded-xl bg-muted p-4">
+          <div className="mt-4 info-tile">
             <p className="font-label text-sm text-muted-foreground">Kapasitas wallet</p>
             <p className="mt-2 metric text-2xl">
               {capacity.occupiedSlots}/{MAX_WALLET_MEMBERS}
@@ -76,7 +82,7 @@ export default async function MembersPage({
                 <label className="block">
                   <span className="mb-2 block font-label text-sm text-muted-foreground">Hak akses</span>
                   <select name="role" defaultValue="viewer">
-                    <option value="viewer">Viewer</option>
+                    <option value="viewer">Lihat saja</option>
                     <option value="editor">Editor</option>
                   </select>
                 </label>
@@ -89,16 +95,16 @@ export default async function MembersPage({
             </div>
           )}
 
-          <div className="mt-6 space-y-3">
+          <div className="mt-6 stack-list">
             <p className="font-label text-sm text-muted-foreground">Undangan aktif</p>
             {pendingInvitations.length === 0 ? (
               <p className="text-sm text-muted-foreground">Belum ada undangan yang menunggu respons.</p>
             ) : (
               pendingInvitations.map((invite) => (
-                <div key={invite.id} className="rounded-xl bg-muted p-4">
-                  <div className="flex items-center justify-between gap-3">
+                <div key={invite.id} className="list-card">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="font-medium">Undangan {invite.role}</p>
+                      <p className="font-medium">Undangan {getRoleLabel(invite.role)}</p>
                       <p className="mt-1 text-sm text-muted-foreground">
                         Berlaku sampai{" "}
                         {new Intl.DateTimeFormat("id-ID", {
@@ -107,7 +113,7 @@ export default async function MembersPage({
                         }).format(new Date(invite.expires_at))}
                       </p>
                     </div>
-                    <Badge>{invite.role}</Badge>
+                    <Badge>{getRoleLabel(invite.role)}</Badge>
                   </div>
                   {bundle.wallet.role === "owner" ? (
                     <InvitationShareActions
@@ -125,17 +131,17 @@ export default async function MembersPage({
         <div className="card">
           <p className="eyebrow">Daftar anggota</p>
           <h3 className="headline-md mt-2">Hak akses wallet</h3>
-          <div className="mt-6 space-y-3">
+          <div className="mt-6 stack-list">
             {bundle.members.map((member) => {
               const profile = bundle.profileMap.get(member.user_id);
               return (
-                <div key={member.user_id} className="flex flex-col gap-3 rounded-xl bg-muted p-4 md:flex-row md:items-center md:justify-between">
+                <div key={member.user_id} className="list-card flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div>
                     <p className="font-medium">{profile?.full_name || profile?.email || member.user_id}</p>
                     <p className="mt-1 text-sm text-muted-foreground">{profile?.email || "-"}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge>{member.role}</Badge>
+                    <Badge>{getRoleLabel(member.role)}</Badge>
                     <Badge tone="success">Aktif</Badge>
                   </div>
                 </div>

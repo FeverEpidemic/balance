@@ -83,11 +83,11 @@ textarea:focus {
   }
 
   .card {
-    @apply rounded-lg bg-card p-6 shadow-serene;
+    @apply min-w-0 rounded-[1.25rem] border border-white/70 bg-card p-4 shadow-serene sm:p-5 lg:p-6;
   }
 
   .card-muted {
-    @apply rounded-lg bg-card-elevated p-6;
+    @apply min-w-0 rounded-[1.25rem] bg-card-elevated p-4 sm:p-5 lg:p-6;
   }
 
   .eyebrow {
@@ -125,5 +125,21 @@ textarea:focus {
 
   .soft-ring {
     box-shadow: inset 0 0 0 1px rgba(89, 95, 61, 0.08);
+  }
+
+  .info-tile {
+    @apply min-w-0 rounded-xl border border-white/55 bg-muted px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.24)];
+  }
+
+  .subtle-panel {
+    @apply min-w-0 rounded-xl border border-white/70 bg-white/80 p-4;
+  }
+
+  .stack-list {
+    @apply space-y-3;
+  }
+
+  .list-card {
+    @apply rounded-xl border border-white/55 bg-muted p-4;
   }
 }

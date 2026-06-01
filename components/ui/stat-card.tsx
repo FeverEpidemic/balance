@@ -11,9 +11,13 @@ export function StatCard({
 }) {
   return (
     <div className="card">
-      <p className="eyebrow">{label}</p>
-      <p className="metric mt-3 text-3xl">{formatCurrency(value)}</p>
-      <p className="mt-2 text-sm text-muted-foreground">{detail}</p>
+      <div className="flex min-h-full flex-col justify-between gap-4">
+        <div>
+          <p className="eyebrow">{label}</p>
+          <p className="metric mt-3 text-[1.9rem] leading-none sm:text-3xl">{formatCurrency(value)}</p>
+        </div>
+        <p className="max-w-xs text-sm leading-6 text-muted-foreground">{detail}</p>
+      </div>
     </div>
   );
 }

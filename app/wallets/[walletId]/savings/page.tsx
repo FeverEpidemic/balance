@@ -32,8 +32,8 @@ export default async function SavingsPage({
   return (
     <AppShell
       currentPath={active}
-      title="Saving"
-      subtitle={`Pisahkan saldo dan target saving untuk ${data.walletName}`}
+      title="Tabungan"
+      subtitle={`Pisahkan saldo dan target tabungan untuk ${data.walletName}`}
       userName={data.shell.userName}
       walletCount={data.shell.walletCount}
       budgetCount={data.shell.budgetCount}
@@ -43,15 +43,15 @@ export default async function SavingsPage({
     >
       <WalletTabs walletId={walletId} active={active} />
       <section className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-xl bg-white/70 p-4 shadow-serene">
-          <p className="text-sm text-muted-foreground">Available</p>
+        <div className="card">
+          <p className="text-sm text-muted-foreground">Saldo siap pakai</p>
           <p className="metric mt-2 text-2xl">{formatCurrency(data.walletSummary.availableBalance)}</p>
         </div>
-        <div className="rounded-xl bg-white/70 p-4 shadow-serene">
-          <p className="text-sm text-muted-foreground">Saving</p>
+        <div className="card">
+          <p className="text-sm text-muted-foreground">Saldo tabungan</p>
           <p className="metric mt-2 text-2xl">{formatCurrency(data.walletSummary.savingBalance)}</p>
         </div>
-        <div className="rounded-xl bg-white/70 p-4 shadow-serene">
+        <div className="card">
           <p className="text-sm text-muted-foreground">Total</p>
           <p className="metric mt-2 text-2xl">{formatCurrency(data.walletSummary.totalBalance)}</p>
         </div>
@@ -59,35 +59,35 @@ export default async function SavingsPage({
 
       <section className="mt-4 grid gap-4 xl:grid-cols-[minmax(18rem,0.9fr)_minmax(0,1.1fr)]">
         <div className="card min-w-0">
-          <p className="eyebrow">Saving baru</p>
-          <h3 className="headline-md mt-2">Buat bucket saving terpisah</h3>
+          <p className="eyebrow">Tabungan baru</p>
+          <h3 className="headline-md mt-2">Buat pos tabungan terpisah</h3>
           <div className="mt-4 space-y-3">
             {query.error ? <Notice tone="error">{query.error}</Notice> : null}
             {query.message ? <Notice tone="success">{query.message}</Notice> : null}
-            {!canMutate ? <Notice tone="info">Viewer hanya bisa melihat saving dan riwayat mutasinya.</Notice> : null}
+            {!canMutate ? <Notice tone="info">Viewer hanya bisa melihat tabungan dan riwayat mutasinya.</Notice> : null}
           </div>
           {canMutate ? (
             <form action={createSaving} className="mt-6 grid gap-4">
               <input type="hidden" name="wallet_id" value={data.walletId} />
               <label className="block">
-                <span className="mb-2 block font-label text-sm text-muted-foreground">Nama saving</span>
+                <span className="mb-2 block font-label text-sm text-muted-foreground">Nama tabungan</span>
                 <input name="name" placeholder="Dana darurat" required />
               </label>
               <label className="block">
                 <span className="mb-2 block font-label text-sm text-muted-foreground">Target nominal</span>
                 <input name="target_amount" placeholder="Opsional" inputMode="numeric" />
               </label>
-              <SubmitButton pendingText="Menyimpan saving...">Buat saving</SubmitButton>
+              <SubmitButton pendingText="Menyimpan tabungan...">Buat tabungan</SubmitButton>
             </form>
           ) : null}
         </div>
 
         <div className="card min-w-0">
-          <p className="eyebrow">Daftar saving</p>
-          <h3 className="headline-md mt-2">Saldo saving per wallet</h3>
+          <p className="eyebrow">Daftar tabungan</p>
+          <h3 className="headline-md mt-2">Saldo tabungan per wallet</h3>
           <div className="mt-6 space-y-4">
             {data.savings.length === 0 ? (
-              <EmptyState title="Belum ada saving" description="Buat saving pertama untuk mulai memisahkan saldo tujuan tertentu." />
+              <EmptyState title="Belum ada tabungan" description="Buat tabungan pertama untuk mulai memisahkan saldo tujuan tertentu." />
             ) : null}
             {data.savings.map((saving) => (
               <article key={saving.id} className="rounded-2xl bg-muted p-4">
@@ -95,7 +95,7 @@ export default async function SavingsPage({
                   <div className="min-w-0">
                     <p className="font-display text-xl">{saving.name}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {saving.isArchived ? "Saving diarsipkan" : saving.progressLabel}
+                      {saving.isArchived ? "Tabungan diarsipkan" : saving.progressLabel}
                       {saving.targetAmount ? ` • target ${formatCurrency(saving.targetAmount)}` : ""}
                     </p>
                   </div>
@@ -149,14 +149,14 @@ export default async function SavingsPage({
                     </form>
 
                     <div className="min-w-0 rounded-xl bg-white/80 p-4 lg:col-span-2 2xl:col-span-1">
-                      <p className="font-medium">Kelola saving</p>
+                      <p className="font-medium">Kelola tabungan</p>
                       <form action={updateSaving} className="mt-3 grid gap-3">
                         <input type="hidden" name="wallet_id" value={data.walletId} />
                         <input type="hidden" name="saving_id" value={saving.id} />
                         <input name="name" defaultValue={saving.name} required />
                         <input name="target_amount" defaultValue={saving.targetAmount ?? ""} placeholder="Target opsional" inputMode="numeric" />
                         <SubmitButton className="w-full" pendingText="Menyimpan..." variant="soft">
-                          Update saving
+                          Update tabungan
                         </SubmitButton>
                       </form>
                       <form action={archiveSaving} className="mt-3">
@@ -168,7 +168,7 @@ export default async function SavingsPage({
                           pendingText="Mengarsipkan..."
                           variant="ghost"
                         >
-                          Arsipkan saving
+                          Arsipkan tabungan
                         </ConfirmSubmitButton>
                       </form>
                     </div>
@@ -197,7 +197,7 @@ export default async function SavingsPage({
                   <p className="font-medium">Riwayat mutasi</p>
                   <div className="mt-3 space-y-3">
                     {saving.entries.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">Belum ada mutasi pada saving ini.</p>
+                      <p className="text-sm text-muted-foreground">Belum ada mutasi pada tabungan ini.</p>
                     ) : (
                       saving.entries.map((entry) => (
                         <div key={entry.id} className="flex flex-col gap-2 rounded-xl bg-muted p-3 md:flex-row md:items-center md:justify-between">

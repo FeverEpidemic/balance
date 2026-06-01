@@ -6,19 +6,19 @@ import { createClient } from "@/lib/supabase/server";
 
 const featureCards = [
   {
-    title: "Catatan cash flow yang enak dibaca",
-    description: "Pemasukan, pengeluaran, dan saldo terasa lebih gampang dipantau tanpa harus buka banyak sheet."
+    title: "Catatan arus kas yang enak dibaca",
+    description: "Pemasukan, pengeluaran, dan saldo terasa lebih gampang dipantau tanpa harus buka banyak lembar catatan."
   },
   {
-    title: "Budget bulanan yang lebih kebayang",
-    description: "Lihat kategori mana yang masih aman dan mana yang mulai minta rem sebelum akhir bulan."
+    title: "Anggaran bulanan yang lebih kebayang",
+    description: "Lihat kategori mana yang masih aman dan mana yang mulai perlu direm sebelum akhir bulan."
   },
   {
     title: "Split bill tanpa chat panjang",
     description: "Bagi pengeluaran bareng, cek sisa settlement, lalu lanjut hidup tanpa ribet hitung manual."
   },
   {
-    title: "Saving tetap nyambung ke wallet",
+    title: "Tabungan tetap nyambung ke wallet",
     description: "Setor dan tarik tabungan tetap kebaca di arus uang utama, jadi gambarannya tetap utuh."
   }
 ];
@@ -66,7 +66,7 @@ export default async function HomePage() {
     <main className="page-wrap pb-12 pt-6 md:pb-16 md:pt-8">
       <section className="grid gap-10 py-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center lg:py-14">
         <div>
-          <p className="eyebrow">Balance | Healthy Financial Healthy Mind</p>
+          <p className="eyebrow">Balance | Keuangan yang lebih tenang</p>
           <h1 className="headline-xl mt-4 max-w-3xl">
             Ngatur uang jadi lebih tenang, baik buat diri sendiri maupun buat bareng-bareng.
           </h1>
@@ -84,7 +84,7 @@ export default async function HomePage() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Badge>Bahasa Indonesia</Badge>
             <Badge>Wallet pribadi & bersama</Badge>
-            <Badge>Budget, split bill, saving</Badge>
+            <Badge>Anggaran, split bill, tabungan</Badge>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             <div className="card-muted p-4">
@@ -117,7 +117,7 @@ export default async function HomePage() {
                   <p className="font-label text-xs uppercase tracking-[0.18em] text-white/70">Ringkasan bulan ini</p>
                   <p className="metric mt-4 text-3xl md:text-[2.5rem]">Rp12.450.000</p>
                 </div>
-                <div className="rounded-full bg-white/12 px-3 py-2 font-label text-xs text-white">Cash flow aman</div>
+                <div className="rounded-full bg-white/12 px-3 py-2 font-label text-xs text-white">Arus kas aman</div>
               </div>
               <p className="mt-4 max-w-sm text-sm leading-6 text-white/75">
                 Setelah kebutuhan utama, tagihan bersama, dan target tabungan, uangmu masih kelihatan arah geraknya.
@@ -126,7 +126,7 @@ export default async function HomePage() {
 
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div className="card p-5">
-                <p className="font-label text-xs uppercase tracking-[0.16em] text-muted-foreground">Budget makan</p>
+                <p className="font-label text-xs uppercase tracking-[0.16em] text-muted-foreground">Anggaran makan</p>
                 <p className="metric mt-3 text-2xl">68%</p>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">Masih aman buat sisa 12 hari bulan ini.</p>
               </div>
@@ -141,7 +141,7 @@ export default async function HomePage() {
               <div className="card-muted p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="font-label text-xs uppercase tracking-[0.16em] text-muted-foreground">Saving tujuan</p>
+                    <p className="font-label text-xs uppercase tracking-[0.16em] text-muted-foreground">Target tabungan</p>
                     <p className="headline-md mt-2">Dana tenang akhir tahun</p>
                   </div>
                   <Badge>Target 74%</Badge>
@@ -200,7 +200,7 @@ export default async function HomePage() {
         <div className="grid gap-4 lg:grid-cols-2">
           {useCases.map((useCase) => (
             <article key={useCase.title} className="card-muted rounded-[1.5rem] p-6 md:p-7">
-              <p className="eyebrow">Use case</p>
+              <p className="eyebrow">Contoh penggunaan</p>
               <h2 className="headline-md mt-3">{useCase.title}</h2>
               <p className="mt-3 text-sm leading-7 text-muted-foreground md:text-base">{useCase.description}</p>
             </article>

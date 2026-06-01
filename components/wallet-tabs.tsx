@@ -4,19 +4,19 @@ import { cn } from "@/lib/utils";
 const tabs = [
   { slug: "", label: "Ringkasan" },
   { slug: "/transactions", label: "Transaksi" },
-  { slug: "/savings", label: "Saving" },
-  { slug: "/recurring", label: "Recurring" },
-  { slug: "/budgets", label: "Budget" },
+  { slug: "/savings", label: "Tabungan" },
+  { slug: "/recurring", label: "Otomatis" },
+  { slug: "/budgets", label: "Anggaran" },
   { slug: "/reports", label: "Laporan" },
   { slug: "/members", label: "Anggota" },
-  { slug: "/settlements", label: "Settlement" },
+  { slug: "/settlements", label: "Pelunasan" },
   { slug: "/templates", label: "Template" }
 ];
 
 export function WalletTabs({ walletId, active }: { walletId: string; active: string }) {
   return (
     <div className="mb-4 overflow-x-auto">
-      <div className="inline-flex min-w-full gap-2 rounded-2xl bg-[rgba(255,255,255,0.7)] p-2 shadow-serene">
+      <div className="inline-flex min-w-full gap-2 rounded-2xl border border-white/60 bg-[rgba(255,255,255,0.72)] p-2 shadow-serene">
         {tabs.map((tab) => {
           const href = `/wallets/${walletId}${tab.slug}`;
           return (
@@ -24,7 +24,7 @@ export function WalletTabs({ walletId, active }: { walletId: string; active: str
               key={href}
               href={href}
               className={cn(
-                "whitespace-nowrap rounded-xl px-4 py-3 font-label text-sm transition",
+                "whitespace-nowrap rounded-xl px-3 py-2 font-label text-xs font-semibold uppercase tracking-[0.12em] transition sm:px-4 sm:py-3 sm:text-sm sm:normal-case sm:tracking-[0.02em]",
                 active === href ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"
               )}
             >

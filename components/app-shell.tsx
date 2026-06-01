@@ -3,6 +3,14 @@ import { cn } from "@/lib/utils";
 import { logout } from "@/app/actions/auth";
 import type { ReactNode } from "react";
 
+function isActivePath(currentPath: string, href: string) {
+  if (href === "/wallets") {
+    return currentPath === "/wallets" || currentPath.startsWith("/wallets/");
+  }
+
+  return currentPath === href || currentPath.startsWith(`${href}/`);
+}
+
 export function AppShell({
   children,
   currentPath,
@@ -32,13 +40,27 @@ export function AppShell({
     { href: "/dashboard", label: "Dashboard" },
     { href: "/wallets", label: "Wallet" },
     { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: "Transaksi" },
-    { href: walletId ? `/wallets/${walletId}/savings` : "/wallets", label: "Saving" },
-    { href: walletId ? `/wallets/${walletId}/budgets` : "/wallets", label: "Budget" },
+    { href: walletId ? `/wallets/${walletId}/savings` : "/wallets", label: "Tabungan" },
+    { href: walletId ? `/wallets/${walletId}/budgets` : "/wallets", label: "Anggaran" },
     { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: "Laporan" },
     { href: walletId ? `/wallets/${walletId}/members` : "/wallets", label: "Anggota" },
-    { href: walletId ? `/wallets/${walletId}/settlements` : "/wallets", label: "Settlement" },
+    { href: walletId ? `/wallets/${walletId}/settlements` : "/wallets", label: "Pelunasan" },
     { href: walletId ? `/wallets/${walletId}/templates` : "/wallets", label: "Template" }
   ];
+  const mobileNavItems = [
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/wallets", label: "Wallet" },
+    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: "Transaksi" },
+    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: "Laporan" }
+  ];
+  const mobileWalletShortcuts = walletId
+    ? [
+        { href: `/wallets/${walletId}/transactions`, label: "Transaksi" },
+        { href: `/wallets/${walletId}/savings`, label: "Tabungan" },
+        { href: `/wallets/${walletId}/budgets`, label: "Anggaran" },
+        { href: `/wallets/${walletId}/reports`, label: "Laporan" }
+      ]
+    : [];
 
   return (
     <div className="page-wrap section-gap">
@@ -61,7 +83,7 @@ export function AppShell({
                 href={item.href}
                 className={cn(
                   "block rounded-lg px-4 py-3 text-sm transition",
-                  currentPath === item.href ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-muted"
+                  isActivePath(currentPath, item.href) ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-muted"
                 )}
               >
                 {item.label}
@@ -71,7 +93,7 @@ export function AppShell({
         </aside>
 
         <main className="min-w-0">
-          <header className="mb-4 rounded-xl bg-[rgba(255,255,255,0.62)] px-4 py-4 backdrop-blur md:px-6">
+          <header className="mb-4 rounded-[1.25rem] border border-white/60 bg-[rgba(255,255,255,0.68)] px-4 py-4 shadow-serene backdrop-blur md:px-6">
             <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
               <p className="text-sm text-muted-foreground">{userName}</p>
               <form action={logout}>
@@ -83,16 +105,34 @@ export function AppShell({
               <div>
                 <h2 className="headline-lg">{subtitle}</h2>
                 <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                  Mari kita cek overview keuangan kamu dan catat agar pikiran selalu tenang dan
+                  Cek kondisi keuangan, rapikan catatan, dan jaga ritme finansial tetap tenang setiap hari.
                 </p>
+                {mobileWalletShortcuts.length > 0 ? (
+                  <div className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:hidden">
+                    {mobileWalletShortcuts.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "whitespace-nowrap rounded-full border px-3 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
+                          isActivePath(currentPath, item.href)
+                            ? "border-primary bg-primary text-white"
+                            : "border-white/70 bg-white/70 text-muted-foreground"
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                ) : null}
               </div>
-              <div className="grid grid-cols-3 gap-2 rounded-xl bg-card p-2 shadow-serene">
+              <div className="grid w-full max-w-sm grid-cols-3 gap-2 rounded-xl bg-card p-2 shadow-serene md:w-auto">
                 <div className="rounded-lg bg-muted px-3 py-2 text-center">
                   <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Wallet</p>
                   <p className="mt-1 metric text-sm">{walletCount}</p>
                 </div>
                 <div className="rounded-lg bg-muted px-3 py-2 text-center">
-                  <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Budget</p>
+                  <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Anggaran</p>
                   <p className="mt-1 metric text-sm">{budgetCount}</p>
                 </div>
                 <div className="rounded-lg bg-muted px-3 py-2 text-center">
@@ -107,15 +147,15 @@ export function AppShell({
         </main>
       </div>
 
-      <nav className="fixed inset-x-4 bottom-4 z-50 rounded-2xl border border-[rgba(255,255,255,0.55)] bg-[rgba(255,255,255,0.82)] p-2 shadow-float backdrop-blur lg:hidden">
+      <nav className="fixed inset-x-4 bottom-4 z-50 rounded-2xl border border-[rgba(255,255,255,0.55)] bg-[rgba(255,255,255,0.86)] p-2 shadow-float backdrop-blur lg:hidden">
         <div className="grid grid-cols-4 gap-2">
-          {navItems.slice(0, 4).map((item) => (
+          {mobileNavItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "rounded-xl px-3 py-3 text-center font-label text-xs transition",
-                currentPath === item.href ? "bg-primary text-white" : "bg-transparent text-muted-foreground"
+                "rounded-xl px-2 py-3 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
+                isActivePath(currentPath, item.href) ? "bg-primary text-white" : "bg-transparent text-muted-foreground"
               )}
             >
               {item.label}

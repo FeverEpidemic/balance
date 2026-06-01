@@ -35,8 +35,8 @@ export function TransactionsPageContent({
       <WalletTabs walletId={data.walletId} active={active} />
       <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
         <div className="card">
-          <p className="eyebrow">Quick entry</p>
-          <h3 className="headline-md mt-2">Tambah expense atau income</h3>
+          <p className="eyebrow">Input cepat</p>
+          <h3 className="headline-md mt-2">Tambah pemasukan atau pengeluaran</h3>
           <div className="mt-4 space-y-3">
             {feedback.error ? <Notice tone="error">{feedback.error}</Notice> : null}
             {feedback.message ? <Notice tone="success">{feedback.message}</Notice> : null}
@@ -86,27 +86,25 @@ export function TransactionsPageContent({
             </label>
             <Button variant="soft">Terapkan</Button>
             <Button href={`/wallets/${data.walletId}/transactions`} variant="ghost">
-              Reset
+              Atur ulang
             </Button>
           </form>
-          <div className="mt-6 space-y-3">
+          <div className="mt-6 stack-list">
             {data.transactions.length === 0 ? (
-              <EmptyState title="Belum ada transaksi" description="Transaksi yang Anda simpan akan muncul di sini secara realtime dari database." />
+              <EmptyState title="Belum ada transaksi" description="Transaksi yang kamu simpan akan muncul di sini langsung dari database." />
             ) : null}
             {data.transactions.map((transaction) => (
-              <div key={transaction.id} className="rounded-xl bg-muted p-4">
-                <div className="flex items-start justify-between gap-4">
+              <div key={transaction.id} className="list-card">
+                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="font-medium">{transaction.title}</p>
-                      {transaction.isRecurring ? <Badge>Recurring</Badge> : null}
-                      {transaction.isSavingLinked ? <Badge>Saving</Badge> : null}
+                      {transaction.isRecurring ? <Badge>Otomatis</Badge> : null}
+                      {transaction.isSavingLinked ? <Badge>Tabungan</Badge> : null}
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {transaction.categoryName} - {transaction.splitLabel}
-                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">{transaction.categoryName} • {transaction.splitLabel}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-left md:text-right">
                     <p className={`metric ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
                       {formatCurrency(transaction.kind === "expense" ? -transaction.amount : transaction.amount)}
                     </p>
@@ -115,7 +113,7 @@ export function TransactionsPageContent({
                 </div>
                 {transaction.isSavingLinked ? (
                   <div className="mt-4 rounded-xl bg-white/80 p-3 text-sm text-muted-foreground">
-                    Transaksi ini dibuat otomatis dari tab Saving dan tidak bisa diedit atau dihapus dari sini.
+                    Transaksi ini dibuat otomatis dari tab Tabungan dan tidak bisa diedit atau dihapus dari sini.
                   </div>
                 ) : canMutate ? (
                   <>
