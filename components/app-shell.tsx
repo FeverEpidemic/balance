@@ -55,10 +55,15 @@ export function AppShell({
   ];
   const mobileWalletShortcuts = walletId
     ? [
+        { href: `/wallets/${walletId}`, label: "Ringkasan" },
         { href: `/wallets/${walletId}/transactions`, label: "Transaksi" },
         { href: `/wallets/${walletId}/savings`, label: "Tabungan" },
+        { href: `/wallets/${walletId}/recurring`, label: "Otomatis" },
         { href: `/wallets/${walletId}/budgets`, label: "Anggaran" },
-        { href: `/wallets/${walletId}/reports`, label: "Laporan" }
+        { href: `/wallets/${walletId}/reports`, label: "Laporan" },
+        { href: `/wallets/${walletId}/members`, label: "Anggota" },
+        { href: `/wallets/${walletId}/settlements`, label: "Pelunasan" },
+        { href: `/wallets/${walletId}/templates`, label: "Template" }
       ]
     : [];
 

@@ -12,12 +12,13 @@
 - **Halaman wallet, dashboard, tabungan, transaksi, dan recurring ikut dirapikan:** Tile saldo, ringkasan aktivitas, serta kartu daftar kini lebih konsisten secara spacing dan label.
 - **Polish visual lanjutan untuk hierarchy dan density:** Badge, notice, stat card, empty state, serta list data-heavy kini punya hierarchy visual yang lebih jelas dan ritme baca yang lebih enak di mobile maupun desktop.
 - **Navigasi mobile dibuat lebih kontekstual:** Active state sidebar kini lebih akurat untuk subpage wallet, bottom nav difokuskan ke destinasi inti, dan shortcut wallet penting muncul langsung di header mobile agar perpindahan halaman terasa lebih ringan.
+- **Bar tengah wallet dihapus:** Navigasi subhalaman wallet tidak lagi muncul sebagai lapisan terpisah di tengah halaman; desktop cukup memakai sidebar kiri, sementara mobile memakai shortcut kontekstual di header agar layout terasa lebih ringan dan tidak redundant.
 
 #### File Diubah
 | File | Perubahan |
 |---|---|
 | `app/globals.css` | Standarkan gaya `card` dan tambah helper tile/panel untuk layout konten yang lebih stabil di berbagai ukuran layar. |
-| `components/app-shell.tsx`, `components/wallet-tabs.tsx` | Rapikan copy shell, ringkasan header, label navigasi, dan perilaku bottom navigation mobile. |
+| `components/app-shell.tsx`, `components/wallet-tabs.tsx` | Rapikan copy shell, ringkasan header, label navigasi, sederhanakan struktur nav wallet, dan polish perilaku bottom navigation mobile. |
 | `components/features/{dashboard,wallets,transactions,recurring}/**`, `components/features/wallets/wallet-overview-content.tsx` | Rapikan label, struktur card, dan microcopy pada halaman inti aplikasi. |
 | `app/wallets/[walletId]/savings/page.tsx`, `components/features/budgets/budgets-page-content.tsx` | Rapikan judul, label, dan kartu ringkasan agar lebih konsisten dan responsif. |
 | `components/ui/{badge,notice,empty-state,stat-card}.tsx`, `app/wallets/[walletId]/{reports,members,templates,settlements}/page.tsx` | Tambah polish visual untuk hierarchy, empty state, badge status, chart mobile, dan density list data-heavy. |

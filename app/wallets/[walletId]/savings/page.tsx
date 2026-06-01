@@ -7,7 +7,6 @@ import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { WalletTabs } from "@/components/wallet-tabs";
 import { formatCurrency, formatShortDate, getTodayDateString } from "@/lib/utils";
 
 export default async function SavingsPage({
@@ -41,7 +40,6 @@ export default async function SavingsPage({
       primaryWalletId={data.shell.primaryWalletId}
       currentWalletId={walletId}
     >
-      <WalletTabs walletId={walletId} active={active} />
       <section className="grid gap-4 md:grid-cols-3">
         <div className="card">
           <p className="text-sm text-muted-foreground">Saldo siap pakai</p>

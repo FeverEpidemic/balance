@@ -1,7 +1,6 @@
 import { AppShell } from "@/components/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/ui/stat-card";
-import { WalletTabs } from "@/components/wallet-tabs";
 import type { WalletOverviewData } from "@/lib/data";
 
 export function WalletOverviewContent({ data }: { data: WalletOverviewData }) {
@@ -19,7 +18,6 @@ export function WalletOverviewContent({ data }: { data: WalletOverviewData }) {
       primaryWalletId={data.shell.primaryWalletId}
       currentWalletId={data.walletId}
     >
-      <WalletTabs walletId={data.walletId} active={active} />
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <StatCard label="Saldo tersedia" value={data.wallet.availableBalance} detail="Saldo di luar bucket saving wallet ini" />
         <StatCard label="Saldo tabungan" value={data.wallet.savingBalance} detail="Total saldo yang sudah dipisahkan ke tabungan" />

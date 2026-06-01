@@ -3,7 +3,6 @@ import { requireUser } from "@/lib/auth";
 import { buildMonthlyReport, getWalletBundle } from "@/lib/data";
 import { AppShell } from "@/components/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
-import { WalletTabs } from "@/components/wallet-tabs";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function ReportsPage({ params }: { params: Promise<{ walletId: string }> }) {
@@ -31,7 +30,6 @@ export default async function ReportsPage({ params }: { params: Promise<{ wallet
       primaryWalletId={bundle.shell.primaryWalletId}
       currentWalletId={walletId}
     >
-      <WalletTabs walletId={walletId} active={active} />
       <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="card">
           <p className="eyebrow">Tren bulanan</p>

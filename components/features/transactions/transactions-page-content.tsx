@@ -6,7 +6,6 @@ import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { WalletTabs } from "@/components/wallet-tabs";
 import type { TransactionsPageData } from "@/lib/data";
 import { formatCurrency, formatShortDate, getTodayDateString, toDateInputValue } from "@/lib/utils";
 
@@ -32,7 +31,6 @@ export function TransactionsPageContent({
       primaryWalletId={data.shell.primaryWalletId}
       currentWalletId={data.walletId}
     >
-      <WalletTabs walletId={data.walletId} active={active} />
       <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
         <div className="card">
           <p className="eyebrow">Input cepat</p>

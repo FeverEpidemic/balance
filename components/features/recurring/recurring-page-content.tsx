@@ -11,7 +11,6 @@ import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { WalletTabs } from "@/components/wallet-tabs";
 import type { RecurringTransactionsPageData } from "@/lib/data";
 import { formatCurrency, formatShortDate, getTodayDateString } from "@/lib/utils";
 
@@ -43,7 +42,6 @@ export function RecurringPageContent({
       primaryWalletId={data.shell.primaryWalletId}
       currentWalletId={data.walletId}
     >
-      <WalletTabs walletId={data.walletId} active={active} />
       <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
         <div className="card">
           <p className="eyebrow">Aturan baru</p>

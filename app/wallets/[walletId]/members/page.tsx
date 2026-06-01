@@ -6,7 +6,6 @@ import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Notice } from "@/components/ui/notice";
-import { WalletTabs } from "@/components/wallet-tabs";
 import { InvitationShareActions } from "@/components/invitation-share-actions";
 import { getSiteUrl } from "@/lib/env";
 import { MAX_WALLET_MEMBERS, summarizeWalletCapacity } from "@/lib/wallet-capacity";
@@ -50,7 +49,6 @@ export default async function MembersPage({
       primaryWalletId={bundle.shell.primaryWalletId}
       currentWalletId={walletId}
     >
-      <WalletTabs walletId={walletId} active={active} />
       <div className="mb-4 space-y-3">
         {query.error ? <Notice tone="error">{query.error}</Notice> : null}
         {query.message ? <Notice tone="success">{query.message}</Notice> : null}

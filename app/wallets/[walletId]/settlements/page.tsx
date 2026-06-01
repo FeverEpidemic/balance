@@ -6,7 +6,6 @@ import { AppShell } from "@/components/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { WalletTabs } from "@/components/wallet-tabs";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function SettlementsPage({
@@ -38,7 +37,6 @@ export default async function SettlementsPage({
       primaryWalletId={bundle.shell.primaryWalletId}
       currentWalletId={walletId}
     >
-      <WalletTabs walletId={walletId} active={active} />
       <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="card">
           <p className="eyebrow">Tambah pelunasan</p>
