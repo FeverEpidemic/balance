@@ -2,6 +2,18 @@
 
 ## [Unreleased] — 2026-06-01
 
+### Changed — Homepage Jadi Landing Page
+
+#### Perubahan UX
+- **Homepage publik kini lebih menjelaskan produk:** Halaman `/` diubah dari splash singkat menjadi landing page yang lebih meyakinkan untuk membantu calon user cepat paham fungsi Balance.
+- **Bahasa dibuat lebih santai dan dekat:** Copy homepage kini memakai nada yang ringan dan rapi, dengan fokus pada rasa lebih tenang saat mengatur uang.
+- **CTA lebih diarahkan ke signup:** Hero dan penutup homepage kini mendorong user baru ke `Daftar gratis`, sambil tetap menyediakan akses cepat ke halaman login.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `app/page.tsx` | Susun ulang homepage menjadi landing page multi-section dengan hero, manfaat utama, cara kerja singkat, use case, dan closing CTA. |
+
 ### Fixed — Docker Build Env for Client Auth
 
 #### Perbaikan Deploy
