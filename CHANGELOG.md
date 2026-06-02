@@ -2,6 +2,19 @@
 
 ## [Unreleased] — 2026-06-02
 
+### Added — Loading Skeleton Antar Page
+
+#### Peningkatan UX
+- **Navigasi area utama kini punya loading skeleton yang lebih halus:** Saat berpindah antar dashboard dan halaman wallet, user sekarang melihat placeholder yang mengikuti struktur halaman tujuan sambil data server dimuat.
+- **Skeleton dibuat kontekstual per area:** Dashboard, daftar wallet, ringkasan wallet, halaman form-plus-list, dan halaman detail wallet masing-masing punya pola loading ringan sendiri agar transisi terasa lebih natural.
+- **Halaman publik tetap tidak berubah:** Login, register, invite, dan route publik lain tidak ikut memakai boundary loading baru ini.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `app/(app)/**/loading.tsx`, `app/(app)/layout.tsx` | Tambah route group area utama dan boundary loading App Router untuk dashboard serta seluruh route wallet tanpa mengubah URL publik. |
+| `components/ui/page-loading-skeleton.tsx`, `app/globals.css` | Tambah skeleton primitives, komposisi shell/konten loading, dan animasi shimmer lembut yang sesuai visual Serene Capital. |
+
 ### Changed — Dashboard Quick Add Shortcut
 
 #### Peningkatan UI
