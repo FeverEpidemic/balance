@@ -6,6 +6,8 @@ import type { DashboardData } from "@/lib/data";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 
 export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
+  const transactionsHref = dashboard.shell.primaryWalletId ? `/wallets/${dashboard.shell.primaryWalletId}/transactions` : "/wallets";
+
   return (
     <AppShell
       currentPath="/dashboard"
@@ -16,6 +18,22 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
       budgetCount={dashboard.shell.budgetCount}
       memberCount={dashboard.shell.memberCount}
       primaryWalletId={dashboard.shell.primaryWalletId}
+      headerAction={
+        <Button
+          href={transactionsHref}
+          className="min-h-[3rem] min-w-[3rem] rounded-full px-0 py-0"
+        >
+          <span
+            aria-hidden="true"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/18 ring-1 ring-inset ring-white/20"
+          >
+            <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" role="img">
+              <path d="M10 4.5V15.5M4.5 10H15.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          </span>
+          <span className="sr-only">Tambah transaksi</span>
+        </Button>
+      }
     >
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard label="Saldo tersedia" value={dashboard.totalAvailableBalance} detail="Saldo semua wallet yang masih siap dipakai di luar tabungan." />
@@ -111,7 +129,9 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
             <p className="eyebrow">Transaksi terbaru</p>
             <h3 className="headline-md mt-2">Transaksi terbaru yang perlu kamu pantau</h3>
           </div>
-          <Button href={dashboard.shell.primaryWalletId ? `/wallets/${dashboard.shell.primaryWalletId}/transactions` : "/wallets"}>Tambah transaksi</Button>
+          <Button href={transactionsHref} variant="ghost">
+            Lihat semua
+          </Button>
         </div>
         <div className="mt-6 space-y-3">
           {dashboard.recentTransactions.length === 0 ? (

@@ -21,7 +21,8 @@ export function AppShell({
   budgetCount,
   memberCount,
   primaryWalletId,
-  currentWalletId
+  currentWalletId,
+  headerAction
 }: {
   children: ReactNode;
   currentPath: string;
@@ -33,6 +34,7 @@ export function AppShell({
   memberCount: number;
   primaryWalletId: string | null;
   currentWalletId?: string | null;
+  headerAction?: ReactNode;
 }) {
   const walletId = currentWalletId ?? primaryWalletId;
   const logoutButtonClassName = "rounded-full bg-primary-soft px-3 py-2 font-label text-xs text-primary-strong";
@@ -131,18 +133,21 @@ export function AppShell({
                   </div>
                 ) : null}
               </div>
-              <div className="grid w-full max-w-sm grid-cols-3 gap-2 rounded-xl bg-card p-2 shadow-serene md:w-auto">
-                <div className="rounded-lg bg-muted px-3 py-2 text-center">
-                  <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Wallet</p>
-                  <p className="mt-1 metric text-sm">{walletCount}</p>
-                </div>
-                <div className="rounded-lg bg-muted px-3 py-2 text-center">
-                  <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Anggaran</p>
-                  <p className="mt-1 metric text-sm">{budgetCount}</p>
-                </div>
-                <div className="rounded-lg bg-muted px-3 py-2 text-center">
-                  <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Anggota</p>
-                  <p className="mt-1 metric text-sm">{memberCount}</p>
+              <div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
+                {headerAction ? <div className="flex w-full justify-start md:justify-end">{headerAction}</div> : null}
+                <div className="grid w-full max-w-sm grid-cols-3 gap-2 rounded-xl bg-card p-2 shadow-serene md:w-auto">
+                  <div className="rounded-lg bg-muted px-3 py-2 text-center">
+                    <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Wallet</p>
+                    <p className="mt-1 metric text-sm">{walletCount}</p>
+                  </div>
+                  <div className="rounded-lg bg-muted px-3 py-2 text-center">
+                    <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Anggaran</p>
+                    <p className="mt-1 metric text-sm">{budgetCount}</p>
+                  </div>
+                  <div className="rounded-lg bg-muted px-3 py-2 text-center">
+                    <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Anggota</p>
+                    <p className="mt-1 metric text-sm">{memberCount}</p>
+                  </div>
                 </div>
               </div>
             </div>

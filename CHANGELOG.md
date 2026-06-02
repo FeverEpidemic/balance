@@ -2,6 +2,19 @@
 
 ## [Unreleased] — 2026-06-02
 
+### Changed — Dashboard Quick Add Shortcut
+
+#### Peningkatan UI
+- **Dashboard kini punya tombol `+` di header:** User bisa langsung lompat ke halaman input transaksi wallet default tanpa harus turun ke section aktivitas terbaru.
+- **Aksi transaksi di dashboard dibuat lebih rapi:** CTA pada kartu `Transaksi terbaru` kini berubah menjadi `Lihat semua` supaya tidak ada dua tombol utama untuk aksi yang sama.
+- **Perilaku fallback tetap aman:** Jika user belum punya wallet, shortcut `+` tetap tampil dan diarahkan ke halaman wallet terlebih dahulu.
+- **Quick add sekarang tampil lebih ringkas sebagai ikon saja:** Header dashboard tidak lagi menampilkan teks tambahan pada tombol aksi, jadi tampilannya lebih bersih terutama di mobile.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/app-shell.tsx`, `components/features/dashboard/dashboard-content.tsx` | Tambah slot action opsional di header shell, tampilkan tombol quick add `+` di dashboard, dan ubah CTA section transaksi menjadi `Lihat semua`. |
+
 ### Added — Penyesuaian Saldo Wallet
 
 #### Fitur Baru
