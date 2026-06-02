@@ -37,7 +37,7 @@ export function BudgetsPageContent({
             {feedback.error ? <Notice tone="error">{feedback.error}</Notice> : null}
             {feedback.message ? <Notice tone="success">{feedback.message}</Notice> : null}
           </div>
-          <form action={createBudget} className="mt-6 grid gap-4">
+          <form action={createBudget} className="mt-6 grid min-w-0 gap-4">
             <input type="hidden" name="wallet_id" value={data.walletId} />
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">Bulan</span>
@@ -63,13 +63,15 @@ export function BudgetsPageContent({
         <div className="card">
           <p className="eyebrow">Pemakaian</p>
           <h3 className="headline-md mt-2">Progress anggaran berjalan</h3>
-          <form method="get" className="mt-4 flex flex-wrap items-end gap-3">
+          <form method="get" className="mt-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">Filter bulan</span>
               <input name="month" type="month" defaultValue={data.selectedMonth} />
             </label>
-            <Button variant="soft">Terapkan</Button>
-            <Button href={`/wallets/${data.walletId}/budgets`} variant="ghost">
+            <Button variant="soft" className="w-full sm:w-auto">
+              Terapkan
+            </Button>
+            <Button href={`/wallets/${data.walletId}/budgets`} variant="ghost" className="w-full sm:w-auto">
               Atur ulang
             </Button>
           </form>
@@ -87,9 +89,9 @@ export function BudgetsPageContent({
                   <div className={`h-2 rounded-full ${budget.ratio > 85 ? "bg-danger" : "bg-primary"}`} style={{ width: `${budget.ratio}%` }} />
                 </div>
                 <p className="mt-3 text-sm text-muted-foreground">{budget.usageLabel}</p>
-                <details className="mt-4 rounded-xl bg-white/80 p-3">
+                <details className="mt-4 min-w-0 rounded-xl bg-white/80 p-3">
                   <summary className="cursor-pointer font-label text-sm text-muted-foreground">Edit anggaran</summary>
-                  <form action={updateBudget} className="mt-3 grid gap-3 md:grid-cols-[1fr_140px_140px_auto]">
+                  <form action={updateBudget} className="mt-3 grid min-w-0 gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,140px)_minmax(0,140px)_auto]">
                     <input type="hidden" name="wallet_id" value={data.walletId} />
                     <input type="hidden" name="budget_id" value={budget.id} />
                     <label className="block">
@@ -110,17 +112,17 @@ export function BudgetsPageContent({
                       <span className="mb-2 block font-label text-xs text-muted-foreground">Limit</span>
                       <input name="amount" defaultValue={String(budget.amount)} inputMode="numeric" required />
                     </label>
-                    <div className="flex items-end gap-2">
+                    <div className="flex min-w-0 items-end gap-2">
                       <SubmitButton className="w-full md:w-auto" pendingText="Menyimpan..." variant="soft">
                         Update
                       </SubmitButton>
                     </div>
                   </form>
                 </details>
-                <form action={deleteBudget} className="mt-2">
+                <form action={deleteBudget} className="mt-2 w-full sm:w-auto">
                   <input type="hidden" name="wallet_id" value={data.walletId} />
                   <input type="hidden" name="budget_id" value={budget.id} />
-                  <ConfirmSubmitButton confirmMessage="Hapus anggaran ini?" pendingText="Menghapus..." variant="ghost">
+                  <ConfirmSubmitButton className="w-full sm:w-auto" confirmMessage="Hapus anggaran ini?" pendingText="Menghapus..." variant="ghost">
                     Hapus anggaran
                   </ConfirmSubmitButton>
                 </form>

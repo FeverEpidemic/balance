@@ -39,7 +39,7 @@ export function TransactionsPageContent({
             {feedback.error ? <Notice tone="error">{feedback.error}</Notice> : null}
             {feedback.message ? <Notice tone="success">{feedback.message}</Notice> : null}
           </div>
-          <form action={createTransaction} className="mt-6 grid gap-4">
+          <form action={createTransaction} className="mt-6 grid min-w-0 gap-4">
             <input type="hidden" name="wallet_id" value={data.walletId} />
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">Jenis transaksi</span>
@@ -77,13 +77,15 @@ export function TransactionsPageContent({
         <div className="card">
           <p className="eyebrow">Riwayat</p>
           <h3 className="headline-md mt-2">Transaksi terakhir</h3>
-          <form method="get" className="mt-4 flex flex-wrap items-end gap-3">
+          <form method="get" className="mt-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">Filter bulan</span>
               <input name="month" type="month" defaultValue={data.selectedMonth} />
             </label>
-            <Button variant="soft">Terapkan</Button>
-            <Button href={`/wallets/${data.walletId}/transactions`} variant="ghost">
+            <Button variant="soft" className="w-full sm:w-auto">
+              Terapkan
+            </Button>
+            <Button href={`/wallets/${data.walletId}/transactions`} variant="ghost" className="w-full sm:w-auto">
               Atur ulang
             </Button>
           </form>
@@ -115,9 +117,9 @@ export function TransactionsPageContent({
                   </div>
                 ) : canMutate ? (
                   <>
-                    <details className="mt-4 rounded-xl bg-white/80 p-3">
+                    <details className="mt-4 min-w-0 rounded-xl bg-white/80 p-3">
                       <summary className="cursor-pointer font-label text-sm text-muted-foreground">Edit transaksi</summary>
-                      <form action={updateTransaction} className="mt-3 grid gap-3 md:grid-cols-2">
+                      <form action={updateTransaction} className="mt-3 grid min-w-0 gap-3 md:grid-cols-2">
                         <input type="hidden" name="wallet_id" value={data.walletId} />
                         <input type="hidden" name="transaction_id" value={transaction.id} />
                         <label className="block">
@@ -150,17 +152,17 @@ export function TransactionsPageContent({
                           <span className="mb-2 block font-label text-xs text-muted-foreground">Tanggal transaksi</span>
                           <input name="happened_at" type="date" defaultValue={toDateInputValue(transaction.happenedAt)} required />
                         </label>
-                        <div className="flex flex-wrap gap-2 md:col-span-2">
-                          <SubmitButton pendingText="Menyimpan..." variant="soft">
+                        <div className="flex min-w-0 flex-col gap-2 md:col-span-2 sm:flex-row sm:flex-wrap">
+                          <SubmitButton className="w-full sm:w-auto" pendingText="Menyimpan..." variant="soft">
                             Update transaksi
                           </SubmitButton>
                         </div>
                       </form>
                     </details>
-                    <form action={deleteTransaction} className="mt-2">
+                    <form action={deleteTransaction} className="mt-2 w-full sm:w-auto">
                       <input type="hidden" name="wallet_id" value={data.walletId} />
                       <input type="hidden" name="transaction_id" value={transaction.id} />
-                      <ConfirmSubmitButton confirmMessage="Hapus transaksi ini?" pendingText="Menghapus..." variant="ghost">
+                      <ConfirmSubmitButton className="w-full sm:w-auto" confirmMessage="Hapus transaksi ini?" pendingText="Menghapus..." variant="ghost">
                         Hapus transaksi
                       </ConfirmSubmitButton>
                     </form>

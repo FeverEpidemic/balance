@@ -52,7 +52,7 @@ export function RecurringPageContent({
             {!canManage ? <Notice>Peran viewer hanya dapat melihat transaksi otomatis tanpa mengubah data.</Notice> : null}
           </div>
           {canManage ? (
-            <form action={createRecurringTransaction} className="mt-6 grid gap-4">
+            <form action={createRecurringTransaction} className="mt-6 grid min-w-0 gap-4">
               <input type="hidden" name="wallet_id" value={data.walletId} />
               <label className="block">
                 <span className="mb-2 block font-label text-sm text-muted-foreground">Jenis transaksi</span>
@@ -139,9 +139,9 @@ export function RecurringPageContent({
                 ) : null}
                 {canManage ? (
                   <>
-                    <details className="mt-4 rounded-xl bg-white/80 p-3">
+                    <details className="mt-4 min-w-0 rounded-xl bg-white/80 p-3">
                       <summary className="cursor-pointer font-label text-sm text-muted-foreground">Edit aturan</summary>
-                      <form action={updateRecurringTransaction} className="mt-3 grid gap-3 md:grid-cols-2">
+                      <form action={updateRecurringTransaction} className="mt-3 grid min-w-0 gap-3 md:grid-cols-2">
                         <input type="hidden" name="wallet_id" value={data.walletId} />
                         <input type="hidden" name="recurring_transaction_id" value={transaction.id} />
                         <label className="block">
@@ -190,36 +190,36 @@ export function RecurringPageContent({
                           <span className="mb-2 block font-label text-xs text-muted-foreground">Tanggal akhir</span>
                           <input name="end_date" type="date" defaultValue={transaction.endDate ?? ""} />
                         </label>
-                        <div className="flex flex-wrap gap-2 md:col-span-2">
-                          <SubmitButton pendingText="Menyimpan..." variant="soft">
+                        <div className="flex min-w-0 flex-col gap-2 md:col-span-2 sm:flex-row sm:flex-wrap">
+                          <SubmitButton className="w-full sm:w-auto" pendingText="Menyimpan..." variant="soft">
                             Update aturan
                           </SubmitButton>
                         </div>
                       </form>
                     </details>
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="mt-3 flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap">
                       {transaction.status === "active" ? (
-                        <form action={pauseRecurringTransaction}>
+                        <form action={pauseRecurringTransaction} className="w-full sm:w-auto">
                           <input type="hidden" name="wallet_id" value={data.walletId} />
                           <input type="hidden" name="recurring_transaction_id" value={transaction.id} />
-                          <SubmitButton pendingText="Menjeda..." variant="ghost">
+                          <SubmitButton className="w-full sm:w-auto" pendingText="Menjeda..." variant="ghost">
                             Jeda
                           </SubmitButton>
                         </form>
                       ) : null}
                       {transaction.status === "paused" ? (
-                        <form action={resumeRecurringTransaction}>
+                        <form action={resumeRecurringTransaction} className="w-full sm:w-auto">
                           <input type="hidden" name="wallet_id" value={data.walletId} />
                           <input type="hidden" name="recurring_transaction_id" value={transaction.id} />
-                          <SubmitButton pendingText="Melanjutkan..." variant="soft">
+                          <SubmitButton className="w-full sm:w-auto" pendingText="Melanjutkan..." variant="soft">
                             Lanjutkan
                           </SubmitButton>
                         </form>
                       ) : null}
-                      <form action={deleteRecurringTransaction}>
+                      <form action={deleteRecurringTransaction} className="w-full sm:w-auto">
                         <input type="hidden" name="wallet_id" value={data.walletId} />
                         <input type="hidden" name="recurring_transaction_id" value={transaction.id} />
-                        <ConfirmSubmitButton confirmMessage="Hapus transaksi otomatis ini?" pendingText="Menghapus..." variant="ghost">
+                        <ConfirmSubmitButton className="w-full sm:w-auto" confirmMessage="Hapus transaksi otomatis ini?" pendingText="Menghapus..." variant="ghost">
                           Hapus
                         </ConfirmSubmitButton>
                       </form>

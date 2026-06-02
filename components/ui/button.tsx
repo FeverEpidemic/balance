@@ -21,8 +21,8 @@ type ButtonProps = {
 
 export function Button({ children, className, href, onClick, variant = "primary", type, size = "md" }: ButtonProps) {
   const styles = cn(
-    "inline-flex items-center justify-center rounded-lg font-label text-sm font-medium transition",
-    size === "sm" ? "px-3 py-2" : "px-4 py-3",
+    "inline-flex min-w-0 max-w-full items-center justify-center gap-2 rounded-xl text-center font-label text-sm font-medium leading-tight transition duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(89,95,61,0.16)] active:translate-y-px disabled:pointer-events-none disabled:opacity-60",
+    size === "sm" ? "min-h-[2.75rem] px-3 py-2" : "min-h-[3.25rem] px-4 py-3",
     variants[variant],
     className
   );

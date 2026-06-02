@@ -26,7 +26,7 @@ export default async function RegisterPage({
           {params.error ? <Notice tone="error">{params.error}</Notice> : null}
           {params.message ? <Notice tone="success">{params.message}</Notice> : null}
         </div>
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 min-w-0 space-y-4">
           <GoogleSignInButton callbackUrl={callbackUrl.toString()} label="Daftar dengan Google" />
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <div className="h-px flex-1 bg-border" />
@@ -34,7 +34,7 @@ export default async function RegisterPage({
             <div className="h-px flex-1 bg-border" />
           </div>
         </div>
-        <form action={signup} className="mt-8 grid gap-4 md:grid-cols-2">
+        <form action={signup} className="mt-8 grid min-w-0 gap-4 md:grid-cols-2">
           <input type="hidden" name="next" value={params.next ?? "/wallets?message=Akun aktif. Buat wallet pertama Anda."} />
           <label className="block">
             <span className="mb-2 block font-label text-sm text-muted-foreground">Nama lengkap</span>
@@ -56,7 +56,7 @@ export default async function RegisterPage({
         </form>
         <p className="mt-4 text-sm text-muted-foreground">
           Sudah punya akun?{" "}
-          <Button href={loginHref} variant="ghost" className="px-0 py-0">
+          <Button href={loginHref} variant="ghost" className="min-h-0 rounded-none border-0 px-0 py-0 align-baseline shadow-none">
             Login di sini
           </Button>
         </p>

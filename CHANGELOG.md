@@ -2,6 +2,22 @@
 
 ## [Unreleased] — 2026-06-01
 
+### Fixed — Safari iPhone Form dan Button Hardening
+
+#### Perbaikan UI Mobile
+- **Form utama lebih stabil di Safari iPhone:** Input, select, date, dan month kini memakai guard iOS agar tidak memicu zoom tak diinginkan, overflow horizontal, atau ukuran native yang merusak layout card.
+- **Button shared dibuat lebih konsisten:** CTA utama, submit button, confirm button, dan tombol Google login kini punya tinggi minimum, radius, focus ring, serta wrapping teks yang lebih stabil di viewport sempit.
+- **Layout form mobile diperketat:** Halaman login, register, invite, transaksi, anggaran, dan recurring kini memakai pola `min-w-0`, stack mobile-first, serta tombol full-width agar tidak meluber saat kontrol Safari lebih lebar dari browser lain.
+- **Navigasi mobile ikut dipoles:** Shortcut wallet dan bottom navigation kini lebih aman untuk scroll horizontal Safari tanpa memotong radius dan spacing.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `app/globals.css` | Tambah hardening Safari/iOS untuk overflow horizontal, input/select/date/month, touch scrolling, dan perilaku kontrol form native. |
+| `components/ui/{button,submit-button,confirm-submit-button}.tsx`, `components/auth/google-sign-in-button.tsx` | Standarkan dimensi, wrapping, focus state, dan interaction state tombol reusable. |
+| `app/{login,register}/page.tsx`, `app/invite/[token]/page.tsx` | Rapikan container auth dan CTA supaya tetap utuh di mobile Safari. |
+| `components/features/{transactions,budgets,recurring}/**`, `components/app-shell.tsx` | Perkuat layout form, action row, shortcut chips, dan bottom nav agar lebih tahan terhadap ukuran intrinsik Safari. |
+
 ### Changed — Rapikan Konsistensi UI dan Card Layout
 
 #### Perubahan UI

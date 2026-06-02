@@ -28,15 +28,15 @@ export default async function LoginPage({
           </p>
         </section>
 
-        <section className="card">
-          <div className="mx-auto max-w-md">
+        <section className="card min-w-0">
+          <div className="mx-auto min-w-0 max-w-md">
             <p className="eyebrow">Login</p>
             <h1 className="headline-lg mt-3">Masuk</h1>
             <div className="mt-6 space-y-3">
               {params.error ? <Notice tone="error">{params.error}</Notice> : null}
               {params.message ? <Notice tone="success">{params.message}</Notice> : null}
             </div>
-            <div className="mt-8 space-y-4">
+            <div className="mt-8 min-w-0 space-y-4">
               <GoogleSignInButton callbackUrl={callbackUrl.toString()} label="Masuk dengan Google" />
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <div className="h-px flex-1 bg-border" />
@@ -44,7 +44,7 @@ export default async function LoginPage({
                 <div className="h-px flex-1 bg-border" />
               </div>
             </div>
-            <form action={login} className="mt-8 space-y-4">
+            <form action={login} className="mt-8 min-w-0 space-y-4">
               <input type="hidden" name="next" value={params.next ?? "/dashboard"} />
               <label className="block">
                 <span className="mb-2 block font-label text-sm text-muted-foreground">Email</span>
@@ -60,7 +60,7 @@ export default async function LoginPage({
             </form>
             <p className="mt-4 text-sm text-muted-foreground">
               Belum punya akun?{" "}
-              <Button href={registerHref} variant="ghost" className="px-0 py-0">
+              <Button href={registerHref} variant="ghost" className="min-h-0 rounded-none border-0 px-0 py-0 align-baseline shadow-none">
                 Daftar di sini
               </Button>
             </p>

@@ -28,7 +28,8 @@ export function SubmitButton({
       type="submit"
       disabled={pending}
       className={cn(
-        "inline-flex items-center justify-center rounded-lg px-4 py-3 font-label text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+        "inline-flex min-w-0 max-w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-center font-label text-sm font-medium leading-tight transition duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(89,95,61,0.16)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60",
+        "min-h-[3.25rem]",
         variants[variant],
         className
       )}

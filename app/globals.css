@@ -25,6 +25,8 @@
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  background-color: var(--background);
 }
 
 body {
@@ -38,6 +40,8 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
 }
 
 a {
@@ -50,17 +54,30 @@ input,
 select,
 textarea {
   font: inherit;
+  min-width: 0;
+  max-width: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 input,
 select,
 textarea {
+  appearance: none;
+  -webkit-appearance: none;
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 0.75rem;
   background: #f5f4ed;
   padding: 0.875rem 1rem;
   color: var(--foreground);
+  font-size: 16px;
+  line-height: 1.4;
+  min-height: 3.25rem;
   transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
 }
 
@@ -71,6 +88,41 @@ textarea:focus {
   border-color: var(--primary);
   background: #ffffff;
   box-shadow: 0 0 0 4px rgba(89, 95, 61, 0.12);
+}
+
+select {
+  padding-right: 3rem;
+  background-image:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14' fill='none'%3E%3Cpath d='M3 5.5L7 9.5L11 5.5' stroke='%2346483e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position:
+    0 0,
+    right 1rem center;
+  background-repeat: no-repeat;
+  background-size:
+    100% 100%,
+    0.875rem 0.875rem;
+}
+
+input[type="date"],
+input[type="month"] {
+  padding-right: 1rem;
+}
+
+input[type="date"]::-webkit-date-and-time-value,
+input[type="month"]::-webkit-datetime-edit {
+  min-height: 1.25rem;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.78;
+}
+
+textarea {
+  min-height: 7rem;
+  resize: vertical;
 }
 
 @layer components {
@@ -141,5 +193,11 @@ textarea:focus {
 
   .list-card {
     @apply rounded-xl border border-white/55 bg-muted p-4;
+  }
+
+  .touch-scroll-x {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
   }
 }

@@ -85,7 +85,7 @@ export default async function InvitePage({
           </>
         )}
 
-        <div className="mt-8 grid gap-3">
+        <div className="mt-8 grid min-w-0 gap-3">
           {!invitation || !admin ? null : invitation.status === "accepted" ? (
             <Notice tone="success">Undangan ini sudah diterima sebelumnya.</Notice>
           ) : invitation.status === "revoked" ? (
@@ -93,7 +93,7 @@ export default async function InvitePage({
           ) : isExpired || invitation.status === "expired" ? (
             <Notice tone="error">Undangan ini sudah kedaluwarsa.</Notice>
           ) : !user ? (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid min-w-0 gap-3 sm:grid-cols-2">
               <Button href={`/login?next=${nextHref}`}>Login untuk menerima</Button>
               <Button href={`/register?next=${nextHref}`} variant="ghost">
                 Daftar akun baru

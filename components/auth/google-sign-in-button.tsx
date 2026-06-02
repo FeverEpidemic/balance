@@ -38,7 +38,7 @@ export function GoogleSignInButton({ callbackUrl, label }: GoogleSignInButtonPro
         onClick={handleClick}
         disabled={isPending}
         className={cn(
-          "inline-flex w-full items-center justify-center gap-3 rounded-lg border border-border bg-white px-4 py-3 font-label text-sm font-medium text-foreground shadow-serene transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
+          "inline-flex min-h-[3.25rem] w-full min-w-0 max-w-full items-center justify-center gap-3 rounded-xl border border-border bg-white px-4 py-3 text-center font-label text-sm font-medium leading-tight text-foreground shadow-serene transition duration-150 hover:bg-muted focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(89,95,61,0.16)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
         )}
       >
         <GoogleIcon />

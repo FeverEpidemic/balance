@@ -113,13 +113,13 @@ export function AppShell({
                   Cek kondisi keuangan, rapikan catatan, dan jaga ritme finansial tetap tenang setiap hari.
                 </p>
                 {mobileWalletShortcuts.length > 0 ? (
-                  <div className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:hidden">
+                  <div className="touch-scroll-x mt-4 flex gap-2 pb-1 pr-1 lg:hidden">
                     {mobileWalletShortcuts.map((item) => (
                       <Link
                         key={item.href}
                         href={item.href}
                         className={cn(
-                          "whitespace-nowrap rounded-full border px-3 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
+                          "shrink-0 whitespace-nowrap rounded-full border px-3 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
                           isActivePath(currentPath, item.href)
                             ? "border-primary bg-primary text-white"
                             : "border-white/70 bg-white/70 text-muted-foreground"
@@ -153,13 +153,13 @@ export function AppShell({
       </div>
 
       <nav className="fixed inset-x-4 bottom-4 z-50 rounded-2xl border border-[rgba(255,255,255,0.55)] bg-[rgba(255,255,255,0.86)] p-2 shadow-float backdrop-blur lg:hidden">
-        <div className="grid grid-cols-4 gap-2">
+        <div className="touch-scroll-x flex gap-2">
           {mobileNavItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "rounded-xl px-2 py-3 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
+                "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-3 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
                 isActivePath(currentPath, item.href) ? "bg-primary text-white" : "bg-transparent text-muted-foreground"
               )}
             >
