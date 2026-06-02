@@ -21,13 +21,14 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
       headerAction={
         <Button
           href={transactionsHref}
-          className="min-h-[3rem] min-w-[3rem] rounded-full px-0 py-0"
+          variant="soft"
+          className="min-h-[2.75rem] min-w-[2.75rem] rounded-full border border-white/70 px-0 py-0 shadow-none hover:shadow-none"
         >
           <span
             aria-hidden="true"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/18 ring-1 ring-inset ring-white/20"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/55 ring-1 ring-inset ring-white/70"
           >
-            <svg viewBox="0 0 20 20" fill="none" className="h-3.5 w-3.5" role="img">
+            <svg viewBox="0 0 20 20" fill="none" className="h-3 w-3" role="img">
               <path d="M10 4.5V15.5M4.5 10H15.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
             </svg>
           </span>

@@ -110,7 +110,10 @@ export function AppShell({
             <p className="eyebrow">{title}</p>
             <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <h2 className="headline-lg">{subtitle}</h2>
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="headline-lg">{subtitle}</h2>
+                  {headerAction ? <div className="shrink-0 md:hidden">{headerAction}</div> : null}
+                </div>
                 <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                   Cek kondisi keuangan, rapikan catatan, dan jaga ritme finansial tetap tenang setiap hari.
                 </p>
@@ -134,7 +137,7 @@ export function AppShell({
                 ) : null}
               </div>
               <div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
-                {headerAction ? <div className="flex w-full justify-start md:justify-end">{headerAction}</div> : null}
+                {headerAction ? <div className="hidden md:flex w-full justify-start md:justify-end">{headerAction}</div> : null}
                 <div className="grid w-full max-w-sm grid-cols-3 gap-2 rounded-xl bg-card p-2 shadow-serene md:w-auto">
                   <div className="rounded-lg bg-muted px-3 py-2 text-center">
                     <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Wallet</p>
