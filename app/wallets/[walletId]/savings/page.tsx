@@ -4,9 +4,11 @@ import { requireUser } from "@/lib/auth";
 import { getSavingsPageData } from "@/lib/data";
 import { AppShell } from "@/components/app-shell";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ToastFeedback } from "@/components/ui/toast-feedback";
 import { formatCurrency, formatShortDate, getTodayDateString } from "@/lib/utils";
 
 export default async function SavingsPage({
@@ -40,6 +42,7 @@ export default async function SavingsPage({
       primaryWalletId={data.shell.primaryWalletId}
       currentWalletId={walletId}
     >
+      <ToastFeedback error={query.error} message={query.message} />
       <section className="grid gap-4 md:grid-cols-3">
         <div className="card">
           <p className="text-sm text-muted-foreground">Saldo siap pakai</p>
@@ -60,8 +63,6 @@ export default async function SavingsPage({
           <p className="eyebrow">Tabungan baru</p>
           <h3 className="headline-md mt-2">Buat pos tabungan terpisah</h3>
           <div className="mt-4 space-y-3">
-            {query.error ? <Notice tone="error">{query.error}</Notice> : null}
-            {query.message ? <Notice tone="success">{query.message}</Notice> : null}
             {!canMutate ? <Notice tone="info">Viewer hanya bisa melihat tabungan dan riwayat mutasinya.</Notice> : null}
           </div>
           {canMutate ? (
@@ -73,7 +74,7 @@ export default async function SavingsPage({
               </label>
               <label className="block">
                 <span className="mb-2 block font-label text-sm text-muted-foreground">Target nominal</span>
-                <input name="target_amount" placeholder="Opsional" inputMode="numeric" />
+                <CurrencyInput name="target_amount" placeholder="Opsional" />
               </label>
               <SubmitButton pendingText="Menyimpan tabungan...">Buat tabungan</SubmitButton>
             </form>
@@ -114,7 +115,7 @@ export default async function SavingsPage({
                       <input type="hidden" name="saving_id" value={saving.id} />
                       <p className="font-medium">Setor</p>
                       <div className="mt-3 grid gap-3">
-                        <input name="amount" placeholder="Nominal" inputMode="numeric" required />
+                        <CurrencyInput name="amount" placeholder="Nominal" required />
                         {data.walletKind === "shared" ? (
                           <select name="member_user_id" defaultValue={data.memberOptions[0]?.userId ?? ""} required>
                             {data.memberOptions.map((member) => (
@@ -137,7 +138,7 @@ export default async function SavingsPage({
                       <input type="hidden" name="saving_id" value={saving.id} />
                       <p className="font-medium">Tarik</p>
                       <div className="mt-3 grid gap-3">
-                        <input name="amount" placeholder="Nominal" inputMode="numeric" required />
+                        <CurrencyInput name="amount" placeholder="Nominal" required />
                         <input name="note" placeholder="Catatan" />
                         <input name="happened_at" type="date" defaultValue={getTodayDateString()} required />
                         <SubmitButton className="w-full" pendingText="Menyimpan...">
@@ -152,7 +153,7 @@ export default async function SavingsPage({
                         <input type="hidden" name="wallet_id" value={data.walletId} />
                         <input type="hidden" name="saving_id" value={saving.id} />
                         <input name="name" defaultValue={saving.name} required />
-                        <input name="target_amount" defaultValue={saving.targetAmount ?? ""} placeholder="Target opsional" inputMode="numeric" />
+                        <CurrencyInput name="target_amount" defaultValue={saving.targetAmount} placeholder="Target opsional" />
                         <SubmitButton className="w-full" pendingText="Menyimpan..." variant="soft">
                           Update tabungan
                         </SubmitButton>

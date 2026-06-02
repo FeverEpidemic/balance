@@ -1,5 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { dateStringToISO, getTodayDateString, isValidDateString, toDateInputValue } from "../../lib/utils";
+import {
+  dateStringToISO,
+  formatCurrencyInputValue,
+  getTodayDateString,
+  isValidDateString,
+  sanitizeCurrencyInput,
+  toDateInputValue
+} from "../../lib/utils";
 
 describe("date utilities", () => {
   beforeAll(() => {
@@ -32,5 +39,22 @@ describe("date utilities", () => {
 
   it("normalizes date input strings into ISO timestamps", () => {
     expect(dateStringToISO("2026-05-29")).toBe("2026-05-29T00:00:00.000Z");
+  });
+});
+
+describe("currency input utilities", () => {
+  it("sanitizes formatted rupiah strings into plain digits", () => {
+    expect(sanitizeCurrencyInput("Rp325.000")).toBe("325000");
+    expect(sanitizeCurrencyInput("12abc34")).toBe("1234");
+  });
+
+  it("formats plain digits into rupiah display values", () => {
+    expect(formatCurrencyInputValue("325000")).toBe("Rp 325.000");
+    expect(formatCurrencyInputValue(500000)).toBe("Rp 500.000");
+  });
+
+  it("returns empty string when there are no digits to show", () => {
+    expect(formatCurrencyInputValue("")).toBe("");
+    expect(formatCurrencyInputValue("abc")).toBe("");
   });
 });

@@ -1,8 +1,9 @@
 import { login } from "@/app/actions/auth";
+import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { Button } from "@/components/ui/button";
-import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ToastFeedback } from "@/components/ui/toast-feedback";
 import { getSiteUrl } from "@/lib/env";
 
 export default async function LoginPage({
@@ -19,23 +20,24 @@ export default async function LoginPage({
 
   return (
     <main className="page-wrap section-gap">
+      <ToastFeedback error={params.error} message={params.message} />
       <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[0.95fr_1.05fr]">
-        <section className="card hidden lg:block">
-          <p className="eyebrow">Masuk ke Balance App</p>
-          <h1 className="headline-lg mt-4">Kembali ke dompet digital anda yang tenang dan terstruktur.</h1>
-          <p className="mt-4 text-muted-foreground">
-          Mulai mencatat kembali keuangan anda mulai dari sekarang.
-          </p>
-        </section>
+        <AuthBrandPanel
+          eyebrow="Masuk ke Balance App"
+          title="Kembali ke dompet digital Anda yang tenang dan terstruktur."
+          subtitle="Lanjutkan pencatatan keuangan rumah tangga dengan tampilan yang ringan, angka yang rapi, dan ritme yang tidak bikin sesak."
+          highlights={[
+            { label: "Arus kas", value: "Lebih tertata" },
+            { label: "Anggaran", value: "Mudah dipantau" },
+            { label: "Kolaborasi", value: "Siap dibagi" }
+          ]}
+        />
 
         <section className="card min-w-0">
           <div className="mx-auto min-w-0 max-w-md">
             <p className="eyebrow">Login</p>
             <h1 className="headline-lg mt-3">Masuk</h1>
-            <div className="mt-6 space-y-3">
-              {params.error ? <Notice tone="error">{params.error}</Notice> : null}
-              {params.message ? <Notice tone="success">{params.message}</Notice> : null}
-            </div>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">Masuk lagi untuk melanjutkan transaksi, anggaran, dan ringkasan wallet Anda.</p>
             <div className="mt-8 min-w-0 space-y-4">
               <GoogleSignInButton callbackUrl={callbackUrl.toString()} label="Masuk dengan Google" />
               <div className="flex items-center gap-3 text-sm text-muted-foreground">

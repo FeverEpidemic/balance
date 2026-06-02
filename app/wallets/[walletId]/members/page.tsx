@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Notice } from "@/components/ui/notice";
+import { ToastFeedback } from "@/components/ui/toast-feedback";
 import { InvitationShareActions } from "@/components/invitation-share-actions";
 import { getSiteUrl } from "@/lib/env";
 import { MAX_WALLET_MEMBERS, summarizeWalletCapacity } from "@/lib/wallet-capacity";
@@ -49,10 +50,7 @@ export default async function MembersPage({
       primaryWalletId={bundle.shell.primaryWalletId}
       currentWalletId={walletId}
     >
-      <div className="mb-4 space-y-3">
-        {query.error ? <Notice tone="error">{query.error}</Notice> : null}
-        {query.message ? <Notice tone="success">{query.message}</Notice> : null}
-      </div>
+      <ToastFeedback error={query.error} message={query.message} />
       <section className="grid gap-4 xl:grid-cols-[0.85fr_1.15fr]">
         <div className="card">
           <p className="eyebrow">Undang anggota</p>

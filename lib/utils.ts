@@ -2,12 +2,28 @@ export function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
 }
 
+const currencyInputFormatter = new Intl.NumberFormat("id-ID", {
+  style: "currency",
+  currency: "IDR",
+  maximumFractionDigits: 0
+});
+
 export function formatCurrency(value: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0
-  }).format(value);
+  return currencyInputFormatter.format(value);
+}
+
+export function sanitizeCurrencyInput(value: string) {
+  return value.replace(/[^\d]/g, "");
+}
+
+export function formatCurrencyInputValue(value: string | number) {
+  const digits = typeof value === "number" ? String(Math.trunc(value)) : sanitizeCurrencyInput(value);
+
+  if (!digits) {
+    return "";
+  }
+
+  return currencyInputFormatter.format(Number(digits));
 }
 
 export function formatShortDate(value: string) {

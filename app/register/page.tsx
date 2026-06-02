@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { signup } from "@/app/actions/auth";
+import { AuthBrandPanel } from "@/components/auth/auth-brand-panel";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
-import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ToastFeedback } from "@/components/ui/toast-feedback";
 import { getSiteUrl } from "@/lib/env";
 
 export default async function RegisterPage({
@@ -19,47 +20,62 @@ export default async function RegisterPage({
 
   return (
     <main className="page-wrap section-gap">
-      <div className="mx-auto max-w-2xl card">
-        <p className="eyebrow">Daftar akun</p>
-        <h1 className="headline-lg mt-3">Mulai dengan wallet pribadi atau wallet bersama.</h1>
-        <div className="mt-6 space-y-3">
-          {params.error ? <Notice tone="error">{params.error}</Notice> : null}
-          {params.message ? <Notice tone="success">{params.message}</Notice> : null}
-        </div>
-        <div className="mt-8 min-w-0 space-y-4">
-          <GoogleSignInButton callbackUrl={callbackUrl.toString()} label="Daftar dengan Google" />
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <div className="h-px flex-1 bg-border" />
-            <span>atau isi data akun</span>
-            <div className="h-px flex-1 bg-border" />
+      <ToastFeedback error={params.error} message={params.message} />
+      <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        <AuthBrandPanel
+          eyebrow="Mulai dengan Balance"
+          title="Buat kesan pertama yang tenang sejak catatan keuangan pertama."
+          subtitle="Daftar untuk mulai mengatur wallet pribadi atau bersama, mencatat transaksi lebih rapi, dan membangun kebiasaan finansial yang terasa ringan dijalani."
+          highlights={[
+            { label: "Setup awal", value: "Cepat dipakai" },
+            { label: "Wallet", value: "Pribadi atau bersama" },
+            { label: "First step", value: "Lebih meyakinkan" }
+          ]}
+        />
+
+        <section className="card min-w-0">
+          <div className="mx-auto min-w-0 max-w-md">
+            <p className="eyebrow">Daftar akun</p>
+            <h1 className="headline-lg mt-3">Mulai dengan wallet pribadi atau wallet bersama.</h1>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              Buat akun dulu, lalu lanjutkan dengan wallet pertama Anda untuk mulai mencatat, mengatur anggaran, dan berbagi akses bila dibutuhkan.
+            </p>
+            <div className="mt-8 min-w-0 space-y-4">
+              <GoogleSignInButton callbackUrl={callbackUrl.toString()} label="Daftar dengan Google" />
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <div className="h-px flex-1 bg-border" />
+                <span>atau isi data akun</span>
+                <div className="h-px flex-1 bg-border" />
+              </div>
+            </div>
+            <form action={signup} className="mt-8 grid min-w-0 gap-4 md:grid-cols-2">
+              <input type="hidden" name="next" value={params.next ?? "/wallets?message=Akun aktif. Buat wallet pertama Anda."} />
+              <label className="block">
+                <span className="mb-2 block font-label text-sm text-muted-foreground">Nama lengkap</span>
+                <input name="full_name" placeholder="Ilham Pratama" required />
+              </label>
+              <label className="block">
+                <span className="mb-2 block font-label text-sm text-muted-foreground">Email</span>
+                <input name="email" type="email" placeholder="nama@email.com" required />
+              </label>
+              <label className="block md:col-span-2">
+                <span className="mb-2 block font-label text-sm text-muted-foreground">Password</span>
+                <input name="password" type="password" placeholder="Minimal 8 karakter" required minLength={8} />
+              </label>
+              <div className="md:col-span-2">
+                <SubmitButton className="w-full" pendingText="Membuat akun...">
+                  Buat akun
+                </SubmitButton>
+              </div>
+            </form>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Sudah punya akun?{" "}
+              <Button href={loginHref} variant="ghost" className="min-h-0 rounded-none border-0 px-0 py-0 align-baseline shadow-none">
+                Login di sini
+              </Button>
+            </p>
           </div>
-        </div>
-        <form action={signup} className="mt-8 grid min-w-0 gap-4 md:grid-cols-2">
-          <input type="hidden" name="next" value={params.next ?? "/wallets?message=Akun aktif. Buat wallet pertama Anda."} />
-          <label className="block">
-            <span className="mb-2 block font-label text-sm text-muted-foreground">Nama lengkap</span>
-            <input name="full_name" placeholder="Ilham Pratama" required />
-          </label>
-          <label className="block">
-            <span className="mb-2 block font-label text-sm text-muted-foreground">Email</span>
-            <input name="email" type="email" placeholder="nama@email.com" required />
-          </label>
-          <label className="block md:col-span-2">
-            <span className="mb-2 block font-label text-sm text-muted-foreground">Password</span>
-            <input name="password" type="password" placeholder="Minimal 8 karakter" required minLength={8} />
-          </label>
-          <div className="md:col-span-2">
-            <SubmitButton className="w-full" pendingText="Membuat akun...">
-              Buat akun
-            </SubmitButton>
-          </div>
-        </form>
-        <p className="mt-4 text-sm text-muted-foreground">
-          Sudah punya akun?{" "}
-          <Button href={loginHref} variant="ghost" className="min-h-0 rounded-none border-0 px-0 py-0 align-baseline shadow-none">
-            Login di sini
-          </Button>
-        </p>
+        </section>
       </div>
     </main>
   );

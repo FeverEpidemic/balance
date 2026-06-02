@@ -3,9 +3,10 @@ import { createTemplate } from "@/app/actions/templates";
 import { requireUser } from "@/lib/auth";
 import { getWalletBundle } from "@/lib/data";
 import { AppShell } from "@/components/app-shell";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ToastFeedback } from "@/components/ui/toast-feedback";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function TemplatesPage({
@@ -37,14 +38,11 @@ export default async function TemplatesPage({
       primaryWalletId={bundle.shell.primaryWalletId}
       currentWalletId={walletId}
     >
+      <ToastFeedback error={query.error} message={query.message} />
       <section className="grid gap-4 xl:grid-cols-[0.85fr_1.15fr]">
         <div className="card">
           <p className="eyebrow">Buat template</p>
           <h3 className="headline-md mt-2">Transaksi cepat tanpa aturan otomatis</h3>
-          <div className="mt-4 space-y-3">
-            {query.error ? <Notice tone="error">{query.error}</Notice> : null}
-            {query.message ? <Notice tone="success">{query.message}</Notice> : null}
-          </div>
           <form action={createTemplate} className="mt-6 grid gap-4">
             <input type="hidden" name="wallet_id" value={walletId} />
             <label className="block">
@@ -71,7 +69,7 @@ export default async function TemplatesPage({
             </label>
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">Nominal default</span>
-              <input name="default_amount" defaultValue="500000" inputMode="numeric" />
+              <CurrencyInput name="default_amount" defaultValue={500000} />
             </label>
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">Catatan</span>

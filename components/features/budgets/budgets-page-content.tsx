@@ -2,9 +2,11 @@ import { createBudget, deleteBudget, updateBudget } from "@/app/actions/budgets"
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Notice } from "@/components/ui/notice";
+import { InlineEditPanel } from "@/components/ui/inline-edit-panel";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ToastFeedback } from "@/components/ui/toast-feedback";
 import type { BudgetsPageData } from "@/lib/data";
 import { formatCurrency } from "@/lib/utils";
 
@@ -29,14 +31,11 @@ export function BudgetsPageContent({
       primaryWalletId={data.shell.primaryWalletId}
       currentWalletId={data.walletId}
     >
+      <ToastFeedback error={feedback.error} message={feedback.message} />
       <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="card">
           <p className="eyebrow">Buat anggaran</p>
           <h3 className="headline-md mt-2">Tetapkan limit bulanan</h3>
-          <div className="mt-4 space-y-3">
-            {feedback.error ? <Notice tone="error">{feedback.error}</Notice> : null}
-            {feedback.message ? <Notice tone="success">{feedback.message}</Notice> : null}
-          </div>
           <form action={createBudget} className="mt-6 grid min-w-0 gap-4">
             <input type="hidden" name="wallet_id" value={data.walletId} />
             <label className="block">
@@ -55,7 +54,7 @@ export function BudgetsPageContent({
             </label>
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">Limit</span>
-              <input name="amount" defaultValue="2500000" inputMode="numeric" required />
+              <CurrencyInput name="amount" defaultValue={2500000} required />
             </label>
             <SubmitButton pendingText="Menyimpan anggaran...">Simpan anggaran</SubmitButton>
           </form>
@@ -89,8 +88,11 @@ export function BudgetsPageContent({
                   <div className={`h-2 rounded-full ${budget.ratio > 85 ? "bg-danger" : "bg-primary"}`} style={{ width: `${budget.ratio}%` }} />
                 </div>
                 <p className="mt-3 text-sm text-muted-foreground">{budget.usageLabel}</p>
-                <details className="mt-4 min-w-0 rounded-xl bg-white/80 p-3">
-                  <summary className="cursor-pointer font-label text-sm text-muted-foreground">Edit anggaran</summary>
+                <InlineEditPanel
+                  buttonLabel="Ubah anggaran"
+                  description="Sesuaikan kategori, bulan, atau limit anggaran tanpa keluar dari daftar progress."
+                  title="Anggaran ini bisa diedit"
+                >
                   <form action={updateBudget} className="mt-3 grid min-w-0 gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,140px)_minmax(0,140px)_auto]">
                     <input type="hidden" name="wallet_id" value={data.walletId} />
                     <input type="hidden" name="budget_id" value={budget.id} />
@@ -110,7 +112,7 @@ export function BudgetsPageContent({
                     </label>
                     <label className="block">
                       <span className="mb-2 block font-label text-xs text-muted-foreground">Limit</span>
-                      <input name="amount" defaultValue={String(budget.amount)} inputMode="numeric" required />
+                      <CurrencyInput name="amount" defaultValue={budget.amount} required />
                     </label>
                     <div className="flex min-w-0 items-end gap-2">
                       <SubmitButton className="w-full md:w-auto" pendingText="Menyimpan..." variant="soft">
@@ -118,7 +120,7 @@ export function BudgetsPageContent({
                       </SubmitButton>
                     </div>
                   </form>
-                </details>
+                </InlineEditPanel>
                 <form action={deleteBudget} className="mt-2 w-full sm:w-auto">
                   <input type="hidden" name="wallet_id" value={data.walletId} />
                   <input type="hidden" name="budget_id" value={budget.id} />

@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ToastFeedback } from "@/components/ui/toast-feedback";
 
 type InviteRecord = {
   id: string;
@@ -52,13 +53,10 @@ export default async function InvitePage({
 
   return (
     <main className="page-wrap section-gap">
+      <ToastFeedback error={query.error} message={query.message} />
       <div className="mx-auto max-w-2xl card">
         <Badge>Undangan wallet</Badge>
         <h1 className="headline-lg mt-4">Gabung ke wallet bersama</h1>
-        <div className="mt-6 space-y-3">
-          {query.error ? <Notice tone="error">{query.error}</Notice> : null}
-          {query.message ? <Notice tone="success">{query.message}</Notice> : null}
-        </div>
 
         {!admin ? (
           <div className="mt-4">

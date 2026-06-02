@@ -8,9 +8,11 @@ import {
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ToastFeedback } from "@/components/ui/toast-feedback";
 import type { RecurringTransactionsPageData } from "@/lib/data";
 import { formatCurrency, formatShortDate, getTodayDateString } from "@/lib/utils";
 
@@ -42,13 +44,12 @@ export function RecurringPageContent({
       primaryWalletId={data.shell.primaryWalletId}
       currentWalletId={data.walletId}
     >
+      <ToastFeedback error={feedback.error} message={feedback.message} />
       <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
         <div className="card">
           <p className="eyebrow">Aturan baru</p>
           <h3 className="headline-md mt-2">Pemasukan atau pengeluaran otomatis</h3>
           <div className="mt-4 space-y-3">
-            {feedback.error ? <Notice tone="error">{feedback.error}</Notice> : null}
-            {feedback.message ? <Notice tone="success">{feedback.message}</Notice> : null}
             {!canManage ? <Notice>Peran viewer hanya dapat melihat transaksi otomatis tanpa mengubah data.</Notice> : null}
           </div>
           {canManage ? (
@@ -63,7 +64,7 @@ export function RecurringPageContent({
               </label>
               <label className="block">
                 <span className="mb-2 block font-label text-sm text-muted-foreground">Nominal</span>
-                <input name="amount" placeholder="Rp0" inputMode="numeric" required />
+                <CurrencyInput name="amount" placeholder="Rp0" required />
               </label>
               <label className="block">
                 <span className="mb-2 block font-label text-sm text-muted-foreground">Kategori</span>
@@ -164,7 +165,7 @@ export function RecurringPageContent({
                         </label>
                         <label className="block">
                           <span className="mb-2 block font-label text-xs text-muted-foreground">Nominal</span>
-                          <input name="amount" defaultValue={String(transaction.amount)} inputMode="numeric" required />
+                          <CurrencyInput name="amount" defaultValue={transaction.amount} required />
                         </label>
                         <label className="block">
                           <span className="mb-2 block font-label text-xs text-muted-foreground">Catatan</span>

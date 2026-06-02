@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Hanken_Grotesk, Inter } from "next/font/google";
 import type { ReactNode } from "react";
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
+import { RouteTransition } from "@/components/ui/route-transition";
+import { ToastProvider } from "@/components/ui/toast-provider";
 import "./globals.css";
 
 const display = Hanken_Grotesk({
@@ -49,8 +51,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="id">
       <body className={`${display.variable} ${body.variable} ${label.variable}`}>
-        <ServiceWorkerRegistration />
-        {children}
+        <ToastProvider>
+          <RouteTransition />
+          <ServiceWorkerRegistration />
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );

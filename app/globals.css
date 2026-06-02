@@ -44,6 +44,63 @@ body {
   overflow-x: hidden;
 }
 
+@keyframes page-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.995);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-progress {
+  0% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes success-ping {
+  0% {
+    opacity: 0;
+    transform: scale(0.45);
+  }
+  35% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+
+@keyframes success-pop {
+  0% {
+    transform: scale(0.65) rotate(-10deg);
+  }
+  60% {
+    transform: scale(1.08) rotate(0deg);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -71,7 +128,7 @@ textarea {
   -webkit-appearance: none;
   width: 100%;
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: 0.5rem;
   background: #f5f4ed;
   padding: 0.875rem 1rem;
   color: var(--foreground);
@@ -135,11 +192,11 @@ textarea {
   }
 
   .card {
-    @apply min-w-0 rounded-[1.25rem] border border-white/70 bg-card p-4 shadow-serene sm:p-5 lg:p-6;
+    @apply min-w-0 rounded-[1rem] border border-white/70 bg-card p-4 shadow-serene sm:p-5 lg:p-6;
   }
 
   .card-muted {
-    @apply min-w-0 rounded-[1.25rem] bg-card-elevated p-4 sm:p-5 lg:p-6;
+    @apply min-w-0 rounded-[1rem] bg-card-elevated p-4 sm:p-5 lg:p-6;
   }
 
   .eyebrow {
@@ -195,9 +252,142 @@ textarea {
     @apply rounded-xl border border-white/55 bg-muted p-4;
   }
 
-  .touch-scroll-x {
+.touch-scroll-x {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
+  }
+}
+
+.page-enter {
+  animation: page-enter 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.toast-enter {
+  animation: toast-enter 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.toast-progress {
+  height: 0.35rem;
+}
+
+.toast-progress-bar {
+  height: 100%;
+  transform-origin: left center;
+  animation: toast-progress 5s linear forwards;
+}
+
+.toast-progress-bar-success {
+  background: linear-gradient(90deg, rgba(91, 143, 98, 0.92), rgba(166, 210, 171, 0.95));
+}
+
+.toast-progress-bar-neutral {
+  background: linear-gradient(90deg, rgba(89, 95, 61, 0.88), rgba(195, 202, 161, 0.92));
+}
+
+.success-mark-wrap {
+  position: relative;
+  display: inline-flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.success-mark-core {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, rgba(91, 143, 98, 0.96), rgba(63, 113, 70, 0.98));
+  color: white;
+  box-shadow: 0 14px 28px -18px rgba(63, 113, 70, 0.7);
+  animation: success-pop 420ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.success-mark-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1px solid rgba(91, 143, 98, 0.32);
+  animation: success-ping 1.15s ease-out forwards;
+}
+
+.success-mark-ring-delay {
+  animation-delay: 120ms;
+}
+
+.route-transition-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 80;
+  height: 3px;
+  width: 100%;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(90deg, rgba(224, 231, 187, 0), rgba(89, 95, 61, 0.92), rgba(224, 231, 187, 0));
+  transform: translateX(-100%);
+}
+
+.route-transition-bar-active {
+  opacity: 1;
+  transition: opacity 120ms ease;
+  animation: route-transition-sweep 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.route-transition-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(180deg, rgba(251, 249, 243, 0.28), rgba(251, 249, 243, 0));
+}
+
+.route-transition-veil-active {
+  animation: route-transition-veil 520ms ease-out;
+}
+
+@keyframes route-transition-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes route-transition-veil {
+  0% {
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .toast-enter,
+  .toast-progress-bar,
+  .success-mark-core,
+  .success-mark-ring,
+  .route-transition-bar-active,
+  .route-transition-veil-active {
+    animation: none !important;
+  }
+
+  .route-transition-bar,
+  .route-transition-veil {
+    display: none;
   }
 }

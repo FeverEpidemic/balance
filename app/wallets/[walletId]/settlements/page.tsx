@@ -3,9 +3,10 @@ import { createSettlement } from "@/app/actions/settlements";
 import { requireUser } from "@/lib/auth";
 import { getWalletBundle } from "@/lib/data";
 import { AppShell } from "@/components/app-shell";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ToastFeedback } from "@/components/ui/toast-feedback";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function SettlementsPage({
@@ -37,14 +38,11 @@ export default async function SettlementsPage({
       primaryWalletId={bundle.shell.primaryWalletId}
       currentWalletId={walletId}
     >
+      <ToastFeedback error={query.error} message={query.message} />
       <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="card">
           <p className="eyebrow">Tambah pelunasan</p>
           <h3 className="headline-md mt-2">Kurangi saldo hutang antar anggota</h3>
-          <div className="mt-4 space-y-3">
-            {query.error ? <Notice tone="error">{query.error}</Notice> : null}
-            {query.message ? <Notice tone="success">{query.message}</Notice> : null}
-          </div>
           <form action={createSettlement} className="mt-6 grid gap-4">
             <input type="hidden" name="wallet_id" value={walletId} />
             <label className="block">
@@ -75,7 +73,7 @@ export default async function SettlementsPage({
             </label>
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">Nominal</span>
-              <input name="amount" defaultValue="325000" inputMode="numeric" required />
+              <CurrencyInput name="amount" defaultValue={325000} required />
             </label>
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">Catatan</span>

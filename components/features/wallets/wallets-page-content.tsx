@@ -3,8 +3,8 @@ import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ToastFeedback } from "@/components/ui/toast-feedback";
 import type { DashboardData } from "@/lib/data";
 import { formatCurrency } from "@/lib/utils";
 
@@ -26,6 +26,7 @@ export function WalletsPageContent({
       memberCount={dashboard.shell.memberCount}
       primaryWalletId={dashboard.shell.primaryWalletId}
     >
+      <ToastFeedback error={feedback.error} message={feedback.message} />
       <section className="mb-4 grid gap-4 rounded-2xl bg-white/75 p-4 shadow-serene xl:grid-cols-[1fr_360px]">
         <div>
           <p className="headline-md">Wallet terorganisir per tujuan dan per anggota.</p>
@@ -67,8 +68,6 @@ export function WalletsPageContent({
           <p className="text-xs text-muted-foreground">
             Preset awal menentukan kategori dan template transaksi. Preset anggaran akan membuat limit bulan berjalan yang masih bisa kamu ubah nanti.
           </p>
-          {feedback.error ? <Notice tone="error">{feedback.error}</Notice> : null}
-          {feedback.message ? <Notice tone="success">{feedback.message}</Notice> : null}
           <SubmitButton pendingText="Membuat wallet...">Buat wallet baru</SubmitButton>
         </form>
       </section>
