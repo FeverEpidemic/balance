@@ -1,4 +1,10 @@
 import { describeBudgetUsage, getMonthDateRange } from "@/lib/finance";
+import {
+  getBalanceAdjustmentTitle,
+  isBalanceAdjustmentCategory,
+  isBalanceAdjustmentSource,
+  isSavingAdjustmentSource
+} from "@/lib/balance-adjustments";
 import type {
   BudgetProgressItem,
   BudgetRow,
@@ -177,7 +183,17 @@ export function buildRecentTransactions(transactions: TransactionRow[], categori
     walletId: transaction.wallet_id,
     walletName: walletNameById.get(transaction.wallet_id) ?? "Wallet",
     category: transaction.category_id ? categoryById.get(transaction.category_id)?.name ?? "Tanpa kategori" : "Tanpa kategori",
-    title: transaction.note || (transaction.kind === "income" ? "Pemasukan" : "Pengeluaran"),
+    title:
+      transaction.note ||
+      (isBalanceAdjustmentSource(transaction.source)
+        ? getBalanceAdjustmentTitle(transaction.kind)
+        : isSavingAdjustmentSource(transaction.source)
+          ? transaction.kind === "income"
+            ? "Tarik saving"
+            : "Setor saving"
+          : transaction.kind === "income"
+            ? "Pemasukan"
+            : "Pengeluaran"),
     kind: transaction.kind,
     amount: transaction.amount,
     date: transaction.happened_at,
@@ -215,6 +231,7 @@ export function buildTransactionListItems(transactions: TransactionRow[], catego
   return transactions.map((transaction) => ({
     id: transaction.id,
     kind: transaction.kind,
+    source: transaction.source,
     categoryId: transaction.category_id,
     categoryName: transaction.category_id ? categoryById.get(transaction.category_id)?.name ?? "Tanpa kategori" : "Tanpa kategori",
     amount: transaction.amount,
@@ -224,9 +241,18 @@ export function buildTransactionListItems(transactions: TransactionRow[], catego
     splitLabel: transaction.split_type === "equal" ? "Split rata" : transaction.split_type === "custom" ? "Split custom" : "-",
     title:
       transaction.note ||
-      (transaction.saving_entry_id ? (transaction.kind === "income" ? "Tarik saving" : "Setor saving") : transaction.kind === "income" ? "Pemasukan" : "Pengeluaran"),
+      (isBalanceAdjustmentSource(transaction.source)
+        ? getBalanceAdjustmentTitle(transaction.kind)
+        : transaction.saving_entry_id
+          ? transaction.kind === "income"
+            ? "Tarik saving"
+            : "Setor saving"
+          : transaction.kind === "income"
+            ? "Pemasukan"
+            : "Pengeluaran"),
     isRecurring: Boolean(transaction.recurring_transaction_id),
-    isSavingLinked: Boolean(transaction.saving_entry_id)
+    isSavingLinked: Boolean(transaction.saving_entry_id),
+    isBalanceAdjustment: isBalanceAdjustmentSource(transaction.source)
   }));
 }
 
@@ -463,7 +489,9 @@ export function createTransactionsPageData(args: {
   selectedMonth: string;
 }) {
   const { shell, wallet, memberships, categories, transactions, selectedMonth } = args;
-  const formCategories = categories.filter((category) => category.kind === "expense" || category.kind === "income");
+  const formCategories = categories.filter(
+    (category) => (category.kind === "expense" || category.kind === "income") && !isBalanceAdjustmentCategory(category)
+  );
   const walletTransactions = transactions.filter((transaction) => transaction.wallet_id === wallet.id);
   const filteredTransactions = filterTransactionsByMonth(walletTransactions, selectedMonth);
 
@@ -474,7 +502,7 @@ export function createTransactionsPageData(args: {
     currentUserRole: getCurrentUserRole(memberships, wallet.id),
     selectedMonth,
     categories: formCategories,
-    transactions: buildTransactionListItems(filteredTransactions, formCategories).slice(0, 12)
+    transactions: buildTransactionListItems(filteredTransactions, categories).slice(0, 12)
   } satisfies TransactionsPageData;
 }
 
@@ -488,7 +516,7 @@ export function createBudgetsPageData(args: {
   selectedMonth: string;
 }) {
   const { shell, wallet, memberships, categories, budgets, transactions, selectedMonth } = args;
-  const expenseCategories = categories.filter((category) => category.kind === "expense");
+  const expenseCategories = categories.filter((category) => category.kind === "expense" && !isBalanceAdjustmentCategory(category));
   const walletTransactions = transactions.filter((transaction) => transaction.wallet_id === wallet.id);
 
   return {

@@ -1,6 +1,7 @@
 export type WalletRole = "owner" | "editor" | "viewer";
 export type WalletKind = "personal" | "shared";
 export type TransactionKind = "income" | "expense";
+export type TransactionSource = "manual" | "saving_adjustment" | "balance_adjustment";
 export type RecurringFrequency = "daily" | "weekly" | "monthly";
 export type RecurringStatus = "active" | "paused" | "ended";
 export type SavingEntryType = "deposit" | "withdraw";
@@ -30,6 +31,7 @@ export type CategoryRow = {
   name: string;
   kind: TransactionKind;
   color: string;
+  is_system: boolean;
 };
 
 export type BudgetRow = {
@@ -52,6 +54,7 @@ export type TransactionRow = {
   recurring_transaction_id: string | null;
   recurring_scheduled_for: string | null;
   saving_entry_id: string | null;
+  source: TransactionSource;
 };
 
 export type RecurringTransactionRow = {
@@ -256,6 +259,7 @@ export type SavingsPageData = {
 export type TransactionListItem = {
   id: string;
   kind: TransactionKind;
+  source: TransactionSource;
   categoryId: string | null;
   categoryName: string;
   amount: number;
@@ -266,6 +270,7 @@ export type TransactionListItem = {
   title: string;
   isRecurring: boolean;
   isSavingLinked: boolean;
+  isBalanceAdjustment: boolean;
 };
 
 export type TransactionsPageData = {

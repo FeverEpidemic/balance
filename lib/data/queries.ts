@@ -84,7 +84,7 @@ export async function queryTransactions(walletIds: string[], limit?: number) {
   const supabase = await createClient();
   let query = supabase
     .from("transactions")
-    .select("id, wallet_id, category_id, kind, amount, happened_at, note, split_type, recurring_transaction_id, recurring_scheduled_for, saving_entry_id")
+    .select("id, wallet_id, category_id, kind, amount, happened_at, note, split_type, recurring_transaction_id, recurring_scheduled_for, saving_entry_id, source")
     .in("wallet_id", walletIds)
     .order("happened_at", { ascending: false });
 
@@ -167,7 +167,7 @@ export async function queryCategories(walletIds: string[]) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("categories")
-    .select("id, wallet_id, name, kind, color")
+    .select("id, wallet_id, name, kind, color, is_system")
     .in("wallet_id", walletIds)
     .order("name");
 

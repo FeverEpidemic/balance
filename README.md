@@ -67,6 +67,7 @@ SUPABASE_SECRET_KEY=YOUR_SECRET_KEY
    - [supabase/migrations/0007_savings.sql](/d:/Project/balance/supabase/migrations/0007_savings.sql)
    - [supabase/migrations/0008_saving_entry_transactions.sql](/d:/Project/balance/supabase/migrations/0008_saving_entry_transactions.sql)
    - [supabase/migrations/0009_google_oauth_profile_name_fallback.sql](/d:/Project/balance/supabase/migrations/0009_google_oauth_profile_name_fallback.sql)
+   - [supabase/migrations/0010_transaction_balance_adjustments.sql](/d:/Project/balance/supabase/migrations/0010_transaction_balance_adjustments.sql)
 
 Recommended migration workflow for hosted Supabase:
 

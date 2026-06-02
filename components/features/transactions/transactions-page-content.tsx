@@ -1,11 +1,13 @@
-import { createTransaction, deleteTransaction, updateTransaction } from "@/app/actions/transactions";
+import { createBalanceAdjustment, createTransaction, deleteTransaction, updateTransaction } from "@/app/actions/transactions";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { EmptyState } from "@/components/ui/empty-state";
-import { Notice } from "@/components/ui/notice";
+import { InlineEditPanel } from "@/components/ui/inline-edit-panel";
 import { SubmitButton } from "@/components/ui/submit-button";
+import { ToastFeedback } from "@/components/ui/toast-feedback";
 import type { TransactionsPageData } from "@/lib/data";
 import { formatCurrency, formatShortDate, getTodayDateString, toDateInputValue } from "@/lib/utils";
 
@@ -31,14 +33,11 @@ export function TransactionsPageContent({
       primaryWalletId={data.shell.primaryWalletId}
       currentWalletId={data.walletId}
     >
+      <ToastFeedback error={feedback.error} message={feedback.message} />
       <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
         <div className="card">
           <p className="eyebrow">Input cepat</p>
           <h3 className="headline-md mt-2">Tambah pemasukan atau pengeluaran</h3>
-          <div className="mt-4 space-y-3">
-            {feedback.error ? <Notice tone="error">{feedback.error}</Notice> : null}
-            {feedback.message ? <Notice tone="success">{feedback.message}</Notice> : null}
-          </div>
           <form action={createTransaction} className="mt-6 grid min-w-0 gap-4">
             <input type="hidden" name="wallet_id" value={data.walletId} />
             <label className="block">
@@ -50,7 +49,7 @@ export function TransactionsPageContent({
             </label>
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">Nominal</span>
-              <input name="amount" placeholder="Rp0" inputMode="numeric" required />
+              <CurrencyInput name="amount" placeholder="Rp0" required />
             </label>
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">Kategori</span>
@@ -72,6 +71,39 @@ export function TransactionsPageContent({
             </label>
             <SubmitButton pendingText="Menyimpan transaksi...">Simpan transaksi</SubmitButton>
           </form>
+
+          {canMutate ? (
+            <div className="mt-8 border-t border-black/5 pt-6">
+              <p className="eyebrow">Penyesuaian saldo</p>
+              <h3 className="headline-md mt-2">Sinkronkan saldo aktual wallet</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Gunakan saat ada selisih antara saldo aktual dengan catatan di aplikasi. Penyesuaian ini tetap masuk ke histori transaksi.
+              </p>
+              <form action={createBalanceAdjustment} className="mt-6 grid min-w-0 gap-4">
+                <input type="hidden" name="wallet_id" value={data.walletId} />
+                <label className="block">
+                  <span className="mb-2 block font-label text-sm text-muted-foreground">Arah penyesuaian</span>
+                  <select name="direction" defaultValue="increase">
+                    <option value="increase">Naikkan saldo</option>
+                    <option value="decrease">Turunkan saldo</option>
+                  </select>
+                </label>
+                <label className="block">
+                  <span className="mb-2 block font-label text-sm text-muted-foreground">Nominal penyesuaian</span>
+                  <CurrencyInput name="amount" placeholder="Rp0" required />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block font-label text-sm text-muted-foreground">Alasan penyesuaian</span>
+                  <input name="note" placeholder="Contoh: saldo awal dompet fisik, koreksi kas, selisih pencatatan" required />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block font-label text-sm text-muted-foreground">Tanggal penyesuaian</span>
+                  <input name="happened_at" type="date" defaultValue={getTodayDateString()} required />
+                </label>
+                <SubmitButton pendingText="Menyimpan penyesuaian...">Simpan penyesuaian saldo</SubmitButton>
+              </form>
+            </div>
+          ) : null}
         </div>
 
         <div className="card">
@@ -101,6 +133,7 @@ export function TransactionsPageContent({
                       <p className="font-medium">{transaction.title}</p>
                       {transaction.isRecurring ? <Badge>Otomatis</Badge> : null}
                       {transaction.isSavingLinked ? <Badge>Tabungan</Badge> : null}
+                      {transaction.isBalanceAdjustment ? <Badge>Penyesuaian</Badge> : null}
                     </div>
                     <p className="mt-1 text-sm text-muted-foreground">{transaction.categoryName} • {transaction.splitLabel}</p>
                   </div>
@@ -117,8 +150,11 @@ export function TransactionsPageContent({
                   </div>
                 ) : canMutate ? (
                   <>
-                    <details className="mt-4 min-w-0 rounded-xl bg-white/80 p-3">
-                      <summary className="cursor-pointer font-label text-sm text-muted-foreground">Edit transaksi</summary>
+                    <InlineEditPanel
+                      buttonLabel="Ubah transaksi"
+                      description="Perbarui kategori, nominal, catatan, atau tanggal langsung dari kartu transaksi ini."
+                      title="Transaksi ini bisa diedit"
+                    >
                       <form action={updateTransaction} className="mt-3 grid min-w-0 gap-3 md:grid-cols-2">
                         <input type="hidden" name="wallet_id" value={data.walletId} />
                         <input type="hidden" name="transaction_id" value={transaction.id} />
@@ -129,20 +165,26 @@ export function TransactionsPageContent({
                             <option value="income">Pemasukan</option>
                           </select>
                         </label>
-                        <label className="block">
-                          <span className="mb-2 block font-label text-xs text-muted-foreground">Kategori</span>
-                          <select name="category_id" defaultValue={transaction.categoryId ?? ""}>
-                            <option value="">Tanpa kategori</option>
-                            {data.categories.map((category) => (
-                              <option key={category.id} value={category.id}>
-                                {category.name}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
+                        {transaction.isBalanceAdjustment ? (
+                          <div className="rounded-xl bg-white/80 p-3 text-sm text-muted-foreground">
+                            Kategori penyesuaian saldo dikelola otomatis oleh sistem mengikuti arah pemasukan atau pengeluaran.
+                          </div>
+                        ) : (
+                          <label className="block">
+                            <span className="mb-2 block font-label text-xs text-muted-foreground">Kategori</span>
+                            <select name="category_id" defaultValue={transaction.categoryId ?? ""}>
+                              <option value="">Tanpa kategori</option>
+                              {data.categories.map((category) => (
+                                <option key={category.id} value={category.id}>
+                                  {category.name}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                        )}
                         <label className="block">
                           <span className="mb-2 block font-label text-xs text-muted-foreground">Nominal</span>
-                          <input name="amount" defaultValue={String(transaction.amount)} inputMode="numeric" required />
+                          <CurrencyInput name="amount" defaultValue={transaction.amount} required />
                         </label>
                         <label className="block">
                           <span className="mb-2 block font-label text-xs text-muted-foreground">Catatan</span>
@@ -158,7 +200,7 @@ export function TransactionsPageContent({
                           </SubmitButton>
                         </div>
                       </form>
-                    </details>
+                    </InlineEditPanel>
                     <form action={deleteTransaction} className="mt-2 w-full sm:w-auto">
                       <input type="hidden" name="wallet_id" value={data.walletId} />
                       <input type="hidden" name="transaction_id" value={transaction.id} />

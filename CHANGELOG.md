@@ -1,5 +1,90 @@
 # Changelog
 
+## [Unreleased] — 2026-06-02
+
+### Added — Penyesuaian Saldo Wallet
+
+#### Fitur Baru
+- **Penyesuaian saldo kini punya jalur khusus di tab transaksi:** User `owner` dan `editor` sekarang bisa menambah koreksi saldo naik atau turun tanpa mencampurkannya dengan form transaksi reguler.
+- **Koreksi saldo tetap transparan di histori dan laporan:** Penyesuaian disimpan sebagai transaksi nyata, muncul dengan badge `Penyesuaian`, dan ikut memengaruhi dashboard, saldo wallet, serta laporan bulanan.
+- **Kategori sistem penyesuaian dibuat otomatis:** Wallet akan menyiapkan kategori `Penyesuaian Saldo Masuk` dan `Penyesuaian Saldo Keluar` agar koreksi saldo mudah dibedakan dari aktivitas biasa.
+- **Jejak koreksi dibuat lebih rapi:** Catatan alasan penyesuaian kini wajib diisi, dan transaksi penyesuaian yang diedit akan tetap menjaga kategori sistemnya sesuai arah pemasukan atau pengeluaran.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `supabase/migrations/0010_transaction_balance_adjustments.sql` | Tambah sumber transaksi (`manual`, `saving_adjustment`, `balance_adjustment`), backfill transaksi lama, helper kategori sistem penyesuaian saldo, dan update trigger transaksi dari saving agar memberi source yang benar. |
+| `app/actions/transactions.ts`, `lib/balance-adjustments.ts` | Tambah server action khusus penyesuaian saldo, helper validasi/alur arah penyesuaian, dan sinkronisasi kategori sistem saat transaksi penyesuaian diubah. |
+| `lib/data/{types,queries,mappers}.ts` | Tambah field `source`, flag UI transaksi penyesuaian, fallback title baru, dan filter kategori agar budget/form biasa tidak menawarkan kategori penyesuaian saldo. |
+| `components/features/transactions/transactions-page-content.tsx` | Tambah form `Penyesuaian Saldo` di tab transaksi, badge histori, dan editor inline yang menjaga kategori sistem penyesuaian tetap otomatis. |
+| `tests/unit/{data-mappers,balance-adjustments}.test.ts`, `README.md` | Tambah cakupan test untuk mapper/validasi penyesuaian saldo dan dokumentasi migration baru. |
+
+### Added — Page Transition & Success Motion
+
+#### Peningkatan UI
+- **Perpindahan halaman kini terasa lebih halus:** App Router sekarang punya page-enter transition yang lembut dan sweep indicator tipis saat route berubah, jadi navigasi terasa lebih hidup tanpa terasa berat.
+- **Aksi sukses kini punya animasi yang lebih terasa selesai:** Toast sukses sekarang menampilkan animasi check, ring burst, dan progress bar dismiss agar feedback berhasil terasa lebih meyakinkan.
+- **Motion tetap ramah aksesibilitas:** Animasi dimatikan otomatis untuk user yang mengaktifkan `prefers-reduced-motion`.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `app/template.tsx`, `components/ui/route-transition.tsx` | Tambah mount transition per halaman dan route sweep indicator saat navigasi. |
+| `components/ui/toast-provider.tsx`, `app/globals.css` | Tambah success animation untuk toast, progress bar auto-dismiss, serta keyframes global untuk motion system. |
+
+### Added — Toast Notification System
+
+#### Peningkatan UI
+- **Feedback redirect kini tampil sebagai toast global:** Pesan sukses dan error dari server action sekarang muncul sebagai toast di kanan atas, auto-dismiss dalam 5 detik, dan bisa ditutup manual dengan klik.
+- **URL feedback dibersihkan otomatis setelah toast tampil:** Query `message` dan `error` tidak lagi tertinggal di address bar setelah notifikasi muncul, jadi refresh halaman tidak memunculkan toast lama berulang-ulang.
+- **Sistem toast reusable sudah tersedia untuk surface client lain:** Provider global dan hook toast kini bisa dipakai lagi untuk feedback interaktif tanpa harus bergantung pada `Notice` inline.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/ui/{toast-provider,toast-feedback}.tsx` | Tambah provider toast global, viewport toast, auto-dismiss 5 detik, dismiss via click, dan bridge dari query feedback ke toast. |
+| `app/layout.tsx` | Pasang `ToastProvider` di root layout agar toast bisa dipanggil dari seluruh app. |
+| `app/{login,register}/page.tsx`, `app/invite/[token]/page.tsx`, `app/wallets/[walletId]/{members,savings,settlements,templates}/page.tsx`, `components/features/{wallets,transactions,budgets,recurring}/*` | Ganti feedback sukses/error hasil redirect dari `Notice` inline menjadi toast global. |
+
+### Changed — Inline Editor Transactions & Budgets
+
+#### Peningkatan UX
+- **Edit inline kini lebih jelas dan lebih ringkas:** Kartu transaksi dan anggaran sekarang punya cue visual bahwa item bisa diubah, lengkap dengan CTA edit yang lebih terlihat dibanding `summary` polos.
+- **Buka-tutup editor dibuat lebih halus:** Panel edit sekarang memakai animasi transisi lembut saat membuka dan menutup, sekaligus auto-focus ke field pertama saat editor dibuka.
+- **Editor otomatis menutup setelah submit/redirect:** Saat query URL berubah setelah server action selesai, panel edit akan collapse lagi sehingga daftar terasa kembali rapi.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/ui/inline-edit-panel.tsx` | Tambah panel edit reusable dengan CTA visual, auto-focus field pertama, animasi buka-tutup, dan auto-collapse saat search params berubah. |
+| `components/features/{transactions,budgets}/**` | Ganti pola `details/summary` menjadi panel edit interaktif yang lebih jelas dan lebih singkat flow-nya. |
+
+### Changed — Register Auth First Impression
+
+#### Peningkatan UX
+- **Halaman daftar kini setara dengan login secara visual:** Register tidak lagi tampil sebagai card tunggal yang polos, tetapi memakai layout dua kolom dengan panel branding yang sama kuatnya dengan halaman login.
+- **First impression untuk user baru dibuat lebih meyakinkan:** Section branding pada register sekarang menjelaskan manfaat produk dan memberi rasa produk yang lebih matang sebelum user mengisi form.
+- **Login dan register kini konsisten sebagai pasangan auth:** Kedua halaman memakai pola layout, hierarchy, dan ritme visual yang serupa agar perpindahan antar-auth screen terasa satu keluarga.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/auth/auth-brand-panel.tsx` | Tambah panel branding reusable untuk halaman auth dengan highlight, atmosfer Serene Capital, dan konten yang bisa disesuaikan per page. |
+| `app/{login,register}/page.tsx` | Samakan struktur visual auth menjadi dua kolom desktop dan tambah branding yang lebih meyakinkan pada halaman register. |
+
+### Added — Confirm Dialog Modal
+
+#### Peningkatan UI
+- **Konfirmasi aksi kini tampil sebagai modal yang konsisten dengan design system:** Hapus data dan aksi destruktif lain tidak lagi memakai `window.confirm`, melainkan dialog cream dengan aksen sage, radius besar, shadow lembut, dan CTA yang lebih jelas.
+- **Komponen reusable untuk konfirmasi:** Tambah `ConfirmDialog` shared agar pola modal konfirmasi bisa dipakai ulang di surface lain tanpa mengulang styling atau behavior dasar seperti overlay click dan tombol escape.
+- **`ConfirmSubmitButton` ikut di-upgrade tanpa ubah call site lama:** Semua pemakaian tombol konfirmasi existing langsung mendapatkan modal baru, sambil tetap kompatibel dengan flow form submit server action saat ini.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/ui/confirm-dialog.tsx` | Tambah komponen modal konfirmasi reusable dengan visual Serene Capital, overlay, dan action button terstruktur. |
+| `components/ui/confirm-submit-button.tsx` | Ganti `window.confirm` menjadi modal konfirmasi reusable yang tetap memicu submit form setelah user menyetujui aksi. |
+
 ## [Unreleased] — 2026-06-01
 
 ### Fixed — Safari iPhone Form dan Button Hardening
@@ -17,6 +102,20 @@
 | `components/ui/{button,submit-button,confirm-submit-button}.tsx`, `components/auth/google-sign-in-button.tsx` | Standarkan dimensi, wrapping, focus state, dan interaction state tombol reusable. |
 | `app/{login,register}/page.tsx`, `app/invite/[token]/page.tsx` | Rapikan container auth dan CTA supaya tetap utuh di mobile Safari. |
 | `components/features/{transactions,budgets,recurring}/**`, `components/app-shell.tsx` | Perkuat layout form, action row, shortcut chips, dan bottom nav agar lebih tahan terhadap ukuran intrinsik Safari. |
+
+### Added — Client-side Rupiah Masking
+
+#### Peningkatan Form Nominal
+- **Input nominal kini langsung terformat Rupiah:** Field uang utama sekarang menampilkan format `Rp` dengan pemisah ribuan saat user mengetik, sehingga nominal lebih mudah dibaca tanpa menunggu submit.
+- **Parsing backend tetap kompatibel:** Server action tetap menerima string terformat karena normalisasi angka di backend tidak diubah, jadi masking baru tidak mengubah kontrak form.
+- **Cakupan nominal dibuat konsisten:** Form transaksi, budget, recurring, settlement, template, dan saving kini memakai komponen input Rupiah yang sama.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/ui/currency-input.tsx`, `lib/utils.ts` | Tambah komponen input Rupiah client-side dan helper format/sanitasi berbasis `Intl.NumberFormat("id-ID")`. |
+| `components/features/{transactions,budgets,recurring}/**`, `app/wallets/[walletId]/{settlements,templates,savings}/page.tsx` | Ganti input nominal polos menjadi input Rupiah terformat yang reusable. |
+| `tests/unit/utils.test.ts` | Tambah test unit untuk sanitasi dan formatting display value Rupiah. |
 
 ### Changed — Rapikan Konsistensi UI dan Card Layout
 

@@ -1,8 +1,13 @@
 "use server";
 
 import { requireUser } from "@/lib/auth";
+import {
+  BALANCE_ADJUSTMENT_SOURCE,
+  getBalanceAdjustmentKind,
+  getBalanceAdjustmentValidationError
+} from "@/lib/balance-adjustments";
 import { invalidateWalletReadCaches } from "@/lib/data/cache";
-import { getNullableText, getNumericValue, getStringValue, redirectToWalletSection, revalidateWalletPaths } from "@/app/actions/_shared";
+import { getNullableText, getNumericValue, getStringValue, getTrimmedValue, redirectToWalletSection, revalidateWalletPaths } from "@/app/actions/_shared";
 import { dateStringToISO, isValidDateString } from "@/lib/utils";
 
 const LINKED_SAVING_TRANSACTION_MESSAGE = "Transaksi dari saving otomatis dibuat sistem. Ubah mutasinya dari tab Saving.";
@@ -15,6 +20,16 @@ function readTransactionForm(formData: FormData) {
     categoryId: getStringValue(formData, "category_id"),
     note: getNullableText(formData, "note"),
     amount: getNumericValue(formData, "amount"),
+    happenedAt: getStringValue(formData, "happened_at")
+  };
+}
+
+function readBalanceAdjustmentForm(formData: FormData) {
+  return {
+    walletId: getStringValue(formData, "wallet_id"),
+    direction: getStringValue(formData, "direction") as "increase" | "decrease",
+    amount: getNumericValue(formData, "amount"),
+    note: getTrimmedValue(formData, "note"),
     happenedAt: getStringValue(formData, "happened_at")
   };
 }
@@ -34,7 +49,7 @@ async function getTransactionLinkState(
 ) {
   const { data, error } = await supabase
     .from("transactions")
-    .select("id, saving_entry_id")
+    .select("id, saving_entry_id, source")
     .eq("id", transactionId)
     .eq("wallet_id", walletId)
     .maybeSingle();
@@ -44,6 +59,25 @@ async function getTransactionLinkState(
   }
 
   return data;
+}
+
+async function ensureBalanceAdjustmentCategory(
+  supabase: Awaited<ReturnType<typeof requireUser>>["supabase"],
+  walletId: string,
+  kind: "income" | "expense",
+  userId: string
+) {
+  const { data, error } = await supabase.rpc("ensure_balance_adjustment_category", {
+    target_wallet_id: walletId,
+    target_kind: kind,
+    actor_user_id: userId
+  });
+
+  if (error || !data) {
+    redirectToWalletSection(walletId, "transactions", "error", error?.message ?? "Kategori penyesuaian saldo tidak dapat disiapkan.");
+  }
+
+  return data as string;
 }
 
 export async function createTransaction(formData: FormData) {
@@ -65,6 +99,7 @@ export async function createTransaction(formData: FormData) {
     amount,
     note,
     happened_at: dateStringToISO(happenedAt),
+    source: "manual",
     created_by: user.id,
     updated_by: user.id
   });
@@ -80,6 +115,48 @@ export async function createTransaction(formData: FormData) {
     sections: ["transactions"]
   });
   redirectToWalletSection(walletId, "transactions", "message", "Transaksi berhasil disimpan.");
+}
+
+export async function createBalanceAdjustment(formData: FormData) {
+  const { walletId, direction, amount, note, happenedAt } = readBalanceAdjustmentForm(formData);
+  const { supabase, user } = await requireUser();
+  const validationError = getBalanceAdjustmentValidationError({
+    amount,
+    happenedAt,
+    note,
+    isValidDate: isValidDateString(happenedAt)
+  });
+
+  if (validationError) {
+    redirectToWalletSection(walletId, "transactions", "error", validationError);
+  }
+
+  const kind = getBalanceAdjustmentKind(direction);
+  const categoryId = await ensureBalanceAdjustmentCategory(supabase, walletId, kind, user.id);
+
+  const { error } = await supabase.from("transactions").insert({
+    wallet_id: walletId,
+    category_id: categoryId,
+    kind,
+    amount,
+    note,
+    happened_at: dateStringToISO(happenedAt),
+    source: BALANCE_ADJUSTMENT_SOURCE,
+    created_by: user.id,
+    updated_by: user.id
+  });
+
+  if (error) {
+    redirectToWalletSection(walletId, "transactions", "error", error.message);
+  }
+
+  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
+  revalidateWalletPaths(walletId, {
+    includeDashboard: true,
+    includeOverview: true,
+    sections: ["transactions", "budgets", "reports"]
+  });
+  redirectToWalletSection(walletId, "transactions", "message", "Penyesuaian saldo berhasil disimpan.");
 }
 
 export async function updateTransaction(formData: FormData) {
@@ -104,11 +181,16 @@ export async function updateTransaction(formData: FormData) {
     redirectToWalletSection(walletId, "transactions", "error", LINKED_SAVING_TRANSACTION_MESSAGE);
   }
 
+  const nextCategoryId =
+    linkedState.source === BALANCE_ADJUSTMENT_SOURCE
+      ? await ensureBalanceAdjustmentCategory(supabase, walletId, kind as "income" | "expense", user.id)
+      : categoryId || null;
+
   const { error } = await supabase
     .from("transactions")
     .update({
       kind,
-      category_id: categoryId || null,
+      category_id: nextCategoryId,
       amount,
       note,
       happened_at: dateStringToISO(happenedAt),
@@ -125,7 +207,7 @@ export async function updateTransaction(formData: FormData) {
   revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
-    sections: ["transactions"]
+    sections: ["transactions", "budgets", "reports"]
   });
   redirectToWalletSection(walletId, "transactions", "message", "Transaksi berhasil diperbarui.");
 }
@@ -154,7 +236,7 @@ export async function deleteTransaction(formData: FormData) {
   revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
-    sections: ["transactions"]
+    sections: ["transactions", "budgets", "reports"]
   });
   redirectToWalletSection(walletId, "transactions", "message", "Transaksi berhasil dihapus.");
 }
