@@ -32,6 +32,13 @@ function createFakeClient(initialState: Record<string, string> = {}) {
         store.delete(key);
       }
     },
+    async incr(key: string) {
+      const currentValue = Number(store.get(key) ?? "0");
+      const nextValue = currentValue + 1;
+      store.set(key, String(nextValue));
+      return nextValue;
+    },
+    async expire() {},
     async *scanIterator(options?: FakeScanOptions) {
       const pattern = options?.MATCH ?? "*";
       const regex = new RegExp(`^${pattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*")}$`);
@@ -81,6 +88,12 @@ describe("redis cache wrapper", () => {
         throw new Error("redis down");
       },
       async del() {},
+      async incr() {
+        throw new Error("redis down");
+      },
+      async expire() {
+        throw new Error("redis down");
+      },
       async *scanIterator() {}
     }));
     const loader = vi.fn(async () => ({ ok: true }));

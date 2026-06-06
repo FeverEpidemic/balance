@@ -2,6 +2,21 @@
 
 ## [Unreleased] — 2026-06-06
 
+### Added — Rate Limiting untuk Chat API
+
+#### Peningkatan Keamanan API
+- **Endpoint `/api/chat/*` kini dibatasi per API key:** Request ke `GET /api/chat/rekap` dan `POST /api/chat/transaction` sekarang berbagi kuota default `60` request per `60` detik untuk setiap `user_api_keys.id`.
+- **Client kini mendapat header kuota yang konsisten:** Response sukses menampilkan `X-RateLimit-Limit`, `X-RateLimit-Remaining`, dan `X-RateLimit-Reset`, sementara request yang melewati batas mengembalikan `429` dengan body `{ "error": "rate_limited" }` serta `Retry-After`.
+- **Limiter tetap mengikuti prinsip Redis best-effort repo:** Counter memakai Redis fixed window, tetapi request valid tetap dilayani bila Redis tidak tersedia atau limiter dimatikan lewat env.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `lib/{env,redis,rate-limit}.ts` | Tambah konfigurasi env chat API, primitive counter Redis, dan helper fixed-window limiter + header response. |
+| `app/api/chat/{rekap,transaction}/route.ts` | Pasang rate limiting setelah verifikasi Bearer key dan kirim header kuota pada response sukses maupun `429`. |
+| `.env.example`, `README.md` | Dokumentasikan env limiter chat API dan perilaku fail-open saat Redis tidak tersedia. |
+| `tests/unit/{redis-cache,rate-limit,chat-api-rate-limit}.test.ts` | Tambah cakupan unit untuk counter Redis, helper limiter, dan behavior route chat saat unauthorized, success, serta over-limit. |
+
 ### Fixed — API Chat Tidak Lagi Tertangkap Redirect Login
 
 #### Perbaikan Integrasi

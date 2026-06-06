@@ -47,6 +47,9 @@ GOTRUE_EXTERNAL_GOOGLE_SECRET=your_google_client_secret
 Redis cache v1 untuk read path dashboard dan wallet utama juga aktif di stack self-hosted ini. Default lokalnya memakai `REDIS_URL=redis://redis:6379`. Jika ingin mematikan cache sementara, set `REDIS_ENABLED=false`.
 Untuk observability ringan, aktifkan `REDIS_METRICS_ENABLED=true`. Aplikasi akan mencetak summary hit, miss, write, error, dan invalidation ke stdout setiap `REDIS_METRICS_INTERVAL_MS` milidetik.
 
+Endpoint `/api/chat/*` juga memakai Redis untuk rate limiting per API key. Default-nya `60` request per `60` detik lewat `CHAT_API_RATE_LIMIT_MAX_REQUESTS` dan `CHAT_API_RATE_LIMIT_WINDOW_SECONDS`, serta bisa dimatikan dengan `CHAT_API_RATE_LIMIT_ENABLED=false`.
+Limiter ini tetap best-effort: kalau Redis tidak tersedia atau gagal diakses, request valid tetap dilayani tanpa diblokir.
+
 ## Use Hosted Supabase
 
 If you want to use Supabase Cloud instead of the self-hosted Docker stack in this repo, use this setup:

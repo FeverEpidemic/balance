@@ -7,6 +7,8 @@ type CacheClient = {
   get(key: string): Promise<string | null>;
   set(key: string, value: string, options?: { EX: number }): Promise<unknown>;
   del(keys: string[]): Promise<unknown>;
+  incr(key: string): Promise<number>;
+  expire(key: string, seconds: number): Promise<unknown>;
   scanIterator(options: { MATCH: string }): AsyncIterable<string>;
 };
 type CacheClientFactory = () => Promise<CacheClient | null>;
@@ -293,6 +295,30 @@ export function createRedisCache(getClient: CacheClientFactory = getRedisClient)
         // Ignore cache delete failures.
         trackRedisMetric("deleteErrors");
         logRedisEvent("warn", "delete by pattern failed", { patterns });
+      }
+    },
+    async increment(key: string, ttlSeconds: number) {
+      const client = await getClient();
+
+      if (!client) {
+        return null;
+      }
+
+      const qualifiedKey = qualifyKey(key);
+
+      try {
+        const value = await client.incr(qualifiedKey);
+
+        if (value === 1) {
+          await client.expire(qualifiedKey, ttlSeconds);
+        }
+
+        trackRedisMetric("writes");
+        return value;
+      } catch {
+        trackRedisMetric("writeErrors");
+        logRedisEvent("warn", "increment failed", { key, ttlSeconds });
+        return null;
       }
     }
   };

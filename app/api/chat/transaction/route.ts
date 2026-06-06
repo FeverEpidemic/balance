@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyApiKey } from "@/lib/chat-auth";
+import { applyRateLimitHeaders, consumeChatApiRateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { invalidateWalletReadCaches } from "@/lib/data/cache";
-import { revalidatePath } from "next/cache";
 import { dateStringToISO, isValidDateString } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
@@ -11,6 +11,15 @@ export async function POST(request: NextRequest) {
 
   if (!auth) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const rateLimit = await consumeChatApiRateLimit(auth.keyId);
+
+  if (!rateLimit.allowed) {
+    return applyRateLimitHeaders(
+      NextResponse.json({ error: "rate_limited" }, { status: 429 }),
+      rateLimit
+    );
   }
 
   let body: Record<string, unknown>;
@@ -87,12 +96,15 @@ export async function POST(request: NextRequest) {
     dashboardUserIds
   });
 
-  return NextResponse.json({
-    id: transaction.id,
-    wallet_id: walletId,
-    kind,
-    amount,
-    happened_at: happenedAtISO,
-    source: "manual"
-  });
+  return applyRateLimitHeaders(
+    NextResponse.json({
+      id: transaction.id,
+      wallet_id: walletId,
+      kind,
+      amount,
+      happened_at: happenedAtISO,
+      source: "manual"
+    }),
+    rateLimit
+  );
 }

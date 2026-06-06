@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyApiKey, getPeriodRange, type RekapPeriod } from "@/lib/chat-auth";
+import { applyRateLimitHeaders, consumeChatApiRateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { TransactionKind, TransactionRow } from "@/lib/data/types";
 
@@ -21,6 +22,15 @@ export async function GET(request: NextRequest) {
 
   if (!auth) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const rateLimit = await consumeChatApiRateLimit(auth.keyId);
+
+  if (!rateLimit.allowed) {
+    return applyRateLimitHeaders(
+      NextResponse.json({ error: "rate_limited" }, { status: 429 }),
+      rateLimit
+    );
   }
 
   const { searchParams } = new URL(request.url);
@@ -175,5 +185,5 @@ export async function GET(request: NextRequest) {
     perWallet
   };
 
-  return NextResponse.json(response);
+  return applyRateLimitHeaders(NextResponse.json(response), rateLimit);
 }
