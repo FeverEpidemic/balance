@@ -5,6 +5,7 @@ import { invalidateWalletReadCaches } from "@/lib/data/cache";
 import { dateStringToISO, isValidDateString } from "@/lib/utils";
 import {
   errorResult,
+  getWalletMemberUserIds,
   getNullableText,
   getNumericValue,
   getStringValue,
@@ -93,7 +94,11 @@ export async function createSaving(_prevState: ActionResult, formData: FormData)
     return errorResult(mapSavingError(error.message));
   }
 
-  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
+  const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
+  await invalidateWalletReadCaches(walletId, {
+    targets: ["overview", "savings"],
+    dashboardUserIds
+  });
   revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
@@ -135,7 +140,11 @@ export async function updateSaving(_prevState: ActionResult, formData: FormData)
     return errorResult(mapSavingError(error.message));
   }
 
-  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
+  const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
+  await invalidateWalletReadCaches(walletId, {
+    targets: ["overview", "savings"],
+    dashboardUserIds
+  });
   revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
@@ -166,7 +175,11 @@ export async function archiveSaving(_prevState: ActionResult, formData: FormData
     return errorResult(mapSavingError(error.message));
   }
 
-  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
+  const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
+  await invalidateWalletReadCaches(walletId, {
+    targets: ["overview", "savings"],
+    dashboardUserIds
+  });
   revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
@@ -222,7 +235,11 @@ async function createSavingEntry(formData: FormData, entryType: "deposit" | "wit
     return errorResult(mapSavingError(error.message));
   }
 
-  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
+  const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
+  await invalidateWalletReadCaches(walletId, {
+    targets: ["overview", "savings", "transactions", "budgets"],
+    dashboardUserIds
+  });
   revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,

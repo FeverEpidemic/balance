@@ -110,11 +110,9 @@ export async function createRecurringTransaction(_prevState: ActionResult, formD
     return errorResult(error.message);
   }
 
-  await invalidateWalletReadCaches(input.walletId, { includeDashboards: true });
+  await invalidateWalletReadCaches(input.walletId, { targets: ["recurring"] });
   revalidateWalletPaths(input.walletId, {
-    includeDashboard: true,
-    includeOverview: true,
-    sections: ["recurring", "transactions"]
+    sections: ["recurring"]
   });
   return successResult("Recurring transaction berhasil disimpan.", { resetForm: true });
 }
@@ -172,11 +170,9 @@ export async function updateRecurringTransaction(_prevState: ActionResult, formD
     return errorResult(error.message);
   }
 
-  await invalidateWalletReadCaches(input.walletId, { includeDashboards: true });
+  await invalidateWalletReadCaches(input.walletId, { targets: ["recurring"] });
   revalidateWalletPaths(input.walletId, {
-    includeDashboard: true,
-    includeOverview: true,
-    sections: ["recurring", "transactions"]
+    sections: ["recurring"]
   });
   return successResult("Recurring transaction berhasil diperbarui.");
 }
@@ -203,11 +199,9 @@ export async function pauseRecurringTransaction(_prevState: ActionResult, formDa
     return errorResult(error.message);
   }
 
-  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
+  await invalidateWalletReadCaches(walletId, { targets: ["recurring"] });
   revalidateWalletPaths(walletId, {
-    includeDashboard: true,
-    includeOverview: true,
-    sections: ["recurring", "transactions"]
+    sections: ["recurring"]
   });
   return successResult("Recurring transaction dijeda.");
 }
@@ -257,11 +251,9 @@ export async function resumeRecurringTransaction(_prevState: ActionResult, formD
     return errorResult(error.message);
   }
 
-  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
+  await invalidateWalletReadCaches(walletId, { targets: ["recurring"] });
   revalidateWalletPaths(walletId, {
-    includeDashboard: true,
-    includeOverview: true,
-    sections: ["recurring", "transactions"]
+    sections: ["recurring"]
   });
   return successResult("Recurring transaction dilanjutkan kembali.");
 }
@@ -285,11 +277,9 @@ export async function deleteRecurringTransaction(_prevState: ActionResult, formD
     return errorResult(error.message);
   }
 
-  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
+  await invalidateWalletReadCaches(walletId, { targets: ["recurring"] });
   revalidateWalletPaths(walletId, {
-    includeDashboard: true,
-    includeOverview: true,
-    sections: ["recurring", "transactions"]
+    sections: ["recurring"]
   });
   return successResult("Recurring transaction berhasil dihapus.");
 }

@@ -4,6 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { invalidateWalletReadCaches } from "@/lib/data/cache";
 import {
   errorResult,
+  getWalletMemberUserIds,
   getNumericValue,
   getStringValue,
   revalidateWalletPaths,
@@ -47,7 +48,11 @@ export async function createBudget(_prevState: ActionResult, formData: FormData)
     return errorResult(error.message);
   }
 
-  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
+  const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
+  await invalidateWalletReadCaches(walletId, {
+    targets: ["overview", "budgets"],
+    dashboardUserIds
+  });
   revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
@@ -83,7 +88,11 @@ export async function updateBudget(_prevState: ActionResult, formData: FormData)
     return errorResult(error.message);
   }
 
-  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
+  const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
+  await invalidateWalletReadCaches(walletId, {
+    targets: ["overview", "budgets"],
+    dashboardUserIds
+  });
   revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
@@ -106,7 +115,11 @@ export async function deleteBudget(_prevState: ActionResult, formData: FormData)
     return errorResult(error.message);
   }
 
-  await invalidateWalletReadCaches(walletId, { includeDashboards: true });
+  const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
+  await invalidateWalletReadCaches(walletId, {
+    targets: ["overview", "budgets"],
+    dashboardUserIds
+  });
   revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,

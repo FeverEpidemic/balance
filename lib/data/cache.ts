@@ -8,6 +8,8 @@ export const BUDGETS_CACHE_TTL_SECONDS = 120;
 export const RECURRING_CACHE_TTL_SECONDS = 90;
 export const SAVINGS_CACHE_TTL_SECONDS = 90;
 
+export type WalletReadCacheTarget = "overview" | "transactions" | "budgets" | "recurring" | "savings";
+
 export function getDashboardCacheKey(userId: string) {
   return `user:${userId}:dashboard`;
 }
@@ -32,25 +34,50 @@ export function getSavingsCacheKey(userId: string, walletId: string) {
   return `wallet:${walletId}:user:${userId}:savings`;
 }
 
-export async function invalidateDashboardCache(userId?: string) {
-  if (userId) {
-    await redisCache.del(getDashboardCacheKey(userId));
+export function getWalletReadCachePatterns(walletId: string, targets: WalletReadCacheTarget[]) {
+  return Array.from(
+    new Set(
+      targets.map((target) => {
+        switch (target) {
+          case "overview":
+            return `wallet:${walletId}:user:*:overview`;
+          case "transactions":
+            return `wallet:${walletId}:user:*:transactions:*`;
+          case "budgets":
+            return `wallet:${walletId}:user:*:budgets:*`;
+          case "recurring":
+            return `wallet:${walletId}:user:*:recurring`;
+          case "savings":
+            return `wallet:${walletId}:user:*:savings`;
+        }
+      })
+    )
+  );
+}
+
+export async function invalidateDashboardCache(userIds?: string[]) {
+  if (userIds?.length) {
+    await redisCache.del(userIds.map((userId) => getDashboardCacheKey(userId)));
     return;
   }
 
   await redisCache.delByPrefixes(["user:"]);
 }
 
-export async function invalidateWalletCache(walletId: string) {
-  await redisCache.delByPrefixes([`wallet:${walletId}:`]);
-}
+export async function invalidateWalletReadCaches(
+  walletId: string,
+  options: {
+    targets: WalletReadCacheTarget[];
+    dashboardUserIds?: string[];
+  }
+) {
+  const patterns = getWalletReadCachePatterns(walletId, options.targets);
 
-export async function invalidateWalletReadCaches(walletId: string, options: { includeDashboards?: boolean; userId?: string } = {}) {
-  await invalidateWalletCache(walletId);
+  if (patterns.length > 0) {
+    await redisCache.delByPatterns(patterns);
+  }
 
-  if (options.includeDashboards) {
-    // Shared wallet mutations can affect dashboard totals for multiple members,
-    // so clear all dashboard entries rather than guessing member ids here.
-    await invalidateDashboardCache(options.userId);
+  if (options.dashboardUserIds?.length) {
+    await invalidateDashboardCache(options.dashboardUserIds);
   }
 }

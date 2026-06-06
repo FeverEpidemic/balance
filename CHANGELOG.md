@@ -2,6 +2,20 @@
 
 ## [Unreleased] — 2026-06-02
 
+### Changed — Granular Redis Cache Invalidation
+
+#### Peningkatan Performa
+- **Invalidasi cache wallet kini lebih presisi:** Mutation tidak lagi membuang seluruh namespace cache wallet, melainkan hanya key section yang benar-benar terdampak seperti dashboard, overview, transaksi, budget, recurring, atau tabungan.
+- **Dashboard shared tidak lagi memicu flush global:** Saat data wallet memengaruhi ringkasan lintas anggota, sistem sekarang menghapus cache dashboard milik member wallet terkait saja.
+- **Mutation yang tidak mengubah saldo kini lebih hemat:** Aksi recurring, undangan wallet, dan settlement tidak lagi memaksa invalidasi cache read yang tidak relevan.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `lib/{redis.ts,data/cache.ts}` | Tambah invalidation berbasis pattern glob untuk Redis dan ganti helper cache wallet menjadi target-based per section. |
+| `app/actions/{_shared,transactions,budgets,recurring-transactions,savings,templates,settlements,wallets}.ts` | Petakan ulang invalidation setiap mutation agar hanya menghapus cache section dan dashboard user yang terdampak. |
+| `tests/unit/redis-cache.test.ts` | Tambah cakupan test untuk delete by pattern, helper invalidation granular, dan dashboard scoped deletion. |
+
 ### Changed — Client-side Wallet Form Actions
 
 #### Peningkatan UX

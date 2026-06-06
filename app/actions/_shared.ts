@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 export * from "@/app/actions/action-result";
 import { parseNumberInput } from "@/lib/finance";
+import { requireUser } from "@/lib/auth";
 
 export type MessageType = "error" | "message";
 export type WalletSection = "transactions" | "budgets" | "members" | "settlements" | "templates" | "reports" | "recurring" | "savings";
@@ -61,4 +62,17 @@ export function getNullableText(formData: FormData, key: string) {
 
 export function getNumericValue(formData: FormData, key: string) {
   return parseNumberInput(formData.get(key));
+}
+
+export async function getWalletMemberUserIds(
+  supabase: Awaited<ReturnType<typeof requireUser>>["supabase"],
+  walletId: string
+) {
+  const { data, error } = await supabase.from("wallet_members").select("user_id").eq("wallet_id", walletId);
+
+  if (error || !data) {
+    return [];
+  }
+
+  return [...new Set(data.map((row) => row.user_id))];
 }

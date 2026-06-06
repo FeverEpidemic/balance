@@ -266,6 +266,34 @@ export function createRedisCache(getClient: CacheClientFactory = getRedisClient)
         trackRedisMetric("deleteErrors");
         logRedisEvent("warn", "delete by prefix failed", { prefixes });
       }
+    },
+    async delByPatterns(patterns: string[]) {
+      const client = await getClient();
+
+      if (!client) {
+        return;
+      }
+
+      const keysToDelete = new Set<string>();
+
+      try {
+        for (const pattern of patterns) {
+          for await (const key of client.scanIterator({
+            MATCH: qualifyKey(pattern)
+          })) {
+            keysToDelete.add(key);
+          }
+        }
+
+        if (keysToDelete.size > 0) {
+          await client.del([...keysToDelete]);
+          trackRedisMetric("invalidations", keysToDelete.size);
+        }
+      } catch {
+        // Ignore cache delete failures.
+        trackRedisMetric("deleteErrors");
+        logRedisEvent("warn", "delete by pattern failed", { patterns });
+      }
     }
   };
 }

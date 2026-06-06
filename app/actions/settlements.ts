@@ -4,7 +4,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { parseNumberInput } from "@/lib/finance";
 import { requireUser } from "@/lib/auth";
-import { invalidateWalletCache } from "@/lib/data/cache";
 
 function redirectToSettlements(walletId: string, type: "error" | "message", message: string) {
   redirect(`/wallets/${walletId}/settlements?${new URLSearchParams({ [type]: message }).toString()}`);
@@ -36,7 +35,6 @@ export async function createSettlement(formData: FormData) {
     redirectToSettlements(walletId, "error", error.message);
   }
 
-  await invalidateWalletCache(walletId);
   revalidatePath(`/wallets/${walletId}/settlements`);
   redirectToSettlements(walletId, "message", "Settlement berhasil disimpan.");
 }
