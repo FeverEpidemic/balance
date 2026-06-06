@@ -62,38 +62,35 @@ export async function verifyApiKey(header: string | null): Promise<{ userId: str
     return null;
   }
 
-  const { data, error } = await admin.rpc("lookup_api_key", {
-    lookup_hash: keyHash
-  });
+  const { data, error } = await admin
+    .from("user_api_keys")
+    .select("id, user_id, name, revoked_at")
+    .eq("key_hash", keyHash)
+    .maybeSingle();
 
-  if (error || !data || data.length === 0) {
+  if (error || !data) {
     return null;
   }
 
-  const row = data as { id: string; user_id: string; key_hash: string; revoked_at: string | null };
+  const row = data as { id: string; user_id: string; name: string; revoked_at: string | null };
 
   if (row.revoked_at) {
     return null;
   }
 
   // Best-effort touch last_used_at
-  void admin.rpc("touch_api_key", { key_id: row.id }).then(
+  void admin
+    .from("user_api_keys")
+    .update({ last_used_at: new Date().toISOString() })
+    .eq("id", row.id)
+    .then(
     () => {},
     () => {}
   );
 
-  // Fetch the key name using admin client since we need info beyond the lookup function
-  const { data: keyData, error: keyError } = await admin
-    .from("user_api_keys")
-    .select("name")
-    .eq("id", row.id)
-    .maybeSingle();
-
-  const keyName = keyError || !keyData ? "API Key" : (keyData as { name: string }).name;
-
   return {
     userId: row.user_id,
     keyId: row.id,
-    name: keyName
+    name: row.name
   };
 }

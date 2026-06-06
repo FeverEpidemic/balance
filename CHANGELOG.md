@@ -7,6 +7,7 @@
 #### Perbaikan Integrasi
 - **Endpoint API chat kini bisa diakses lewat Bearer key tanpa dipaksa login browser:** Middleware auth tidak lagi menangkap `/api/chat` dan turunannya sebagai halaman privat berbasis session.
 - **Route handler API sekarang benar-benar sempat memverifikasi key:** Request ke `/api/chat/rekap` dan `/api/chat/transaction` tidak lagi mental ke `/login?next=...` sebelum auth gateway berjalan.
+- **Verifikasi API key server-side kini lebih lurus:** Lookup key tidak lagi bergantung pada RPC khusus, tetapi langsung membaca tabel `user_api_keys` lewat admin client agar jalur auth Hermes lebih stabil di runtime.
 
 #### File Diubah
 | File | Perubahan |
