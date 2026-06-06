@@ -101,6 +101,10 @@ function FormCardSkeleton({ fields = 5 }: { fields?: number }) {
   );
 }
 
+function PublicPageShell({ children, fullHeight = false }: { children: ReactNode; fullHeight?: boolean }) {
+  return <main className={cn("page-wrap", fullHeight ? "flex min-h-screen items-center py-10" : "section-gap")}>{children}</main>;
+}
+
 function AppShellSkeleton({
   currentPath,
   title,
@@ -256,10 +260,10 @@ export function DashboardLoadingSkeleton() {
   return (
     <AppShellSkeleton currentPath="/dashboard" title="Dashboard">
       <StatGridSkeleton />
-      <section className="mt-4 data-grid">
-        <div className="card lg:col-span-7">
+      <section className="mt-4 grid gap-4 2xl:grid-cols-12">
+        <div className="card 2xl:col-span-7">
           <PageSectionHeading />
-          <div className="mt-6 wallet-grid">
+          <div className="mt-6 grid gap-4 xl:grid-cols-2 min-[1700px]:grid-cols-3">
             {Array.from({ length: 3 }).map((_, index) => (
               <div key={index} className="info-tile">
                 <SkeletonBlock className="h-5 w-32" />
@@ -279,7 +283,7 @@ export function DashboardLoadingSkeleton() {
           </div>
         </div>
 
-        <div className="card lg:col-span-5">
+        <div className="card 2xl:col-span-5">
           <PageSectionHeading />
           <PageListCards />
         </div>
@@ -446,5 +450,165 @@ export function DetailPageLoadingSkeleton({
         </div>
       </section>
     </AppShellSkeleton>
+  );
+}
+
+export function MarketingHomeLoadingSkeleton() {
+  return (
+    <PublicPageShell>
+      <section className="grid gap-10 py-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center lg:py-14">
+        <div>
+          <SkeletonBlock className="h-3 w-52 rounded-full" />
+          <SkeletonBlock className="mt-5 h-12 w-full max-w-[42rem]" />
+          <SkeletonBlock className="mt-3 h-12 w-full max-w-[36rem]" />
+          <SkeletonBlock className="mt-6 h-4 w-full max-w-[34rem]" />
+          <SkeletonBlock className="mt-3 h-4 w-full max-w-[30rem]" />
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <SkeletonBlock className="h-12 w-full rounded-full sm:w-36" />
+            <SkeletonBlock className="h-12 w-full rounded-full sm:w-28" />
+          </div>
+          <div className="mt-8 flex flex-wrap gap-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <SkeletonBlock key={index} className="h-8 w-32 rounded-full" />
+            ))}
+          </div>
+          <div className="mt-10 grid gap-4 sm:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="card-muted p-4">
+                <SkeletonBlock className="h-3 w-16 rounded-full" />
+                <SkeletonBlock className="mt-4 h-4 w-full max-w-[10rem]" />
+                <SkeletonBlock className="mt-2 h-4 w-full max-w-[8rem]" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(245,244,237,0.98))] p-4 shadow-float md:p-6">
+          <div className="rounded-[1.5rem] bg-primary/85 px-5 py-6">
+            <SkeletonBlock className="h-3 w-32 rounded-full bg-white/20" />
+            <SkeletonBlock className="mt-5 h-10 w-40 bg-white/20" />
+            <SkeletonBlock className="mt-4 h-4 w-full max-w-[18rem] bg-white/20" />
+            <SkeletonBlock className="mt-2 h-4 w-full max-w-[16rem] bg-white/20" />
+          </div>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <SkeletonBlock className="card h-36 w-full" />
+            <SkeletonBlock className="card h-36 w-full" />
+          </div>
+          <SkeletonBlock className="mt-4 h-40 w-full rounded-[1.5rem]" />
+        </div>
+      </section>
+
+      <section className="section-gap">
+        <SkeletonBlock className="h-3 w-40 rounded-full" />
+        <SkeletonBlock className="mt-4 h-9 w-full max-w-[34rem]" />
+        <div className="mt-8 grid gap-4 lg:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="card">
+              <SkeletonBlock className="h-6 w-full max-w-[16rem]" />
+              <SkeletonBlock className="mt-4 h-4 w-full max-w-[20rem]" />
+              <SkeletonBlock className="mt-2 h-4 w-full max-w-[18rem]" />
+            </div>
+          ))}
+        </div>
+      </section>
+    </PublicPageShell>
+  );
+}
+
+export function AuthPageLoadingSkeleton() {
+  return (
+    <PublicPageShell>
+      <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        <section className="card-muted min-h-[24rem] rounded-[1.75rem] p-6 md:p-8">
+          <SkeletonBlock className="h-3 w-40 rounded-full" />
+          <SkeletonBlock className="mt-5 h-10 w-full max-w-[22rem]" />
+          <SkeletonBlock className="mt-3 h-4 w-full max-w-[24rem]" />
+          <SkeletonBlock className="mt-2 h-4 w-full max-w-[20rem]" />
+          <div className="mt-8 grid gap-3 sm:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <SkeletonBlock key={index} className="h-24 w-full rounded-xl" />
+            ))}
+          </div>
+        </section>
+
+        <section className="card min-w-0">
+          <div className="mx-auto min-w-0 max-w-md">
+            <SkeletonBlock className="h-3 w-20 rounded-full" />
+            <SkeletonBlock className="mt-4 h-8 w-36" />
+            <SkeletonBlock className="mt-4 h-4 w-full max-w-[22rem]" />
+            <div className="mt-8 space-y-4">
+              <SkeletonBlock className="h-12 w-full rounded-full" />
+              <SkeletonBlock className="h-4 w-full max-w-[16rem]" />
+            </div>
+            <div className="mt-8 grid gap-4">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div key={index}>
+                  <SkeletonBlock className="mb-2 h-4 w-24 rounded-full" />
+                  <SkeletonBlock className="h-[3.25rem] w-full rounded-2xl" />
+                </div>
+              ))}
+            </div>
+            <SkeletonBlock className="mt-6 h-12 w-full rounded-full" />
+            <SkeletonBlock className="mt-4 h-4 w-40" />
+          </div>
+        </section>
+      </div>
+    </PublicPageShell>
+  );
+}
+
+export function InvitePageLoadingSkeleton() {
+  return (
+    <PublicPageShell>
+      <div className="mx-auto max-w-2xl">
+        <section className="card">
+          <SkeletonBlock className="h-8 w-32 rounded-full" />
+          <SkeletonBlock className="mt-5 h-8 w-full max-w-[20rem]" />
+          <SkeletonBlock className="mt-4 h-4 w-full max-w-[28rem]" />
+          <SkeletonBlock className="mt-2 h-4 w-full max-w-[22rem]" />
+          <div className="mt-8 grid gap-3">
+            <SkeletonBlock className="h-20 w-full rounded-2xl" />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <SkeletonBlock className="h-12 w-full rounded-full" />
+              <SkeletonBlock className="h-12 w-full rounded-full" />
+            </div>
+          </div>
+        </section>
+      </div>
+    </PublicPageShell>
+  );
+}
+
+export function SimpleCardLoadingSkeleton({
+  eyebrowWidth = "w-24",
+  titleWidth = "w-56",
+  bodyLines = 2,
+  fullHeight = false
+}: {
+  eyebrowWidth?: string;
+  titleWidth?: string;
+  bodyLines?: number;
+  fullHeight?: boolean;
+}) {
+  return (
+    <PublicPageShell fullHeight={fullHeight}>
+      <section className="mx-auto w-full max-w-2xl rounded-[2rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(245,244,237,0.98))] p-6 shadow-float md:p-10">
+        <SkeletonBlock className={cn("h-3 rounded-full", eyebrowWidth)} />
+        <SkeletonBlock className={cn("mt-5 h-9 max-w-full", titleWidth)} />
+        <div className="mt-5 space-y-3">
+          {Array.from({ length: bodyLines }).map((_, index) => (
+            <SkeletonBlock key={index} className="h-4 w-full max-w-[32rem]" />
+          ))}
+        </div>
+        <div className="mt-8 grid gap-4 md:grid-cols-2">
+          <SkeletonBlock className="h-28 w-full rounded-[1.5rem]" />
+          <SkeletonBlock className="h-28 w-full rounded-[1.5rem]" />
+        </div>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <SkeletonBlock className="h-12 w-full rounded-full sm:w-32" />
+          <SkeletonBlock className="h-12 w-full rounded-full sm:w-28" />
+        </div>
+      </section>
+    </PublicPageShell>
   );
 }

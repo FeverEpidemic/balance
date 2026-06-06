@@ -1,5 +1,34 @@
 # Changelog
 
+## [Unreleased] — 2026-06-06
+
+### Added — Loading Skeleton untuk Route Publik
+
+#### Peningkatan UX
+- **Route publik kini menampilkan skeleton saat data atau auth check masih dimuat:** Landing page, login, register, invite, offline, dan auth error tidak lagi berisiko tampil kosong saat transisi atau render async berjalan.
+- **Skeleton dibuat konsisten dengan visual Serene Capital:** Surface loading baru mengikuti ritme card, spacing, dan layout publik yang sudah ada supaya perpindahan terasa halus, bukan seperti fallback generik.
+- **Komponen loading reusable ditambah untuk mencegah duplikasi:** Skeleton publik sekarang berbagi primitive yang sama sehingga lebih mudah dipakai lagi saat route publik baru ditambahkan.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/ui/page-loading-skeleton.tsx` | Tambah skeleton reusable untuk landing, auth, invite, dan halaman pesan sederhana. |
+| `app/{loading,login/loading,register/loading,offline/loading}.tsx`, `app/invite/[token]/loading.tsx`, `app/auth/error/loading.tsx` | Tambah file `loading.tsx` pada route publik yang sebelumnya belum punya loading state. |
+
+## [Unreleased] — 2026-06-06
+
+### Changed — Rapikan Layout Kartu Dashboard di Desktop Tanggung
+
+#### Perbaikan UI
+- **Bagian wallet aktif kini lebih lega di viewport desktop menengah:** Panel wallet dan komposisi kategori tidak lagi dipaksa berdampingan terlalu dini, sehingga kartu wallet punya lebar yang cukup dan isi tidak terlihat bertumpuk.
+- **Grid wallet dashboard dibuat lebih stabil:** Susunan kartu wallet sekarang tetap rapi di layar lebar biasa dan baru memadat ke tiga kolom di layar ekstra lebar.
+- **Tampilan mobile tetap dipertahankan:** Perubahan hanya menyasar breakpoint dashboard yang bermasalah, jadi layout iPhone dan Android tidak ikut berubah.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/features/dashboard/dashboard-content.tsx`, `components/ui/page-loading-skeleton.tsx` | Geser breakpoint layout dashboard agar kartu wallet lebih lega di desktop tanggung dan samakan skeleton dengan struktur baru. |
+
 ## [Unreleased] — 2026-06-02
 
 ### Changed — Tegaskan Versi Node Lokal

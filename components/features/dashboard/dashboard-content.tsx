@@ -47,8 +47,8 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
         <StatCard label="Sisa split bill" value={dashboard.outstandingSplit} detail="Akumulasi patungan yang masih perlu dibereskan antar anggota." />
       </section>
 
-      <section className="mt-4 data-grid">
-        <div className="card lg:col-span-7">
+      <section className="mt-4 grid gap-4 2xl:grid-cols-12">
+        <div className="card 2xl:col-span-7">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="eyebrow">Wallet aktif</p>
@@ -58,7 +58,7 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
               Lihat semua
             </Button>
           </div>
-          <div className="wallet-grid mt-6">
+          <div className="mt-6 grid gap-4 xl:grid-cols-2 min-[1700px]:grid-cols-3">
             {dashboard.wallets.length === 0 ? (
               <div className="lg:col-span-2">
                 <EmptyState
@@ -102,7 +102,7 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
           </div>
         </div>
 
-        <div className="card lg:col-span-5">
+        <div className="card 2xl:col-span-5">
           <p className="eyebrow">Komposisi kategori</p>
           <h3 className="headline-md mt-2">Pengeluaran terbesar bulan ini</h3>
           <div className="mt-6 stack-list">
