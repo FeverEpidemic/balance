@@ -2,6 +2,17 @@
 
 ## [Unreleased] — 2026-06-06
 
+### Fixed — API Chat Tidak Lagi Tertangkap Redirect Login
+
+#### Perbaikan Integrasi
+- **Endpoint API chat kini bisa diakses lewat Bearer key tanpa dipaksa login browser:** Middleware auth tidak lagi menangkap `/api/chat` dan turunannya sebagai halaman privat berbasis session.
+- **Route handler API sekarang benar-benar sempat memverifikasi key:** Request ke `/api/chat/rekap` dan `/api/chat/transaction` tidak lagi mental ke `/login?next=...` sebelum auth gateway berjalan.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `middleware.ts` | Tandai `/api/chat` dan sub-route-nya sebagai path publik agar memakai auth API key, bukan auth session web. |
+
 ### Added — API Gateway v1 untuk Hermes/AI dengan User API Keys
 
 #### Fitur Baru

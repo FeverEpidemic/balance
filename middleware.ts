@@ -15,6 +15,8 @@ function isPublicPath(pathname: string) {
     pathname === "/offline" ||
     pathname === "/sw.js" ||
     pathname === "/manifest.webmanifest" ||
+    pathname === "/api/chat" ||
+    pathname.startsWith("/api/chat/") ||
     authRoutes.has(pathname) ||
     pathname.startsWith("/auth/") ||
     pathname.startsWith("/invite/")
