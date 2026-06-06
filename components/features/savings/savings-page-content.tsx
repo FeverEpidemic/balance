@@ -36,13 +36,13 @@ function SavingCard({
         </div>
       </div>
 
-      <div className="mt-4 h-2 rounded-full bg-white">
+      <div className="mt-4 h-2 rounded-full bg-card">
         <div className="h-2 rounded-full bg-primary" style={{ width: `${saving.targetAmount ? saving.progressRatio : 0}%` }} />
       </div>
 
       {canMutate && !saving.isArchived ? (
         <div className="mt-4 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
-          <ActionForm action={createSavingDeposit} className="min-w-0 rounded-xl bg-white/80 p-4" resetOnSuccess>
+          <ActionForm action={createSavingDeposit} className="glass-panel min-w-0 rounded-xl p-4" resetOnSuccess>
             <input type="hidden" name="wallet_id" value={data.walletId} />
             <input type="hidden" name="saving_id" value={saving.id} />
             <p className="font-medium">Setor</p>
@@ -65,7 +65,7 @@ function SavingCard({
             </div>
           </ActionForm>
 
-          <ActionForm action={createSavingWithdrawal} className="min-w-0 rounded-xl bg-white/80 p-4" resetOnSuccess>
+          <ActionForm action={createSavingWithdrawal} className="glass-panel min-w-0 rounded-xl p-4" resetOnSuccess>
             <input type="hidden" name="wallet_id" value={data.walletId} />
             <input type="hidden" name="saving_id" value={saving.id} />
             <p className="font-medium">Tarik</p>
@@ -79,7 +79,7 @@ function SavingCard({
             </div>
           </ActionForm>
 
-          <div className="min-w-0 rounded-xl bg-white/80 p-4 lg:col-span-2 2xl:col-span-1">
+          <div className="glass-panel min-w-0 rounded-xl p-4 lg:col-span-2 2xl:col-span-1">
             <p className="font-medium">Kelola tabungan</p>
             <ActionForm action={updateSaving} className="mt-3 grid gap-3">
               <input type="hidden" name="wallet_id" value={data.walletId} />
@@ -107,7 +107,7 @@ function SavingCard({
       ) : null}
 
       {data.walletKind === "shared" ? (
-        <div className="mt-4 rounded-xl bg-white/80 p-4">
+        <div className="glass-panel mt-4 rounded-xl p-4">
           <p className="font-medium">Kontribusi anggota</p>
           <div className="mt-3 space-y-2">
             {saving.contributions.length === 0 ? (
@@ -124,7 +124,7 @@ function SavingCard({
         </div>
       ) : null}
 
-      <div className="mt-4 rounded-xl bg-white/80 p-4">
+      <div className="glass-panel mt-4 rounded-xl p-4">
         <p className="font-medium">Riwayat mutasi</p>
         <div className="mt-3 space-y-3">
           {saving.entries.length === 0 ? (

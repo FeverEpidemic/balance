@@ -169,7 +169,7 @@ function AppShellSkeleton({
         </aside>
 
         <main className="min-w-0">
-          <header className="mb-4 rounded-[1.25rem] border border-white/60 bg-[rgba(255,255,255,0.68)] px-4 py-4 shadow-serene backdrop-blur md:px-6">
+          <header className="glass-panel mb-4 rounded-[1.25rem] px-4 py-4 backdrop-blur md:px-6">
             <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
               <SkeletonBlock className="h-4 w-24" />
               <SkeletonBlock className="h-9 w-20 rounded-full" />
@@ -192,7 +192,7 @@ function AppShellSkeleton({
                             "shrink-0 whitespace-nowrap rounded-full border px-3 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.12em]",
                             active
                               ? "border-primary bg-primary text-white"
-                              : "border-white/70 bg-white/70 text-muted-foreground"
+                              : "glass-panel border text-muted-foreground"
                           )}
                         >
                           {item.label}
@@ -220,7 +220,7 @@ function AppShellSkeleton({
         </main>
       </div>
 
-      <nav className="fixed inset-x-4 bottom-4 z-50 rounded-2xl border border-[rgba(255,255,255,0.55)] bg-[rgba(255,255,255,0.86)] p-2 shadow-float backdrop-blur lg:hidden">
+      <nav className="glass-nav fixed inset-x-4 bottom-4 z-50 rounded-2xl p-2 backdrop-blur lg:hidden">
         <div className="touch-scroll-x flex gap-2">
           {mobileNavItems.map((item) => (
             <div
@@ -300,7 +300,7 @@ export function DashboardLoadingSkeleton() {
 export function WalletsLoadingSkeleton() {
   return (
     <AppShellSkeleton currentPath="/wallets" title="Wallet">
-      <section className="mb-4 grid gap-4 rounded-2xl bg-white/75 p-4 shadow-serene xl:grid-cols-[1fr_360px]">
+      <section className="glass-panel mb-4 grid gap-4 rounded-2xl p-4 xl:grid-cols-[1fr_360px]">
         <div>
           <SkeletonBlock className="h-7 w-full max-w-[20rem]" />
           <SkeletonBlock className="mt-3 h-4 w-full max-w-[26rem]" />
@@ -483,7 +483,7 @@ export function MarketingHomeLoadingSkeleton() {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(245,244,237,0.98))] p-4 shadow-float md:p-6">
+        <div className="glass-panel-strong relative overflow-hidden rounded-[2rem] p-4 shadow-float md:p-6">
           <div className="rounded-[1.5rem] bg-primary/85 px-5 py-6">
             <SkeletonBlock className="h-3 w-32 rounded-full bg-white/20" />
             <SkeletonBlock className="mt-5 h-10 w-40 bg-white/20" />
@@ -592,7 +592,7 @@ export function SimpleCardLoadingSkeleton({
 }) {
   return (
     <PublicPageShell fullHeight={fullHeight}>
-      <section className="mx-auto w-full max-w-2xl rounded-[2rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(245,244,237,0.98))] p-6 shadow-float md:p-10">
+      <section className="glass-panel-strong mx-auto w-full max-w-2xl rounded-[2rem] p-6 shadow-float md:p-10">
         <SkeletonBlock className={cn("h-3 rounded-full", eyebrowWidth)} />
         <SkeletonBlock className={cn("mt-5 h-9 max-w-full", titleWidth)} />
         <div className="mt-5 space-y-3">

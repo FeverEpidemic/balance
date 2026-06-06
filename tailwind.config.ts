@@ -9,16 +9,24 @@ const config: Config = {
         foreground: "var(--foreground)",
         primary: "var(--primary)",
         "primary-strong": "var(--primary-strong)",
+        "primary-hover": "var(--primary-hover)",
         "primary-soft": "var(--primary-soft)",
         accent: "var(--accent)",
         "accent-foreground": "var(--accent-foreground)",
         border: "var(--border)",
+        surface: "var(--surface)",
+        overlay: "var(--overlay)",
         muted: "var(--muted)",
         "muted-foreground": "var(--muted-foreground)",
         success: "var(--success)",
+        "success-soft": "var(--success-soft)",
         danger: "var(--danger)",
+        "danger-soft": "var(--danger-soft)",
         card: "var(--card)",
-        "card-elevated": "var(--card-elevated)"
+        "card-elevated": "var(--card-elevated)",
+        "outline-variant": "var(--outline-variant)",
+        "surface-container-lowest": "var(--surface-container-lowest)",
+        "surface-container-low": "var(--surface-container-low)"
       },
       fontFamily: {
         display: ["var(--font-display)", "sans-serif"],
@@ -33,8 +41,8 @@ const config: Config = {
         xl: "1.5rem"
       },
       boxShadow: {
-        serene: "0 4px 20px -2px rgba(45, 54, 39, 0.05)",
-        float: "0 12px 40px -4px rgba(45, 54, 39, 0.1)"
+        serene: "var(--shadow-serene)",
+        float: "var(--shadow-float)"
       },
       maxWidth: {
         app: "1280px"

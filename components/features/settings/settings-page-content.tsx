@@ -1,13 +1,32 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
+import { updateThemePreference } from "@/app/actions/theme";
 import { ActionForm } from "@/components/ui/action-form";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { createApiKey, revokeApiKey, deleteApiKey } from "@/app/actions/api-keys";
-import type { ActionResult } from "@/app/actions/action-result";
 import { initialActionResult } from "@/app/actions/action-result";
 import type { SettingsData } from "@/lib/data/types";
+import { cn } from "@/lib/utils";
+
+const themeOptions = [
+  {
+    value: "system",
+    label: "Ikuti sistem",
+    description: "Otomatis menyesuaikan tampilan perangkat Anda."
+  },
+  {
+    value: "light",
+    label: "Terang",
+    description: "Gunakan tampilan krem terang khas Balance."
+  },
+  {
+    value: "dark",
+    label: "Gelap",
+    description: "Gunakan mode gelap yang tetap tenang dan nyaman."
+  }
+] as const;
 
 export function SettingsPageContent({ settings }: { settings: SettingsData }) {
   const [newKeyResult, setNewKeyResult] = useState<string | null>(null);
@@ -25,6 +44,48 @@ export function SettingsPageContent({ settings }: { settings: SettingsData }) {
       primaryWalletId={settings.shell.primaryWalletId}
     >
       <div className="space-y-6">
+        <section className="card">
+          <h3 className="headline-sm">Tema Aplikasi</h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Pilih tampilan yang paling nyaman. Opsi ini tersimpan ke akun Anda dan dibawa ke perangkat lain saat login.
+          </p>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            {themeOptions.map((option) => {
+              const isActive = settings.themePreference === option.value;
+
+              return (
+                <ActionForm
+                  key={option.value}
+                  action={updateThemePreference}
+                  initialState={initialActionResult}
+                >
+                  {({ pending }) => (
+                    <>
+                      <input type="hidden" name="theme_preference" value={option.value} />
+                      <button
+                        type="submit"
+                        disabled={pending}
+                        className={cn(
+                          "flex h-full w-full flex-col items-start rounded-[1.25rem] border p-4 text-left transition",
+                          isActive
+                            ? "border-primary bg-primary-soft text-foreground shadow-serene"
+                            : "border-border bg-overlay text-foreground hover:border-primary/35 hover:bg-card"
+                        )}
+                      >
+                        <span className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                          {isActive ? "Aktif" : "Tema"}
+                        </span>
+                        <span className="mt-3 headline-md">{option.label}</span>
+                        <span className="mt-2 text-sm leading-6 text-muted-foreground">{option.description}</span>
+                      </button>
+                    </>
+                  )}
+                </ActionForm>
+              );
+            })}
+          </div>
+        </section>
+
         <section className="card">
           <h3 className="headline-sm">Buat API Key Baru</h3>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -58,12 +119,12 @@ export function SettingsPageContent({ settings }: { settings: SettingsData }) {
                       type="text"
                       required
                       placeholder="misal: Hermes Bot"
-                      className="mt-1 rounded-xl border border-border bg-surface px-4 py-2.5 font-sans text-sm text-foreground placeholder:text-muted-foreground/60"
+                      className="mt-1 rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60"
                     />
                   </label>
                   <button
                     type="submit"
-                    className="rounded-full bg-primary px-6 py-2.5 font-label text-xs font-semibold text-white uppercase tracking-[0.12em] transition hover:bg-primary-hover"
+                    className="rounded-full bg-primary px-6 py-2.5 font-label text-xs font-semibold uppercase tracking-[0.12em] text-[var(--button-primary-text)] transition hover:bg-primary-hover"
                   >
                     Buat Key
                   </button>
@@ -81,7 +142,7 @@ export function SettingsPageContent({ settings }: { settings: SettingsData }) {
               </p>
               <button
                 type="button"
-                className="mt-3 rounded-full bg-white px-4 py-1.5 font-label text-xs font-semibold text-primary-strong transition hover:bg-white/70"
+                className="mt-3 rounded-full bg-card px-4 py-1.5 font-label text-xs font-semibold text-primary-strong transition hover:bg-overlay"
                 onClick={() => setNewKeyResult(null)}
               >
                 Saya sudah menyalin
@@ -115,7 +176,7 @@ export function SettingsPageContent({ settings }: { settings: SettingsData }) {
                       {key.lastUsedAt ? ` — Terakhir dipakai ${new Date(key.lastUsedAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}` : ""}
                     </p>
                     {key.isRevoked ? (
-                      <p className="mt-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em] text-red-600">Dicabut</p>
+                      <p className="theme-danger-pill mt-2 inline-flex rounded-full px-2.5 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em]">Dicabut</p>
                     ) : null}
                   </div>
                   <div className="flex items-center gap-2">
@@ -128,7 +189,7 @@ export function SettingsPageContent({ settings }: { settings: SettingsData }) {
                         <input type="hidden" name="key_id" value={key.id} />
                         <button
                           type="submit"
-                          className="rounded-full border border-red-200 bg-red-50 px-4 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.12em] text-red-700 transition hover:bg-red-100"
+                          className="theme-danger-pill rounded-full px-4 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition hover:opacity-90"
                         >
                           Cabut
                         </button>
@@ -142,7 +203,7 @@ export function SettingsPageContent({ settings }: { settings: SettingsData }) {
                         <input type="hidden" name="key_id" value={key.id} />
                         <ConfirmSubmitButton
                           confirmMessage="Hapus permanen API key ini?"
-                          className="rounded-full border border-border bg-white px-4 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground transition hover:bg-red-50 hover:text-red-700"
+                          className="rounded-full border border-border bg-card px-4 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground transition hover:border-[var(--danger-border)] hover:text-danger"
                         >
                           Hapus
                         </ConfirmSubmitButton>

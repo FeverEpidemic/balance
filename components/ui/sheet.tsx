@@ -14,7 +14,7 @@ export const SheetOverlay = forwardRef<ElementRef<typeof DialogPrimitive.Overlay
   ({ className, ...props }, ref) => (
     <DialogPrimitive.Overlay
       ref={ref}
-      className={cn("fixed inset-0 z-50 bg-[rgba(27,28,24,0.36)] backdrop-blur-[2px]", className)}
+      className={cn("theme-overlay fixed inset-0 z-50 backdrop-blur-[2px]", className)}
       {...props}
     />
   )
@@ -29,7 +29,7 @@ export const SheetContent = forwardRef<ElementRef<typeof DialogPrimitive.Content
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          "fixed inset-y-0 right-0 z-50 flex w-[min(92vw,24rem)] flex-col border-l border-white/70 bg-card px-5 py-5 shadow-float focus:outline-none sm:px-6",
+          "fixed inset-y-0 right-0 z-50 flex w-[min(92vw,24rem)] flex-col border-l border-border bg-card px-5 py-5 shadow-float focus:outline-none sm:px-6",
           className
         )}
         {...props}

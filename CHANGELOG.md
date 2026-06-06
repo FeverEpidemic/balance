@@ -2,6 +2,23 @@
 
 ## [Unreleased] — 2026-06-07
 
+### Added — Dark Mode dengan 3 Pilihan Tema
+
+#### Peningkatan Tampilan
+- **Aplikasi kini mendukung `Terang`, `Gelap`, dan `Ikuti sistem`:** User bisa memilih tema dari halaman `Pengaturan`, lalu preferensi itu dipakai di seluruh aplikasi.
+- **Preferensi tema tersimpan per akun sekaligus dipakai untuk render awal:** Nilai tema disimpan di tabel `profiles` dengan default `system`, lalu dicerminkan ke cookie ringan agar SSR dan route publik lebih cepat mengikuti pilihan terakhir.
+- **Palet dark tetap mengikuti gaya Serene Capital:** Background, kartu, drawer, toast, dialog, dan panel utama kini memakai token warna baru yang lebih nyaman di kondisi gelap tanpa melepas aksen sage/forest khas Balance.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `supabase/migrations/0013_profile_theme_preference.sql` | Tambah kolom `theme_preference` ke `profiles` beserta default `system` dan constraint nilainya. |
+| `app/layout.tsx`, `app/globals.css`, `tailwind.config.ts`, `lib/theme.ts` | Tambah runtime tema global, bootstrap script anti-flash, token light/dark, cookie theme, dan helper resolusi tema. |
+| `app/actions/theme.ts`, `lib/data/{types,queries,index}.ts` | Simpan preferensi tema per akun, mirror cookie, dan expose theme preference ke halaman Pengaturan. |
+| `components/features/settings/settings-page-content.tsx` | Tambah UI pemilih tema 3 opsi di halaman Pengaturan. |
+| `components/{app-shell,auth,features,ui}/**`, `app/{page,offline}/**` | Rapikan surface utama agar tetap terbaca dan konsisten di dark mode. |
+| `tests/unit/{theme,theme-actions}.test.ts` | Tambah test helper resolusi tema dan server action update tema. |
+
 ### Added — Onboarding Checklist untuk User Baru
 
 #### Peningkatan UX

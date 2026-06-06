@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 export default function OfflinePage() {
   return (
     <main className="page-wrap flex min-h-screen items-center py-10">
-      <section className="mx-auto w-full max-w-2xl rounded-[2rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(245,244,237,0.98))] p-6 shadow-float md:p-10">
+      <section className="glass-panel-strong mx-auto w-full max-w-2xl rounded-[2rem] p-6 shadow-float md:p-10">
         <p className="eyebrow">Mode offline</p>
         <h1 className="headline-lg mt-4 max-w-xl">Koneksi internet sedang tidak tersedia.</h1>
         <p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground md:text-base">

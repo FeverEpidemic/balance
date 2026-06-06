@@ -92,7 +92,7 @@ function TransactionEditDialog({
             </select>
           </label>
           {transaction.isBalanceAdjustment ? (
-            <div className="rounded-xl bg-white/80 p-3 text-sm text-muted-foreground">
+            <div className="glass-panel rounded-xl p-3 text-sm text-muted-foreground">
               Kategori penyesuaian saldo dikelola otomatis oleh sistem mengikuti arah pemasukan atau pengeluaran.
             </div>
           ) : (
@@ -172,9 +172,7 @@ function HistoryMobileCard({
   return (
     <div
       className={`list-card ${
-        transaction.kind === "expense"
-          ? "border border-[rgba(180,94,94,0.08)] bg-[rgba(255,255,255,0.94)]"
-          : "border border-[rgba(91,143,98,0.1)] bg-[rgba(255,255,255,0.94)]"
+        transaction.kind === "expense" ? "theme-danger-pill" : "theme-success-pill"
       }`}
     >
       <div className="flex items-start justify-between gap-4">
@@ -350,9 +348,9 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
             </div>
           ) : (
             <>
-              <div className="mt-6 hidden overflow-x-auto rounded-[1rem] border border-white/70 bg-white/70 lg:block">
+      <div className="glass-panel mt-6 hidden overflow-x-auto rounded-[1rem] lg:block">
                 <Table>
-                  <TableHeader className="sticky top-0 z-10 bg-[rgba(251,249,243,0.94)] backdrop-blur">
+                  <TableHeader className="sticky top-0 z-10 bg-card backdrop-blur">
                     {table.getHeaderGroups().map((headerGroup) => (
                       <TableRow key={headerGroup.id}>
                         {headerGroup.headers.map((header) => (

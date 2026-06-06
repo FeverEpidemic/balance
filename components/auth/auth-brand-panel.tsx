@@ -26,25 +26,25 @@ export function AuthBrandPanel({ eyebrow, highlights, subtitle, title }: AuthBra
 
         <div className="mt-8 grid gap-3 sm:grid-cols-3">
           {highlights.map((highlight) => (
-            <div key={highlight.label} className="info-tile bg-white/72">
+            <div key={highlight.label} className="glass-panel info-tile">
               <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{highlight.label}</p>
               <p className="mt-3 font-display text-lg text-primary-strong">{highlight.value}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-8 rounded-2xl border border-white/70 bg-[rgba(255,255,255,0.74)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.24)]">
+        <div className="glass-panel mt-8 rounded-2xl p-5">
           <p className="font-label text-xs uppercase tracking-[0.16em] text-primary-strong">Ritme yang lebih tenang</p>
           <div className="mt-4 grid gap-3">
-            <div className="flex items-center justify-between gap-3 rounded-xl bg-[rgba(239,238,231,0.82)] px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-muted px-4 py-3">
               <span className="text-sm text-muted-foreground">Catat arus kas harian</span>
               <span className="font-label text-xs uppercase tracking-[0.12em] text-primary-strong">Ringkas</span>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl bg-[rgba(239,238,231,0.82)] px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-muted px-4 py-3">
               <span className="text-sm text-muted-foreground">Pantau anggaran per kategori</span>
               <span className="font-label text-xs uppercase tracking-[0.12em] text-primary-strong">Jelas</span>
             </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl bg-[rgba(239,238,231,0.82)] px-4 py-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-muted px-4 py-3">
               <span className="text-sm text-muted-foreground">Bagi akses wallet dengan keluarga</span>
               <span className="font-label text-xs uppercase tracking-[0.12em] text-primary-strong">Kolaboratif</span>
             </div>

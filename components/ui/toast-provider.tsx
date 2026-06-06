@@ -22,9 +22,9 @@ type ToastContextValue = {
 const TOAST_LIFETIME_MS = 5000;
 
 const toastToneStyles: Record<ToastTone, string> = {
-  info: "border-[rgba(89,95,61,0.18)] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(239,238,231,0.98))] text-primary-strong",
-  error: "border-[rgba(180,94,94,0.18)] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,238,235,0.98))] text-danger",
-  success: "border-[rgba(91,143,98,0.18)] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(236,245,238,0.98))] text-success"
+  info: "border-[var(--soft-border)] bg-card text-primary-strong",
+  error: "border-[var(--danger-border)] bg-card text-danger",
+  success: "border-[var(--success-border)] bg-card text-success"
 };
 
 const toastToneLabels: Record<ToastTone, string> = {
@@ -48,8 +48,8 @@ function ToastItem({ toast, onDismiss }: { onDismiss: (id: string) => void; toas
     <button
       type="button"
       onClick={() => onDismiss(toast.id)}
-      className={cn(
-        "toast-enter w-full rounded-[1rem] border p-4 text-left shadow-[0_12px_32px_-16px_rgba(45,54,39,0.28)] backdrop-blur-sm transition duration-150 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-18px_rgba(45,54,39,0.3)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(89,95,61,0.16)]",
+        className={cn(
+        "toast-enter w-full rounded-[1rem] border p-4 text-left shadow-float backdrop-blur-sm transition duration-150 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(89,95,61,0.16)]",
         toastToneStyles[toast.tone ?? "info"]
       )}
       aria-label={`${toastToneLabels[toast.tone ?? "info"]}: ${toast.description}. Klik untuk menutup.`}
@@ -76,7 +76,7 @@ function ToastItem({ toast, onDismiss }: { onDismiss: (id: string) => void; toas
         </div>
         <span className="shrink-0 font-label text-xs uppercase tracking-[0.12em] opacity-70">Tutup</span>
       </div>
-      <div className="toast-progress mt-3 overflow-hidden rounded-full bg-[rgba(255,255,255,0.46)]">
+      <div className="toast-progress mt-3 overflow-hidden rounded-full bg-overlay">
         <div className={cn("toast-progress-bar", toast.tone === "success" ? "toast-progress-bar-success" : "toast-progress-bar-neutral")} />
       </div>
     </button>

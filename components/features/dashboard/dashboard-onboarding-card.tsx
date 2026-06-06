@@ -47,7 +47,7 @@ export function DashboardOnboardingCard({ onboarding }: { onboarding: DashboardO
   };
 
   return (
-    <section className="card mb-4 overflow-hidden border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(245,244,237,0.98))] shadow-float">
+    <section className="card mb-4 overflow-hidden shadow-float">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-2xl">
           <p className="eyebrow">Mulai lebih tenang</p>
@@ -60,7 +60,7 @@ export function DashboardOnboardingCard({ onboarding }: { onboarding: DashboardO
               : "Checklist ini bantu kamu langsung paham alur utama tanpa harus menebak fitur mana yang perlu dibuka lebih dulu."}
           </p>
         </div>
-        <div className="min-w-[13rem] rounded-[1.25rem] bg-white/80 p-4 shadow-serene">
+        <div className="glass-panel min-w-[13rem] rounded-[1.25rem] p-4">
           <p className="font-label text-xs uppercase tracking-[0.14em] text-muted-foreground">Progress awal</p>
           <p className="metric mt-3 text-2xl">
             {onboarding.completedSteps}/{onboarding.totalSteps}
@@ -80,11 +80,11 @@ export function DashboardOnboardingCard({ onboarding }: { onboarding: DashboardO
             key={step.id}
             className={cn(
               "rounded-[1.25rem] border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.32)] transition",
-              step.isComplete ? "border-[rgba(89,95,61,0.2)] bg-primary-soft/55" : "border-white/70 bg-white/80"
+              step.isComplete ? "border-[rgba(89,95,61,0.2)] bg-primary-soft/55" : "glass-panel"
             )}
           >
             <div className="flex items-start justify-between gap-3">
-              <div className="rounded-full bg-white/90 px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-strong">
+              <div className="rounded-full bg-card px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-strong">
                 Langkah {index + 1}
               </div>
               <span
@@ -92,7 +92,7 @@ export function DashboardOnboardingCard({ onboarding }: { onboarding: DashboardO
                   "inline-flex h-8 w-8 items-center justify-center rounded-full border text-sm",
                   step.isComplete
                     ? "border-[rgba(89,95,61,0.16)] bg-primary text-white"
-                    : "border-border bg-white text-muted-foreground"
+                    : "border-border bg-card text-muted-foreground"
                 )}
               >
                 {step.isComplete ? "✓" : index + 1}

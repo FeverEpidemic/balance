@@ -4,9 +4,9 @@ import type { ButtonHTMLAttributes, ReactNode } from "react";
 
 const variants = {
   primary:
-    "bg-primary text-white shadow-serene hover:bg-primary-strong hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_28px_-12px_rgba(45,54,39,0.45)]",
+    "bg-primary text-[var(--button-primary-text)] shadow-serene hover:bg-primary-strong hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_28px_-12px_rgba(45,54,39,0.45)]",
   ghost: "border border-border bg-transparent text-foreground hover:bg-muted",
-  soft: "bg-primary-soft text-primary-strong hover:bg-[#d3dbad]"
+  soft: "bg-primary-soft text-primary-strong hover:bg-[var(--primary-soft-strong)]"
 };
 
 type ButtonProps = {

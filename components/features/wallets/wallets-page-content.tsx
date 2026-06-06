@@ -27,7 +27,7 @@ export function WalletsPageContent({
       primaryWalletId={dashboard.shell.primaryWalletId}
     >
       <ToastFeedback error={feedback.error} message={feedback.message} />
-      <section className="mb-4 grid gap-4 rounded-2xl bg-white/75 p-4 shadow-serene xl:grid-cols-[1fr_360px]">
+      <section className="glass-panel mb-4 grid gap-4 rounded-2xl p-4 xl:grid-cols-[1fr_360px]">
         <div>
           <p className="headline-md">Wallet terorganisir per tujuan dan per anggota.</p>
           <p className="mt-2 text-sm text-muted-foreground">Setiap wallet memiliki kategori, anggaran, anggota, split bill, dan laporan bulanan sendiri.</p>

@@ -16,7 +16,7 @@ const tabs = [
 export function WalletTabs({ walletId, active }: { walletId: string; active: string }) {
   return (
     <div className="mb-4 overflow-x-auto">
-      <div className="inline-flex min-w-full gap-2 rounded-2xl border border-white/60 bg-[rgba(255,255,255,0.72)] p-2 shadow-serene">
+      <div className="glass-panel inline-flex min-w-full gap-2 rounded-2xl p-2">
         {tabs.map((tab) => {
           const href = `/wallets/${walletId}${tab.slug}`;
           return (

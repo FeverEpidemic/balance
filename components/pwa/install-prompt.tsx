@@ -75,7 +75,7 @@ export function InstallPrompt() {
   };
 
   return (
-    <div className="mt-6 max-w-2xl rounded-[1.5rem] border border-primary/10 bg-white/85 p-4 shadow-serene backdrop-blur-sm">
+    <div className="glass-panel mt-6 max-w-2xl rounded-[1.5rem] p-4 backdrop-blur-sm">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="font-label text-xs uppercase tracking-[0.16em] text-primary-strong">Install aplikasi</p>

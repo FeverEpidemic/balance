@@ -2,9 +2,9 @@ import { cn } from "@/lib/utils";
 
 export function Badge({ children, tone = "default" }: { children: string; tone?: "default" | "success" | "danger" }) {
   const tones = {
-    default: "border border-[rgba(89,95,61,0.12)] bg-[rgba(89,95,61,0.1)] text-primary-strong",
-    success: "border border-[rgba(91,143,98,0.16)] bg-[rgba(91,143,98,0.12)] text-success",
-    danger: "border border-[rgba(180,94,94,0.16)] bg-[rgba(180,94,94,0.12)] text-danger"
+    default: "theme-primary-pill",
+    success: "theme-success-pill",
+    danger: "theme-danger-pill"
   };
 
   return (

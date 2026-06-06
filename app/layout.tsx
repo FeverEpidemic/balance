@@ -1,9 +1,12 @@
 import type { Metadata, Viewport } from "next";
+import { cookies } from "next/headers";
 import { Geist, Hanken_Grotesk, Inter } from "next/font/google";
 import type { ReactNode } from "react";
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
 import { RouteTransition } from "@/components/ui/route-transition";
 import { ToastProvider } from "@/components/ui/toast-provider";
+import { createClient } from "@/lib/supabase/server";
+import { getThemeBootstrapScript, parseThemePreference, resolveAppliedTheme, THEME_COOKIE_NAME } from "@/lib/theme";
 import "./globals.css";
 
 const display = Hanken_Grotesk({
@@ -43,14 +46,40 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#595f3d",
-  colorScheme: "light"
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#595f3d" },
+    { media: "(prefers-color-scheme: dark)", color: "#171c16" }
+  ],
+  colorScheme: "light dark"
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const cookieStore = await cookies();
+  const cookiePreference = parseThemePreference(cookieStore.get(THEME_COOKIE_NAME)?.value);
+  let themePreference = cookiePreference;
+
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    const { data: profile } = await supabase.from("profiles").select("theme_preference").eq("id", user.id).maybeSingle();
+    themePreference = parseThemePreference(profile?.theme_preference);
+  }
+
+  const appliedTheme = resolveAppliedTheme(themePreference);
+
   return (
-    <html lang="id">
+    <html
+      lang="id"
+      suppressHydrationWarning
+      data-theme={appliedTheme}
+      data-theme-preference={themePreference}
+      style={{ colorScheme: appliedTheme }}
+    >
       <body className={`${display.variable} ${body.variable} ${label.variable}`}>
+        <script dangerouslySetInnerHTML={{ __html: getThemeBootstrapScript(themePreference) }} />
         <ToastProvider>
           <RouteTransition />
           <ServiceWorkerRegistration />

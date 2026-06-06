@@ -43,7 +43,7 @@ function TransactionItem({ canMutate, categories, transaction, walletId }: Trans
         </div>
       </div>
       {transaction.isSavingLinked ? (
-        <div className="mt-4 rounded-xl bg-white/80 p-3 text-sm text-muted-foreground">
+        <div className="glass-panel mt-4 rounded-xl p-3 text-sm text-muted-foreground">
           Transaksi ini dibuat otomatis dari tab Tabungan dan tidak bisa diedit atau dihapus dari sini.
         </div>
       ) : canMutate ? (
@@ -67,7 +67,7 @@ function TransactionItem({ canMutate, categories, transaction, walletId }: Trans
                     </select>
                   </label>
                   {transaction.isBalanceAdjustment ? (
-                    <div className="rounded-xl bg-white/80 p-3 text-sm text-muted-foreground">
+                    <div className="glass-panel rounded-xl p-3 text-sm text-muted-foreground">
                       Kategori penyesuaian saldo dikelola otomatis oleh sistem mengikuti arah pemasukan atau pengeluaran.
                     </div>
                   ) : (
@@ -172,7 +172,7 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
           </ActionForm>
 
           {canMutate ? (
-            <div className="mt-8 border-t border-black/5 pt-6">
+            <div className="mt-8 border-t border-border pt-6">
               <p className="eyebrow">Penyesuaian saldo</p>
               <h3 className="headline-md mt-2">Sinkronkan saldo aktual wallet</h3>
               <p className="mt-2 text-sm text-muted-foreground">

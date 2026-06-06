@@ -6,11 +6,13 @@ export type RecurringFrequency = "daily" | "weekly" | "monthly";
 export type RecurringStatus = "active" | "paused" | "ended";
 export type SavingEntryType = "deposit" | "withdraw";
 export type OnboardingState = "active" | "dismissed" | "completed";
+export type ThemePreference = "light" | "dark" | "system";
 
 export type ProfileRow = {
   id: string;
   full_name: string | null;
   email: string | null;
+  theme_preference: ThemePreference;
   onboarding_state: OnboardingState;
   onboarding_dismissed_at: string | null;
   onboarding_completed_at: string | null;
@@ -157,6 +159,7 @@ export type SettingsApiKeyItem = {
 export type SettingsData = {
   shell: ShellData;
   apiKeys: SettingsApiKeyItem[];
+  themePreference: ThemePreference;
 };
 
 export type ShellData = {
@@ -165,6 +168,7 @@ export type ShellData = {
   budgetCount: number;
   memberCount: number;
   primaryWalletId: string | null;
+  themePreference?: ThemePreference;
   onboardingState?: OnboardingState;
   onboardingDismissedAt?: string | null;
   onboardingCompletedAt?: string | null;

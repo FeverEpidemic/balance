@@ -48,7 +48,7 @@ export function InlineEditPanel({
   }, [open]);
 
   return (
-    <div className={cn("mt-4 rounded-xl border border-[rgba(89,95,61,0.12)] bg-white/70", open ? "shadow-serene" : "", className)}>
+    <div className={cn("glass-panel mt-4 rounded-xl", open ? "shadow-serene" : "", className)}>
       <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -65,7 +65,7 @@ export function InlineEditPanel({
             "inline-flex min-h-[2.75rem] shrink-0 items-center justify-center rounded-xl border px-4 py-2 text-center font-label text-sm font-medium transition duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(89,95,61,0.16)]",
             open
               ? "border-primary/20 bg-primary text-white shadow-serene"
-              : "border-border bg-[rgba(255,255,255,0.78)] text-primary-strong hover:border-primary/20 hover:bg-[rgba(224,231,187,0.4)]"
+              : "border-border bg-overlay text-primary-strong hover:border-primary/20 hover:bg-primary-soft"
           )}
         >
           {open ? "Tutup editor" : buttonLabel}
@@ -78,7 +78,7 @@ export function InlineEditPanel({
         )}
       >
         <div className="overflow-hidden">
-          <div ref={panelRef} className={cn("border-t border-[rgba(89,95,61,0.08)] p-3 pt-4", open ? "translate-y-0" : "-translate-y-2")}>
+          <div ref={panelRef} className={cn("border-t border-border p-3 pt-4", open ? "translate-y-0" : "-translate-y-2")}>
             {children}
           </div>
         </div>

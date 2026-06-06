@@ -110,7 +110,7 @@ export default async function HomePage() {
 
         <div className="relative">
           <div className="absolute inset-x-8 top-4 h-40 rounded-full bg-primary-soft/60 blur-3xl" />
-          <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(245,244,237,0.98))] p-4 shadow-float md:p-6">
+          <div className="glass-panel-strong relative overflow-hidden rounded-[2rem] p-4 shadow-float md:p-6">
             <div className="rounded-[1.5rem] bg-primary px-5 py-6 text-white">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -146,7 +146,7 @@ export default async function HomePage() {
                   </div>
                   <Badge>Target 74%</Badge>
                 </div>
-                <div className="mt-4 h-3 rounded-full bg-white/80">
+                <div className="mt-4 h-3 rounded-full bg-card">
                   <div className="h-3 w-[74%] rounded-full bg-primary" />
                 </div>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">

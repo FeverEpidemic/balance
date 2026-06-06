@@ -76,6 +76,7 @@ export const getShellData = cache(async (userId: string) => {
     budgetCount: budgets.length,
     memberCount: new Set(memberRows.map((row) => row.user_id)).size,
     primaryWalletId: wallets[0]?.id ?? null,
+    themePreference: profiles[0]?.theme_preference ?? "system",
     onboardingState: profiles[0]?.onboarding_state ?? "active",
     onboardingDismissedAt: profiles[0]?.onboarding_dismissed_at ?? null,
     onboardingCompletedAt: profiles[0]?.onboarding_completed_at ?? null
@@ -365,7 +366,11 @@ export const getSettingsData = cache(async (userId: string): Promise<SettingsDat
       isRevoked: !!row.revoked_at
     }));
 
-    return { shell, apiKeys };
+    return {
+      shell,
+      apiKeys,
+      themePreference: shell.themePreference ?? "system"
+    };
   });
 });
 

@@ -39,7 +39,7 @@ export function AppShell({
 }) {
   const walletId = currentWalletId ?? primaryWalletId;
   const logoutButtonClassName = "rounded-full bg-primary-soft px-3 py-2 font-label text-xs text-primary-strong";
-  const mobileUtilityButtonClassName = "rounded-full border border-white/70 bg-white/80 px-3 py-2 font-label text-xs text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]";
+  const mobileUtilityButtonClassName = "glass-panel rounded-full px-3 py-2 font-label text-xs text-foreground";
   const navItems = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/wallets", label: "Wallet" },
@@ -104,7 +104,7 @@ export function AppShell({
         </aside>
 
         <main className="min-w-0">
-          <header className="mb-4 rounded-[1.25rem] border border-white/60 bg-[rgba(255,255,255,0.68)] px-4 py-4 shadow-serene backdrop-blur md:px-6">
+          <header className="glass-panel mb-4 rounded-[1.25rem] px-4 py-4 backdrop-blur md:px-6">
             <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
               <p className="text-sm text-muted-foreground">{userName}</p>
               <div className="flex items-center gap-2">
@@ -191,7 +191,7 @@ export function AppShell({
                           "shrink-0 whitespace-nowrap rounded-full border px-3 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
                           isActivePath(currentPath, item.href)
                             ? "border-primary bg-primary text-white"
-                            : "border-white/70 bg-white/70 text-muted-foreground"
+                            : "glass-panel border text-muted-foreground"
                         )}
                       >
                         {item.label}
@@ -224,7 +224,7 @@ export function AppShell({
         </main>
       </div>
 
-      <nav className="fixed inset-x-4 bottom-4 z-50 rounded-2xl border border-[rgba(255,255,255,0.55)] bg-[rgba(255,255,255,0.86)] p-2 shadow-float backdrop-blur lg:hidden">
+      <nav className="glass-nav fixed inset-x-4 bottom-4 z-50 rounded-2xl p-2 backdrop-blur lg:hidden">
         <div className="touch-scroll-x flex gap-2">
           {mobileNavItems.map((item) => (
             <Link

@@ -23,11 +23,11 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
         <Button
           href={transactionsHref}
           variant="soft"
-          className="min-h-[2.75rem] min-w-[2.75rem] rounded-full border border-white/70 px-0 py-0 shadow-none hover:shadow-none"
+          className="min-h-[2.75rem] min-w-[2.75rem] rounded-full border border-border bg-overlay px-0 py-0 shadow-none hover:shadow-none"
         >
           <span
             aria-hidden="true"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/55 ring-1 ring-inset ring-white/70"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-card ring-1 ring-inset ring-border"
           >
             <svg viewBox="0 0 20 20" fill="none" className="h-3 w-3" role="img">
               <path d="M10 4.5V15.5M4.5 10H15.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
@@ -77,7 +77,7 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
                     <p className="font-display text-lg">{wallet.name}</p>
                     <p className="mt-1 text-sm text-muted-foreground">{wallet.kind === "shared" ? "Wallet bersama" : "Wallet pribadi"}</p>
                   </div>
-                  <span className="inline-flex rounded-full border border-[rgba(89,95,61,0.12)] bg-[rgba(89,95,61,0.1)] px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em] text-primary-strong">{wallet.role}</span>
+                  <span className="theme-primary-pill inline-flex rounded-full px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em]">{wallet.role}</span>
                 </div>
                 <p className="metric mt-4 text-2xl">{formatCurrency(wallet.totalBalance)}</p>
                 <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
@@ -90,7 +90,7 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
                     <p className="metric mt-2">{formatCurrency(wallet.savingBalance)}</p>
                   </div>
                 </div>
-                <div className="mt-4 h-2 rounded-full bg-white">
+                <div className="mt-4 h-2 rounded-full bg-card">
                   <div
                     className="h-2 rounded-full bg-primary"
                     style={{ width: `${wallet.budgetThisMonth > 0 ? Math.min((wallet.spentThisMonth / wallet.budgetThisMonth) * 100, 100) : 0}%` }}
