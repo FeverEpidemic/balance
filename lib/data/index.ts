@@ -8,6 +8,7 @@ import {
   createDashboardData,
   createRecurringTransactionsPageData,
   createSavingsPageData,
+  createTransactionHistoryPageData,
   createTransactionsPageData,
   createWalletOverviewData
 } from "@/lib/data/mappers";
@@ -18,6 +19,7 @@ import {
   getDashboardCacheKey,
   getRecurringCacheKey,
   getSavingsCacheKey,
+  getTransactionHistoryCacheKey,
   getTransactionsCacheKey,
   getWalletOverviewCacheKey,
   RECURRING_CACHE_TTL_SECONDS,
@@ -37,6 +39,7 @@ import {
   querySettlements,
   queryTemplates,
   queryTransactions,
+  queryTransactionsByMonth,
   queryTransactionSplits,
   queryWalletMembers,
   queryWallets
@@ -223,7 +226,7 @@ export const getTransactionsPageData = cache(async (userId: string, walletId: st
       getShellData(userId),
       queryWallets([walletId]),
       queryCategories([walletId]),
-      queryTransactions([walletId])
+      queryTransactionsByMonth([walletId], selectedMonth, 8)
     ]);
 
     const wallet = wallets[0];
@@ -233,6 +236,38 @@ export const getTransactionsPageData = cache(async (userId: string, walletId: st
     }
 
     return createTransactionsPageData({
+      shell,
+      wallet,
+      memberships,
+      categories,
+      transactions,
+      selectedMonth
+    });
+  });
+});
+
+export const getTransactionHistoryPageData = cache(async (userId: string, walletId: string, selectedMonth: string) => {
+  return redisCache.getOrSet(getTransactionHistoryCacheKey(userId, walletId, selectedMonth), TRANSACTIONS_CACHE_TTL_SECONDS, async () => {
+    const { memberships, walletIds } = await getMembershipContext(userId);
+
+    if (!walletIds.includes(walletId)) {
+      return null;
+    }
+
+    const [shell, wallets, categories, transactions] = await Promise.all([
+      getShellData(userId),
+      queryWallets([walletId]),
+      queryCategories([walletId]),
+      queryTransactionsByMonth([walletId], selectedMonth)
+    ]);
+
+    const wallet = wallets[0];
+
+    if (!wallet) {
+      return null;
+    }
+
+    return createTransactionHistoryPageData({
       shell,
       wallet,
       memberships,

@@ -283,6 +283,16 @@ export type TransactionsPageData = {
   transactions: TransactionListItem[];
 };
 
+export type TransactionHistoryPageData = {
+  shell: ShellData;
+  walletId: string;
+  walletName: string;
+  currentUserRole: WalletRole;
+  selectedMonth: string;
+  categories: CategoryRow[];
+  transactions: TransactionListItem[];
+};
+
 export type RecurringTransactionListItem = {
   id: string;
   kind: TransactionKind;

@@ -101,6 +101,36 @@ export async function queryTransactions(walletIds: string[], limit?: number) {
   return (data ?? []) as TransactionRow[];
 }
 
+export async function queryTransactionsByMonth(walletIds: string[], month: string, limit?: number) {
+  if (walletIds.length === 0) {
+    return [];
+  }
+
+  const range = getMonthDateRange(month);
+  const startAt = `${range.start}T00:00:00.000Z`;
+  const endAt = `${range.end}T23:59:59.999Z`;
+  const supabase = await createClient();
+  let query = supabase
+    .from("transactions")
+    .select("id, wallet_id, category_id, kind, amount, happened_at, note, split_type, recurring_transaction_id, recurring_scheduled_for, saving_entry_id, source")
+    .in("wallet_id", walletIds)
+    .gte("happened_at", startAt)
+    .lte("happened_at", endAt)
+    .order("happened_at", { ascending: false });
+
+  if (limit) {
+    query = query.limit(limit);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as TransactionRow[];
+}
+
 export async function queryRecurringTransactions(walletIds: string[]) {
   if (walletIds.length === 0) {
     return [];

@@ -207,7 +207,15 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
 
         <div className="card">
           <p className="eyebrow">Riwayat</p>
-          <h3 className="headline-md mt-2">Transaksi terakhir</h3>
+          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h3 className="headline-md">Transaksi terakhir</h3>
+              <p className="mt-2 text-sm text-muted-foreground">Tampilkan ringkasan singkat untuk bulan terpilih, lalu buka histori penuh saat butuh sortir atau telusuri lebih detail.</p>
+            </div>
+            <Button href={`/wallets/${data.walletId}/transactions/history?month=${data.selectedMonth}`} variant="ghost" className="w-full sm:w-auto">
+              Lihat histori penuh
+            </Button>
+          </div>
           <form method="get" className="mt-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">Filter bulan</span>
@@ -234,6 +242,13 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
               />
             ))}
           </div>
+          {data.transactions.length > 0 ? (
+            <div className="mt-6 flex justify-start">
+              <Button href={`/wallets/${data.walletId}/transactions/history?month=${data.selectedMonth}`} variant="soft" className="w-full sm:w-auto">
+                Buka histori transaksi
+              </Button>
+            </div>
+          ) : null}
         </div>
       </section>
     </AppShell>

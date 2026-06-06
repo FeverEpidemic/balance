@@ -2,6 +2,47 @@
 
 ## [Unreleased] — 2026-06-02
 
+### Changed — Tegaskan Versi Node Lokal
+
+#### Perubahan Dokumentasi
+- **Workflow lokal kini lebih selaras dengan requirement runtime repo:** Tambah `.nvmrc` agar developer lokal bisa langsung memakai Node.js `20.9.0`, sesuai `package.json`.
+- **README kini menegaskan baseline Node lokal:** Setup lokal sekarang secara eksplisit meminta Node.js `20.9.0` atau lebih baru dan menjelaskan bahwa Docker production tetap berjalan di Node 22.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `.nvmrc`, `README.md` | Tambah penanda versi Node lokal dan dokumentasi setup agar warning Node 18 tidak jadi kebingungan berulang. |
+
+### Added — Halaman History Transaksi dan Drawer Navigasi Mobile
+
+#### Peningkatan UX
+- **Riwayat transaksi penuh kini punya halaman khusus:** Halaman transaksi utama sekarang tetap fokus pada input cepat dan ringkasan terbaru, sementara histori lengkap pindah ke route `/wallets/[walletId]/transactions/history`.
+- **History transaksi kini lebih kuat di desktop:** Riwayat penuh memakai data table dengan sorting tanggal/jumlah, pencarian client-side, dan pagination dalam konteks bulan terpilih.
+- **Mobile tetap nyaman dipakai:** History page tidak memaksa tabel desktop ke layar kecil, tetapi menampilkan kartu transaksi yang tetap bisa dibaca dan dikelola.
+- **Navigasi mobile kini punya drawer tambahan:** `AppShell` sekarang menyediakan drawer berbasis `Sheet` untuk akses tujuan wallet yang lebih lengkap, tanpa menghapus bottom navigation utama.
+- **Loader transaksi dipersempit untuk surface yang tepat:** Halaman input transaksi kini hanya mengambil ringkasan transaksi bulan terpilih, sementara history page memakai loader khusus agar tidak mengirim seluruh histori lintas bulan ke client.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `lib/data/{queries,types,mappers,index,cache}.ts` | Tambah query transaksi per bulan, type/history page data, mapper history, loader khusus history, dan key cache terpisah untuk payload history. |
+| `components/ui/{dialog,sheet,table,button}.tsx`, `components/app-shell.tsx` | Tambah primitive UI baru untuk dialog/sheet/table, dukungan `disabled` di button shared, dan drawer navigasi mobile berbasis sheet. |
+| `components/features/transactions/{transactions-page-content,transaction-history-page-content}.tsx`, `app/(app)/wallets/[walletId]/transactions/history/*` | Ringankan halaman transaksi utama, tambah CTA ke history penuh, dan implementasikan route history transaksi lengkap dengan loading state. |
+
+### Changed — Rapikan Dokumen Plan Upgrade
+
+#### Perubahan Dokumentasi
+- **`PLAN_UPGRADE.md` kini selaras dengan kondisi repo saat ini:** Dokumen upgrade tidak lagi memakai asumsi project masih MVP frontend generik, tetapi sudah mengacu ke App Router, `lib/data/`, action state wallet forms, serta workflow `npm`.
+- **Arah upgrade frontend dibuat lebih tegas:** Plan sekarang mengunci fokus pada UI polish transaksi, migrasi bertahap ke `shadcn/ui`, route history transaksi terpisah, dan penggunaan `date-fns` hanya bila benar-benar dibutuhkan.
+- **Instruksi ambigu dihapus dari plan:** Dokumen tidak lagi menyisakan pilihan implementasi yang menggantung, penggunaan `pnpm`, atau referensi struktur repo yang tidak sesuai.
+- **Plan kini lebih aman untuk dieksekusi:** Keputusan tentang ringkasan histori di halaman transaksi utama, strategi loading history per bulan, CTA ke route history, dan batas migrasi primitive ke `shadcn/ui` sekarang sudah dikunci agar mengurangi risiko rework saat implementasi.
+- **Kontrak implementasi plan makin tegas:** Scope primitive `shadcn/ui` iterasi pertama, peran `Sheet` mobile terhadap bottom nav existing, dan kebutuhan loader khusus history transaksi kini dijelaskan lebih eksplisit.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `PLAN_UPGRADE.md` | Tulis ulang plan upgrade agar decision-complete, repo-aware, dan siap dipakai sebagai panduan implementasi frontend berikutnya. |
+
 ### Changed — Granular Redis Cache Invalidation
 
 #### Peningkatan Performa

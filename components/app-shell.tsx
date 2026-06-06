@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/actions/auth";
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import type { ReactNode } from "react";
 
 function isActivePath(currentPath: string, href: string) {
@@ -38,6 +39,7 @@ export function AppShell({
 }) {
   const walletId = currentWalletId ?? primaryWalletId;
   const logoutButtonClassName = "rounded-full bg-primary-soft px-3 py-2 font-label text-xs text-primary-strong";
+  const mobileUtilityButtonClassName = "rounded-full border border-white/70 bg-white/80 px-3 py-2 font-label text-xs text-foreground shadow-[inset_0_1px_0_rgba(255,255,255,0.28)]";
   const navItems = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/wallets", label: "Wallet" },
@@ -103,9 +105,69 @@ export function AppShell({
           <header className="mb-4 rounded-[1.25rem] border border-white/60 bg-[rgba(255,255,255,0.68)] px-4 py-4 shadow-serene backdrop-blur md:px-6">
             <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
               <p className="text-sm text-muted-foreground">{userName}</p>
-              <form action={logout}>
-                <button className={logoutButtonClassName}>Keluar</button>
-              </form>
+              <div className="flex items-center gap-2">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <button type="button" className={mobileUtilityButtonClassName}>
+                      Menu
+                    </button>
+                  </SheetTrigger>
+                  <SheetContent>
+                    <SheetHeader>
+                      <p className="eyebrow">Navigasi</p>
+                      <SheetTitle>Jelajahi wallet dan halaman utama</SheetTitle>
+                      <SheetDescription>Pakai drawer ini untuk pindah ke tujuan wallet yang lebih lengkap tanpa mengganggu bottom navigation utama.</SheetDescription>
+                    </SheetHeader>
+                    <div className="mt-6 space-y-6 overflow-y-auto pb-4">
+                      <div>
+                        <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Utama</p>
+                        <nav className="mt-3 space-y-2">
+                          {mobileNavItems.map((item) => (
+                            <SheetClose key={item.href} asChild>
+                              <Link
+                                href={item.href}
+                                className={cn(
+                                  "block rounded-xl px-4 py-3 text-sm transition",
+                                  isActivePath(currentPath, item.href)
+                                    ? "bg-muted font-medium text-foreground"
+                                    : "text-muted-foreground hover:bg-muted"
+                                )}
+                              >
+                                {item.label}
+                              </Link>
+                            </SheetClose>
+                          ))}
+                        </nav>
+                      </div>
+                      {mobileWalletShortcuts.length > 0 ? (
+                        <div>
+                          <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Wallet aktif</p>
+                          <nav className="mt-3 space-y-2">
+                            {mobileWalletShortcuts.map((item) => (
+                              <SheetClose key={item.href} asChild>
+                                <Link
+                                  href={item.href}
+                                  className={cn(
+                                    "block rounded-xl px-4 py-3 text-sm transition",
+                                    isActivePath(currentPath, item.href)
+                                      ? "bg-primary text-white"
+                                      : "bg-muted text-foreground hover:bg-white"
+                                  )}
+                                >
+                                  {item.label}
+                                </Link>
+                              </SheetClose>
+                            ))}
+                          </nav>
+                        </div>
+                      ) : null}
+                    </div>
+                  </SheetContent>
+                </Sheet>
+                <form action={logout}>
+                  <button className={logoutButtonClassName}>Keluar</button>
+                </form>
+              </div>
             </div>
             <p className="eyebrow">{title}</p>
             <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">

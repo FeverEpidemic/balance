@@ -22,6 +22,10 @@ export function getTransactionsCacheKey(userId: string, walletId: string, month:
   return `wallet:${walletId}:user:${userId}:transactions:${month}`;
 }
 
+export function getTransactionHistoryCacheKey(userId: string, walletId: string, month: string) {
+  return `wallet:${walletId}:user:${userId}:transactions-history:${month}`;
+}
+
 export function getBudgetsCacheKey(userId: string, walletId: string, month: string) {
   return `wallet:${walletId}:user:${userId}:budgets:${month}`;
 }

@@ -14,8 +14,15 @@
 ## Run locally
 
 1. Copy `.env.example` to `.env`.
-2. Install dependencies with `npm install`.
-3. Start the frontend with `npm run dev`.
+2. Use Node.js `20.9.0` or newer. If you use `nvm`, run `nvm use` from the repo root to pick up `.nvmrc`.
+3. Install dependencies with `npm install`.
+4. Start the frontend with `npm run dev`.
+
+## Node.js Version
+
+- Local development should use Node.js `20.9.0` or newer, matching the `engines.node` field in `package.json`.
+- The repo now includes `.nvmrc` pinned to `20.9.0` so `nvm use` selects a compatible version quickly.
+- Docker production images already run on Node 22 Alpine, so this mainly aligns local workflows, install behavior, and Supabase package warnings.
 
 ## Test Wallet Invitation Locally
 

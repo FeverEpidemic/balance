@@ -26,6 +26,7 @@ import type {
   TemplateRow,
   TransactionRow,
   TransactionSplitRow,
+  TransactionHistoryPageData,
   TransactionsPageData,
   WalletMemberRow,
   WalletOverviewData,
@@ -502,8 +503,32 @@ export function createTransactionsPageData(args: {
     currentUserRole: getCurrentUserRole(memberships, wallet.id),
     selectedMonth,
     categories: formCategories,
-    transactions: buildTransactionListItems(filteredTransactions, categories).slice(0, 12)
+    transactions: buildTransactionListItems(filteredTransactions, categories).slice(0, 8)
   } satisfies TransactionsPageData;
+}
+
+export function createTransactionHistoryPageData(args: {
+  shell: ShellData;
+  wallet: WalletRow;
+  memberships: WalletMemberRow[];
+  categories: CategoryRow[];
+  transactions: TransactionRow[];
+  selectedMonth: string;
+}) {
+  const { shell, wallet, memberships, categories, transactions, selectedMonth } = args;
+  const formCategories = categories.filter(
+    (category) => (category.kind === "expense" || category.kind === "income") && !isBalanceAdjustmentCategory(category)
+  );
+
+  return {
+    shell,
+    walletId: wallet.id,
+    walletName: wallet.name,
+    currentUserRole: getCurrentUserRole(memberships, wallet.id),
+    selectedMonth,
+    categories: formCategories,
+    transactions: buildTransactionListItems(transactions, categories)
+  } satisfies TransactionHistoryPageData;
 }
 
 export function createBudgetsPageData(args: {
