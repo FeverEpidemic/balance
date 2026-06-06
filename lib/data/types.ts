@@ -130,6 +130,31 @@ export type SavingEntryRow = {
   member_user_id: string | null;
 };
 
+export type UserApiKeyRow = {
+  id: string;
+  user_id: string;
+  name: string;
+  key_hash: string;
+  key_prefix: string;
+  created_at: string;
+  last_used_at: string | null;
+  revoked_at: string | null;
+};
+
+export type SettingsApiKeyItem = {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+  isRevoked: boolean;
+};
+
+export type SettingsData = {
+  shell: ShellData;
+  apiKeys: SettingsApiKeyItem[];
+};
+
 export type ShellData = {
   userName: string;
   walletCount: number;

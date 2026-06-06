@@ -12,6 +12,7 @@ import type {
   TemplateRow,
   TransactionRow,
   TransactionSplitRow,
+  UserApiKeyRow,
   WalletMemberRow,
   WalletRow
 } from "@/lib/data/types";
@@ -280,6 +281,21 @@ export async function queryInvitations(walletIds: string[]) {
   }
 
   return (data ?? []) as InvitationRow[];
+}
+
+export async function queryUserApiKeys(userId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("user_api_keys")
+    .select("id, user_id, name, key_hash, key_prefix, created_at, last_used_at, revoked_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as UserApiKeyRow[];
 }
 
 export async function querySettlements(walletIds: string[]) {

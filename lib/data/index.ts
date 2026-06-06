@@ -19,11 +19,13 @@ import {
   getDashboardCacheKey,
   getRecurringCacheKey,
   getSavingsCacheKey,
+  getSettingsCacheKey,
   getTransactionHistoryCacheKey,
   getTransactionsCacheKey,
   getWalletOverviewCacheKey,
   RECURRING_CACHE_TTL_SECONDS,
   SAVINGS_CACHE_TTL_SECONDS,
+  SETTINGS_CACHE_TTL_SECONDS,
   TRANSACTIONS_CACHE_TTL_SECONDS,
   WALLET_OVERVIEW_CACHE_TTL_SECONDS
 } from "@/lib/data/cache";
@@ -41,10 +43,11 @@ import {
   queryTransactions,
   queryTransactionsByMonth,
   queryTransactionSplits,
+  queryUserApiKeys,
   queryWalletMembers,
   queryWallets
 } from "@/lib/data/queries";
-import type { WalletBundle } from "@/lib/data/types";
+import type { SettingsApiKeyItem, SettingsData, WalletBundle } from "@/lib/data/types";
 
 export * from "@/lib/data/mappers";
 export * from "@/lib/data/types";
@@ -340,6 +343,26 @@ export const getRecurringTransactionsPageData = cache(async (userId: string, wal
       categories,
       recurringTransactions
     });
+  });
+});
+
+export const getSettingsData = cache(async (userId: string): Promise<SettingsData> => {
+  return redisCache.getOrSet(getSettingsCacheKey(userId), SETTINGS_CACHE_TTL_SECONDS, async () => {
+    const [shell, apiKeyRows] = await Promise.all([
+      getShellData(userId),
+      queryUserApiKeys(userId)
+    ]);
+
+    const apiKeys: SettingsApiKeyItem[] = apiKeyRows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      keyPrefix: row.key_prefix,
+      createdAt: row.created_at,
+      lastUsedAt: row.last_used_at,
+      isRevoked: !!row.revoked_at
+    }));
+
+    return { shell, apiKeys };
   });
 });
 

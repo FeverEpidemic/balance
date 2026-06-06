@@ -7,6 +7,7 @@ export const TRANSACTIONS_CACHE_TTL_SECONDS = 90;
 export const BUDGETS_CACHE_TTL_SECONDS = 120;
 export const RECURRING_CACHE_TTL_SECONDS = 90;
 export const SAVINGS_CACHE_TTL_SECONDS = 90;
+export const SETTINGS_CACHE_TTL_SECONDS = 60;
 
 export type WalletReadCacheTarget = "overview" | "transactions" | "budgets" | "recurring" | "savings";
 
@@ -57,6 +58,14 @@ export function getWalletReadCachePatterns(walletId: string, targets: WalletRead
       })
     )
   );
+}
+
+export function getSettingsCacheKey(userId: string) {
+  return `user:${userId}:settings`;
+}
+
+export async function invalidateSettingsCache(userId: string) {
+  await redisCache.del(getSettingsCacheKey(userId));
 }
 
 export async function invalidateDashboardCache(userIds?: string[]) {

@@ -2,6 +2,35 @@
 
 ## [Unreleased] — 2026-06-06
 
+### Added — API Gateway v1 untuk Hermes/AI dengan User API Keys
+
+#### Fitur Baru
+- **API key user-scoped untuk akses programatik:** User kini bisa membuat, mencabut, dan menghapus API key dari halaman Pengaturan (`/settings`). Setiap key mewakili user penuh di semua wallet tempat ia menjadi member.
+- **Endpoint `POST /api/chat/transaction`:** Agent AI atau Hermes bisa membuat transaksi baru via API dengan autentikasi `Authorization: Bearer <key>`. Body minimal: `wallet_id`, `amount`, `kind`. Validasi membership, tolak role `viewer`, dan insert dengan audit fields `created_by`, `updated_by`, `source: "manual"`.
+- **Endpoint `GET /api/chat/rekap`:** Membaca ringkasan keuangan dengan parameter `period` (`day`/`week`/`month`, default `month`) dan `wallet_id` opsional. Response mencakup total income/expense/net, jumlah transaksi, breakdown kategori expense, dan breakdown per wallet.
+- **Halaman Pengaturan (`/settings`):** Halaman top-level baru di AppShell (desktop sidebar + mobile drawer/bottom nav) untuk membuat dan mengelola API key. Raw key hanya ditampilkan sekali saat sukses create dengan instruksi salin yang jelas.
+- **Keamanan key:** Hanya SHA-256 hash dan prefix `bal_` yang disimpan di database. Verifikasi via admin client lookup dengan RLS yang membatasi akses user hanya ke key miliknya sendiri.
+
+#### File Baru
+| File | Deskripsi |
+|---|---|
+| `supabase/migrations/0011_user_api_keys.sql` | Tabel `user_api_keys`, index, RLS, dan fungsi admin `lookup_api_key` + `touch_api_key`. |
+| `lib/chat-auth.ts` | Generate key dengan prefix `bal_`, hash SHA-256, dan verifikasi `Authorization: Bearer` header. |
+| `app/actions/api-keys.ts` | Server actions untuk create, revoke, dan delete API key dengan cache invalidation. |
+| `app/(app)/settings/page.tsx` | Route halaman pengaturan. |
+| `components/features/settings/settings-page-content.tsx` | UI client-side untuk form buat key, daftar key aktif/revoked, dan tampilkan raw key sekali. |
+| `app/api/chat/transaction/route.ts` | Route handler POST untuk insert transaksi via API key. |
+| `app/api/chat/rekap/route.ts` | Route handler GET untuk ringkasan keuangan via API key. |
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `lib/data/types.ts` | Tambah `UserApiKeyRow`, `SettingsApiKeyItem`, `SettingsData`. |
+| `lib/data/cache.ts` | Tambah cache key dan invalidation untuk settings. |
+| `lib/data/queries.ts` | Tambah `queryUserApiKeys(userId)`. |
+| `lib/data/index.ts` | Tambah loader `getSettingsData(userId)` dengan Redis cache. |
+| `components/app-shell.tsx` | Tambah nav item "Pengaturan" di desktop sidebar dan mobile drawer/bottom nav. |
+
 ### Added — Loading Skeleton untuk Route Publik
 
 #### Peningkatan UX

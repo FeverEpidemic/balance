@@ -49,13 +49,15 @@ export function AppShell({
     { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: "Laporan" },
     { href: walletId ? `/wallets/${walletId}/members` : "/wallets", label: "Anggota" },
     { href: walletId ? `/wallets/${walletId}/settlements` : "/wallets", label: "Pelunasan" },
-    { href: walletId ? `/wallets/${walletId}/templates` : "/wallets", label: "Template" }
+    { href: walletId ? `/wallets/${walletId}/templates` : "/wallets", label: "Template" },
+    { href: "/settings", label: "Pengaturan" }
   ];
   const mobileNavItems = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/wallets", label: "Wallet" },
     { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: "Transaksi" },
-    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: "Laporan" }
+    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: "Laporan" },
+    { href: "/settings", label: "Pengaturan" }
   ];
   const mobileWalletShortcuts = walletId
     ? [
