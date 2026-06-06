@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn, formatCurrencyInputValue, sanitizeCurrencyInput } from "@/lib/utils";
 
 type CurrencyInputProps = {
@@ -22,12 +22,35 @@ function toInitialDisplayValue(value?: number | string | null) {
 
 export function CurrencyInput({ className, defaultValue, name, placeholder, required }: CurrencyInputProps) {
   const [value, setValue] = useState(() => toInitialDisplayValue(defaultValue));
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setValue(toInitialDisplayValue(defaultValue));
+  }, [defaultValue]);
+
+  useEffect(() => {
+    const input = inputRef.current;
+
+    if (!input?.form) {
+      return;
+    }
+
+    const handleReset = () => {
+      setValue(toInitialDisplayValue(defaultValue));
+    };
+
+    input.form.addEventListener("reset", handleReset);
+    return () => {
+      input.form?.removeEventListener("reset", handleReset);
+    };
+  }, [defaultValue]);
 
   return (
     <input
       className={cn(className)}
       inputMode="numeric"
       name={name}
+      ref={inputRef}
       onChange={(event) => {
         const digits = sanitizeCurrencyInput(event.target.value);
         setValue(digits ? formatCurrencyInputValue(digits) : "");

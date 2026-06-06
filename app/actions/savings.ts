@@ -4,12 +4,14 @@ import { requireUser } from "@/lib/auth";
 import { invalidateWalletReadCaches } from "@/lib/data/cache";
 import { dateStringToISO, isValidDateString } from "@/lib/utils";
 import {
+  errorResult,
   getNullableText,
   getNumericValue,
   getStringValue,
   getTrimmedValue,
-  redirectToWalletSection,
-  revalidateWalletPaths
+  revalidateWalletPaths,
+  successResult,
+  type ActionResult
 } from "@/app/actions/_shared";
 
 function mapSavingError(message: string) {
@@ -48,7 +50,7 @@ async function getWalletKind(supabase: Awaited<ReturnType<typeof requireUser>>["
   const { data, error } = await supabase.from("wallets").select("kind").eq("id", walletId).maybeSingle();
 
   if (error || !data) {
-    redirectToWalletSection(walletId, "savings", "error", error?.message ?? "Wallet tidak ditemukan.");
+    return null;
   }
 
   return data.kind as "personal" | "shared";
@@ -65,18 +67,18 @@ function getTargetAmount(formData: FormData) {
   return parsed === null ? null : parsed;
 }
 
-export async function createSaving(formData: FormData) {
+export async function createSaving(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const walletId = getStringValue(formData, "wallet_id");
   const name = getTrimmedValue(formData, "name");
   const targetAmount = getTargetAmount(formData);
   const { supabase, user } = await requireUser();
 
   if (!name) {
-    redirectToWalletSection(walletId, "savings", "error", "Nama saving harus diisi.");
+    return errorResult("Nama saving harus diisi.");
   }
 
   if (targetAmount !== null && targetAmount < 0) {
-    redirectToWalletSection(walletId, "savings", "error", "Target saving tidak boleh negatif.");
+    return errorResult("Target saving tidak boleh negatif.");
   }
 
   const { error } = await supabase.from("savings").insert({
@@ -88,7 +90,7 @@ export async function createSaving(formData: FormData) {
   });
 
   if (error) {
-    redirectToWalletSection(walletId, "savings", "error", mapSavingError(error.message));
+    return errorResult(mapSavingError(error.message));
   }
 
   await invalidateWalletReadCaches(walletId, { includeDashboards: true });
@@ -97,10 +99,10 @@ export async function createSaving(formData: FormData) {
     includeOverview: true,
     sections: ["savings"]
   });
-  redirectToWalletSection(walletId, "savings", "message", "Saving berhasil dibuat.");
+  return successResult("Saving berhasil dibuat.", { resetForm: true });
 }
 
-export async function updateSaving(formData: FormData) {
+export async function updateSaving(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const walletId = getStringValue(formData, "wallet_id");
   const savingId = getStringValue(formData, "saving_id");
   const name = getTrimmedValue(formData, "name");
@@ -108,15 +110,15 @@ export async function updateSaving(formData: FormData) {
   const { supabase, user } = await requireUser();
 
   if (!savingId) {
-    redirectToWalletSection(walletId, "savings", "error", "Saving tidak ditemukan.");
+    return errorResult("Saving tidak ditemukan.");
   }
 
   if (!name) {
-    redirectToWalletSection(walletId, "savings", "error", "Nama saving harus diisi.");
+    return errorResult("Nama saving harus diisi.");
   }
 
   if (targetAmount !== null && targetAmount < 0) {
-    redirectToWalletSection(walletId, "savings", "error", "Target saving tidak boleh negatif.");
+    return errorResult("Target saving tidak boleh negatif.");
   }
 
   const { error } = await supabase
@@ -130,7 +132,7 @@ export async function updateSaving(formData: FormData) {
     .eq("wallet_id", walletId);
 
   if (error) {
-    redirectToWalletSection(walletId, "savings", "error", mapSavingError(error.message));
+    return errorResult(mapSavingError(error.message));
   }
 
   await invalidateWalletReadCaches(walletId, { includeDashboards: true });
@@ -139,16 +141,16 @@ export async function updateSaving(formData: FormData) {
     includeOverview: true,
     sections: ["savings"]
   });
-  redirectToWalletSection(walletId, "savings", "message", "Saving berhasil diperbarui.");
+  return successResult("Saving berhasil diperbarui.");
 }
 
-export async function archiveSaving(formData: FormData) {
+export async function archiveSaving(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const walletId = getStringValue(formData, "wallet_id");
   const savingId = getStringValue(formData, "saving_id");
   const { supabase, user } = await requireUser();
 
   if (!savingId) {
-    redirectToWalletSection(walletId, "savings", "error", "Saving tidak ditemukan.");
+    return errorResult("Saving tidak ditemukan.");
   }
 
   const { error } = await supabase
@@ -161,7 +163,7 @@ export async function archiveSaving(formData: FormData) {
     .eq("wallet_id", walletId);
 
   if (error) {
-    redirectToWalletSection(walletId, "savings", "error", mapSavingError(error.message));
+    return errorResult(mapSavingError(error.message));
   }
 
   await invalidateWalletReadCaches(walletId, { includeDashboards: true });
@@ -170,10 +172,10 @@ export async function archiveSaving(formData: FormData) {
     includeOverview: true,
     sections: ["savings"]
   });
-  redirectToWalletSection(walletId, "savings", "message", "Saving berhasil diarsipkan.");
+  return successResult("Saving berhasil diarsipkan.");
 }
 
-async function createSavingEntry(formData: FormData, entryType: "deposit" | "withdraw") {
+async function createSavingEntry(formData: FormData, entryType: "deposit" | "withdraw"): Promise<ActionResult> {
   const walletId = getStringValue(formData, "wallet_id");
   const savingId = getStringValue(formData, "saving_id");
   const amount = getNumericValue(formData, "amount");
@@ -183,22 +185,26 @@ async function createSavingEntry(formData: FormData, entryType: "deposit" | "wit
   const { supabase } = await requireUser();
 
   if (!savingId) {
-    redirectToWalletSection(walletId, "savings", "error", "Saving tidak ditemukan.");
+    return errorResult("Saving tidak ditemukan.");
   }
 
   if (!happenedAt || !isValidDateString(happenedAt)) {
-    redirectToWalletSection(walletId, "savings", "error", "Tanggal mutasi saving harus valid.");
+    return errorResult("Tanggal mutasi saving harus valid.");
   }
 
   if (!amount || amount <= 0) {
-    redirectToWalletSection(walletId, "savings", "error", "Nominal mutasi saving harus lebih besar dari nol.");
+    return errorResult("Nominal mutasi saving harus lebih besar dari nol.");
   }
 
   if (entryType === "deposit") {
     const walletKind = await getWalletKind(supabase, walletId);
 
+    if (!walletKind) {
+      return errorResult("Wallet tidak ditemukan.");
+    }
+
     if (walletKind === "shared" && !memberUserId) {
-      redirectToWalletSection(walletId, "savings", "error", "Pilih anggota kontributor untuk setor saving shared.");
+      return errorResult("Pilih anggota kontributor untuk setor saving shared.");
     }
   }
 
@@ -213,7 +219,7 @@ async function createSavingEntry(formData: FormData, entryType: "deposit" | "wit
   });
 
   if (error) {
-    redirectToWalletSection(walletId, "savings", "error", mapSavingError(error.message));
+    return errorResult(mapSavingError(error.message));
   }
 
   await invalidateWalletReadCaches(walletId, { includeDashboards: true });
@@ -222,18 +228,15 @@ async function createSavingEntry(formData: FormData, entryType: "deposit" | "wit
     includeOverview: true,
     sections: ["savings", "transactions", "budgets", "reports"]
   });
-  redirectToWalletSection(
-    walletId,
-    "savings",
-    "message",
-    entryType === "deposit" ? "Setor saving berhasil disimpan." : "Penarikan saving berhasil disimpan."
-  );
+  return successResult(entryType === "deposit" ? "Setor saving berhasil disimpan." : "Penarikan saving berhasil disimpan.", {
+    resetForm: true
+  });
 }
 
-export async function createSavingDeposit(formData: FormData) {
+export async function createSavingDeposit(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   return createSavingEntry(formData, "deposit");
 }
 
-export async function createSavingWithdrawal(formData: FormData) {
+export async function createSavingWithdrawal(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   return createSavingEntry(formData, "withdraw");
 }

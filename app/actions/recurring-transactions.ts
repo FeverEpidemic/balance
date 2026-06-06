@@ -4,11 +4,13 @@ import { requireUser } from "@/lib/auth";
 import { invalidateWalletReadCaches } from "@/lib/data/cache";
 import { findFirstRunAtOrAfter, normalizeScheduledDate } from "@/lib/recurring";
 import {
+  errorResult,
   getNullableText,
   getNumericValue,
   getStringValue,
-  redirectToWalletSection,
-  revalidateWalletPaths
+  revalidateWalletPaths,
+  successResult,
+  type ActionResult
 } from "@/app/actions/_shared";
 import type { RecurringFrequency, RecurringStatus } from "@/lib/data";
 import { isValidDateString } from "@/lib/utils";
@@ -32,28 +34,30 @@ function readRecurringForm(formData: FormData) {
 
 function validateRecurringInput(input: ReturnType<typeof readRecurringForm>) {
   if (!input.startDate || !isValidDateString(input.startDate)) {
-    redirectToWalletSection(input.walletId, "recurring", "error", "Tanggal mulai recurring harus diisi dengan format yang valid.");
+    return "Tanggal mulai recurring harus diisi dengan format yang valid.";
   }
 
   if (input.endDate && !isValidDateString(input.endDate)) {
-    redirectToWalletSection(input.walletId, "recurring", "error", "Tanggal akhir recurring harus valid.");
+    return "Tanggal akhir recurring harus valid.";
   }
 
   if (input.endDate && input.endDate < input.startDate) {
-    redirectToWalletSection(input.walletId, "recurring", "error", "Tanggal akhir tidak boleh sebelum tanggal mulai.");
+    return "Tanggal akhir tidak boleh sebelum tanggal mulai.";
   }
 
   if (!input.amount || input.amount <= 0) {
-    redirectToWalletSection(input.walletId, "recurring", "error", "Nominal recurring harus lebih besar dari nol.");
+    return "Nominal recurring harus lebih besar dari nol.";
   }
 
   if (!input.intervalCount || input.intervalCount < 1) {
-    redirectToWalletSection(input.walletId, "recurring", "error", "Interval recurring minimal 1.");
+    return "Interval recurring minimal 1.";
   }
 
   if (!ALLOWED_FREQUENCIES.has(input.frequency as RecurringFrequency)) {
-    redirectToWalletSection(input.walletId, "recurring", "error", "Frekuensi recurring tidak valid.");
+    return "Frekuensi recurring tidak valid.";
   }
+
+  return null;
 }
 
 function buildScheduleFields(args: {
@@ -76,9 +80,13 @@ function buildScheduleFields(args: {
   };
 }
 
-export async function createRecurringTransaction(formData: FormData) {
+export async function createRecurringTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const input = readRecurringForm(formData);
-  validateRecurringInput(input);
+  const validationError = validateRecurringInput(input);
+
+  if (validationError) {
+    return errorResult(validationError);
+  }
 
   const { supabase, user } = await requireUser();
 
@@ -99,7 +107,7 @@ export async function createRecurringTransaction(formData: FormData) {
   });
 
   if (error) {
-    redirectToWalletSection(input.walletId, "recurring", "error", error.message);
+    return errorResult(error.message);
   }
 
   await invalidateWalletReadCaches(input.walletId, { includeDashboards: true });
@@ -108,15 +116,19 @@ export async function createRecurringTransaction(formData: FormData) {
     includeOverview: true,
     sections: ["recurring", "transactions"]
   });
-  redirectToWalletSection(input.walletId, "recurring", "message", "Recurring transaction berhasil disimpan.");
+  return successResult("Recurring transaction berhasil disimpan.", { resetForm: true });
 }
 
-export async function updateRecurringTransaction(formData: FormData) {
+export async function updateRecurringTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const input = readRecurringForm(formData);
-  validateRecurringInput(input);
+  const validationError = validateRecurringInput(input);
+
+  if (validationError) {
+    return errorResult(validationError);
+  }
 
   if (!input.recurringTransactionId) {
-    redirectToWalletSection(input.walletId, "recurring", "error", "Recurring transaction tidak ditemukan.");
+    return errorResult("Recurring transaction tidak ditemukan.");
   }
 
   const { supabase, user } = await requireUser();
@@ -128,7 +140,7 @@ export async function updateRecurringTransaction(formData: FormData) {
     .maybeSingle();
 
   if (existingError || !existing) {
-    redirectToWalletSection(input.walletId, "recurring", "error", existingError?.message ?? "Recurring transaction tidak ditemukan.");
+    return errorResult(existingError?.message ?? "Recurring transaction tidak ditemukan.");
   }
 
   const schedule = buildScheduleFields({
@@ -157,7 +169,7 @@ export async function updateRecurringTransaction(formData: FormData) {
     .eq("wallet_id", input.walletId);
 
   if (error) {
-    redirectToWalletSection(input.walletId, "recurring", "error", error.message);
+    return errorResult(error.message);
   }
 
   await invalidateWalletReadCaches(input.walletId, { includeDashboards: true });
@@ -166,16 +178,16 @@ export async function updateRecurringTransaction(formData: FormData) {
     includeOverview: true,
     sections: ["recurring", "transactions"]
   });
-  redirectToWalletSection(input.walletId, "recurring", "message", "Recurring transaction berhasil diperbarui.");
+  return successResult("Recurring transaction berhasil diperbarui.");
 }
 
-export async function pauseRecurringTransaction(formData: FormData) {
+export async function pauseRecurringTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const walletId = getStringValue(formData, "wallet_id");
   const recurringTransactionId = getStringValue(formData, "recurring_transaction_id");
   const { supabase, user } = await requireUser();
 
   if (!recurringTransactionId) {
-    redirectToWalletSection(walletId, "recurring", "error", "Recurring transaction tidak ditemukan.");
+    return errorResult("Recurring transaction tidak ditemukan.");
   }
 
   const { error } = await supabase
@@ -188,7 +200,7 @@ export async function pauseRecurringTransaction(formData: FormData) {
     .eq("wallet_id", walletId);
 
   if (error) {
-    redirectToWalletSection(walletId, "recurring", "error", error.message);
+    return errorResult(error.message);
   }
 
   await invalidateWalletReadCaches(walletId, { includeDashboards: true });
@@ -197,16 +209,16 @@ export async function pauseRecurringTransaction(formData: FormData) {
     includeOverview: true,
     sections: ["recurring", "transactions"]
   });
-  redirectToWalletSection(walletId, "recurring", "message", "Recurring transaction dijeda.");
+  return successResult("Recurring transaction dijeda.");
 }
 
-export async function resumeRecurringTransaction(formData: FormData) {
+export async function resumeRecurringTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const walletId = getStringValue(formData, "wallet_id");
   const recurringTransactionId = getStringValue(formData, "recurring_transaction_id");
   const { supabase, user } = await requireUser();
 
   if (!recurringTransactionId) {
-    redirectToWalletSection(walletId, "recurring", "error", "Recurring transaction tidak ditemukan.");
+    return errorResult("Recurring transaction tidak ditemukan.");
   }
 
   const { data: existing, error: existingError } = await supabase
@@ -217,7 +229,7 @@ export async function resumeRecurringTransaction(formData: FormData) {
     .maybeSingle();
 
   if (existingError || !existing) {
-    redirectToWalletSection(walletId, "recurring", "error", existingError?.message ?? "Recurring transaction tidak ditemukan.");
+    return errorResult(existingError?.message ?? "Recurring transaction tidak ditemukan.");
   }
 
   const schedule = buildScheduleFields({
@@ -228,7 +240,7 @@ export async function resumeRecurringTransaction(formData: FormData) {
   });
 
   if (schedule.status === "ended") {
-    redirectToWalletSection(walletId, "recurring", "error", "Recurring transaction sudah berakhir dan tidak bisa dilanjutkan.");
+    return errorResult("Recurring transaction sudah berakhir dan tidak bisa dilanjutkan.");
   }
 
   const { error } = await supabase
@@ -242,7 +254,7 @@ export async function resumeRecurringTransaction(formData: FormData) {
     .eq("wallet_id", walletId);
 
   if (error) {
-    redirectToWalletSection(walletId, "recurring", "error", error.message);
+    return errorResult(error.message);
   }
 
   await invalidateWalletReadCaches(walletId, { includeDashboards: true });
@@ -251,16 +263,16 @@ export async function resumeRecurringTransaction(formData: FormData) {
     includeOverview: true,
     sections: ["recurring", "transactions"]
   });
-  redirectToWalletSection(walletId, "recurring", "message", "Recurring transaction dilanjutkan kembali.");
+  return successResult("Recurring transaction dilanjutkan kembali.");
 }
 
-export async function deleteRecurringTransaction(formData: FormData) {
+export async function deleteRecurringTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const walletId = getStringValue(formData, "wallet_id");
   const recurringTransactionId = getStringValue(formData, "recurring_transaction_id");
   const { supabase } = await requireUser();
 
   if (!recurringTransactionId) {
-    redirectToWalletSection(walletId, "recurring", "error", "Recurring transaction tidak ditemukan.");
+    return errorResult("Recurring transaction tidak ditemukan.");
   }
 
   const { error } = await supabase
@@ -270,7 +282,7 @@ export async function deleteRecurringTransaction(formData: FormData) {
     .eq("wallet_id", walletId);
 
   if (error) {
-    redirectToWalletSection(walletId, "recurring", "error", error.message);
+    return errorResult(error.message);
   }
 
   await invalidateWalletReadCaches(walletId, { includeDashboards: true });
@@ -279,5 +291,5 @@ export async function deleteRecurringTransaction(formData: FormData) {
     includeOverview: true,
     sections: ["recurring", "transactions"]
   });
-  redirectToWalletSection(walletId, "recurring", "message", "Recurring transaction berhasil dihapus.");
+  return successResult("Recurring transaction berhasil dihapus.");
 }

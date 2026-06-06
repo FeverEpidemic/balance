@@ -9,7 +9,7 @@ export default async function TransactionsPage({
   searchParams
 }: {
   params: Promise<{ walletId: string }>;
-  searchParams: Promise<{ error?: string; message?: string; month?: string }>;
+  searchParams: Promise<{ month?: string }>;
 }) {
   const { walletId } = await params;
   const query = await searchParams;
@@ -21,5 +21,5 @@ export default async function TransactionsPage({
     notFound();
   }
 
-  return <TransactionsPageContent data={data} feedback={query} />;
+  return <TransactionsPageContent data={data} />;
 }

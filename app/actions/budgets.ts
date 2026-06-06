@@ -2,7 +2,14 @@
 
 import { requireUser } from "@/lib/auth";
 import { invalidateWalletReadCaches } from "@/lib/data/cache";
-import { getNumericValue, getStringValue, redirectToWalletSection, revalidateWalletPaths } from "@/app/actions/_shared";
+import {
+  errorResult,
+  getNumericValue,
+  getStringValue,
+  revalidateWalletPaths,
+  successResult,
+  type ActionResult
+} from "@/app/actions/_shared";
 
 function readBudgetForm(formData: FormData) {
   return {
@@ -14,12 +21,12 @@ function readBudgetForm(formData: FormData) {
   };
 }
 
-export async function createBudget(formData: FormData) {
+export async function createBudget(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const { walletId, categoryId, monthStart, amount } = readBudgetForm(formData);
   const { supabase, user } = await requireUser();
 
   if (amount === null || amount < 0) {
-    redirectToWalletSection(walletId, "budgets", "error", "Nominal budget tidak valid.");
+    return errorResult("Nominal budget tidak valid.");
   }
 
   const { error } = await supabase.from("budgets").upsert(
@@ -37,7 +44,7 @@ export async function createBudget(formData: FormData) {
   );
 
   if (error) {
-    redirectToWalletSection(walletId, "budgets", "error", error.message);
+    return errorResult(error.message);
   }
 
   await invalidateWalletReadCaches(walletId, { includeDashboards: true });
@@ -46,19 +53,19 @@ export async function createBudget(formData: FormData) {
     includeOverview: true,
     sections: ["budgets"]
   });
-  redirectToWalletSection(walletId, "budgets", "message", "Budget berhasil disimpan.");
+  return successResult("Budget berhasil disimpan.", { resetForm: true });
 }
 
-export async function updateBudget(formData: FormData) {
+export async function updateBudget(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const { walletId, budgetId, categoryId, monthStart, amount } = readBudgetForm(formData);
   const { supabase, user } = await requireUser();
 
   if (!budgetId) {
-    redirectToWalletSection(walletId, "budgets", "error", "Budget tidak ditemukan.");
+    return errorResult("Budget tidak ditemukan.");
   }
 
   if (amount === null || amount < 0) {
-    redirectToWalletSection(walletId, "budgets", "error", "Nominal budget tidak valid.");
+    return errorResult("Nominal budget tidak valid.");
   }
 
   const { error } = await supabase
@@ -73,7 +80,7 @@ export async function updateBudget(formData: FormData) {
     .eq("wallet_id", walletId);
 
   if (error) {
-    redirectToWalletSection(walletId, "budgets", "error", error.message);
+    return errorResult(error.message);
   }
 
   await invalidateWalletReadCaches(walletId, { includeDashboards: true });
@@ -82,21 +89,21 @@ export async function updateBudget(formData: FormData) {
     includeOverview: true,
     sections: ["budgets"]
   });
-  redirectToWalletSection(walletId, "budgets", "message", "Budget berhasil diperbarui.");
+  return successResult("Budget berhasil diperbarui.");
 }
 
-export async function deleteBudget(formData: FormData) {
+export async function deleteBudget(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const { walletId, budgetId } = readBudgetForm(formData);
   const { supabase } = await requireUser();
 
   if (!budgetId) {
-    redirectToWalletSection(walletId, "budgets", "error", "Budget tidak ditemukan.");
+    return errorResult("Budget tidak ditemukan.");
   }
 
   const { error } = await supabase.from("budgets").delete().eq("id", budgetId).eq("wallet_id", walletId);
 
   if (error) {
-    redirectToWalletSection(walletId, "budgets", "error", error.message);
+    return errorResult(error.message);
   }
 
   await invalidateWalletReadCaches(walletId, { includeDashboards: true });
@@ -105,5 +112,5 @@ export async function deleteBudget(formData: FormData) {
     includeOverview: true,
     sections: ["budgets"]
   });
-  redirectToWalletSection(walletId, "budgets", "message", "Budget berhasil dihapus.");
+  return successResult("Budget berhasil dihapus.");
 }

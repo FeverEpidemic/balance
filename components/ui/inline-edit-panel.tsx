@@ -1,37 +1,35 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type InlineEditPanelProps = {
   buttonLabel?: string;
   children: ReactNode;
   className?: string;
+  closeSignal?: unknown;
   description?: string;
   title?: string;
 };
 
-function InlineEditPanelInner({
+export function InlineEditPanel({
   buttonLabel = "Ubah data",
   children,
   className,
+  closeSignal,
   description = "Panel ini bisa dibuka untuk memperbarui data tanpa pindah halaman.",
   title = "Bisa diedit"
 }: InlineEditPanelProps) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const searchParams = useSearchParams();
-  const lastSearchParamsRef = useRef(searchParams.toString());
+  const lastCloseSignalRef = useRef(closeSignal);
 
   useEffect(() => {
-    const nextValue = searchParams.toString();
-
-    if (lastSearchParamsRef.current !== nextValue) {
+    if (lastCloseSignalRef.current !== closeSignal) {
       setOpen(false);
-      lastSearchParamsRef.current = nextValue;
+      lastCloseSignalRef.current = closeSignal;
     }
-  }, [searchParams]);
+  }, [closeSignal]);
 
   useEffect(() => {
     if (!open || !panelRef.current) {
@@ -86,13 +84,5 @@ function InlineEditPanelInner({
         </div>
       </div>
     </div>
-  );
-}
-
-export function InlineEditPanel(props: InlineEditPanelProps) {
-  return (
-    <Suspense fallback={null}>
-      <InlineEditPanelInner {...props} />
-    </Suspense>
   );
 }

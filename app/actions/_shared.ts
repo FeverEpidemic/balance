@@ -1,6 +1,7 @@
 import "server-only";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+export * from "@/app/actions/action-result";
 import { parseNumberInput } from "@/lib/finance";
 
 export type MessageType = "error" | "message";

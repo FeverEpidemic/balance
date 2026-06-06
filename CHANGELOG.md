@@ -2,6 +2,23 @@
 
 ## [Unreleased] — 2026-06-02
 
+### Changed — Client-side Wallet Form Actions
+
+#### Peningkatan UX
+- **Submit form wallet kini tidak lagi mengandalkan redirect penuh:** Form transaksi, anggaran, recurring, dan tabungan sekarang memakai alur client-side action state sehingga feedback sukses atau error muncul tanpa reload halaman penuh.
+- **Data server tetap segar setelah submit:** Setelah action berhasil, halaman memicu refresh ringan App Router sehingga list, saldo, progress, dan status terbaru masuk kembali lewat merge RSC tanpa transisi kasar.
+- **Toast sukses/error kini datang langsung dari hasil server action:** Feedback tidak lagi harus lewat query `message` atau `error` di URL untuk surface wallet yang sudah dimigrasikan.
+- **Panel edit inline kini menutup dari state sukses lokal:** Editor transaksi, anggaran, dan recurring tidak lagi bergantung pada perubahan search params untuk collapse setelah submit.
+- **Reset form create dibuat lebih rapi untuk input nominal:** Form create utama dan mutasi tabungan bisa kembali ke state awal setelah sukses, termasuk field Rupiah yang sebelumnya controlled di client.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `app/actions/{_shared,transactions,budgets,recurring-transactions,savings}.ts` | Tambah kontrak `ActionResult`, ubah mutation wallet utama ke pola `useActionState`, dan pertahankan invalidasi cache serta `revalidatePath` setelah sukses. |
+| `components/ui/{action-form,inline-edit-panel,currency-input}.tsx` | Tambah wrapper form client-side dengan toast + `router.refresh()`, ubah kontrol auto-close editor jadi berbasis state lokal, dan sinkronkan reset untuk input nominal terformat. |
+| `components/features/{transactions,budgets,recurring,savings}/**`, `app/(app)/wallets/[walletId]/{transactions,budgets,recurring,savings}/page.tsx` | Migrasikan form wallet utama ke submit client-side tanpa redirect penuh dan pecah halaman saving ke client content khusus. |
+| `tests/unit/action-results.test.ts` | Tambah cakupan test untuk helper hasil action state. |
+
 ### Added — Loading Skeleton Antar Page
 
 #### Peningkatan UX
