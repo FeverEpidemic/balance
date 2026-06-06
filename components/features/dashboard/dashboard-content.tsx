@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/app-shell";
+import { DashboardOnboardingCard } from "@/components/features/dashboard/dashboard-onboarding-card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/ui/stat-card";
@@ -36,7 +37,9 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
         </Button>
       }
     >
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <DashboardOnboardingCard onboarding={dashboard.onboarding} />
+
+      <section id="ringkasan-finansial" className="grid gap-4 scroll-mt-28 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard label="Saldo tersedia" value={dashboard.totalAvailableBalance} detail="Saldo semua wallet yang masih siap dipakai di luar tabungan." />
         <StatCard label="Saldo tabungan" value={dashboard.totalSavingBalance} detail="Akumulasi tabungan yang sudah dipisahkan dari seluruh wallet." />
         <StatCard label="Total saldo" value={dashboard.totalBalance} detail="Gabungan saldo siap pakai dan tabungan di semua wallet." />

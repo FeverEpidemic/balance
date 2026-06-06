@@ -5,11 +5,15 @@ export type TransactionSource = "manual" | "saving_adjustment" | "balance_adjust
 export type RecurringFrequency = "daily" | "weekly" | "monthly";
 export type RecurringStatus = "active" | "paused" | "ended";
 export type SavingEntryType = "deposit" | "withdraw";
+export type OnboardingState = "active" | "dismissed" | "completed";
 
 export type ProfileRow = {
   id: string;
   full_name: string | null;
   email: string | null;
+  onboarding_state: OnboardingState;
+  onboarding_dismissed_at: string | null;
+  onboarding_completed_at: string | null;
 };
 
 export type WalletRow = {
@@ -161,6 +165,26 @@ export type ShellData = {
   budgetCount: number;
   memberCount: number;
   primaryWalletId: string | null;
+  onboardingState?: OnboardingState;
+  onboardingDismissedAt?: string | null;
+  onboardingCompletedAt?: string | null;
+};
+
+export type DashboardOnboardingStep = {
+  id: "create_wallet" | "add_transaction" | "review_dashboard";
+  title: string;
+  description: string;
+  href: string;
+  ctaLabel: string;
+  isComplete: boolean;
+};
+
+export type DashboardOnboarding = {
+  isVisible: boolean;
+  state: OnboardingState;
+  completedSteps: number;
+  totalSteps: number;
+  steps: DashboardOnboardingStep[];
 };
 
 export type WalletSummary = {
@@ -196,6 +220,7 @@ export type DashboardCategorySpend = {
 
 export type DashboardData = {
   shell: ShellData;
+  onboarding: DashboardOnboarding;
   totalAvailableBalance: number;
   totalSavingBalance: number;
   totalBalance: number;

@@ -10,6 +10,8 @@ import type {
   BudgetRow,
   BudgetsPageData,
   CategoryRow,
+  DashboardOnboarding,
+  DashboardOnboardingStep,
   DashboardCategorySpend,
   DashboardData,
   DashboardRecentTransaction,
@@ -222,6 +224,77 @@ export function buildCategorySpend(transactions: TransactionRow[], categories: C
     .slice(0, 4) satisfies DashboardCategorySpend[];
 }
 
+export function buildDashboardOnboarding(args: {
+  shell: ShellData;
+  wallets: WalletRow[];
+  allTransactions: TransactionRow[];
+}) {
+  const { shell, wallets, allTransactions } = args;
+  const persistedState = shell.onboardingState ?? "active";
+
+  if (persistedState === "dismissed" || shell.onboardingDismissedAt) {
+    return {
+      isVisible: false,
+      state: "dismissed",
+      completedSteps: 0,
+      totalSteps: 0,
+      steps: []
+    } satisfies DashboardOnboarding;
+  }
+
+  if (persistedState === "completed" || shell.onboardingCompletedAt) {
+    return {
+      isVisible: false,
+      state: "completed",
+      completedSteps: 0,
+      totalSteps: 0,
+      steps: []
+    } satisfies DashboardOnboarding;
+  }
+
+  const hasWallet = wallets.length > 0;
+  const hasManualTransaction = allTransactions.some((transaction) => transaction.source === "manual");
+  const transactionsHref = shell.primaryWalletId ? `/wallets/${shell.primaryWalletId}/transactions` : "/wallets";
+  const reviewComplete = hasWallet && hasManualTransaction;
+
+  const steps = [
+    {
+      id: "create_wallet",
+      title: "Buat wallet pertama",
+      description: "Mulai dari wallet pribadi atau bersama supaya Balance punya tempat utama untuk semua catatan uangmu.",
+      href: "/wallets",
+      ctaLabel: hasWallet ? "Lihat wallet" : "Buat wallet",
+      isComplete: hasWallet
+    },
+    {
+      id: "add_transaction",
+      title: "Catat transaksi pertama",
+      description: "Masukkan pemasukan atau pengeluaran pertama supaya saldo, aktivitas, dan ritme keuangan mulai terbentuk.",
+      href: transactionsHref,
+      ctaLabel: hasManualTransaction ? "Lihat transaksi" : "Tambah transaksi",
+      isComplete: hasManualTransaction
+    },
+    {
+      id: "review_dashboard",
+      title: "Lihat ringkasan dashboard",
+      description: "Setelah langkah awal selesai, dashboard akan membantu kamu membaca saldo, anggaran, dan aktivitas terbaru dengan lebih cepat.",
+      href: "#ringkasan-finansial",
+      ctaLabel: "Pahami ringkasan",
+      isComplete: reviewComplete
+    }
+  ] satisfies DashboardOnboardingStep[];
+
+  const completedSteps = steps.filter((step) => step.isComplete).length;
+
+  return {
+    isVisible: true,
+    state: completedSteps === steps.length ? "completed" : "active",
+    completedSteps,
+    totalSteps: steps.length,
+    steps
+  } satisfies DashboardOnboarding;
+}
+
 export function filterTransactionsByMonth(transactions: TransactionRow[], month: string) {
   return transactions.filter((transaction) => isSameMonth(transaction.happened_at, month));
 }
@@ -430,6 +503,11 @@ export function createDashboardData(args: {
 
   return {
     shell,
+    onboarding: buildDashboardOnboarding({
+      shell,
+      wallets,
+      allTransactions
+    }),
     totalAvailableBalance: walletSummaries.reduce((total, wallet) => total + wallet.availableBalance, 0),
     totalSavingBalance: walletSummaries.reduce((total, wallet) => total + wallet.savingBalance, 0),
     totalBalance: walletSummaries.reduce((total, wallet) => total + wallet.totalBalance, 0),

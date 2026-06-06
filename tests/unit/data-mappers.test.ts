@@ -166,6 +166,128 @@ describe("data mappers", () => {
       name: "Sewa",
       value: 800000
     });
+    expect(dashboard.onboarding.isVisible).toBe(true);
+    expect(dashboard.onboarding.state).toBe("completed");
+  });
+
+  it("shows onboarding for a new user without a wallet", () => {
+    const dashboard = createDashboardData({
+      shell: {
+        ...shell,
+        walletCount: 0,
+        budgetCount: 0,
+        memberCount: 0,
+        primaryWalletId: null,
+        onboardingState: "active"
+      },
+      memberships: [],
+      wallets: [],
+      memberRows: [],
+      budgets: [],
+      recentTransactions: [],
+      allTransactions: [],
+      savings: [],
+      savingEntries: [],
+      categories: [],
+      splits: [],
+      month: "2026-05"
+    });
+
+    expect(dashboard.onboarding).toMatchObject({
+      isVisible: true,
+      state: "active",
+      completedSteps: 0,
+      totalSteps: 3
+    });
+    expect(dashboard.onboarding.steps[0]).toMatchObject({
+      id: "create_wallet",
+      isComplete: false
+    });
+  });
+
+  it("marks only the wallet step complete when the user has a wallet but no manual transactions", () => {
+    const dashboard = createDashboardData({
+      shell: {
+        ...shell,
+        walletCount: 1,
+        budgetCount: 0,
+        memberCount: 1,
+        primaryWalletId: "w1",
+        onboardingState: "active"
+      },
+      memberships: [{ wallet_id: "w1", user_id: "u1", role: "owner" }],
+      wallets: [wallets[0]],
+      memberRows: [{ wallet_id: "w1", user_id: "u1", role: "owner" }],
+      budgets: [],
+      recentTransactions: [],
+      allTransactions: transactions.filter((transaction) => transaction.source !== "manual"),
+      savings: savings.filter((saving) => saving.wallet_id === "w1"),
+      savingEntries: savingEntries.filter((entry) => entry.wallet_id === "w1"),
+      categories: categories.filter((category) => category.wallet_id === "w1"),
+      splits: [],
+      month: "2026-05"
+    });
+
+    expect(dashboard.onboarding).toMatchObject({
+      isVisible: true,
+      state: "active",
+      completedSteps: 1,
+      totalSteps: 3
+    });
+    expect(dashboard.onboarding.steps[0]?.isComplete).toBe(true);
+    expect(dashboard.onboarding.steps[1]?.isComplete).toBe(false);
+  });
+
+  it("hides onboarding when the profile has already dismissed it", () => {
+    const dashboard = createDashboardData({
+      shell: {
+        ...shell,
+        onboardingState: "dismissed",
+        onboardingDismissedAt: "2026-06-06T10:00:00.000Z"
+      },
+      memberships,
+      wallets,
+      memberRows,
+      budgets,
+      recentTransactions: transactions.slice(0, 3),
+      allTransactions: transactions,
+      savings,
+      savingEntries,
+      categories,
+      splits,
+      month: "2026-05"
+    });
+
+    expect(dashboard.onboarding).toMatchObject({
+      isVisible: false,
+      state: "dismissed"
+    });
+  });
+
+  it("hides onboarding when the profile has already completed it", () => {
+    const dashboard = createDashboardData({
+      shell: {
+        ...shell,
+        onboardingState: "completed",
+        onboardingCompletedAt: "2026-06-06T10:00:00.000Z"
+      },
+      memberships,
+      wallets,
+      memberRows,
+      budgets,
+      recentTransactions: transactions.slice(0, 3),
+      allTransactions: transactions,
+      savings,
+      savingEntries,
+      categories,
+      splits,
+      month: "2026-05"
+    });
+
+    expect(dashboard.onboarding).toMatchObject({
+      isVisible: false,
+      state: "completed"
+    });
   });
 
   it("creates filtered transactions page data", () => {

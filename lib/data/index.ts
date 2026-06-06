@@ -75,7 +75,10 @@ export const getShellData = cache(async (userId: string) => {
     walletCount: wallets.length,
     budgetCount: budgets.length,
     memberCount: new Set(memberRows.map((row) => row.user_id)).size,
-    primaryWalletId: wallets[0]?.id ?? null
+    primaryWalletId: wallets[0]?.id ?? null,
+    onboardingState: profiles[0]?.onboarding_state ?? "active",
+    onboardingDismissedAt: profiles[0]?.onboarding_dismissed_at ?? null,
+    onboardingCompletedAt: profiles[0]?.onboarding_completed_at ?? null
   };
 });
 

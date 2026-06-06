@@ -1,5 +1,23 @@
 # Changelog
 
+## [Unreleased] — 2026-06-07
+
+### Added — Onboarding Checklist untuk User Baru
+
+#### Peningkatan UX
+- **User baru kini dibantu lewat checklist awal di dashboard:** Setelah akun baru masuk, dashboard menampilkan panel onboarding singkat untuk membuat wallet pertama, mencatat transaksi pertama, lalu memahami ringkasan utama.
+- **Status onboarding tersimpan per user di database:** Checklist bisa dilewati, selesai otomatis saat langkah inti beres, dan tetap konsisten lintas device karena state disimpan di tabel `profiles`.
+- **User lama tidak ikut terganggu saat fitur dirilis:** Profil yang sudah ada dibackfill sebagai onboarding selesai, jadi panel ini fokus ke akun baru setelah migration diterapkan.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `supabase/migrations/0012_user_onboarding.sql` | Tambah kolom state onboarding di `profiles`, validasi nilai, dan backfill user lama sebagai selesai. |
+| `lib/data/{types,queries,index,mappers}.ts` | Perluas model profil/dashboard dan hitung checklist onboarding langsung dari data wallet serta transaksi yang sudah ada. |
+| `app/actions/onboarding.ts` | Tambah server action untuk skip dan menyelesaikan onboarding dengan invalidation dashboard yang relevan. |
+| `components/features/dashboard/{dashboard-content,dashboard-onboarding-card}.tsx` | Tampilkan panel onboarding baru di atas ringkasan dashboard dan rapikan auto-hide setelah langkah selesai. |
+| `tests/unit/{data-mappers,onboarding-actions}.test.ts` | Tambah cakupan test untuk state checklist dan invalidation action onboarding. |
+
 ## [Unreleased] — 2026-06-06
 
 ### Added — Rate Limiting untuk Chat API
