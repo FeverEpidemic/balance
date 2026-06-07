@@ -28,6 +28,12 @@
     "created": "Dibuat {date}",
     "lastUsed": "Terakhir dipakai {date}"
   },
+  "auth": {
+    "errorEyebrow": "Auth Error",
+    "errorTitle": "Verifikasi tidak berhasil",
+    "errorDefaultMessage": "Tautan autentikasi tidak dapat diproses.",
+    "backToLogin": "Kembali ke login"
+  },
   "settings": {
     "title": "Pengaturan",
     "subtitle": "Kelola API key untuk akses otomatis",
@@ -67,4 +73,3 @@
     "invalidTheme": "Pilihan tema tidak valid."
   }
 }
-

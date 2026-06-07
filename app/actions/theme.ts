@@ -2,10 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { invalidateSettingsCache } from "@/lib/data/cache";
 import { errorResult, getActionLocale, getTrimmedValue, successResult, type ActionResult } from "@/app/actions/_shared";
-import { defaultLocale, LOCALE_COOKIE_NAME, localizePath, resolveLocale } from "@/lib/i18n";
+import { isLocale, LOCALE_COOKIE_NAME, localizePath } from "@/lib/i18n";
 import { THEME_COOKIE_NAME, isThemePreference } from "@/lib/theme";
 
 export async function updateThemePreference(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -41,7 +42,7 @@ export async function updateLocalePreference(_prevState: ActionResult, formData:
   const preference = getTrimmedValue(formData, "preferred_locale");
   const { supabase, user } = await requireUser();
 
-  if (preference !== "id" && preference !== "en") {
+  if (!isLocale(preference)) {
     return errorResult("Pilihan bahasa tidak valid.");
   }
 
@@ -61,6 +62,5 @@ export async function updateLocalePreference(_prevState: ActionResult, formData:
   await invalidateSettingsCache(user.id);
   revalidatePath(localizePath(preference, "/settings"));
   revalidatePath("/", "layout");
-
-  return successResult(preference === "en" ? "App language updated successfully." : "Bahasa aplikasi berhasil diperbarui.");
+  redirect(localizePath(preference, "/settings"));
 }

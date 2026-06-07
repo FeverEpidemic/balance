@@ -52,6 +52,10 @@ function getMessageNode(locale: AppLocale, key: string) {
     return current[part];
   }, dictionary);
 
+  if (node !== undefined && typeof node !== "string" && process.env.NODE_ENV !== "production") {
+    console.warn(`Translation key "${key}" for locale "${locale}" resolved to a non-string value.`);
+  }
+
   return typeof node === "string" ? node : undefined;
 }
 
@@ -138,7 +142,7 @@ export function resolvePreferredLocale(input: {
   }
 
   const header = input.acceptLanguage?.toLowerCase() ?? "";
-  if (header.includes("en")) {
+  if (/\ben\b/.test(header)) {
     return "en";
   }
 

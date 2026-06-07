@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Notice } from "@/components/ui/notice";
 import { sanitizeRedirectPath } from "@/lib/auth-flow";
-import { localizePath, resolveLocale } from "@/lib/i18n";
+import { getTranslator, localizePath, resolveLocale } from "@/lib/i18n";
 
 export default async function AuthErrorPage({
   params,
@@ -12,6 +12,7 @@ export default async function AuthErrorPage({
 }) {
   const { locale: localeParam } = await params;
   const locale = resolveLocale(localeParam);
+  const t = getTranslator(locale);
   const query = await searchParams;
   const safeNext = sanitizeRedirectPath(query.next);
   const loginHref =
@@ -22,14 +23,14 @@ export default async function AuthErrorPage({
   return (
     <main className="page-wrap section-gap">
       <div className="mx-auto max-w-xl card">
-        <p className="eyebrow">Auth Error</p>
-        <h1 className="headline-lg mt-3">{locale === "en" ? "Verification failed" : "Verifikasi tidak berhasil"}</h1>
+        <p className="eyebrow">{t("auth.errorEyebrow")}</p>
+        <h1 className="headline-lg mt-3">{t("auth.errorTitle")}</h1>
         <div className="mt-6">
-          <Notice tone="error">{query.message ?? (locale === "en" ? "The authentication link could not be processed." : "Tautan autentikasi tidak dapat diproses.")}</Notice>
+          <Notice tone="error">{query.message ?? t("auth.errorDefaultMessage")}</Notice>
         </div>
         <div className="mt-6">
           <Link href={loginHref} className="font-label text-sm text-primary">
-            {locale === "en" ? "Back to login" : "Kembali ke login"}
+            {t("auth.backToLogin")}
           </Link>
         </div>
       </div>

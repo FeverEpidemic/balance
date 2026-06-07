@@ -1,6 +1,6 @@
 import { type EmailOtpType } from "@supabase/supabase-js";
 import { type NextRequest, NextResponse } from "next/server";
-import { sanitizeRedirectPath, withAuthMessage } from "@/lib/auth-flow";
+import { createAuthMessageSearchParams, sanitizeRedirectPath } from "@/lib/auth-flow";
 import { getSiteUrl } from "@/lib/env";
 import { defaultLocale, localizePath, resolveLocale } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
@@ -27,13 +27,11 @@ export async function GET(request: NextRequest) {
   }
 
   const errorRedirectTo = new URL(localizePath(locale, "/auth/error"), siteUrl);
-  errorRedirectTo.search = withAuthMessage(
-    "/auth/error",
+  errorRedirectTo.search = createAuthMessageSearchParams(
     "message",
     "Tautan verifikasi tidak valid atau sudah kedaluwarsa.",
     next,
-    "/dashboard",
-    locale
-  ).replace(localizePath(locale, "/auth/error"), "");
+    "/dashboard"
+  ).toString();
   return NextResponse.redirect(errorRedirectTo);
 }

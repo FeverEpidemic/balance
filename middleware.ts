@@ -36,6 +36,9 @@ function isPublicPath(pathname: string) {
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const pathnameLocale = getLocaleFromPathname(pathname);
+  const locale = pathnameLocale ?? defaultLocale;
+  const localizedPath = stripLocaleFromPath(pathname);
+  const shouldCheckUser = !isPublicPath(pathname) || authRoutes.has(localizedPath);
 
   if (pathname === "/") {
     const detectedLocale = resolvePreferredLocale({
@@ -62,37 +65,40 @@ export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request
   });
+  let user = null;
 
-  const supabase = createServerClient(getSupabaseUrl(), getSupabasePublishableKey(), {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(cookiesToSet: CookieToSet[]) {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+  if (shouldCheckUser) {
+    const supabase = createServerClient(getSupabaseUrl(), getSupabasePublishableKey(), {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet: CookieToSet[]) {
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
 
-        response = NextResponse.next({
-          request
-        });
+          response = NextResponse.next({
+            request
+          });
 
-        cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options as never);
-        });
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options as never);
+          });
+        }
       }
-    }
-  });
+    });
 
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+    const {
+      data: { user: resolvedUser }
+    } = await supabase.auth.getUser();
 
-  const locale = pathnameLocale ?? defaultLocale;
+    user = resolvedUser;
+  }
+
   response.cookies.set(LOCALE_COOKIE_NAME, locale, {
     path: "/",
     sameSite: "lax",
     maxAge: 60 * 60 * 24 * 365
   });
-  const localizedPath = stripLocaleFromPath(pathname);
 
   if (!user && !isPublicPath(pathname)) {
     const loginUrl = request.nextUrl.clone();

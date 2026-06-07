@@ -28,6 +28,12 @@
     "created": "Created {date}",
     "lastUsed": "Last used {date}"
   },
+  "auth": {
+    "errorEyebrow": "Auth Error",
+    "errorTitle": "Verification failed",
+    "errorDefaultMessage": "The authentication link could not be processed.",
+    "backToLogin": "Back to login"
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage API keys for automated access",

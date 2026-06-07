@@ -2,6 +2,22 @@
 
 ## [Unreleased] — 2026-06-07
 
+### Fixed — Preferensi Bahasa dan Pesan Signup Kini Konsisten per Locale
+
+#### Perbaikan i18n
+- **Ganti bahasa dari Pengaturan kini langsung terasa:** Setelah user menyimpan preferensi bahasa, app sekarang merevalidasi cache terkait lalu langsung redirect ke halaman `Pengaturan` pada locale baru agar copy UI ikut berubah tanpa perlu navigasi manual berikutnya.
+- **Pesan signup tidak lagi bocor ke Bahasa Indonesia saat locale Inggris aktif:** Default redirect setelah signup dan pesan verifikasi email kini mengikuti locale aktif, sehingga user `en` menerima copy onboarding dan auth message dalam bahasa yang tepat.
+- **Redirect auth error dan fallback locale kini lebih tahan edge case:** Route callback/confirm tidak lagi menyusun query error dengan `.replace()` yang rapuh, parser `Accept-Language` lebih ketat saat memilih English, dan key translasi yang salah bentuk kini memunculkan warning saat development.
+- **Middleware kini lebih hemat pada route publik:** Client Supabase tidak lagi dibuat untuk semua request publik yang memang tidak butuh auth check, sehingga route locale publik bisa lewat dengan kerja middleware yang lebih ringan.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `app/actions/theme.ts` | Validasi locale kini memakai helper shared `isLocale`, lalu update preferensi bahasa langsung redirect ke route `/{locale}/settings` setelah invalidasi cache dan revalidation. |
+| `app/actions/auth.ts` | Lokalkan pesan default signup dan verifikasi email berdasarkan locale aktif agar flow registrasi konsisten untuk user `id` dan `en`. |
+| `app/auth/{callback,confirm}/route.ts`, `lib/auth-flow.ts` | Ganti penyusunan query auth error ke helper `URLSearchParams` yang aman tanpa manipulasi string path. |
+| `middleware.ts`, `lib/i18n.ts`, `app/[locale]/auth/error/page.tsx`, `messages/{id,en}.json`, `tests/unit/i18n.test.ts` | Ringankan auth check middleware di route publik, rapikan fallback i18n, pindahkan copy auth error ke message dictionary, dan tambahkan cakupan test untuk parser locale serta dev warning translasi. |
+
 ### Added — i18n Fondasi `id` dan `en`
 
 #### Peningkatan Routing dan Preferensi Bahasa

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { sanitizeRedirectPath, withAuthMessage } from "@/lib/auth-flow";
+import { createAuthMessageSearchParams, sanitizeRedirectPath } from "@/lib/auth-flow";
 import { getSiteUrl } from "@/lib/env";
 import { defaultLocale, localizePath, resolveLocale } from "@/lib/i18n";
 import { ensureProfileForUser } from "@/lib/profile";
@@ -14,14 +14,12 @@ export async function GET(request: NextRequest) {
 
   if (!code) {
     const redirectTo = new URL(localizePath(locale, "/auth/error"), siteUrl);
-    redirectTo.search = withAuthMessage(
-      "/auth/error",
+    redirectTo.search = createAuthMessageSearchParams(
       "message",
       "Autentikasi Google tidak membawa kode login yang valid.",
       next,
-      "/dashboard",
-      locale
-    ).replace(localizePath(locale, "/auth/error"), "");
+      "/dashboard"
+    ).toString();
     return NextResponse.redirect(redirectTo);
   }
 
@@ -30,14 +28,12 @@ export async function GET(request: NextRequest) {
 
   if (error) {
     const redirectTo = new URL(localizePath(locale, "/auth/error"), siteUrl);
-    redirectTo.search = withAuthMessage(
-      "/auth/error",
+    redirectTo.search = createAuthMessageSearchParams(
       "message",
       "Login Google tidak berhasil diproses. Silakan coba lagi.",
       next,
-      "/dashboard",
-      locale
-    ).replace(localizePath(locale, "/auth/error"), "");
+      "/dashboard"
+    ).toString();
     return NextResponse.redirect(redirectTo);
   }
 
@@ -47,14 +43,12 @@ export async function GET(request: NextRequest) {
 
   if (!user) {
     const redirectTo = new URL(localizePath(locale, "/auth/error"), siteUrl);
-    redirectTo.search = withAuthMessage(
-      "/auth/error",
+    redirectTo.search = createAuthMessageSearchParams(
       "message",
       "Sesi Google tidak ditemukan setelah login. Silakan ulangi proses masuk.",
       next,
-      "/dashboard",
-      locale
-    ).replace(localizePath(locale, "/auth/error"), "");
+      "/dashboard"
+    ).toString();
     return NextResponse.redirect(redirectTo);
   }
 

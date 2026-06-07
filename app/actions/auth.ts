@@ -34,12 +34,18 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const cookieStore = await cookies();
   const locale = resolveLocale(cookieStore.get(LOCALE_COOKIE_NAME)?.value ?? defaultLocale);
+  const walletReadyMessage =
+    locale === "en" ? "Account active. Create your first wallet." : "Akun aktif. Buat wallet pertama Anda.";
+  const verificationMessage =
+    locale === "en"
+      ? "Check your email to verify your account before logging in."
+      : "Cek email Anda untuk verifikasi akun sebelum login.";
   const fullName = String(formData.get("full_name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const next = sanitizeRedirectPath(
-    String(formData.get("next") ?? "/wallets?message=Akun aktif. Buat wallet pertama Anda."),
-    "/wallets?message=Akun aktif. Buat wallet pertama Anda."
+    String(formData.get("next") ?? `/wallets?message=${walletReadyMessage}`),
+    `/wallets?message=${walletReadyMessage}`
   );
   const headerStore = await headers();
   const origin = headerStore.get("origin") ?? getSiteUrl();
@@ -66,7 +72,7 @@ export async function signup(formData: FormData) {
         "error",
         error.message,
         next,
-        "/wallets?message=Akun aktif. Buat wallet pertama Anda.",
+        `/wallets?message=${walletReadyMessage}`,
         locale
       )
     );
@@ -85,9 +91,9 @@ export async function signup(formData: FormData) {
     withAuthMessage(
       "/register",
       "message",
-      "Cek email Anda untuk verifikasi akun sebelum login.",
+      verificationMessage,
       next,
-      "/wallets?message=Akun aktif. Buat wallet pertama Anda.",
+      `/wallets?message=${walletReadyMessage}`,
       locale
     )
   );

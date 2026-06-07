@@ -20,6 +20,15 @@ export function withAuthMessage(
   fallbackNext = "/dashboard",
   locale: AppLocale = defaultLocale
 ) {
+  return `${localizePath(locale, path)}?${createAuthMessageSearchParams(key, value, next, fallbackNext).toString()}`;
+}
+
+export function createAuthMessageSearchParams(
+  key: "error" | "message",
+  value: string,
+  next?: string | null,
+  fallbackNext = "/dashboard"
+) {
   const params = new URLSearchParams({ [key]: value });
   const safeNext = sanitizeRedirectPath(next, fallbackNext);
 
@@ -27,5 +36,5 @@ export function withAuthMessage(
     params.set("next", safeNext);
   }
 
-  return `${localizePath(locale, path)}?${params.toString()}`;
+  return params;
 }
