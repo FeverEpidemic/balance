@@ -5,19 +5,19 @@
 ### Added — Dark Mode dengan 3 Pilihan Tema
 
 #### Peningkatan Tampilan
-- **Aplikasi kini mendukung `Terang`, `Gelap`, dan `Ikuti sistem`:** User bisa memilih tema dari halaman `Pengaturan`, lalu preferensi itu dipakai di seluruh aplikasi.
-- **Preferensi tema tersimpan per akun sekaligus dipakai untuk render awal:** Nilai tema disimpan di tabel `profiles` dengan default `system`, lalu dicerminkan ke cookie ringan agar SSR dan route publik lebih cepat mengikuti pilihan terakhir.
-- **Palet dark tetap mengikuti gaya Serene Capital:** Background, kartu, drawer, toast, dialog, dan panel utama kini memakai token warna baru yang lebih nyaman di kondisi gelap tanpa melepas aksen sage/forest khas Balance.
+- **Balance kini mendukung `Terang`, `Gelap`, dan `Ikuti sistem`:** User bisa memilih tema dari halaman `Pengaturan` sesuai kenyamanan visual masing-masing.
+- **Preferensi tema tersimpan per akun dan tetap nyaman saat render awal:** Nilai tema disimpan di tabel `profiles`, lalu dicerminkan ke cookie ringan agar SSR dan route publik lebih cepat mengikuti pilihan terakhir.
+- **Palet dark tetap menjaga arah visual Serene Capital:** Surface utama, drawer, dialog, toast, dan panel navigasi kini ikut menyesuaikan tanpa kehilangan nuansa krem, sage, dan forest yang tenang.
 
 #### File Diubah
 | File | Perubahan |
 |---|---|
-| `supabase/migrations/0013_profile_theme_preference.sql` | Tambah kolom `theme_preference` ke `profiles` beserta default `system` dan constraint nilainya. |
-| `app/layout.tsx`, `app/globals.css`, `tailwind.config.ts`, `lib/theme.ts` | Tambah runtime tema global, bootstrap script anti-flash, token light/dark, cookie theme, dan helper resolusi tema. |
-| `app/actions/theme.ts`, `lib/data/{types,queries,index}.ts` | Simpan preferensi tema per akun, mirror cookie, dan expose theme preference ke halaman Pengaturan. |
-| `components/features/settings/settings-page-content.tsx` | Tambah UI pemilih tema 3 opsi di halaman Pengaturan. |
+| `supabase/migrations/0013_profile_theme_preference.sql` | Tambah kolom `theme_preference` di `profiles`, default `system`, dan constraint nilai tema. |
+| `app/layout.tsx`, `app/globals.css`, `tailwind.config.ts`, `lib/theme.ts` | Tambah runtime tema global, bootstrap script anti-flash, token light/dark, dan helper resolusi tema. |
+| `app/actions/theme.ts`, `lib/data/{types,queries,index}.ts` | Simpan preferensi tema per akun, mirror cookie, dan expose state tema ke halaman `Pengaturan`. |
+| `components/features/settings/settings-page-content.tsx` | Tambah UI pemilih tema 3 opsi di halaman `Pengaturan`. |
 | `components/{app-shell,auth,features,ui}/**`, `app/{page,offline}/**` | Rapikan surface utama agar tetap terbaca dan konsisten di dark mode. |
-| `tests/unit/{theme,theme-actions}.test.ts` | Tambah test helper resolusi tema dan server action update tema. |
+| `tests/unit/{theme,theme-actions}.test.ts` | Tambah cakupan test untuk helper resolusi tema dan server action update tema. |
 
 ### Added — Onboarding Checklist untuk User Baru
 
@@ -35,7 +35,7 @@
 | `components/features/dashboard/{dashboard-content,dashboard-onboarding-card}.tsx` | Tampilkan panel onboarding baru di atas ringkasan dashboard dan rapikan auto-hide setelah langkah selesai. |
 | `tests/unit/{data-mappers,onboarding-actions}.test.ts` | Tambah cakupan test untuk state checklist dan invalidation action onboarding. |
 
-## [Unreleased] — 2026-06-06
+## [Released] — 2026-06-06
 
 ### Added — Rate Limiting untuk Chat API
 
