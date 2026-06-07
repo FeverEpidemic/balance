@@ -14,6 +14,7 @@
   "common": {
     "user": "Pengguna",
     "active": "Aktif",
+    "privacy": "Kebijakan Privasi",
     "theme": "Tema",
     "save": "Simpan",
     "delete": "Hapus",
@@ -600,6 +601,41 @@
     "ctaDescription": "Buka akun, bikin wallet pertama, lalu mulai catat seperlunya. Tidak harus langsung sempurna, yang penting kamu bisa lihat uangmu dengan lebih jelas dari hari ke hari.",
     "ctaRegister": "Daftar gratis",
     "ctaLogin": "Masuk ke aplikasi"
+  },
+  "privacy": {
+    "title": "Kebijakan Privasi",
+    "lastUpdated": "Terakhir diperbarui: {date}",
+    "intro": "Balance menghargai privasi Anda. Kebijakan ini menjelaskan data apa yang kami kumpulkan, bagaimana data digunakan, di mana data disimpan, dan pilihan yang Anda miliki saat menggunakan aplikasi ini.",
+    "sections": {
+      "dataWeCollect": {
+        "heading": "Data yang Kami Kumpulkan",
+        "body": "Kami mengumpulkan nama dan email Anda melalui Supabase Auth, serta data yang Anda masukkan ke aplikasi seperti wallet, transaksi, anggaran, tabungan, dan preferensi tema serta bahasa."
+      },
+      "howWeUse": {
+        "heading": "Cara Kami Menggunakan Data",
+        "body": "Data digunakan untuk mengautentikasi akun Anda, menjalankan fitur aplikasi, menampilkan catatan keuangan Anda, mengelola wallet bersama bila Anda memakainya, serta menyimpan preferensi seperti tema dan bahasa."
+      },
+      "dataStorage": {
+        "heading": "Penyimpanan Data",
+        "body": "Data Anda disimpan di Supabase sebagai layanan cloud untuk autentikasi dan database aplikasi. Kami menggunakan kontrol akses aplikasi dan kebijakan database untuk membatasi akses ke data sesuai kebutuhan fitur."
+      },
+      "thirdParty": {
+        "heading": "Layanan Pihak Ketiga",
+        "body": "Balance menggunakan Supabase untuk autentikasi magic link dan penyimpanan database. Saat ini kami tidak menggunakan layanan analytics atau tracking pihak ketiga untuk melacak perilaku penggunaan Anda."
+      },
+      "cookies": {
+        "heading": "Cookie",
+        "body": "Aplikasi ini menggunakan cookie Supabase untuk menjaga sesi login Anda dan cookie balance-locale untuk mengingat preferensi bahasa. Kami tidak memakai cookie analytics atau iklan pihak ketiga."
+      },
+      "userRights": {
+        "heading": "Hak Pengguna",
+        "body": "Anda dapat meminta untuk melihat data yang disimpan tentang akun Anda atau meminta penghapusan data. Untuk login, kami hanya mengirim email magic link yang diperlukan untuk autentikasi."
+      },
+      "contact": {
+        "heading": "Kontak",
+        "body": "Jika Anda memiliki pertanyaan tentang kebijakan privasi ini atau ingin meminta penghapusan data, silakan hubungi kami melalui email kontak yang akan ditambahkan pada halaman ini."
+      }
+    }
   },
   "reports": {
     "pageTitle": "Laporan",

@@ -22,6 +22,7 @@ function isPublicPath(pathname: string) {
   const path = stripLocaleFromPath(pathname);
   return (
     path === "/" ||
+    path === "/privacy" ||
     path === "/offline" ||
     path === "/sw.js" ||
     path === "/manifest.webmanifest" ||

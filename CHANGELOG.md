@@ -2,6 +2,20 @@
 
 ## [Unreleased] — 2026-06-07
 
+### Added — Halaman Privacy Policy Publik Bilingual
+
+#### Peningkatan Legal dan Akses Publik
+- **Balance kini punya halaman Kebijakan Privasi publik di dua bahasa:** Route `/{locale}/privacy` menampilkan penjelasan tentang data yang dikumpulkan, penggunaan data, penyimpanan di Supabase, cookie, hak pengguna, dan kontak placeholder dalam Bahasa Indonesia serta Inggris.
+- **Landing page sekarang menautkan ke Privacy Policy:** Footer minimalis ditambahkan di halaman publik utama agar user bisa menemukan dokumen legal tanpa harus login.
+- **Middleware mengizinkan akses privacy tanpa autentikasi:** Route privacy masuk daftar public path sehingga bisa dibuka langsung, termasuk dari incognito.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `app/[locale]/privacy/page.tsx` | Tambah halaman privacy policy locale-aware dengan tanggal pembaruan dan section legal berbasis dictionary. |
+| `app/[locale]/page.tsx`, `middleware.ts` | Tambah footer link privacy di landing page dan izinkan route privacy lewat tanpa login. |
+| `messages/{id,en}.json` | Tambah `common.privacy` dan seluruh copy privacy policy bilingual. |
+
 ### Changed — Penyelesaian Surface Full i18n Upgrade
 
 #### Penutupan Surface Public, Wallet Detail, dan Action Feedback

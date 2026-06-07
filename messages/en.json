@@ -14,6 +14,7 @@
   "common": {
     "user": "User",
     "active": "Active",
+    "privacy": "Privacy Policy",
     "theme": "Theme",
     "save": "Save",
     "delete": "Delete",
@@ -600,6 +601,41 @@
     "ctaDescription": "Open an account, create your first wallet, and start recording only what you need. It does not have to be perfect immediately as long as your money becomes clearer day by day.",
     "ctaRegister": "Sign up free",
     "ctaLogin": "Open the app"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: {date}",
+    "intro": "Balance values your privacy. This policy explains what data we collect, how it is used, where it is stored, and the choices you have when using this app.",
+    "sections": {
+      "dataWeCollect": {
+        "heading": "Data We Collect",
+        "body": "We collect your name and email through Supabase Auth, along with the data you enter into the app such as wallets, transactions, budgets, savings, and your theme and language preferences."
+      },
+      "howWeUse": {
+        "heading": "How We Use Data",
+        "body": "We use your data to authenticate your account, operate app features, display your financial records, support shared wallets when you use them, and save preferences such as theme and language."
+      },
+      "dataStorage": {
+        "heading": "Data Storage",
+        "body": "Your data is stored in Supabase as the cloud service for authentication and the app database. We use app access controls and database policies to limit access to data according to feature needs."
+      },
+      "thirdParty": {
+        "heading": "Third-Party Services",
+        "body": "Balance uses Supabase for magic-link authentication and database storage. We do not currently use third-party analytics or tracking services to monitor your usage behavior."
+      },
+      "cookies": {
+        "heading": "Cookies",
+        "body": "This app uses Supabase cookies to keep your sign-in session active and the balance-locale cookie to remember your language preference. We do not use third-party analytics or advertising cookies."
+      },
+      "userRights": {
+        "heading": "Your Rights",
+        "body": "You can request access to the data stored about your account or ask for your data to be deleted. For sign-in, we only send the magic-link email required for authentication."
+      },
+      "contact": {
+        "heading": "Contact",
+        "body": "If you have questions about this privacy policy or want to request data deletion, please contact us through the support email that will be added to this page."
+      }
+    }
   },
   "reports": {
     "pageTitle": "Reports",

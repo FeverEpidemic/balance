@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -175,6 +176,15 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
         </div>
       </section>
+
+      <footer className="mt-8 border-t border-border pt-8 text-center">
+        <Link
+          href={localizePath(locale, "/privacy")}
+          className="text-sm text-muted-foreground transition hover:text-foreground"
+        >
+          {t("common.privacy")}
+        </Link>
+      </footer>
     </main>
   );
 }
