@@ -10,6 +10,7 @@ import type {
   BudgetRow,
   BudgetsPageData,
   CategoryRow,
+  DailyExpenseItem,
   DashboardOnboarding,
   DashboardOnboardingStep,
   DashboardCategorySpend,
@@ -245,6 +246,25 @@ export function buildCategorySpend(
     .map(([name, item]) => ({ name, value: item.value, color: item.color }))
     .sort((left, right) => right.value - left.value)
     .slice(0, 4) satisfies DashboardCategorySpend[];
+}
+
+export function buildDailyExpenses(transactions: TransactionRow[]) {
+  const expenseByDay = new Map<string, number>();
+
+  transactions
+    .filter((row) => row.kind === "expense")
+    .forEach((row) => {
+      const dateKey = row.happened_at.slice(0, 10);
+      expenseByDay.set(dateKey, (expenseByDay.get(dateKey) ?? 0) + row.amount);
+    });
+
+  return [...expenseByDay.entries()]
+    .map(([date, amount]) => ({
+      day: Number.parseInt(date.slice(8, 10), 10),
+      date,
+      amount
+    }))
+    .sort((left, right) => left.date.localeCompare(right.date)) satisfies DailyExpenseItem[];
 }
 
 export function buildDashboardOnboarding(args: {
@@ -592,7 +612,8 @@ export function createDashboardData(args: {
     outstandingSplit: splits.reduce((total, row) => total + Math.max(row.owed_amount - row.paid_amount, 0), 0),
     wallets: walletSummaries,
     recentTransactions: buildRecentTransactions(recentTransactions, categories, wallets, locale),
-    categorySpend: buildCategorySpend(currentMonthTransactions, categories, locale)
+    categorySpend: buildCategorySpend(currentMonthTransactions, categories, locale),
+    dailyExpenses: buildDailyExpenses(currentMonthTransactions)
   } satisfies DashboardData;
 }
 

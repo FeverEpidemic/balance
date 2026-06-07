@@ -227,6 +227,12 @@ export type DashboardCategorySpend = {
   color: string;
 };
 
+export type DailyExpenseItem = {
+  day: number;
+  date: string;
+  amount: number;
+};
+
 export type DashboardData = {
   shell: ShellData;
   onboarding: DashboardOnboarding;
@@ -238,6 +244,7 @@ export type DashboardData = {
   wallets: WalletSummary[];
   recentTransactions: DashboardRecentTransaction[];
   categorySpend: DashboardCategorySpend[];
+  dailyExpenses: DailyExpenseItem[];
 };
 
 export type WalletBundle = {

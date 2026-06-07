@@ -2,6 +2,34 @@
 
 ## [Unreleased] — 2026-06-07
 
+### Added — Kartu Pengeluaran Harian di Dashboard
+
+#### Peningkatan Ringkasan Dashboard
+- **Dashboard kini menampilkan rincian pengeluaran harian bulan berjalan:** Setelah total pengeluaran bulanan, user bisa langsung melihat daftar nominal per hari yang benar-benar punya transaksi expense tanpa perlu membuka histori.
+- **Tampilan mengikuti pola list yang sudah ada:** Section baru memakai `card`, `stack-list`, dan `list-card` yang konsisten dengan visual Serene Capital serta empty state bawaan saat bulan ini belum ada pengeluaran.
+- **Data dashboard diperluas dengan agregasi harian yang reusable:** Mapper dashboard sekarang mengelompokkan transaksi expense per tanggal sehingga UI tetap tipis dan logika perhitungan bisa ikut diuji.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `lib/data/{types,mappers}.ts` | Tambah model `DailyExpenseItem`, agregasi `buildDailyExpenses`, dan expose `dailyExpenses` pada `DashboardData`. |
+| `components/features/dashboard/dashboard-content.tsx` | Sisipkan kartu rincian pengeluaran harian di antara stat cards dan section wallet/kategori. |
+| `messages/{id,en}.json`, `tests/unit/data-mappers.test.ts` | Tambah copy bilingual untuk section baru dan test agregasi pengeluaran per hari. |
+
+### Fixed — Kontras Warna Public/Auth Surface di Dark Mode
+
+#### Perbaikan UI
+- **Panel hero, auth showcase, dan CTA publik kini punya pairing warna yang konsisten lintas theme:** Surface sage yang menjadi terang di dark mode tidak lagi memakai teks putih hardcoded, sehingga judul, deskripsi, badge status, dan tombol tetap terbaca jelas.
+- **Panel brand di halaman login/register kini mengikuti treatment showcase khusus:** Overlay terang yang sebelumnya membuat teks pucat di dark mode diganti dengan surface showcase yang menyesuaikan theme tanpa keluar dari arah visual Serene Capital.
+- **State aktif berbasis `bg-primary` kini lebih aman di seluruh app shell:** Tab wallet, shortcut aktif, dialog konfirmasi, dan beberapa tombol/pill lain sekarang memakai token teks `on-primary` yang benar, bukan asumsi putih tetap.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `app/globals.css` | Tambah token dan utility baru untuk `spotlight`/`showcase` surface agar kontras warna menyesuaikan theme. |
+| `app/[locale]/page.tsx`, `components/auth/auth-brand-panel.tsx` | Ganti hero summary, CTA, dan panel brand auth ke utility surface baru dengan teks dan tombol yang lebih terbaca. |
+| `components/{app-shell,wallet-tabs,features/dashboard/dashboard-onboarding-card,ui/confirm-dialog,ui/inline-edit-panel}.tsx` | Ganti state aktif `bg-primary text-white` menjadi token teks yang mengikuti theme. |
+
 ### Added — Halaman Privacy Policy Publik Bilingual
 
 #### Peningkatan Legal dan Akses Publik

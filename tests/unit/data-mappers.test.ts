@@ -166,6 +166,14 @@ describe("data mappers", () => {
       name: "Sewa",
       value: 800000
     });
+    expect(dashboard.dailyExpenses).toEqual([
+      { day: 2, date: "2026-05-02", amount: 800000 },
+      { day: 3, date: "2026-05-03", amount: 300000 },
+      { day: 10, date: "2026-05-10", amount: 200000 },
+      { day: 11, date: "2026-05-11", amount: 150000 },
+      { day: 15, date: "2026-05-15", amount: 50000 },
+      { day: 21, date: "2026-05-21", amount: 50000 }
+    ]);
     expect(dashboard.onboarding.isVisible).toBe(true);
     expect(dashboard.onboarding.state).toBe("completed");
   });

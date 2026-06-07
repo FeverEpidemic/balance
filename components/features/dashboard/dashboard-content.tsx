@@ -52,6 +52,25 @@ export function DashboardContent({ dashboard, locale }: { dashboard: DashboardDa
         <StatCard label={t("dashboard.outstandingSplitLabel")} value={dashboard.outstandingSplit} detail={t("dashboard.outstandingSplitDetail")} />
       </section>
 
+      <section className="mt-4 card">
+        <p className="eyebrow">{t("dashboard.dailyExpenseEyebrow")}</p>
+        <h3 className="headline-md mt-2">{t("dashboard.dailyExpenseTitle")}</h3>
+        <div className="mt-6 stack-list">
+          {dashboard.dailyExpenses.length === 0 ? (
+            <EmptyState
+              title={t("dashboard.dailyExpenseEmptyTitle")}
+              description={t("dashboard.dailyExpenseEmptyDescription")}
+            />
+          ) : null}
+          {dashboard.dailyExpenses.map((item) => (
+            <div key={item.date} className="list-card flex items-center justify-between gap-3">
+              <span className="text-sm">{t("dashboard.dailyExpenseDayLabel", { day: item.day })}</span>
+              <span className="metric text-danger">{formatCurrency(item.amount, locale)}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="mt-4 grid gap-4 2xl:grid-cols-12">
         <div className="card 2xl:col-span-7">
           <div className="flex items-center justify-between gap-3">
