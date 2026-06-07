@@ -2,6 +2,38 @@
 
 ## [Unreleased] — 2026-06-07
 
+### Changed — Penyelesaian Surface Full i18n Upgrade
+
+#### Penutupan Surface Public, Wallet Detail, dan Action Feedback
+- **Landing page, halaman invite, dan halaman wallet detail kini mengikuti locale aktif end-to-end:** Copy marketing, CTA auth, invite acceptance, members, reports, settlements, dan templates sekarang membaca dictionary `id/en` tanpa string inline yang tertinggal.
+- **Server action feedback kini tidak lagi bocor ke Bahasa Indonesia saat locale Inggris aktif:** Pesan sukses/error untuk wallet, invitation, budget, savings, transaction, recurring, template, settlement, dan API key sekarang dibentuk dari helper translasi berbasis locale action.
+- **Loading state dan skeleton app ikut terlokalisasi:** Judul section loading, label navigasi skeleton, dan shortcut wallet pada loading route sekarang menyesuaikan locale aktif sehingga transisi antar halaman tetap konsisten.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `app/[locale]/{page,invite/[token]/page.tsx}` | Lokalkan seluruh copy landing dan invite, termasuk CTA, redirect locale-aware, dan label role undangan. |
+| `app/[locale]/(app)/wallets/[walletId]/{members,reports,settlements,templates}/page.tsx` | Ganti string inline ke dictionary untuk halaman wallet detail yang sebelumnya masih campur Bahasa Indonesia statis. |
+| `app/actions/{wallets,budgets,savings,transactions,recurring-transactions,templates,settlements,api-keys}.ts`, `lib/{wallet-capacity,balance-adjustments}.ts` | Lokalkan pesan validasi, sukses, dan error redirect/action berdasarkan locale aktif. |
+| `components/{features/wallets/*,features/transactions/transactions-page-content,ui/page-loading-skeleton}.tsx`, `app/[locale]/(app)/**/loading.tsx` | Tambah locale-aware client/server loading copy, perbaiki wallet client markers, dan rapikan sisa copy inline di komponen transaksi. |
+| `messages/{id,en}.json`, `lib/data/{index,mappers}.ts` | Tambah key lanjutan untuk reports, members, action feedback, fallback template/transaction copy, dan rapikan fallback locale di mapper/index. |
+
+### Changed — Batch Utama Full i18n Upgrade
+
+#### Peningkatan Locale-aware UI
+- **Surface auth, dashboard, drawer navigasi, offline, dan histori transaksi kini benar-benar membaca dictionary locale:** Copy yang sebelumnya masih bercampur string inline dan branch `locale === "en"` sekarang lewat key translasi `id/en`.
+- **Mapper data kini ikut mengerti locale aktif:** Label transaksi, onboarding dashboard, progress tabungan, frekuensi recurring, dan format nama bulan/tanggal tidak lagi terkunci ke Bahasa Indonesia.
+- **Route auth dan feedback theme kini konsisten lintas bahasa:** Error callback Google, konfirmasi email, pesan signup, validasi tema, dan CTA auth sekarang mengikuti locale aktif dari cookie atau URL.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `messages/{id,en}.json` | Tambah batch key baru untuk auth, app shell, dashboard, offline, transaksi/history, recurring, dan savings. |
+| `app/actions/{auth,theme}.ts`, `app/auth/{callback,confirm}/route.ts` | Ganti pesan inline ke helper `translate(...)` agar redirect/auth feedback konsisten per locale. |
+| `app/[locale]/{login,register,offline}/page.tsx`, `components/auth/{auth-brand-panel,google-sign-in-button}.tsx`, `components/app-shell.tsx` | Lokalkan copy utama auth/public shell dan hilangkan branch `locale === "en"`. |
+| `lib/data/{mappers,index}.ts`, `components/features/dashboard/*`, `components/features/transactions/transaction-history-page-content.tsx` | Propagasi locale ke mapper, lokalkan label turunan data, ganti formatter `id-ID` statis, dan rapikan copy dashboard/history. |
+| `app/[locale]/(app)/**/{dashboard,wallets,transactions/history,reports,members}/page.tsx`, `tests/unit/i18n.test.ts` | Teruskan locale dari route params ke loader/report formatter dan rapikan test env assignment agar typecheck lolos. |
+
 ### Fixed — Preferensi Bahasa dan Pesan Signup Kini Konsisten per Locale
 
 #### Perbaikan i18n

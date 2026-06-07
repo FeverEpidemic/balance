@@ -3,11 +3,15 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { completeOnboarding, dismissOnboarding } from "@/app/actions/onboarding";
+import { useLocale } from "@/components/providers/locale-provider";
 import { Button } from "@/components/ui/button";
+import { getTranslator } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import type { DashboardOnboarding } from "@/lib/data";
 
 export function DashboardOnboardingCard({ onboarding }: { onboarding: DashboardOnboarding }) {
+  const locale = useLocale();
+  const t = getTranslator(locale);
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isAutoCompleting, setIsAutoCompleting] = useState(false);
@@ -50,18 +54,18 @@ export function DashboardOnboardingCard({ onboarding }: { onboarding: DashboardO
     <section className="card mb-4 overflow-hidden shadow-float">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-2xl">
-          <p className="eyebrow">Mulai lebih tenang</p>
+          <p className="eyebrow">{t("dashboard.onboardingEyebrow")}</p>
           <h3 className="headline-md mt-2">
-            {onboarding.state === "completed" ? "Langkah awalmu sudah rapi." : "Supaya Balance cepat terasa nyambung, mulai dari tiga langkah ini dulu."}
+            {onboarding.state === "completed" ? t("dashboard.onboardingCompletedTitle") : t("dashboard.onboardingActiveTitle")}
           </h3>
           <p className="mt-3 text-sm leading-7 text-muted-foreground md:text-base">
             {onboarding.state === "completed"
-              ? "Wallet, transaksi pertama, dan ringkasan dashboard sudah siap. Balance akan kembali ke tampilan normal sebentar lagi."
-              : "Checklist ini bantu kamu langsung paham alur utama tanpa harus menebak fitur mana yang perlu dibuka lebih dulu."}
+              ? t("dashboard.onboardingCompletedDescription")
+              : t("dashboard.onboardingActiveDescription")}
           </p>
         </div>
         <div className="glass-panel min-w-[13rem] rounded-[1.25rem] p-4">
-          <p className="font-label text-xs uppercase tracking-[0.14em] text-muted-foreground">Progress awal</p>
+          <p className="font-label text-xs uppercase tracking-[0.14em] text-muted-foreground">{t("dashboard.onboardingProgressLabel")}</p>
           <p className="metric mt-3 text-2xl">
             {onboarding.completedSteps}/{onboarding.totalSteps}
           </p>
@@ -69,7 +73,7 @@ export function DashboardOnboardingCard({ onboarding }: { onboarding: DashboardO
             <div className="h-2 rounded-full bg-primary transition-[width]" style={{ width: progressWidth }} />
           </div>
           <p className="mt-3 text-sm text-muted-foreground">
-            {onboarding.state === "completed" ? "Semua langkah awal sudah selesai." : "Selesaikan yang paling penting dulu, sisanya bisa menyusul."}
+            {onboarding.state === "completed" ? t("dashboard.onboardingCompletedProgress") : t("dashboard.onboardingActiveProgress")}
           </p>
         </div>
       </div>
@@ -85,7 +89,7 @@ export function DashboardOnboardingCard({ onboarding }: { onboarding: DashboardO
           >
             <div className="flex items-start justify-between gap-3">
               <div className="rounded-full bg-card px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-strong">
-                Langkah {index + 1}
+                {t("dashboard.onboardingStepLabel", { count: index + 1 })}
               </div>
               <span
                 className={cn(
@@ -117,11 +121,13 @@ export function DashboardOnboardingCard({ onboarding }: { onboarding: DashboardO
             disabled={isPending}
             className="rounded-full px-3 py-2 font-label text-xs text-muted-foreground transition hover:bg-muted disabled:opacity-60"
           >
-            Lewati dulu
+            {t("dashboard.onboardingSkip")}
           </button>
         </div>
       ) : (
-        <p className="mt-5 text-sm text-muted-foreground">{isAutoCompleting || isPending ? "Merapikan dashboard..." : "Dashboard siap dipakai."}</p>
+        <p className="mt-5 text-sm text-muted-foreground">
+          {isAutoCompleting || isPending ? t("dashboard.onboardingAutoCompleting") : t("dashboard.onboardingReady")}
+        </p>
       )}
     </section>
   );

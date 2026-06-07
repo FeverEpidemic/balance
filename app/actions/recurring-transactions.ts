@@ -5,6 +5,7 @@ import { invalidateWalletReadCaches } from "@/lib/data/cache";
 import { findFirstRunAtOrAfter, normalizeScheduledDate } from "@/lib/recurring";
 import {
   errorResult,
+  getActionTranslator,
   getNullableText,
   getNumericValue,
   getStringValue,
@@ -32,29 +33,29 @@ function readRecurringForm(formData: FormData) {
   };
 }
 
-function validateRecurringInput(input: ReturnType<typeof readRecurringForm>) {
+function validateRecurringInput(input: ReturnType<typeof readRecurringForm>, t: Awaited<ReturnType<typeof getActionTranslator>>) {
   if (!input.startDate || !isValidDateString(input.startDate)) {
-    return "Tanggal mulai recurring harus diisi dengan format yang valid.";
+    return t("actionErrors.recurringStartDateInvalid");
   }
 
   if (input.endDate && !isValidDateString(input.endDate)) {
-    return "Tanggal akhir recurring harus valid.";
+    return t("actionErrors.recurringEndDateInvalid");
   }
 
   if (input.endDate && input.endDate < input.startDate) {
-    return "Tanggal akhir tidak boleh sebelum tanggal mulai.";
+    return t("actionErrors.recurringEndBeforeStart");
   }
 
   if (!input.amount || input.amount <= 0) {
-    return "Nominal recurring harus lebih besar dari nol.";
+    return t("actionErrors.recurringAmountInvalid");
   }
 
   if (!input.intervalCount || input.intervalCount < 1) {
-    return "Interval recurring minimal 1.";
+    return t("actionErrors.recurringIntervalInvalid");
   }
 
   if (!ALLOWED_FREQUENCIES.has(input.frequency as RecurringFrequency)) {
-    return "Frekuensi recurring tidak valid.";
+    return t("actionErrors.recurringFrequencyInvalid");
   }
 
   return null;
@@ -82,7 +83,8 @@ function buildScheduleFields(args: {
 
 export async function createRecurringTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const input = readRecurringForm(formData);
-  const validationError = validateRecurringInput(input);
+  const t = await getActionTranslator();
+  const validationError = validateRecurringInput(input, t);
 
   if (validationError) {
     return errorResult(validationError);
@@ -114,19 +116,20 @@ export async function createRecurringTransaction(_prevState: ActionResult, formD
   await revalidateWalletPaths(input.walletId, {
     sections: ["recurring"]
   });
-  return successResult("Recurring transaction berhasil disimpan.", { resetForm: true });
+  return successResult(t("actionSuccess.recurringSaved"), { resetForm: true });
 }
 
 export async function updateRecurringTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const input = readRecurringForm(formData);
-  const validationError = validateRecurringInput(input);
+  const t = await getActionTranslator();
+  const validationError = validateRecurringInput(input, t);
 
   if (validationError) {
     return errorResult(validationError);
   }
 
   if (!input.recurringTransactionId) {
-    return errorResult("Recurring transaction tidak ditemukan.");
+    return errorResult(t("actionErrors.recurringNotFound"));
   }
 
   const { supabase, user } = await requireUser();
@@ -138,7 +141,7 @@ export async function updateRecurringTransaction(_prevState: ActionResult, formD
     .maybeSingle();
 
   if (existingError || !existing) {
-    return errorResult(existingError?.message ?? "Recurring transaction tidak ditemukan.");
+    return errorResult(existingError?.message ?? t("actionErrors.recurringNotFound"));
   }
 
   const schedule = buildScheduleFields({
@@ -174,16 +177,17 @@ export async function updateRecurringTransaction(_prevState: ActionResult, formD
   await revalidateWalletPaths(input.walletId, {
     sections: ["recurring"]
   });
-  return successResult("Recurring transaction berhasil diperbarui.");
+  return successResult(t("actionSuccess.recurringUpdated"));
 }
 
 export async function pauseRecurringTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const walletId = getStringValue(formData, "wallet_id");
   const recurringTransactionId = getStringValue(formData, "recurring_transaction_id");
   const { supabase, user } = await requireUser();
+  const t = await getActionTranslator();
 
   if (!recurringTransactionId) {
-    return errorResult("Recurring transaction tidak ditemukan.");
+    return errorResult(t("actionErrors.recurringNotFound"));
   }
 
   const { error } = await supabase
@@ -203,16 +207,17 @@ export async function pauseRecurringTransaction(_prevState: ActionResult, formDa
   await revalidateWalletPaths(walletId, {
     sections: ["recurring"]
   });
-  return successResult("Recurring transaction dijeda.");
+  return successResult(t("actionSuccess.recurringPaused"));
 }
 
 export async function resumeRecurringTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const walletId = getStringValue(formData, "wallet_id");
   const recurringTransactionId = getStringValue(formData, "recurring_transaction_id");
   const { supabase, user } = await requireUser();
+  const t = await getActionTranslator();
 
   if (!recurringTransactionId) {
-    return errorResult("Recurring transaction tidak ditemukan.");
+    return errorResult(t("actionErrors.recurringNotFound"));
   }
 
   const { data: existing, error: existingError } = await supabase
@@ -223,7 +228,7 @@ export async function resumeRecurringTransaction(_prevState: ActionResult, formD
     .maybeSingle();
 
   if (existingError || !existing) {
-    return errorResult(existingError?.message ?? "Recurring transaction tidak ditemukan.");
+    return errorResult(existingError?.message ?? t("actionErrors.recurringNotFound"));
   }
 
   const schedule = buildScheduleFields({
@@ -234,7 +239,7 @@ export async function resumeRecurringTransaction(_prevState: ActionResult, formD
   });
 
   if (schedule.status === "ended") {
-    return errorResult("Recurring transaction sudah berakhir dan tidak bisa dilanjutkan.");
+    return errorResult(t("actionErrors.recurringAlreadyEnded"));
   }
 
   const { error } = await supabase
@@ -255,16 +260,17 @@ export async function resumeRecurringTransaction(_prevState: ActionResult, formD
   await revalidateWalletPaths(walletId, {
     sections: ["recurring"]
   });
-  return successResult("Recurring transaction dilanjutkan kembali.");
+  return successResult(t("actionSuccess.recurringResumed"));
 }
 
 export async function deleteRecurringTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const walletId = getStringValue(formData, "wallet_id");
   const recurringTransactionId = getStringValue(formData, "recurring_transaction_id");
   const { supabase } = await requireUser();
+  const t = await getActionTranslator();
 
   if (!recurringTransactionId) {
-    return errorResult("Recurring transaction tidak ditemukan.");
+    return errorResult(t("actionErrors.recurringNotFound"));
   }
 
   const { error } = await supabase
@@ -281,5 +287,5 @@ export async function deleteRecurringTransaction(_prevState: ActionResult, formD
   await revalidateWalletPaths(walletId, {
     sections: ["recurring"]
   });
-  return successResult("Recurring transaction berhasil dihapus.");
+  return successResult(t("actionSuccess.recurringDeleted"));
 }

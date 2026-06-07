@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLocale } from "@/components/providers/locale-provider";
 import { Button } from "@/components/ui/button";
+import { getTranslator } from "@/lib/i18n";
 
 declare global {
   interface BeforeInstallPromptEvent extends Event {
@@ -13,6 +15,8 @@ declare global {
 const DISMISS_KEY = "balance-pwa-install-dismissed";
 
 export function InstallPrompt() {
+  const locale = useLocale();
+  const t = getTranslator(locale);
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [isDismissed, setIsDismissed] = useState(true);
   const [isInstalling, setIsInstalling] = useState(false);
@@ -78,17 +82,17 @@ export function InstallPrompt() {
     <div className="glass-panel mt-6 max-w-2xl rounded-[1.5rem] p-4 backdrop-blur-sm">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="font-label text-xs uppercase tracking-[0.16em] text-primary-strong">Install aplikasi</p>
+          <p className="font-label text-xs uppercase tracking-[0.16em] text-primary-strong">{t("pwa.installTitle")}</p>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Simpan Balance ke homescreen biar buka catatan uang terasa lebih cepat dan rapi.
+            {t("pwa.installDescription")}
           </p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <Button type="button" size="sm" onClick={handleInstall} className={isInstalling ? "opacity-80" : undefined}>
-            {isInstalling ? "Menyiapkan..." : "Install"}
+            {isInstalling ? t("pwa.installPending") : t("pwa.installButton")}
           </Button>
           <Button type="button" size="sm" variant="ghost" onClick={dismissPrompt}>
-            Nanti dulu
+            {t("pwa.installLater")}
           </Button>
         </div>
       </div>

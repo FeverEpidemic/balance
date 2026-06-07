@@ -6,14 +6,14 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { ensureProfileForUser } from "@/lib/profile";
 import { invalidateDashboardCache } from "@/lib/data/cache";
-import { localizePath } from "@/lib/i18n";
+import { localizePath, translate } from "@/lib/i18n";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentMonthKey } from "@/lib/finance";
 import { getBudgetPresetRows, getStarterCategories, getStarterTemplates, type BudgetPreset, type WalletSetupPreset } from "@/lib/wallet-starter-templates";
 import {
   MAX_WALLET_MEMBERS,
-  WALLET_ACCEPT_INVITATION_FULL_MESSAGE,
-  WALLET_CAPACITY_REACHED_MESSAGE
+  getWalletAcceptInvitationFullMessage,
+  getWalletCapacityReachedMessage
 } from "@/lib/wallet-capacity";
 import { getActionLocale, getLocalizedPath, getStringValue, getTrimmedValue, getWalletMemberUserIds, redirectWithMessage, withMessage } from "@/app/actions/_shared";
 
@@ -55,9 +55,10 @@ export async function createWallet(formData: FormData) {
   const { name, kind, setupPreset, budgetPreset } = readWalletForm(formData);
   const { supabase, user } = await requireUser();
   const profile = await ensureProfileForUser(user);
+  const locale = await getActionLocale();
 
   if (!profile) {
-    return await redirectWithMessage("/wallets", "error", "Profile belum sinkron. Jalankan migrasi 0002 atau isi SUPABASE_SECRET_KEY.");
+    return await redirectWithMessage("/wallets", "error", translate(locale, "actionErrors.profileNotSynced"));
   }
 
   const { data: wallet, error: walletError } = await supabase
@@ -73,7 +74,7 @@ export async function createWallet(formData: FormData) {
     .single();
 
   if (walletError || !wallet) {
-    return await redirectWithMessage("/wallets", "error", walletError?.message ?? "Gagal membuat wallet.");
+    return await redirectWithMessage("/wallets", "error", walletError?.message ?? translate(locale, "actionErrors.walletCreateFailed"));
   }
 
   const { error: memberError } = await supabase.from("wallet_members").insert({
@@ -105,7 +106,7 @@ export async function createWallet(formData: FormData) {
     .select("id, name, kind");
 
   if (categoryError || !createdCategories) {
-    return await redirectWithMessage("/wallets", "error", categoryError?.message ?? "Gagal membuat kategori default.");
+    return await redirectWithMessage("/wallets", "error", categoryError?.message ?? translate(locale, "actionErrors.defaultCategoriesCreateFailed"));
   }
 
   const categoryMap = new Map(
@@ -172,7 +173,6 @@ export async function createWallet(formData: FormData) {
   }
 
   await invalidateDashboardCache([user.id]);
-  const locale = await getActionLocale();
   revalidatePath(localizePath(locale, "/dashboard"));
   revalidatePath(localizePath(locale, "/wallets"));
   redirect(localizePath(locale, `/wallets/${wallet.id}`));
@@ -185,19 +185,20 @@ export async function createWalletInvitation(formData: FormData) {
   const { supabase, user } = await requireUser();
   const localizedWalletsPath = await getLocalizedPath("/wallets");
   const localizedRedirectPath = await getLocalizedPath(redirectPath);
+  const locale = await getActionLocale();
 
   if (!walletId) {
-    redirect(withMessage(localizedWalletsPath, "error", "Wallet tidak ditemukan."));
+    redirect(withMessage(localizedWalletsPath, "error", translate(locale, "actionErrors.walletNotFound")));
   }
 
   if (!["editor", "viewer"].includes(role)) {
-    redirect(withMessage(localizedRedirectPath, "error", "Peran undangan tidak valid."));
+    redirect(withMessage(localizedRedirectPath, "error", translate(locale, "actionErrors.invalidInviteRole")));
   }
 
   const profile = await ensureProfileForUser(user);
 
   if (!profile) {
-    redirect(withMessage(localizedRedirectPath, "error", "Profile belum sinkron. Jalankan migrasi 0002 atau isi SUPABASE_SECRET_KEY."));
+    redirect(withMessage(localizedRedirectPath, "error", translate(locale, "actionErrors.profileNotSynced")));
   }
 
   const [{ data: membership, error: membershipError }, { data: wallet, error: walletError }] = await Promise.all([
@@ -206,11 +207,11 @@ export async function createWalletInvitation(formData: FormData) {
   ]);
 
   if (membershipError || membership?.role !== "owner") {
-    redirect(withMessage(localizedRedirectPath, "error", "Hanya owner wallet yang dapat mengundang anggota."));
+    redirect(withMessage(localizedRedirectPath, "error", translate(locale, "actionErrors.inviteOwnerOnly")));
   }
 
   if (walletError || !wallet) {
-    redirect(withMessage(localizedRedirectPath, "error", walletError?.message ?? "Wallet tidak ditemukan."));
+    redirect(withMessage(localizedRedirectPath, "error", walletError?.message ?? translate(locale, "actionErrors.walletNotFound")));
   }
 
   const capacity = await getWalletCapacitySnapshot(supabase, walletId);
@@ -220,7 +221,7 @@ export async function createWalletInvitation(formData: FormData) {
   }
 
   if (capacity.memberCount + capacity.pendingInvitationCount >= MAX_WALLET_MEMBERS) {
-    redirect(withMessage(localizedRedirectPath, "error", WALLET_CAPACITY_REACHED_MESSAGE));
+    redirect(withMessage(localizedRedirectPath, "error", getWalletCapacityReachedMessage(locale)));
   }
 
   const token = randomBytes(24).toString("hex");
@@ -245,11 +246,13 @@ export async function createWalletInvitation(formData: FormData) {
   const { data: invitation, error: invitationError } = invitationResult;
 
   if (invitationError || !invitation) {
-    redirect(withMessage(localizedRedirectPath, "error", invitationError?.message ?? "Gagal membuat undangan wallet."));
+    redirect(withMessage(localizedRedirectPath, "error", invitationError?.message ?? translate(locale, "actionErrors.walletInvitationCreateFailed")));
   }
 
   revalidatePath(localizedRedirectPath);
-  redirect(withMessage(localizedRedirectPath, "message", `Tautan undangan ${invitation.role} berhasil dibuat.`));
+  redirect(withMessage(localizedRedirectPath, "message", translate(locale, "actionSuccess.walletInvitationCreated", {
+    role: translate(locale, `members.role${invitation.role.charAt(0).toUpperCase()}${invitation.role.slice(1)}`)
+  })));
 }
 
 export async function acceptWalletInvitation(formData: FormData) {
@@ -258,19 +261,20 @@ export async function acceptWalletInvitation(formData: FormData) {
   const admin = createAdminClient();
   const invitePath = await getLocalizedPath(`/invite/${token}`);
   const walletsPath = await getLocalizedPath("/wallets");
+  const locale = await getActionLocale();
 
   if (!token) {
-    redirect(withMessage(walletsPath, "error", "Token undangan tidak ditemukan."));
+    redirect(withMessage(walletsPath, "error", translate(locale, "actionErrors.inviteTokenMissing")));
   }
 
   if (!admin) {
-    redirect(withMessage(invitePath, "error", "SUPABASE_SECRET_KEY wajib diisi agar undangan dapat diterima."));
+    redirect(withMessage(invitePath, "error", translate(locale, "actionErrors.inviteSecretMissing")));
   }
 
   const profile = await ensureProfileForUser(user);
 
   if (!profile) {
-    redirect(withMessage(invitePath, "error", "Profile belum sinkron. Jalankan migrasi 0002 atau isi SUPABASE_SECRET_KEY."));
+    redirect(withMessage(invitePath, "error", translate(locale, "actionErrors.profileNotSynced")));
   }
 
   const { data: invitation, error: invitationError } = await admin
@@ -280,15 +284,15 @@ export async function acceptWalletInvitation(formData: FormData) {
     .maybeSingle();
 
   if (invitationError || !invitation) {
-    redirect(withMessage(invitePath, "error", invitationError?.message ?? "Undangan tidak ditemukan."));
+    redirect(withMessage(invitePath, "error", invitationError?.message ?? translate(locale, "actionErrors.inviteNotFound")));
   }
 
   if (invitation.status === "accepted") {
-    redirect(withMessage(await getLocalizedPath(`/wallets/${invitation.wallet_id}`), "message", "Undangan ini sudah pernah diterima."));
+    redirect(withMessage(await getLocalizedPath(`/wallets/${invitation.wallet_id}`), "message", translate(locale, "actionErrors.inviteAlreadyAccepted")));
   }
 
   if (invitation.status === "revoked") {
-    redirect(withMessage(invitePath, "error", "Undangan ini sudah dibatalkan oleh pemilik wallet."));
+    redirect(withMessage(invitePath, "error", translate(locale, "actionErrors.inviteRevoked")));
   }
 
   if (new Date(invitation.expires_at).getTime() < Date.now()) {
@@ -300,7 +304,7 @@ export async function acceptWalletInvitation(formData: FormData) {
       })
       .eq("id", invitation.id);
 
-    redirect(withMessage(invitePath, "error", "Undangan ini sudah kedaluwarsa."));
+    redirect(withMessage(invitePath, "error", translate(locale, "actionErrors.inviteExpired")));
   }
 
   const { data: existingMember, error: existingMemberError } = await admin
@@ -322,7 +326,7 @@ export async function acceptWalletInvitation(formData: FormData) {
     }
 
     if (capacity.memberCount + capacity.pendingInvitationCount > MAX_WALLET_MEMBERS) {
-      redirect(withMessage(invitePath, "error", WALLET_ACCEPT_INVITATION_FULL_MESSAGE));
+      redirect(withMessage(invitePath, "error", getWalletAcceptInvitationFullMessage(locale)));
     }
   }
 
@@ -332,15 +336,14 @@ export async function acceptWalletInvitation(formData: FormData) {
   });
 
   if (acceptError || !acceptedWalletId) {
-    const errorMessage = acceptError?.message ?? "Gagal menerima undangan wallet.";
-    redirect(withMessage(invitePath, "error", isWalletCapacityError(errorMessage) ? WALLET_ACCEPT_INVITATION_FULL_MESSAGE : errorMessage));
+    const errorMessage = acceptError?.message ?? translate(locale, "actionErrors.walletInvitationAcceptFailed");
+    redirect(withMessage(invitePath, "error", isWalletCapacityError(errorMessage) ? getWalletAcceptInvitationFullMessage(locale) : errorMessage));
   }
 
   const dashboardUserIds = await getWalletMemberUserIds(admin, acceptedWalletId);
   await invalidateDashboardCache(dashboardUserIds);
-  const locale = await getActionLocale();
   revalidatePath(localizePath(locale, "/dashboard"));
   revalidatePath(localizePath(locale, "/wallets"));
   revalidatePath(await getLocalizedPath(membersPath(acceptedWalletId)));
-  redirect(withMessage(await getLocalizedPath(`/wallets/${acceptedWalletId}`), "message", "Undangan berhasil diterima."));
+  redirect(withMessage(await getLocalizedPath(`/wallets/${acceptedWalletId}`), "message", translate(locale, "actionSuccess.walletInvitationAccepted")));
 }

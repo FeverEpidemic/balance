@@ -5,7 +5,8 @@ import { redirect } from "next/navigation";
 import { parseNumberInput } from "@/lib/finance";
 import { requireUser } from "@/lib/auth";
 import { invalidateWalletReadCaches } from "@/lib/data/cache";
-import { getLocalizedPath } from "@/app/actions/_shared";
+import { getActionLocale, getLocalizedPath } from "@/app/actions/_shared";
+import { translate } from "@/lib/i18n";
 
 async function redirectToTemplates(walletId: string, type: "error" | "message", message: string) {
   const path = await getLocalizedPath(`/wallets/${walletId}/templates`);
@@ -20,6 +21,11 @@ export async function createTemplate(formData: FormData) {
   const note = String(formData.get("note") ?? "").trim();
   const defaultAmount = parseNumberInput(formData.get("default_amount"));
   const { supabase, user } = await requireUser();
+  const locale = await getActionLocale();
+
+  if (defaultAmount !== null && defaultAmount < 0) {
+    await redirectToTemplates(walletId, "error", translate(locale, "templates.amountInvalid"));
+  }
 
   const { error } = await supabase.from("transaction_templates").insert({
     wallet_id: walletId,
@@ -38,5 +44,5 @@ export async function createTemplate(formData: FormData) {
 
   await invalidateWalletReadCaches(walletId, { targets: ["overview"] });
   revalidatePath(await getLocalizedPath(`/wallets/${walletId}/templates`));
-  await redirectToTemplates(walletId, "message", "Template berhasil disimpan.");
+  await redirectToTemplates(walletId, "message", translate(locale, "templates.savedMessage"));
 }

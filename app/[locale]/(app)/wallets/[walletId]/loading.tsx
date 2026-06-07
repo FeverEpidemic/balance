@@ -1,5 +1,6 @@
+import { getActionLocale } from "@/app/actions/_shared";
 import { WalletOverviewLoadingSkeleton } from "@/components/ui/page-loading-skeleton";
 
-export default function WalletOverviewLoading() {
-  return <WalletOverviewLoadingSkeleton />;
+export default async function WalletOverviewLoading() {
+  return <WalletOverviewLoadingSkeleton locale={await getActionLocale()} />;
 }

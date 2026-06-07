@@ -173,20 +173,25 @@ describe("redis cache wrapper", () => {
 describe("cache key scoping", () => {
   it("builds user-scoped and wallet-scoped keys", () => {
     expect(getDashboardCacheKey("u1")).toBe("user:u1:dashboard");
+    expect(getDashboardCacheKey("u1", "en")).toBe("user:u1:dashboard:en");
     expect(getWalletOverviewCacheKey("u1", "w1")).toBe("wallet:w1:user:u1:overview");
+    expect(getWalletOverviewCacheKey("u1", "w1", "en")).toBe("wallet:w1:user:u1:overview:en");
     expect(getTransactionsCacheKey("u1", "w1", "2026-05")).toBe("wallet:w1:user:u1:transactions:2026-05");
+    expect(getTransactionsCacheKey("u1", "w1", "2026-05", "en")).toBe("wallet:w1:user:u1:transactions:2026-05:en");
     expect(getBudgetsCacheKey("u1", "w1", "2026-05")).toBe("wallet:w1:user:u1:budgets:2026-05");
     expect(getRecurringCacheKey("u1", "w1")).toBe("wallet:w1:user:u1:recurring");
+    expect(getRecurringCacheKey("u1", "w1", "en")).toBe("wallet:w1:user:u1:recurring:en");
     expect(getSavingsCacheKey("u1", "w1")).toBe("wallet:w1:user:u1:savings");
+    expect(getSavingsCacheKey("u1", "w1", "en")).toBe("wallet:w1:user:u1:savings:en");
   });
 
   it("builds wallet cache patterns per target", () => {
     expect(getWalletReadCachePatterns("w1", ["overview", "transactions", "budgets", "recurring", "savings"])).toEqual([
-      "wallet:w1:user:*:overview",
+      "wallet:w1:user:*:overview*",
       "wallet:w1:user:*:transactions:*",
       "wallet:w1:user:*:budgets:*",
-      "wallet:w1:user:*:recurring",
-      "wallet:w1:user:*:savings"
+      "wallet:w1:user:*:recurring*",
+      "wallet:w1:user:*:savings*"
     ]);
   });
 });
@@ -207,11 +212,13 @@ describe("granular cache invalidation helpers", () => {
 
     expect(patternSpy).toHaveBeenCalledWith([
       "wallet:w1:user:*:transactions:*",
-      "wallet:w1:user:*:savings"
+      "wallet:w1:user:*:savings*"
     ]);
     expect(dashboardSpy).toHaveBeenCalledWith([
       getDashboardCacheKey("u1"),
-      getDashboardCacheKey("u2")
+      getDashboardCacheKey("u1", "en"),
+      getDashboardCacheKey("u2"),
+      getDashboardCacheKey("u2", "en")
     ]);
   });
 
@@ -223,7 +230,9 @@ describe("granular cache invalidation helpers", () => {
 
     expect(delSpy).toHaveBeenCalledWith([
       getDashboardCacheKey("u1"),
-      getDashboardCacheKey("u3")
+      getDashboardCacheKey("u1", "en"),
+      getDashboardCacheKey("u3"),
+      getDashboardCacheKey("u3", "en")
     ]);
     expect(prefixSpy).not.toHaveBeenCalled();
   });

@@ -1,5 +1,6 @@
+import { getActionLocale } from "@/app/actions/_shared";
 import { AppAreaLoadingSkeleton } from "@/components/ui/page-loading-skeleton";
 
-export default function AppAreaLoading() {
-  return <AppAreaLoadingSkeleton />;
+export default async function AppAreaLoading() {
+  return <AppAreaLoadingSkeleton locale={await getActionLocale()} />;
 }

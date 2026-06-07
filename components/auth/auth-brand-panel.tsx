@@ -4,11 +4,16 @@ type AuthBrandPanelProps = {
     label: string;
     value: string;
   }>;
+  rhythmItems: Array<{
+    label: string;
+    value: string;
+  }>;
+  rhythmTitle: string;
   subtitle: string;
   title: string;
 };
 
-export function AuthBrandPanel({ eyebrow, highlights, subtitle, title }: AuthBrandPanelProps) {
+export function AuthBrandPanel({ eyebrow, highlights, rhythmItems, rhythmTitle, subtitle, title }: AuthBrandPanelProps) {
   return (
     <section className="card relative hidden overflow-hidden lg:block">
       <div
@@ -34,20 +39,14 @@ export function AuthBrandPanel({ eyebrow, highlights, subtitle, title }: AuthBra
         </div>
 
         <div className="glass-panel mt-8 rounded-2xl p-5">
-          <p className="font-label text-xs uppercase tracking-[0.16em] text-primary-strong">Ritme yang lebih tenang</p>
+          <p className="font-label text-xs uppercase tracking-[0.16em] text-primary-strong">{rhythmTitle}</p>
           <div className="mt-4 grid gap-3">
-            <div className="flex items-center justify-between gap-3 rounded-xl bg-muted px-4 py-3">
-              <span className="text-sm text-muted-foreground">Catat arus kas harian</span>
-              <span className="font-label text-xs uppercase tracking-[0.12em] text-primary-strong">Ringkas</span>
-            </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl bg-muted px-4 py-3">
-              <span className="text-sm text-muted-foreground">Pantau anggaran per kategori</span>
-              <span className="font-label text-xs uppercase tracking-[0.12em] text-primary-strong">Jelas</span>
-            </div>
-            <div className="flex items-center justify-between gap-3 rounded-xl bg-muted px-4 py-3">
-              <span className="text-sm text-muted-foreground">Bagi akses wallet dengan keluarga</span>
-              <span className="font-label text-xs uppercase tracking-[0.12em] text-primary-strong">Kolaboratif</span>
-            </div>
+            {rhythmItems.map((item) => (
+              <div key={item.label} className="flex items-center justify-between gap-3 rounded-xl bg-muted px-4 py-3">
+                <span className="text-sm text-muted-foreground">{item.label}</span>
+                <span className="font-label text-xs uppercase tracking-[0.12em] text-primary-strong">{item.value}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>

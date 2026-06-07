@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { ToastFeedback } from "@/components/ui/toast-feedback";
-import { resolveLocale } from "@/lib/i18n";
+import { localizePath, resolveLocale, getTranslator, translate } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/utils";
 
 type InviteRecord = {
@@ -26,6 +26,7 @@ export default async function InvitePage({
 }) {
   const { locale: localeParam, token } = await params;
   const locale = resolveLocale(localeParam);
+  const t = getTranslator(locale);
   const query = await searchParams;
   const admin = createAdminClient();
   const supabase = await createClient();
@@ -34,7 +35,7 @@ export default async function InvitePage({
   } = await supabase.auth.getUser();
 
   let invitation: InviteRecord | null = null;
-  let walletName = "Wallet bersama";
+  let walletName = t("invite.walletFallback");
 
   if (admin) {
     const { data } = await admin
@@ -51,36 +52,38 @@ export default async function InvitePage({
     }
   }
 
-  const nextHref = encodeURIComponent(`/invite/${token}`);
+  const nextHref = encodeURIComponent(localizePath(locale, `/invite/${token}`));
   const isExpired = invitation ? new Date(invitation.expires_at).getTime() < Date.now() : false;
 
   return (
     <main className="page-wrap section-gap">
       <ToastFeedback error={query.error} message={query.message} />
       <div className="mx-auto max-w-2xl card">
-        <Badge>Undangan wallet</Badge>
-        <h1 className="headline-lg mt-4">Gabung ke wallet bersama</h1>
+        <Badge>{t("invite.badge")}</Badge>
+        <h1 className="headline-lg mt-4">{t("invite.title")}</h1>
 
         {!admin ? (
           <div className="mt-4">
-            <Notice tone="error">SUPABASE_SECRET_KEY belum diisi, jadi data undangan tidak bisa diverifikasi.</Notice>
+            <Notice tone="error">{t("invite.adminMissing")}</Notice>
           </div>
         ) : !invitation ? (
           <div className="mt-4">
-            <Notice tone="error">Undangan tidak ditemukan atau token sudah tidak berlaku.</Notice>
+            <Notice tone="error">{t("invite.notFound")}</Notice>
           </div>
         ) : (
           <>
             <p className="mt-4 text-muted-foreground">
-              Anda diundang ke <span className="font-label text-foreground">{walletName}</span> sebagai{" "}
-              <span className="font-label text-foreground">{invitation.role}</span>. Jika Anda menerima undangan ini,
-              akun yang sedang login akan ditambahkan ke wallet tersebut.
+              {t("invite.description", {
+                walletName,
+                role: translate(locale, `members.role${invitation.role.charAt(0).toUpperCase()}${invitation.role.slice(1)}`)
+              })}
             </p>
             <p className="mt-3 text-sm text-muted-foreground">
-              Berlaku sampai{" "}
-              {formatDateTime(invitation.expires_at, locale, {
-                dateStyle: "medium",
-                timeStyle: "short"
+              {t("invite.expiresAt", {
+                date: formatDateTime(invitation.expires_at, locale, {
+                  dateStyle: "medium",
+                  timeStyle: "short"
+                })
               })}
             </p>
           </>
@@ -88,24 +91,20 @@ export default async function InvitePage({
 
         <div className="mt-8 grid min-w-0 gap-3">
           {!invitation || !admin ? null : invitation.status === "accepted" ? (
-            <Notice tone="success">Undangan ini sudah diterima sebelumnya.</Notice>
+            <Notice tone="success">{t("invite.accepted")}</Notice>
           ) : invitation.status === "revoked" ? (
-            <Notice tone="error">Undangan ini sudah dibatalkan oleh pemilik wallet.</Notice>
+            <Notice tone="error">{t("invite.revoked")}</Notice>
           ) : isExpired || invitation.status === "expired" ? (
-            <Notice tone="error">Undangan ini sudah kedaluwarsa.</Notice>
+            <Notice tone="error">{t("invite.expired")}</Notice>
           ) : !user ? (
             <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-              <Button href={`/login?next=${nextHref}`}>Login untuk menerima</Button>
-              <Button href={`/register?next=${nextHref}`} variant="ghost">
-                Daftar akun baru
-              </Button>
+              <Button href={`${localizePath(locale, "/login")}?next=${nextHref}`}>{t("invite.loginButton")}</Button>
+              <Button href={`${localizePath(locale, "/register")}?next=${nextHref}`} variant="ghost">{t("invite.registerButton")}</Button>
             </div>
           ) : (
             <form action={acceptWalletInvitation}>
               <input type="hidden" name="token" value={token} />
-              <SubmitButton className="w-full" pendingText="Menerima undangan...">
-                Terima undangan
-              </SubmitButton>
+              <SubmitButton className="w-full" pendingText={t("invite.acceptPending")}>{t("invite.acceptButton")}</SubmitButton>
             </form>
           )}
         </div>

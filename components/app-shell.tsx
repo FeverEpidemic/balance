@@ -86,7 +86,7 @@ export function AppShell({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="eyebrow">balance</p>
-              <h1 className="headline-md mt-2">{locale === "en" ? "Structured finances create peace of mind." : "Keuangan yang terstruktur menciptakan ketenangan pikiran"}</h1>
+              <h1 className="headline-md mt-2">{t("app.shellHeroTitle")}</h1>
               <p className="mt-3 text-sm text-muted-foreground">{userName}</p>
             </div>
             <form action={logout}>
@@ -122,13 +122,13 @@ export function AppShell({
                   </SheetTrigger>
                   <SheetContent>
                     <SheetHeader>
-                      <p className="eyebrow">{locale === "en" ? "Navigation" : "Navigasi"}</p>
-                      <SheetTitle>{locale === "en" ? "Browse wallet areas and main pages" : "Jelajahi wallet dan halaman utama"}</SheetTitle>
-                      <SheetDescription>{locale === "en" ? "Use this drawer to jump to more detailed wallet destinations without disturbing the main bottom navigation." : "Pakai drawer ini untuk pindah ke tujuan wallet yang lebih lengkap tanpa mengganggu bottom navigation utama."}</SheetDescription>
+                      <p className="eyebrow">{t("app.navigationEyebrow")}</p>
+                      <SheetTitle>{t("app.navigationTitle")}</SheetTitle>
+                      <SheetDescription>{t("app.navigationDescription")}</SheetDescription>
                     </SheetHeader>
                     <div className="mt-6 space-y-6 overflow-y-auto pb-4">
                       <div>
-                        <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{locale === "en" ? "Main" : "Utama"}</p>
+                        <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{t("app.navigationMain")}</p>
                         <nav className="mt-3 space-y-2">
                           {mobileNavItems.map((item) => (
                 <SheetClose key={item.href} asChild>
@@ -149,7 +149,7 @@ export function AppShell({
                       </div>
                       {mobileWalletShortcuts.length > 0 ? (
                         <div>
-                          <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{locale === "en" ? "Active wallet" : "Wallet aktif"}</p>
+                          <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{t("app.navigationActiveWallet")}</p>
                           <nav className="mt-3 space-y-2">
                             {mobileWalletShortcuts.map((item) => (
                               <SheetClose key={item.href} asChild>
@@ -185,7 +185,7 @@ export function AppShell({
                   {headerAction ? <div className="shrink-0 md:hidden">{headerAction}</div> : null}
                 </div>
                 <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                  {locale === "en" ? "Review your finances, tidy up records, and keep a calm money rhythm every day." : "Cek kondisi keuangan, rapikan catatan, dan jaga ritme finansial tetap tenang setiap hari."}
+                  {t("app.shellHeaderDescription")}
                 </p>
                 {mobileWalletShortcuts.length > 0 ? (
                   <div className="touch-scroll-x mt-4 flex gap-2 pb-1 pr-1 lg:hidden">

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { defaultLocale, getTranslator, type AppLocale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 function isActivePath(currentPath: string, href: string) {
@@ -108,43 +109,46 @@ function PublicPageShell({ children, fullHeight = false }: { children: ReactNode
 function AppShellSkeleton({
   currentPath,
   title,
+  locale = defaultLocale,
   walletContext = false,
   children
 }: {
   currentPath: string;
   title: string;
+  locale?: AppLocale;
   walletContext?: boolean;
   children: ReactNode;
 }) {
+  const t = getTranslator(locale);
   const walletId = walletContext ? "loading-wallet" : null;
   const navItems = [
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/wallets", label: "Wallet" },
-    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: "Transaksi" },
-    { href: walletId ? `/wallets/${walletId}/savings` : "/wallets", label: "Tabungan" },
-    { href: walletId ? `/wallets/${walletId}/budgets` : "/wallets", label: "Anggaran" },
-    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: "Laporan" },
-    { href: walletId ? `/wallets/${walletId}/members` : "/wallets", label: "Anggota" },
-    { href: walletId ? `/wallets/${walletId}/settlements` : "/wallets", label: "Pelunasan" },
-    { href: walletId ? `/wallets/${walletId}/templates` : "/wallets", label: "Template" }
+    { href: "/dashboard", label: t("common.dashboard") },
+    { href: "/wallets", label: t("common.wallet") },
+    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: t("common.transactions") },
+    { href: walletId ? `/wallets/${walletId}/savings` : "/wallets", label: t("common.savings") },
+    { href: walletId ? `/wallets/${walletId}/budgets` : "/wallets", label: t("common.budgets") },
+    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: t("common.reports") },
+    { href: walletId ? `/wallets/${walletId}/members` : "/wallets", label: t("common.members") },
+    { href: walletId ? `/wallets/${walletId}/settlements` : "/wallets", label: t("common.settlements") },
+    { href: walletId ? `/wallets/${walletId}/templates` : "/wallets", label: t("common.templates") }
   ];
   const mobileNavItems = [
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/wallets", label: "Wallet" },
-    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: "Transaksi" },
-    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: "Laporan" }
+    { href: "/dashboard", label: t("common.dashboard") },
+    { href: "/wallets", label: t("common.wallet") },
+    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: t("common.transactions") },
+    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: t("common.reports") }
   ];
   const shortcuts = walletId
     ? [
-        { href: `/wallets/${walletId}`, label: "Ringkasan" },
-        { href: `/wallets/${walletId}/transactions`, label: "Transaksi" },
-        { href: `/wallets/${walletId}/savings`, label: "Tabungan" },
-        { href: `/wallets/${walletId}/recurring`, label: "Otomatis" },
-        { href: `/wallets/${walletId}/budgets`, label: "Anggaran" },
-        { href: `/wallets/${walletId}/reports`, label: "Laporan" },
-        { href: `/wallets/${walletId}/members`, label: "Anggota" },
-        { href: `/wallets/${walletId}/settlements`, label: "Pelunasan" },
-        { href: `/wallets/${walletId}/templates`, label: "Template" }
+        { href: `/wallets/${walletId}`, label: t("common.overview") },
+        { href: `/wallets/${walletId}/transactions`, label: t("common.transactions") },
+        { href: `/wallets/${walletId}/savings`, label: t("common.savings") },
+        { href: `/wallets/${walletId}/recurring`, label: t("common.automatic") },
+        { href: `/wallets/${walletId}/budgets`, label: t("common.budgets") },
+        { href: `/wallets/${walletId}/reports`, label: t("common.reports") },
+        { href: `/wallets/${walletId}/members`, label: t("common.members") },
+        { href: `/wallets/${walletId}/settlements`, label: t("common.settlements") },
+        { href: `/wallets/${walletId}/templates`, label: t("common.templates") }
       ]
     : [];
 
@@ -205,7 +209,7 @@ function AppShellSkeleton({
               <div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
                 <SkeletonBlock className="h-11 w-full rounded-full md:w-36" />
                 <div className="grid w-full max-w-sm grid-cols-3 gap-2 rounded-xl bg-card p-2 shadow-serene md:w-auto">
-                  {["Wallet", "Anggaran", "Anggota"].map((label) => (
+                  {[t("common.wallet"), t("common.budgets"), t("common.members")].map((label) => (
                     <div key={label} className="rounded-lg bg-muted px-3 py-2 text-center">
                       <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
                       <SkeletonBlock className="mx-auto mt-2 h-6 w-10" />
@@ -239,9 +243,9 @@ function AppShellSkeleton({
   );
 }
 
-export function AppAreaLoadingSkeleton() {
+export function AppAreaLoadingSkeleton({ locale = defaultLocale }: { locale?: AppLocale }) {
   return (
-    <AppShellSkeleton currentPath="/dashboard" title="Memuat" walletContext>
+    <AppShellSkeleton currentPath="/dashboard" title={getTranslator(locale)("common.dashboard")} locale={locale} walletContext>
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="card">
           <PageSectionHeading />
@@ -256,9 +260,9 @@ export function AppAreaLoadingSkeleton() {
   );
 }
 
-export function DashboardLoadingSkeleton() {
+export function DashboardLoadingSkeleton({ locale = defaultLocale }: { locale?: AppLocale }) {
   return (
-    <AppShellSkeleton currentPath="/dashboard" title="Dashboard">
+    <AppShellSkeleton currentPath="/dashboard" title={getTranslator(locale)("common.dashboard")} locale={locale}>
       <StatGridSkeleton />
       <section className="mt-4 grid gap-4 2xl:grid-cols-12">
         <div className="card 2xl:col-span-7">
@@ -297,9 +301,9 @@ export function DashboardLoadingSkeleton() {
   );
 }
 
-export function WalletsLoadingSkeleton() {
+export function WalletsLoadingSkeleton({ locale = defaultLocale }: { locale?: AppLocale }) {
   return (
-    <AppShellSkeleton currentPath="/wallets" title="Wallet">
+    <AppShellSkeleton currentPath="/wallets" title={getTranslator(locale)("common.wallet")} locale={locale}>
       <section className="glass-panel mb-4 grid gap-4 rounded-2xl p-4 xl:grid-cols-[1fr_360px]">
         <div>
           <SkeletonBlock className="h-7 w-full max-w-[20rem]" />
@@ -348,9 +352,9 @@ export function WalletsLoadingSkeleton() {
   );
 }
 
-export function WalletOverviewLoadingSkeleton() {
+export function WalletOverviewLoadingSkeleton({ locale = defaultLocale }: { locale?: AppLocale }) {
   return (
-    <AppShellSkeleton currentPath="/wallets/loading-wallet" title="Wallet" walletContext>
+    <AppShellSkeleton currentPath="/wallets/loading-wallet" title={getTranslator(locale)("common.wallet")} locale={locale} walletContext>
       <StatGridSkeleton count={5} />
       <section className="mt-4 wallet-grid">
         <div className="card md:col-span-2">
@@ -373,16 +377,18 @@ export function WalletOverviewLoadingSkeleton() {
 export function FormListLoadingSkeleton({
   currentPath,
   title,
+  locale = defaultLocale,
   formFields = 5,
   listCount = 3
 }: {
   currentPath: string;
   title: string;
+  locale?: AppLocale;
   formFields?: number;
   listCount?: number;
 }) {
   return (
-    <AppShellSkeleton currentPath={currentPath} title={title} walletContext>
+    <AppShellSkeleton currentPath={currentPath} title={title} locale={locale} walletContext>
       <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
         <FormCardSkeleton fields={formFields} />
         <div className="card">
@@ -402,16 +408,18 @@ export function FormListLoadingSkeleton({
 export function DetailPageLoadingSkeleton({
   currentPath,
   title,
+  locale = defaultLocale,
   stats = false,
   chart = false
 }: {
   currentPath: string;
   title: string;
+  locale?: AppLocale;
   stats?: boolean;
   chart?: boolean;
 }) {
   return (
-    <AppShellSkeleton currentPath={currentPath} title={title} walletContext>
+    <AppShellSkeleton currentPath={currentPath} title={title} locale={locale} walletContext>
       {stats ? (
         <section className="grid gap-4 md:grid-cols-3">
           <SkeletonBlock className="card h-28 w-full" />

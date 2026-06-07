@@ -1,8 +1,17 @@
 import type { InvitationRow, WalletMemberRow } from "@/lib/data/types";
+import { defaultLocale, translate, type AppLocale } from "@/lib/i18n";
 
 export const MAX_WALLET_MEMBERS = 5;
 export const WALLET_CAPACITY_REACHED_MESSAGE = `Wallet ini sudah mencapai batas maksimum ${MAX_WALLET_MEMBERS} orang.`;
 export const WALLET_ACCEPT_INVITATION_FULL_MESSAGE = "Wallet ini sudah penuh sehingga undangan belum bisa diterima.";
+
+export function getWalletCapacityReachedMessage(locale: AppLocale = defaultLocale) {
+  return translate(locale, "actionErrors.inviteCapacityReached", { maxMembers: MAX_WALLET_MEMBERS });
+}
+
+export function getWalletAcceptInvitationFullMessage(locale: AppLocale = defaultLocale) {
+  return translate(locale, "actionErrors.inviteAcceptanceFull");
+}
 
 export function countPendingInvitations(invitations: InvitationRow[]) {
   return invitations.filter((invitation) => invitation.status === "pending").length;

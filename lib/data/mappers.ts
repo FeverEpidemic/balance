@@ -1,10 +1,10 @@
 import { describeBudgetUsage, getMonthDateRange } from "@/lib/finance";
 import {
-  getBalanceAdjustmentTitle,
   isBalanceAdjustmentCategory,
   isBalanceAdjustmentSource,
   isSavingAdjustmentSource
 } from "@/lib/balance-adjustments";
+import { defaultLocale, getLocaleTag, translate, type AppLocale } from "@/lib/i18n";
 import type {
   BudgetProgressItem,
   BudgetRow,
@@ -42,18 +42,22 @@ function isSameMonth(dateValue: string, month: string) {
   return dateValue.slice(0, 7) === month;
 }
 
-function formatRecurringFrequencyLabel(row: RecurringTransactionRow) {
-  const intervalLabel = row.interval_count > 1 ? `${row.interval_count} ` : "";
-
+function formatRecurringFrequencyLabel(row: RecurringTransactionRow, locale: AppLocale = defaultLocale) {
   if (row.frequency === "daily") {
-    return row.interval_count > 1 ? `Setiap ${intervalLabel}hari` : "Harian";
+    return row.interval_count > 1
+      ? translate(locale, "recurring.everyXDays", { count: row.interval_count })
+      : translate(locale, "recurring.frequencyDaily");
   }
 
   if (row.frequency === "weekly") {
-    return row.interval_count > 1 ? `Setiap ${intervalLabel}minggu` : "Mingguan";
+    return row.interval_count > 1
+      ? translate(locale, "recurring.everyXWeeks", { count: row.interval_count })
+      : translate(locale, "recurring.frequencyWeekly");
   }
 
-  return row.interval_count > 1 ? `Setiap ${intervalLabel}bulan` : "Bulanan";
+  return row.interval_count > 1
+    ? translate(locale, "recurring.everyXMonths", { count: row.interval_count })
+    : translate(locale, "recurring.frequencyMonthly");
 }
 
 export function sumBalance(transactions: TransactionRow[]) {
@@ -108,8 +112,9 @@ export function buildWalletSummaries(args: {
   savingEntries: SavingEntryRow[];
   budgets: BudgetRow[];
   month: string;
+  locale?: AppLocale;
 }) {
-  const { memberships, wallets, memberRows, transactions, savings, savingEntries, budgets, month } = args;
+  const { memberships, wallets, memberRows, transactions, savings, savingEntries, budgets, month, locale = defaultLocale } = args;
   const currentRange = getMonthDateRange(month);
   const roleByWallet = new Map(memberships.map((membership) => [membership.wallet_id, membership.role]));
   const memberCountByWallet = new Map<string, number>();
@@ -174,37 +179,55 @@ export function buildWalletSummaries(args: {
         budgetThisMonth: monthBudget
       } satisfies WalletSummary;
     })
-    .sort((left, right) => left.name.localeCompare(right.name, "id-ID"));
+    .sort((left, right) => left.name.localeCompare(right.name, getLocaleTag(locale)));
 }
 
-export function buildRecentTransactions(transactions: TransactionRow[], categories: CategoryRow[], wallets: WalletRow[]) {
+export function buildRecentTransactions(
+  transactions: TransactionRow[],
+  categories: CategoryRow[],
+  wallets: WalletRow[],
+  locale: AppLocale = defaultLocale
+) {
   const walletNameById = new Map(wallets.map((wallet) => [wallet.id, wallet.name]));
   const categoryById = new Map(categories.map((category) => [category.id, category]));
 
   return transactions.map((transaction) => ({
     id: transaction.id,
     walletId: transaction.wallet_id,
-    walletName: walletNameById.get(transaction.wallet_id) ?? "Wallet",
-    category: transaction.category_id ? categoryById.get(transaction.category_id)?.name ?? "Tanpa kategori" : "Tanpa kategori",
+    walletName: walletNameById.get(transaction.wallet_id) ?? translate(locale, "common.wallet"),
+    category: transaction.category_id
+      ? categoryById.get(transaction.category_id)?.name ?? translate(locale, "common.noCategory")
+      : translate(locale, "common.noCategory"),
     title:
       transaction.note ||
       (isBalanceAdjustmentSource(transaction.source)
-        ? getBalanceAdjustmentTitle(transaction.kind)
+        ? transaction.kind === "income"
+          ? translate(locale, "transactions.balanceAdjustmentIncome")
+          : translate(locale, "transactions.balanceAdjustmentExpense")
         : isSavingAdjustmentSource(transaction.source)
           ? transaction.kind === "income"
-            ? "Tarik saving"
-            : "Setor saving"
+            ? translate(locale, "savings.withdraw")
+            : translate(locale, "savings.deposit")
           : transaction.kind === "income"
-            ? "Pemasukan"
-            : "Pengeluaran"),
+            ? translate(locale, "transactions.kindIncome")
+            : translate(locale, "transactions.kindExpense")),
     kind: transaction.kind,
     amount: transaction.amount,
     date: transaction.happened_at,
-    splitLabel: transaction.split_type === "equal" ? "Split rata" : transaction.split_type === "custom" ? "Split custom" : "-"
+    splitLabel:
+      transaction.split_type === "equal"
+        ? translate(locale, "transactions.splitEqual")
+        : transaction.split_type === "custom"
+          ? translate(locale, "transactions.splitCustom")
+          : "-"
   })) satisfies DashboardRecentTransaction[];
 }
 
-export function buildCategorySpend(transactions: TransactionRow[], categories: CategoryRow[]) {
+export function buildCategorySpend(
+  transactions: TransactionRow[],
+  categories: CategoryRow[],
+  locale: AppLocale = defaultLocale
+) {
   const categoryById = new Map(categories.map((category) => [category.id, category]));
   const categorySpendMap = new Map<string, { value: number; color: string }>();
 
@@ -212,7 +235,7 @@ export function buildCategorySpend(transactions: TransactionRow[], categories: C
     .filter((row) => row.kind === "expense")
     .forEach((transaction) => {
       const category = transaction.category_id ? categoryById.get(transaction.category_id) : null;
-      const key = category?.name ?? "Tanpa kategori";
+      const key = category?.name ?? translate(locale, "common.noCategory");
       const current = categorySpendMap.get(key) ?? { value: 0, color: category?.color ?? "#595f3d" };
       current.value += transaction.amount;
       categorySpendMap.set(key, current);
@@ -228,8 +251,9 @@ export function buildDashboardOnboarding(args: {
   shell: ShellData;
   wallets: WalletRow[];
   allTransactions: TransactionRow[];
+  locale?: AppLocale;
 }) {
-  const { shell, wallets, allTransactions } = args;
+  const { shell, wallets, allTransactions, locale = defaultLocale } = args;
   const persistedState = shell.onboardingState ?? "active";
 
   if (persistedState === "dismissed" || shell.onboardingDismissedAt) {
@@ -260,26 +284,30 @@ export function buildDashboardOnboarding(args: {
   const steps = [
     {
       id: "create_wallet",
-      title: "Buat wallet pertama",
-      description: "Mulai dari wallet pribadi atau bersama supaya Balance punya tempat utama untuk semua catatan uangmu.",
+      title: translate(locale, "dashboard.onboardingStep1Title"),
+      description: translate(locale, "dashboard.onboardingStep1Description"),
       href: "/wallets",
-      ctaLabel: hasWallet ? "Lihat wallet" : "Buat wallet",
+      ctaLabel: hasWallet
+        ? translate(locale, "dashboard.onboardingStep1CtaView")
+        : translate(locale, "dashboard.onboardingStep1CtaCreate"),
       isComplete: hasWallet
     },
     {
       id: "add_transaction",
-      title: "Catat transaksi pertama",
-      description: "Masukkan pemasukan atau pengeluaran pertama supaya saldo, aktivitas, dan ritme keuangan mulai terbentuk.",
+      title: translate(locale, "dashboard.onboardingStep2Title"),
+      description: translate(locale, "dashboard.onboardingStep2Description"),
       href: transactionsHref,
-      ctaLabel: hasManualTransaction ? "Lihat transaksi" : "Tambah transaksi",
+      ctaLabel: hasManualTransaction
+        ? translate(locale, "dashboard.onboardingStep2CtaView")
+        : translate(locale, "dashboard.onboardingStep2CtaCreate"),
       isComplete: hasManualTransaction
     },
     {
       id: "review_dashboard",
-      title: "Lihat ringkasan dashboard",
-      description: "Setelah langkah awal selesai, dashboard akan membantu kamu membaca saldo, anggaran, dan aktivitas terbaru dengan lebih cepat.",
+      title: translate(locale, "dashboard.onboardingStep3Title"),
+      description: translate(locale, "dashboard.onboardingStep3Description"),
       href: "#ringkasan-finansial",
-      ctaLabel: "Pahami ringkasan",
+      ctaLabel: translate(locale, "dashboard.onboardingStep3Cta"),
       isComplete: reviewComplete
     }
   ] satisfies DashboardOnboardingStep[];
@@ -299,7 +327,11 @@ export function filterTransactionsByMonth(transactions: TransactionRow[], month:
   return transactions.filter((transaction) => isSameMonth(transaction.happened_at, month));
 }
 
-export function buildTransactionListItems(transactions: TransactionRow[], categories: CategoryRow[]) {
+export function buildTransactionListItems(
+  transactions: TransactionRow[],
+  categories: CategoryRow[],
+  locale: AppLocale = defaultLocale
+) {
   const categoryById = new Map(categories.map((category) => [category.id, category]));
 
   return transactions.map((transaction) => ({
@@ -307,30 +339,43 @@ export function buildTransactionListItems(transactions: TransactionRow[], catego
     kind: transaction.kind,
     source: transaction.source,
     categoryId: transaction.category_id,
-    categoryName: transaction.category_id ? categoryById.get(transaction.category_id)?.name ?? "Tanpa kategori" : "Tanpa kategori",
+    categoryName: transaction.category_id
+      ? categoryById.get(transaction.category_id)?.name ?? translate(locale, "common.noCategory")
+      : translate(locale, "common.noCategory"),
     amount: transaction.amount,
     note: transaction.note,
     happenedAt: transaction.happened_at,
     splitType: transaction.split_type,
-    splitLabel: transaction.split_type === "equal" ? "Split rata" : transaction.split_type === "custom" ? "Split custom" : "-",
+    splitLabel:
+      transaction.split_type === "equal"
+        ? translate(locale, "transactions.splitEqual")
+        : transaction.split_type === "custom"
+          ? translate(locale, "transactions.splitCustom")
+          : "-",
     title:
       transaction.note ||
       (isBalanceAdjustmentSource(transaction.source)
-        ? getBalanceAdjustmentTitle(transaction.kind)
+        ? transaction.kind === "income"
+          ? translate(locale, "transactions.balanceAdjustmentIncome")
+          : translate(locale, "transactions.balanceAdjustmentExpense")
         : transaction.saving_entry_id
           ? transaction.kind === "income"
-            ? "Tarik saving"
-            : "Setor saving"
+            ? translate(locale, "savings.withdraw")
+            : translate(locale, "savings.deposit")
           : transaction.kind === "income"
-            ? "Pemasukan"
-            : "Pengeluaran"),
+            ? translate(locale, "transactions.kindIncome")
+            : translate(locale, "transactions.kindExpense")),
     isRecurring: Boolean(transaction.recurring_transaction_id),
     isSavingLinked: Boolean(transaction.saving_entry_id),
     isBalanceAdjustment: isBalanceAdjustmentSource(transaction.source)
   }));
 }
 
-export function buildRecurringTransactionListItems(recurringTransactions: RecurringTransactionRow[], categories: CategoryRow[]) {
+export function buildRecurringTransactionListItems(
+  recurringTransactions: RecurringTransactionRow[],
+  categories: CategoryRow[],
+  locale: AppLocale = defaultLocale
+) {
   const categoryById = new Map(categories.map((category) => [category.id, category]));
 
   return [...recurringTransactions]
@@ -342,16 +387,20 @@ export function buildRecurringTransactionListItems(recurringTransactions: Recurr
       id: row.id,
       kind: row.kind,
       categoryId: row.category_id,
-      categoryName: row.category_id ? categoryById.get(row.category_id)?.name ?? "Tanpa kategori" : "Tanpa kategori",
+      categoryName: row.category_id
+        ? categoryById.get(row.category_id)?.name ?? translate(locale, "common.noCategory")
+        : translate(locale, "common.noCategory"),
       amount: row.amount,
       note: row.note,
       frequency: row.frequency,
       intervalCount: row.interval_count,
-      frequencyLabel: formatRecurringFrequencyLabel(row),
+      frequencyLabel: formatRecurringFrequencyLabel(row, locale),
       startDate: row.start_date,
       endDate: row.end_date,
       nextRunAt: row.next_run_at,
-      nextRunLabel: new Intl.DateTimeFormat("id-ID", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(row.next_run_at)),
+      nextRunLabel: new Intl.DateTimeFormat(getLocaleTag(locale), { dateStyle: "medium", timeZone: "UTC" }).format(
+        new Date(row.next_run_at)
+      ),
       status: row.status,
       lastGeneratedAt: row.last_generated_at
     })) satisfies RecurringTransactionListItem[];
@@ -362,8 +411,9 @@ export function buildSavingContributionItems(args: {
   entries: SavingEntryRow[];
   memberRows: WalletMemberRow[];
   profileMap: Map<string, { full_name: string | null; email: string | null }>;
+  locale?: AppLocale;
 }) {
-  const { walletKind, entries, memberRows, profileMap } = args;
+  const { walletKind, entries, memberRows, profileMap, locale = defaultLocale } = args;
 
   if (walletKind !== "shared") {
     return [] satisfies SavingContributionItem[];
@@ -388,7 +438,11 @@ export function buildSavingContributionItems(args: {
       } satisfies SavingContributionItem;
     })
     .filter((item) => item.totalContributed > 0)
-    .sort((left, right) => right.totalContributed - left.totalContributed || left.memberName.localeCompare(right.memberName, "id-ID"));
+    .sort(
+      (left, right) =>
+        right.totalContributed - left.totalContributed ||
+        left.memberName.localeCompare(right.memberName, getLocaleTag(locale))
+    );
 }
 
 export function buildSavingListItems(args: {
@@ -397,6 +451,7 @@ export function buildSavingListItems(args: {
   savingEntries: SavingEntryRow[];
   memberRows: WalletMemberRow[];
   profileMap: Map<string, { full_name: string | null; email: string | null }>;
+  locale?: AppLocale;
 }) {
   const entriesBySaving = new Map<string, SavingEntryRow[]>();
 
@@ -432,14 +487,18 @@ export function buildSavingListItems(args: {
       currentBalance: saving.current_balance,
       targetAmount: saving.target_amount,
       progressRatio,
-      progressLabel: saving.target_amount && saving.target_amount > 0 ? `${Math.round(progressRatio)}% dari target` : "Tanpa target",
+      progressLabel:
+        saving.target_amount && saving.target_amount > 0
+          ? translate(args.locale ?? defaultLocale, "savings.progressLabel", { percent: Math.round(progressRatio) })
+          : translate(args.locale ?? defaultLocale, "savings.noTarget"),
       isArchived: saving.is_archived,
       entries,
       contributions: buildSavingContributionItems({
         walletKind: args.wallet.kind,
         entries: rawEntries,
         memberRows: args.memberRows,
-        profileMap: args.profileMap
+        profileMap: args.profileMap,
+        locale: args.locale
       })
     } satisfies SavingListItem;
   });
@@ -450,6 +509,7 @@ export function buildBudgetProgressItems(args: {
   transactions: TransactionRow[];
   categories: CategoryRow[];
   month: string;
+  locale?: AppLocale;
 }) {
   const { budgets, transactions, categories, month } = args;
   const categoryById = new Map(categories.map((category) => [category.id, category]));
@@ -464,7 +524,7 @@ export function buildBudgetProgressItems(args: {
       return {
         id: budget.id,
         categoryId: budget.category_id,
-        categoryName: categoryById.get(budget.category_id)?.name ?? "Kategori",
+        categoryName: categoryById.get(budget.category_id)?.name ?? translate(args.locale ?? defaultLocale, "common.noCategory"),
         monthStart: budget.month_start,
         amount: budget.amount,
         used,
@@ -487,8 +547,23 @@ export function createDashboardData(args: {
   categories: CategoryRow[];
   splits: TransactionSplitRow[];
   month: string;
+  locale?: AppLocale;
 }) {
-  const { shell, memberships, wallets, memberRows, budgets, recentTransactions, allTransactions, savings, savingEntries, categories, splits, month } = args;
+  const {
+    shell,
+    memberships,
+    wallets,
+    memberRows,
+    budgets,
+    recentTransactions,
+    allTransactions,
+    savings,
+    savingEntries,
+    categories,
+    splits,
+    month,
+    locale = defaultLocale
+  } = args;
   const walletSummaries = buildWalletSummaries({
     memberships,
     wallets,
@@ -497,7 +572,8 @@ export function createDashboardData(args: {
     savings,
     savingEntries,
     budgets,
-    month
+    month,
+    locale
   });
   const currentMonthTransactions = filterTransactionsByMonth(allTransactions, month);
 
@@ -506,7 +582,8 @@ export function createDashboardData(args: {
     onboarding: buildDashboardOnboarding({
       shell,
       wallets,
-      allTransactions
+      allTransactions,
+      locale
     }),
     totalAvailableBalance: walletSummaries.reduce((total, wallet) => total + wallet.availableBalance, 0),
     totalSavingBalance: walletSummaries.reduce((total, wallet) => total + wallet.savingBalance, 0),
@@ -514,8 +591,8 @@ export function createDashboardData(args: {
     totalExpenseThisMonth: currentMonthTransactions.filter((row) => row.kind === "expense").reduce((total, row) => total + row.amount, 0),
     outstandingSplit: splits.reduce((total, row) => total + Math.max(row.owed_amount - row.paid_amount, 0), 0),
     wallets: walletSummaries,
-    recentTransactions: buildRecentTransactions(recentTransactions, categories, wallets),
-    categorySpend: buildCategorySpend(currentMonthTransactions, categories)
+    recentTransactions: buildRecentTransactions(recentTransactions, categories, wallets, locale),
+    categorySpend: buildCategorySpend(currentMonthTransactions, categories, locale)
   } satisfies DashboardData;
 }
 
@@ -531,8 +608,9 @@ export function createWalletOverviewData(args: {
   savingEntries: SavingEntryRow[];
   templates: TemplateRow[];
   month: string;
+  locale?: AppLocale;
 }) {
-  const { shell, wallet, memberships, memberRows, categories, budgets, transactions, savings, savingEntries, templates, month } = args;
+  const { shell, wallet, memberships, memberRows, categories, budgets, transactions, savings, savingEntries, templates, month, locale = defaultLocale } = args;
   const [summary] = buildWalletSummaries({
     memberships,
     wallets: [wallet],
@@ -541,7 +619,8 @@ export function createWalletOverviewData(args: {
     savings,
     savingEntries,
     budgets,
-    month
+    month,
+    locale
   });
 
   return {
@@ -566,8 +645,9 @@ export function createTransactionsPageData(args: {
   categories: CategoryRow[];
   transactions: TransactionRow[];
   selectedMonth: string;
+  locale?: AppLocale;
 }) {
-  const { shell, wallet, memberships, categories, transactions, selectedMonth } = args;
+  const { shell, wallet, memberships, categories, transactions, selectedMonth, locale = defaultLocale } = args;
   const formCategories = categories.filter(
     (category) => (category.kind === "expense" || category.kind === "income") && !isBalanceAdjustmentCategory(category)
   );
@@ -581,7 +661,7 @@ export function createTransactionsPageData(args: {
     currentUserRole: getCurrentUserRole(memberships, wallet.id),
     selectedMonth,
     categories: formCategories,
-    transactions: buildTransactionListItems(filteredTransactions, categories).slice(0, 8)
+    transactions: buildTransactionListItems(filteredTransactions, categories, locale).slice(0, 8)
   } satisfies TransactionsPageData;
 }
 
@@ -592,8 +672,9 @@ export function createTransactionHistoryPageData(args: {
   categories: CategoryRow[];
   transactions: TransactionRow[];
   selectedMonth: string;
+  locale?: AppLocale;
 }) {
-  const { shell, wallet, memberships, categories, transactions, selectedMonth } = args;
+  const { shell, wallet, memberships, categories, transactions, selectedMonth, locale = defaultLocale } = args;
   const formCategories = categories.filter(
     (category) => (category.kind === "expense" || category.kind === "income") && !isBalanceAdjustmentCategory(category)
   );
@@ -605,7 +686,7 @@ export function createTransactionHistoryPageData(args: {
     currentUserRole: getCurrentUserRole(memberships, wallet.id),
     selectedMonth,
     categories: formCategories,
-    transactions: buildTransactionListItems(transactions, categories)
+    transactions: buildTransactionListItems(transactions, categories, locale)
   } satisfies TransactionHistoryPageData;
 }
 
@@ -644,8 +725,9 @@ export function createRecurringTransactionsPageData(args: {
   memberships: WalletMemberRow[];
   categories: CategoryRow[];
   recurringTransactions: RecurringTransactionRow[];
+  locale?: AppLocale;
 }) {
-  const { shell, wallet, memberships, categories, recurringTransactions } = args;
+  const { shell, wallet, memberships, categories, recurringTransactions, locale = defaultLocale } = args;
   const formCategories = categories.filter((category) => category.kind === "expense" || category.kind === "income");
 
   return {
@@ -656,7 +738,8 @@ export function createRecurringTransactionsPageData(args: {
     categories: formCategories,
     recurringTransactions: buildRecurringTransactionListItems(
       recurringTransactions.filter((row) => row.wallet_id === wallet.id),
-      formCategories
+      formCategories,
+      locale
     )
   } satisfies RecurringTransactionsPageData;
 }
@@ -670,8 +753,9 @@ export function createSavingsPageData(args: {
   savings: SavingRow[];
   savingEntries: SavingEntryRow[];
   walletSummary: WalletSummary;
+  locale?: AppLocale;
 }) {
-  const { shell, wallet, memberships, memberRows, profileMap, savings, savingEntries, walletSummary } = args;
+  const { shell, wallet, memberships, memberRows, profileMap, savings, savingEntries, walletSummary, locale = defaultLocale } = args;
 
   return {
     shell,
@@ -693,12 +777,13 @@ export function createSavingsPageData(args: {
       savings: savings.filter((saving) => saving.wallet_id === wallet.id),
       savingEntries: savingEntries.filter((entry) => entry.wallet_id === wallet.id),
       memberRows,
-      profileMap
+      profileMap,
+      locale
     })
   } satisfies SavingsPageData;
 }
 
-export function buildMonthlyReport(transactions: TransactionRow[]) {
+export function buildMonthlyReport(transactions: TransactionRow[], locale: AppLocale = defaultLocale) {
   const monthlyMap = new Map<string, { income: number; expense: number }>();
 
   transactions.forEach((transaction) => {
@@ -719,7 +804,9 @@ export function buildMonthlyReport(transactions: TransactionRow[]) {
     .slice(-6)
     .map(([month, value]) => ({
       month,
-      label: new Intl.DateTimeFormat("id-ID", { month: "short", timeZone: "UTC" }).format(new Date(`${month}-01T00:00:00.000Z`)),
+      label: new Intl.DateTimeFormat(getLocaleTag(locale), { month: "short", timeZone: "UTC" }).format(
+        new Date(`${month}-01T00:00:00.000Z`)
+      ),
       income: value.income,
       expense: value.expense
     }));

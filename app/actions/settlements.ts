@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { parseNumberInput } from "@/lib/finance";
 import { requireUser } from "@/lib/auth";
-import { getLocalizedPath } from "@/app/actions/_shared";
+import { getActionLocale, getLocalizedPath } from "@/app/actions/_shared";
+import { translate } from "@/lib/i18n";
 
 async function redirectToSettlements(walletId: string, type: "error" | "message", message: string) {
   const path = await getLocalizedPath(`/wallets/${walletId}/settlements`);
@@ -18,9 +19,10 @@ export async function createSettlement(formData: FormData) {
   const note = String(formData.get("note") ?? "").trim();
   const amount = parseNumberInput(formData.get("amount"));
   const { supabase, user } = await requireUser();
+  const locale = await getActionLocale();
 
   if (!amount || amount <= 0) {
-    await redirectToSettlements(walletId, "error", "Nominal settlement tidak valid.");
+    await redirectToSettlements(walletId, "error", translate(locale, "settlements.amountInvalid"));
   }
 
   const { error } = await supabase.from("settlements").insert({
@@ -38,5 +40,5 @@ export async function createSettlement(formData: FormData) {
   }
 
   revalidatePath(await getLocalizedPath(`/wallets/${walletId}/settlements`));
-  await redirectToSettlements(walletId, "message", "Settlement berhasil disimpan.");
+  await redirectToSettlements(walletId, "message", translate(locale, "settlements.savedMessage"));
 }

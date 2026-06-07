@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createAuthMessageSearchParams, sanitizeRedirectPath } from "@/lib/auth-flow";
 import { getSiteUrl } from "@/lib/env";
-import { defaultLocale, localizePath, resolveLocale } from "@/lib/i18n";
+import { defaultLocale, localizePath, resolveLocale, translate } from "@/lib/i18n";
 import { ensureProfileForUser } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const redirectTo = new URL(localizePath(locale, "/auth/error"), siteUrl);
     redirectTo.search = createAuthMessageSearchParams(
       "message",
-      "Autentikasi Google tidak membawa kode login yang valid.",
+      translate(locale, "auth.callbackMissingCode"),
       next,
       "/dashboard"
     ).toString();
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const redirectTo = new URL(localizePath(locale, "/auth/error"), siteUrl);
     redirectTo.search = createAuthMessageSearchParams(
       "message",
-      "Login Google tidak berhasil diproses. Silakan coba lagi.",
+      translate(locale, "auth.callbackExchangeFailed"),
       next,
       "/dashboard"
     ).toString();
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     const redirectTo = new URL(localizePath(locale, "/auth/error"), siteUrl);
     redirectTo.search = createAuthMessageSearchParams(
       "message",
-      "Sesi Google tidak ditemukan setelah login. Silakan ulangi proses masuk.",
+      translate(locale, "auth.callbackSessionMissing"),
       next,
       "/dashboard"
     ).toString();

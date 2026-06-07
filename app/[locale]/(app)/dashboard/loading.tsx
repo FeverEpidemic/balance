@@ -1,5 +1,6 @@
+import { getActionLocale } from "@/app/actions/_shared";
 import { DashboardLoadingSkeleton } from "@/components/ui/page-loading-skeleton";
 
-export default function DashboardLoading() {
-  return <DashboardLoadingSkeleton />;
+export default async function DashboardLoading() {
+  return <DashboardLoadingSkeleton locale={await getActionLocale()} />;
 }

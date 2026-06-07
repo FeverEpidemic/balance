@@ -3,7 +3,7 @@
 import { cookies, headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { defaultLocale, LOCALE_COOKIE_NAME, localizePath, resolveLocale } from "@/lib/i18n";
+import { defaultLocale, LOCALE_COOKIE_NAME, localizePath, resolveLocale, translate } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 import { sanitizeRedirectPath, withAuthMessage } from "@/lib/auth-flow";
 import { ensureProfileForUser } from "@/lib/profile";
@@ -34,12 +34,8 @@ export async function login(formData: FormData) {
 export async function signup(formData: FormData) {
   const cookieStore = await cookies();
   const locale = resolveLocale(cookieStore.get(LOCALE_COOKIE_NAME)?.value ?? defaultLocale);
-  const walletReadyMessage =
-    locale === "en" ? "Account active. Create your first wallet." : "Akun aktif. Buat wallet pertama Anda.";
-  const verificationMessage =
-    locale === "en"
-      ? "Check your email to verify your account before logging in."
-      : "Cek email Anda untuk verifikasi akun sebelum login.";
+  const walletReadyMessage = translate(locale, "auth.accountActiveMessage");
+  const verificationMessage = translate(locale, "auth.checkEmailMessage");
   const fullName = String(formData.get("full_name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");

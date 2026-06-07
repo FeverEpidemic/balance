@@ -7,16 +7,19 @@ import { CurrencyInput } from "@/components/ui/currency-input";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { ToastFeedback } from "@/components/ui/toast-feedback";
+import { getTranslator, resolveLocale } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function TemplatesPage({
   params,
   searchParams
 }: {
-  params: Promise<{ walletId: string }>;
+  params: Promise<{ locale: string; walletId: string }>;
   searchParams: Promise<{ error?: string; message?: string }>;
 }) {
-  const { walletId } = await params;
+  const { locale: localeParam, walletId } = await params;
+  const locale = resolveLocale(localeParam);
+  const t = getTranslator(locale);
   const query = await searchParams;
   const active = `/wallets/${walletId}/templates`;
   const { user } = await requireUser();
@@ -29,8 +32,8 @@ export default async function TemplatesPage({
   return (
     <AppShell
       currentPath={active}
-      title="Template"
-      subtitle={`Template transaksi ${bundle.wallet.name}`}
+      title={t("templates.pageTitle")}
+      subtitle={t("templates.pageSubtitle", { walletName: bundle.wallet.name })}
       userName={bundle.shell.userName}
       walletCount={bundle.shell.walletCount}
       budgetCount={bundle.shell.budgetCount}
@@ -41,25 +44,25 @@ export default async function TemplatesPage({
       <ToastFeedback error={query.error} message={query.message} />
       <section className="grid gap-4 xl:grid-cols-[0.85fr_1.15fr]">
         <div className="card">
-          <p className="eyebrow">Buat template</p>
-          <h3 className="headline-md mt-2">Transaksi cepat tanpa aturan otomatis</h3>
+          <p className="eyebrow">{t("templates.createEyebrow")}</p>
+          <h3 className="headline-md mt-2">{t("templates.createTitle")}</h3>
           <form action={createTemplate} className="mt-6 grid gap-4">
             <input type="hidden" name="wallet_id" value={walletId} />
             <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">Nama template</span>
-              <input name="name" placeholder="Belanja mingguan" required />
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("templates.nameLabel")}</span>
+              <input name="name" placeholder={t("templates.namePlaceholder")} required />
             </label>
             <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">Jenis</span>
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("templates.kindLabel")}</span>
               <select name="kind" defaultValue="expense">
-                <option value="expense">Pengeluaran</option>
-                <option value="income">Pemasukan</option>
+                <option value="expense">{t("transactions.kindExpense")}</option>
+                <option value="income">{t("transactions.kindIncome")}</option>
               </select>
             </label>
             <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">Kategori</span>
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("templates.categoryLabel")}</span>
               <select name="category_id" defaultValue="">
-                <option value="">Tanpa kategori</option>
+                <option value="">{t("common.noCategory")}</option>
                 {bundle.categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -68,27 +71,29 @@ export default async function TemplatesPage({
               </select>
             </label>
             <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">Nominal default</span>
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("templates.defaultAmountLabel")}</span>
               <CurrencyInput name="default_amount" defaultValue={500000} />
             </label>
             <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">Catatan</span>
-              <input name="note" placeholder="Opsional" />
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("templates.noteLabel")}</span>
+              <input name="note" placeholder={t("templates.notePlaceholder")} />
             </label>
-            <SubmitButton pendingText="Menyimpan template...">Simpan template</SubmitButton>
+            <SubmitButton pendingText={t("templates.savePending")}>{t("templates.saveButton")}</SubmitButton>
           </form>
         </div>
 
         <div className="card">
-          <p className="eyebrow">Template aktif</p>
-          <h3 className="headline-md mt-2">Siap dipakai saat entry transaksi</h3>
+          <p className="eyebrow">{t("templates.activeEyebrow")}</p>
+          <h3 className="headline-md mt-2">{t("templates.activeTitle")}</h3>
           <div className="mt-6 stack-list">
-            {bundle.templates.length === 0 ? <EmptyState title="Belum ada template" description="Simpan nominal dan kategori favorit kamu agar transaksi rutin bisa diulang lebih cepat." /> : null}
+            {bundle.templates.length === 0 ? <EmptyState title={t("templates.emptyTitle")} description={t("templates.emptyDescription")} /> : null}
             {bundle.templates.map((template) => (
               <div key={template.name} className="list-card flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
                   <p className="font-medium">{template.name}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{bundle.categories.find((item) => item.id === template.category_id)?.name ?? template.kind}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {bundle.categories.find((item) => item.id === template.category_id)?.name ?? t(template.kind === "income" ? "templates.kindFallbackIncome" : "templates.kindFallbackExpense")}
+                  </p>
                 </div>
                 <div className="flex items-center gap-3">
                   <p className="metric">{formatCurrency(template.default_amount ?? 0)}</p>

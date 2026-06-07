@@ -3,10 +3,13 @@ import { requireUser } from "@/lib/auth";
 import { buildMonthlyReport, getWalletBundle } from "@/lib/data";
 import { AppShell } from "@/components/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
+import { getTranslator, resolveLocale } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/utils";
 
-export default async function ReportsPage({ params }: { params: Promise<{ walletId: string }> }) {
-  const { walletId } = await params;
+export default async function ReportsPage({ params }: { params: Promise<{ locale: string; walletId: string }> }) {
+  const { locale: localeParam, walletId } = await params;
+  const locale = resolveLocale(localeParam);
+  const t = getTranslator(locale);
   const active = `/wallets/${walletId}/reports`;
   const { user } = await requireUser();
   const bundle = await getWalletBundle(user.id, walletId);
@@ -15,14 +18,14 @@ export default async function ReportsPage({ params }: { params: Promise<{ wallet
     notFound();
   }
 
-  const monthlyReport = buildMonthlyReport(bundle.transactions);
+  const monthlyReport = buildMonthlyReport(bundle.transactions, locale);
   const maxIncome = Math.max(...monthlyReport.map((item) => Math.max(item.income, item.expense)), 1);
 
   return (
     <AppShell
       currentPath={active}
-      title="Laporan"
-      subtitle={`Laporan ${bundle.wallet.name}`}
+      title={t("reports.pageTitle")}
+      subtitle={t("reports.pageSubtitle", { walletName: bundle.wallet.name })}
       userName={bundle.shell.userName}
       walletCount={bundle.shell.walletCount}
       budgetCount={bundle.shell.budgetCount}
@@ -32,9 +35,9 @@ export default async function ReportsPage({ params }: { params: Promise<{ wallet
     >
       <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="card">
-          <p className="eyebrow">Tren bulanan</p>
-          <h3 className="headline-md mt-2">Pemasukan vs pengeluaran</h3>
-          {monthlyReport.length === 0 ? <div className="mt-6"><EmptyState title="Belum ada data laporan" description="Setelah transaksi masuk, tren bulanan pemasukan dan pengeluaran akan muncul di sini." /></div> : null}
+          <p className="eyebrow">{t("reports.trendEyebrow")}</p>
+          <h3 className="headline-md mt-2">{t("reports.trendTitle")}</h3>
+          {monthlyReport.length === 0 ? <div className="mt-6"><EmptyState title={t("reports.emptyTitle")} description={t("reports.emptyDescription")} /></div> : null}
           <div className="mt-8 overflow-x-auto">
             <div className="grid min-w-[340px] grid-cols-5 gap-3 sm:gap-4">
             {monthlyReport.map((row) => (
@@ -51,19 +54,19 @@ export default async function ReportsPage({ params }: { params: Promise<{ wallet
         </div>
 
         <div className="card">
-          <p className="eyebrow">Insight</p>
-          <h3 className="headline-md mt-2">Ringkasan bulan berjalan</h3>
+          <p className="eyebrow">{t("reports.insightEyebrow")}</p>
+          <h3 className="headline-md mt-2">{t("reports.insightTitle")}</h3>
           <div className="mt-6 space-y-3">
             <div className="info-tile">
-              <p className="text-sm text-muted-foreground">Pemasukan</p>
+              <p className="text-sm text-muted-foreground">{t("reports.incomeLabel")}</p>
               <p className="metric mt-2 text-2xl">{formatCurrency(monthlyReport.at(-1)?.income ?? 0)}</p>
             </div>
             <div className="info-tile">
-              <p className="text-sm text-muted-foreground">Pengeluaran</p>
+              <p className="text-sm text-muted-foreground">{t("reports.expenseLabel")}</p>
               <p className="metric mt-2 text-2xl">{formatCurrency(monthlyReport.at(-1)?.expense ?? 0)}</p>
             </div>
             <div className="info-tile">
-              <p className="text-sm text-muted-foreground">Sisa anggaran</p>
+              <p className="text-sm text-muted-foreground">{t("reports.remainingBudgetLabel")}</p>
               <p className="metric mt-2 text-2xl">{formatCurrency(Math.max(bundle.wallet.budgetThisMonth - bundle.wallet.spentThisMonth, 0))}</p>
             </div>
           </div>

@@ -12,6 +12,7 @@ import {
 } from "@tanstack/react-table";
 import { deleteTransaction, updateTransaction } from "@/app/actions/transactions";
 import { AppShell } from "@/components/app-shell";
+import { useLocale } from "@/components/providers/locale-provider";
 import { ActionForm } from "@/components/ui/action-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,9 +23,10 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { TransactionHistoryPageData, TransactionListItem } from "@/lib/data";
+import { getLocaleTag, getTranslator } from "@/lib/i18n";
 import { formatCurrency, formatShortDate, toDateInputValue } from "@/lib/utils";
 
-function matchesTransactionSearch(transaction: TransactionListItem, search: string) {
+function matchesTransactionSearch(transaction: TransactionListItem, search: string, localeTag: string, t: ReturnType<typeof getTranslator>) {
   if (!search) {
     return true;
   }
@@ -33,27 +35,27 @@ function matchesTransactionSearch(transaction: TransactionListItem, search: stri
     transaction.title,
     transaction.note ?? "",
     transaction.categoryName,
-    transaction.kind === "expense" ? "pengeluaran" : "pemasukan",
-    transaction.isRecurring ? "otomatis" : "",
-    transaction.isSavingLinked ? "tabungan" : "",
-    transaction.isBalanceAdjustment ? "penyesuaian" : ""
+    transaction.kind === "expense" ? t("transactions.kindExpenseSearch") : t("transactions.kindIncomeSearch"),
+    transaction.isRecurring ? t("transactions.metaAutomatic") : "",
+    transaction.isSavingLinked ? t("transactions.metaSavings") : "",
+    transaction.isBalanceAdjustment ? t("transactions.metaAdjustment") : ""
   ]
     .join(" ")
-    .toLocaleLowerCase("id-ID");
+    .toLocaleLowerCase(localeTag);
 
   return haystack.includes(search);
 }
 
-function TransactionKindBadge({ kind }: { kind: TransactionListItem["kind"] }) {
-  return <Badge tone={kind === "expense" ? "danger" : "success"}>{kind === "expense" ? "Pengeluaran" : "Pemasukan"}</Badge>;
+function TransactionKindBadge({ kind, t }: { kind: TransactionListItem["kind"]; t: ReturnType<typeof getTranslator> }) {
+  return <Badge tone={kind === "expense" ? "danger" : "success"}>{kind === "expense" ? t("transactions.kindExpense") : t("transactions.kindIncome")}</Badge>;
 }
 
-function TransactionMetaBadges({ transaction }: { transaction: TransactionListItem }) {
+function TransactionMetaBadges({ transaction, t }: { transaction: TransactionListItem; t: ReturnType<typeof getTranslator> }) {
   return (
     <div className="mt-2 flex flex-wrap gap-2">
-      {transaction.isRecurring ? <Badge>Otomatis</Badge> : null}
-      {transaction.isSavingLinked ? <Badge>Tabungan</Badge> : null}
-      {transaction.isBalanceAdjustment ? <Badge>Penyesuaian</Badge> : null}
+      {transaction.isRecurring ? <Badge>{t("transactions.metaAutomatic")}</Badge> : null}
+      {transaction.isSavingLinked ? <Badge>{t("transactions.metaSavings")}</Badge> : null}
+      {transaction.isBalanceAdjustment ? <Badge>{t("transactions.metaAdjustment")}</Badge> : null}
     </div>
   );
 }
@@ -61,45 +63,47 @@ function TransactionMetaBadges({ transaction }: { transaction: TransactionListIt
 function TransactionEditDialog({
   categories,
   transaction,
-  walletId
+  walletId,
+  t
 }: {
   categories: TransactionHistoryPageData["categories"];
   transaction: TransactionListItem;
   walletId: string;
+  t: ReturnType<typeof getTranslator>;
 }) {
   const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button type="button" variant="ghost" size="sm">
-          Ubah
-        </Button>
-      </DialogTrigger>
+        <DialogTrigger asChild>
+          <Button type="button" variant="ghost" size="sm">
+            {t("transactions.edit")}
+          </Button>
+        </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Ubah transaksi</DialogTitle>
-          <DialogDescription>Perbarui jenis, kategori, nominal, catatan, atau tanggal tanpa meninggalkan halaman history.</DialogDescription>
+          <DialogTitle>{t("transactions.editTitle")}</DialogTitle>
+          <DialogDescription>{t("transactions.editDescription")}</DialogDescription>
         </DialogHeader>
         <ActionForm action={updateTransaction} className="mt-5 grid min-w-0 gap-4" onSuccess={() => setOpen(false)}>
           <input type="hidden" name="wallet_id" value={walletId} />
           <input type="hidden" name="transaction_id" value={transaction.id} />
           <label className="block">
-            <span className="mb-2 block font-label text-sm text-muted-foreground">Jenis</span>
+            <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.kindLabel")}</span>
             <select name="kind" defaultValue={transaction.kind}>
-              <option value="expense">Pengeluaran</option>
-              <option value="income">Pemasukan</option>
+              <option value="expense">{t("transactions.kindExpense")}</option>
+              <option value="income">{t("transactions.kindIncome")}</option>
             </select>
           </label>
           {transaction.isBalanceAdjustment ? (
             <div className="glass-panel rounded-xl p-3 text-sm text-muted-foreground">
-              Kategori penyesuaian saldo dikelola otomatis oleh sistem mengikuti arah pemasukan atau pengeluaran.
+              {t("transactions.adjustmentCategoryManaged")}
             </div>
           ) : (
             <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">Kategori</span>
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.categoryLabel")}</span>
               <select name="category_id" defaultValue={transaction.categoryId ?? ""}>
-                <option value="">Tanpa kategori</option>
+                <option value="">{t("common.noCategory")}</option>
                 {categories.map((category) => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -109,19 +113,19 @@ function TransactionEditDialog({
             </label>
           )}
           <label className="block">
-            <span className="mb-2 block font-label text-sm text-muted-foreground">Nominal</span>
+            <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.amountLabel")}</span>
             <CurrencyInput name="amount" defaultValue={transaction.amount} required />
           </label>
           <label className="block">
-            <span className="mb-2 block font-label text-sm text-muted-foreground">Catatan</span>
-            <input name="note" defaultValue={transaction.note ?? ""} placeholder="Opsional" />
+            <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.noteLabel")}</span>
+            <input name="note" defaultValue={transaction.note ?? ""} placeholder={t("transactions.notePlaceholder")} />
           </label>
           <label className="block">
-            <span className="mb-2 block font-label text-sm text-muted-foreground">Tanggal transaksi</span>
+            <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.dateLabel")}</span>
             <input name="happened_at" type="date" defaultValue={toDateInputValue(transaction.happenedAt)} required />
           </label>
-          <SubmitButton pendingText="Menyimpan..." variant="soft">
-            Simpan perubahan
+          <SubmitButton pendingText={t("transactions.savePending")} variant="soft">
+            {t("transactions.saveChanges")}
           </SubmitButton>
         </ActionForm>
       </DialogContent>
@@ -133,25 +137,27 @@ function TransactionActions({
   canMutate,
   categories,
   transaction,
-  walletId
+  walletId,
+  t
 }: {
   canMutate: boolean;
   categories: TransactionHistoryPageData["categories"];
   transaction: TransactionListItem;
   walletId: string;
+  t: ReturnType<typeof getTranslator>;
 }) {
   if (transaction.isSavingLinked || !canMutate) {
-    return <span className="text-sm text-muted-foreground">{transaction.isSavingLinked ? "Dikelola dari tabungan" : "Read only"}</span>;
+    return <span className="text-sm text-muted-foreground">{transaction.isSavingLinked ? t("common.savingManaged") : t("common.readOnly")}</span>;
   }
 
   return (
     <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
-      <TransactionEditDialog categories={categories} transaction={transaction} walletId={walletId} />
+      <TransactionEditDialog categories={categories} transaction={transaction} walletId={walletId} t={t} />
       <ActionForm action={deleteTransaction} className="w-full sm:w-auto">
         <input type="hidden" name="wallet_id" value={walletId} />
         <input type="hidden" name="transaction_id" value={transaction.id} />
-        <ConfirmSubmitButton className="w-full sm:w-auto" confirmMessage="Hapus transaksi ini?" pendingText="Menghapus..." variant="ghost">
-          Hapus
+        <ConfirmSubmitButton className="w-full sm:w-auto" confirmMessage={t("transactions.deleteConfirm")} pendingText={t("transactions.deletePending")} variant="ghost">
+          {t("transactions.delete")}
         </ConfirmSubmitButton>
       </ActionForm>
     </div>
@@ -162,12 +168,14 @@ function HistoryMobileCard({
   canMutate,
   categories,
   transaction,
-  walletId
+  walletId,
+  t
 }: {
   canMutate: boolean;
   categories: TransactionHistoryPageData["categories"];
   transaction: TransactionListItem;
   walletId: string;
+  t: ReturnType<typeof getTranslator>;
 }) {
   return (
     <div
@@ -181,7 +189,7 @@ function HistoryMobileCard({
           <p className="mt-1 text-sm text-muted-foreground">
             {transaction.categoryName} • {transaction.splitLabel}
           </p>
-          <TransactionMetaBadges transaction={transaction} />
+          <TransactionMetaBadges transaction={transaction} t={t} />
         </div>
         <div className="text-right">
           <p className={`metric ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
@@ -191,27 +199,30 @@ function HistoryMobileCard({
         </div>
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        <TransactionKindBadge kind={transaction.kind} />
+        <TransactionKindBadge kind={transaction.kind} t={t} />
       </div>
       <div className="mt-4">
-        <TransactionActions canMutate={canMutate} categories={categories} transaction={transaction} walletId={walletId} />
+        <TransactionActions canMutate={canMutate} categories={categories} transaction={transaction} walletId={walletId} t={t} />
       </div>
     </div>
   );
 }
 
 export function TransactionHistoryPageContent({ data }: { data: TransactionHistoryPageData }) {
+  const locale = useLocale();
+  const t = getTranslator(locale);
+  const localeTag = getLocaleTag(locale);
   const active = `/wallets/${data.walletId}/transactions/history`;
   const canMutate = data.currentUserRole === "owner" || data.currentUserRole === "editor";
   const [sorting, setSorting] = useState<SortingState>([{ id: "happenedAt", desc: true }]);
   const [search, setSearch] = useState("");
-  const deferredSearch = useDeferredValue(search.trim().toLocaleLowerCase("id-ID"));
-  const filteredTransactions = data.transactions.filter((transaction) => matchesTransactionSearch(transaction, deferredSearch));
+  const deferredSearch = useDeferredValue(search.trim().toLocaleLowerCase(localeTag));
+  const filteredTransactions = data.transactions.filter((transaction) => matchesTransactionSearch(transaction, deferredSearch, localeTag, t));
 
   const columns: ColumnDef<TransactionListItem>[] = [
     {
       accessorKey: "happenedAt",
-      header: "Tanggal",
+      header: t("transactions.historyTableDate"),
       cell: ({ row }) => (
         <div>
           <p className="font-medium">{formatShortDate(row.original.happenedAt)}</p>
@@ -221,18 +232,18 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
     },
     {
       accessorKey: "title",
-      header: "Deskripsi",
+      header: t("transactions.historyTableDescription"),
       cell: ({ row }) => (
         <div className="min-w-0">
           <p className="font-medium">{row.original.title}</p>
           <p className="mt-1 text-sm text-muted-foreground">{row.original.note || row.original.splitLabel}</p>
-          <TransactionMetaBadges transaction={row.original} />
+          <TransactionMetaBadges transaction={row.original} t={t} />
         </div>
       )
     },
     {
       accessorKey: "categoryName",
-      header: "Kategori",
+      header: t("transactions.historyTableCategory"),
       cell: ({ row }) => (
         <div>
           <p>{row.original.categoryName}</p>
@@ -242,12 +253,12 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
     },
     {
       accessorKey: "kind",
-      header: "Jenis",
-      cell: ({ row }) => <TransactionKindBadge kind={row.original.kind} />
+      header: t("transactions.historyTableKind"),
+      cell: ({ row }) => <TransactionKindBadge kind={row.original.kind} t={t} />
     },
     {
       accessorKey: "amount",
-      header: () => <div className="text-right">Jumlah</div>,
+      header: () => <div className="text-right">{t("transactions.historyTableAmount")}</div>,
       cell: ({ row }) => (
         <div className="text-right">
           <p className={`metric ${row.original.kind === "expense" ? "text-danger" : "text-success"}`}>
@@ -258,7 +269,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
     },
     {
       id: "actions",
-      header: () => <div className="text-right">Aksi</div>,
+      header: () => <div className="text-right">{t("transactions.historyTableActions")}</div>,
       enableSorting: false,
       cell: ({ row }) => (
         <TransactionActions
@@ -266,6 +277,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
           categories={data.categories}
           transaction={row.original}
           walletId={data.walletId}
+          t={t}
         />
       )
     }
@@ -294,8 +306,8 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
   return (
     <AppShell
       currentPath={active}
-      title="Histori transaksi"
-      subtitle={`Telusuri transaksi ${data.walletName}`}
+      title={t("transactions.historyTitle")}
+      subtitle={t("transactions.historySubtitle", { walletName: data.walletName })}
       userName={data.shell.userName}
       walletCount={data.shell.walletCount}
       budgetCount={data.shell.budgetCount}
@@ -307,13 +319,13 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
         <div className="card">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="eyebrow">History</p>
-              <h3 className="headline-md mt-2">Riwayat transaksi penuh</h3>
-              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Urutkan, cari, dan kelola transaksi pada bulan terpilih tanpa membebani halaman input utama.</p>
+              <p className="eyebrow">{t("transactions.historyEyebrow")}</p>
+              <h3 className="headline-md mt-2">{t("transactions.historyHeading")}</h3>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("transactions.historyDescription")}</p>
             </div>
             <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
               <Button href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}`} variant="ghost" className="w-full sm:w-auto">
-                Kembali ke input
+                {t("transactions.historyBackToInput")}
               </Button>
             </div>
           </div>
@@ -321,30 +333,30 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
           <div className="mt-6 flex min-w-0 flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
             <form method="get" className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
               <label className="block">
-                <span className="mb-2 block font-label text-sm text-muted-foreground">Filter bulan</span>
+                <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.historyMonthFilter")}</span>
                 <input name="month" type="month" defaultValue={data.selectedMonth} />
               </label>
               <Button variant="soft" className="w-full sm:w-auto">
-                Terapkan
+                {t("common.apply")}
               </Button>
               <Button href={`/wallets/${data.walletId}/transactions/history`} variant="ghost" className="w-full sm:w-auto">
-                Atur ulang
+                {t("common.reset")}
               </Button>
             </form>
             <label className="block lg:ml-auto lg:min-w-[18rem]">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">Cari transaksi bulan ini</span>
-              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Cari catatan, kategori, atau jenis" />
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.historySearchLabel")}</span>
+              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("transactions.historySearchPlaceholder")} />
             </label>
           </div>
 
           <div className="mt-4 flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <p>{filteredTransactions.length} transaksi cocok untuk {data.selectedMonth}.</p>
-            <p>Halaman {table.getState().pagination.pageIndex + 1} dari {table.getPageCount() || 1}</p>
+            <p>{t("transactions.historyMatchCount", { count: filteredTransactions.length, month: data.selectedMonth })}</p>
+            <p>{t("transactions.historyPageCount", { page: table.getState().pagination.pageIndex + 1, total: table.getPageCount() || 1 })}</p>
           </div>
 
           {filteredTransactions.length === 0 ? (
             <div className="mt-6">
-              <EmptyState title="Belum ada transaksi di bulan ini" description="Ubah bulan atau buat transaksi baru dari halaman input jika kamu belum menemukan data yang dicari." />
+              <EmptyState title={t("transactions.historyEmptyTitle")} description={t("transactions.historyEmptyDescription")} />
             </div>
           ) : (
             <>
@@ -363,7 +375,11 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
                               >
                                 <span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
                                 <span className="text-[10px] text-muted-foreground">
-                                  {header.column.getIsSorted() === "asc" ? "ASC" : header.column.getIsSorted() === "desc" ? "DESC" : ""}
+                                  {header.column.getIsSorted() === "asc"
+                                    ? t("transactions.historySortAsc")
+                                    : header.column.getIsSorted() === "desc"
+                                      ? t("transactions.historySortDesc")
+                                      : ""}
                                 </span>
                               </button>
                             ) : (
@@ -397,20 +413,21 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
                     categories={data.categories}
                     transaction={row.original}
                     walletId={data.walletId}
+                    t={t}
                   />
                 ))}
               </div>
 
               <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
-                  Menampilkan {rowCount} transaksi pada halaman ini.
+                  {t("transactions.historyShowingCount", { count: rowCount })}
                 </p>
                 <div className="flex gap-2">
                   <Button type="button" variant="ghost" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
-                    Sebelumnya
+                    {t("transactions.historyPrevious")}
                   </Button>
                   <Button type="button" variant="soft" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
-                    Berikutnya
+                    {t("transactions.historyNext")}
                   </Button>
                 </div>
               </div>

@@ -4,16 +4,18 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/ui/stat-card";
 import type { DashboardData } from "@/lib/data";
+import { getTranslator, type AppLocale } from "@/lib/i18n";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 
-export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
+export function DashboardContent({ dashboard, locale }: { dashboard: DashboardData; locale: AppLocale }) {
+  const t = getTranslator(locale);
   const transactionsHref = dashboard.shell.primaryWalletId ? `/wallets/${dashboard.shell.primaryWalletId}/transactions` : "/wallets";
 
   return (
     <AppShell
       currentPath="/dashboard"
-      title="Dashboard"
-      subtitle="Ringkasan finansial kamu"
+      title={t("dashboard.title")}
+      subtitle={t("dashboard.subtitle")}
       userName={dashboard.shell.userName}
       walletCount={dashboard.shell.walletCount}
       budgetCount={dashboard.shell.budgetCount}
@@ -33,40 +35,40 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
               <path d="M10 4.5V15.5M4.5 10H15.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
             </svg>
           </span>
-          <span className="sr-only">Tambah transaksi</span>
+          <span className="sr-only">{t("dashboard.addTransaction")}</span>
         </Button>
       }
     >
       <DashboardOnboardingCard onboarding={dashboard.onboarding} />
 
       <section id="ringkasan-finansial" className="grid gap-4 scroll-mt-28 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label="Saldo tersedia" value={dashboard.totalAvailableBalance} detail="Saldo semua wallet yang masih siap dipakai di luar tabungan." />
-        <StatCard label="Saldo tabungan" value={dashboard.totalSavingBalance} detail="Akumulasi tabungan yang sudah dipisahkan dari seluruh wallet." />
-        <StatCard label="Total saldo" value={dashboard.totalBalance} detail="Gabungan saldo siap pakai dan tabungan di semua wallet." />
+        <StatCard label={t("dashboard.availableBalanceLabel")} value={dashboard.totalAvailableBalance} detail={t("dashboard.availableBalanceDetail")} />
+        <StatCard label={t("dashboard.savingBalanceLabel")} value={dashboard.totalSavingBalance} detail={t("dashboard.savingBalanceDetail")} />
+        <StatCard label={t("dashboard.totalBalanceLabel")} value={dashboard.totalBalance} detail={t("dashboard.totalBalanceDetail")} />
       </section>
 
       <section className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label="Pengeluaran bulan ini" value={dashboard.totalExpenseThisMonth} detail="Pengeluaran seluruh wallet pada bulan berjalan." />
-        <StatCard label="Sisa split bill" value={dashboard.outstandingSplit} detail="Akumulasi patungan yang masih perlu dibereskan antar anggota." />
+        <StatCard label={t("dashboard.monthExpenseLabel")} value={dashboard.totalExpenseThisMonth} detail={t("dashboard.monthExpenseDetail")} />
+        <StatCard label={t("dashboard.outstandingSplitLabel")} value={dashboard.outstandingSplit} detail={t("dashboard.outstandingSplitDetail")} />
       </section>
 
       <section className="mt-4 grid gap-4 2xl:grid-cols-12">
         <div className="card 2xl:col-span-7">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="eyebrow">Wallet aktif</p>
-              <h3 className="headline-md mt-2">Kontrol saldo dan anggaran per wallet</h3>
+              <p className="eyebrow">{t("dashboard.activeWalletEyebrow")}</p>
+              <h3 className="headline-md mt-2">{t("dashboard.activeWalletTitle")}</h3>
             </div>
             <Button href="/wallets" variant="ghost">
-              Lihat semua
+              {t("common.viewAll")}
             </Button>
           </div>
           <div className="mt-6 grid gap-4 xl:grid-cols-2 min-[1700px]:grid-cols-3">
             {dashboard.wallets.length === 0 ? (
               <div className="lg:col-span-2">
                 <EmptyState
-                  title="Belum ada wallet"
-                  description="Buat wallet pertama dari halaman Wallet untuk mulai mencatat transaksi dan mengundang anggota."
+                  title={t("dashboard.emptyWalletTitle")}
+                  description={t("dashboard.emptyWalletDescription")}
                 />
               </div>
             ) : null}
@@ -75,18 +77,20 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-display text-lg">{wallet.name}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{wallet.kind === "shared" ? "Wallet bersama" : "Wallet pribadi"}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {wallet.kind === "shared" ? t("common.walletKindShared") : t("common.walletKindPersonal")}
+                    </p>
                   </div>
                   <span className="theme-primary-pill inline-flex rounded-full px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em]">{wallet.role}</span>
                 </div>
                 <p className="metric mt-4 text-2xl">{formatCurrency(wallet.totalBalance)}</p>
                 <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
                   <div className="subtle-panel">
-                    <p className="text-muted-foreground">Saldo siap pakai</p>
+                    <p className="text-muted-foreground">{t("dashboard.availableBalanceLabel")}</p>
                     <p className="metric mt-2">{formatCurrency(wallet.availableBalance)}</p>
                   </div>
                   <div className="subtle-panel">
-                    <p className="text-muted-foreground">Saldo tabungan</p>
+                    <p className="text-muted-foreground">{t("dashboard.savingBalanceLabel")}</p>
                     <p className="metric mt-2">{formatCurrency(wallet.savingBalance)}</p>
                   </div>
                 </div>
@@ -97,8 +101,14 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
                   />
                 </div>
                 <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-                  <span>{wallet.members} anggota</span>
-                  <span>{wallet.budgetThisMonth > 0 ? `${Math.round((wallet.spentThisMonth / wallet.budgetThisMonth) * 100)}% anggaran terpakai` : "Belum ada anggaran"}</span>
+                  <span>{t("dashboard.walletMembers", { count: wallet.members })}</span>
+                  <span>
+                    {wallet.budgetThisMonth > 0
+                      ? t("dashboard.walletBudgetUsed", {
+                          percent: Math.round((wallet.spentThisMonth / wallet.budgetThisMonth) * 100)
+                        })
+                      : t("dashboard.walletNoBudget")}
+                  </span>
                 </div>
               </div>
             ))}
@@ -106,11 +116,11 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
         </div>
 
         <div className="card 2xl:col-span-5">
-          <p className="eyebrow">Komposisi kategori</p>
-          <h3 className="headline-md mt-2">Pengeluaran terbesar bulan ini</h3>
+          <p className="eyebrow">{t("dashboard.categoryEyebrow")}</p>
+          <h3 className="headline-md mt-2">{t("dashboard.categoryTitle")}</h3>
           <div className="mt-6 stack-list">
             {dashboard.categorySpend.length === 0 ? (
-              <EmptyState title="Belum ada pengeluaran bulan ini" description="Setelah ada transaksi pengeluaran, kategori terbesar akan muncul di sini." />
+              <EmptyState title={t("dashboard.emptyCategoryTitle")} description={t("dashboard.emptyCategoryDescription")} />
             ) : null}
             {dashboard.categorySpend.map((item) => (
               <div key={item.name} className="list-card">
@@ -130,16 +140,16 @@ export function DashboardContent({ dashboard }: { dashboard: DashboardData }) {
       <section className="mt-4 card">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="eyebrow">Transaksi terbaru</p>
-            <h3 className="headline-md mt-2">Transaksi terbaru yang perlu kamu pantau</h3>
+            <p className="eyebrow">{t("dashboard.recentEyebrow")}</p>
+            <h3 className="headline-md mt-2">{t("dashboard.recentTitle")}</h3>
           </div>
           <Button href={transactionsHref} variant="ghost">
-            Lihat semua
+            {t("common.viewAll")}
           </Button>
         </div>
         <div className="mt-6 space-y-3">
           {dashboard.recentTransactions.length === 0 ? (
-            <EmptyState title="Belum ada transaksi" description="Masukkan pemasukan atau pengeluaran untuk mulai melihat aktivitas terbaru." />
+            <EmptyState title={t("dashboard.emptyRecentTitle")} description={t("dashboard.emptyRecentDescription")} />
           ) : null}
           {dashboard.recentTransactions.map((transaction) => (
             <div key={transaction.id} className="list-card flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

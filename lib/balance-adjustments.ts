@@ -1,4 +1,5 @@
 import type { CategoryRow, TransactionKind, TransactionSource } from "@/lib/data/types";
+import { defaultLocale, translate, type AppLocale } from "@/lib/i18n";
 
 export const BALANCE_ADJUSTMENT_CATEGORY_NAMES: Record<TransactionKind, string> = {
   income: "Penyesuaian Saldo Masuk",
@@ -40,17 +41,17 @@ export function getBalanceAdjustmentValidationError(input: {
   happenedAt: string;
   note: string;
   isValidDate: boolean;
-}) {
+}, locale: AppLocale = defaultLocale) {
   if (!input.happenedAt || !input.isValidDate) {
-    return "Tanggal penyesuaian saldo harus diisi dengan format yang valid.";
+    return translate(locale, "actionErrors.balanceAdjustmentDateInvalid");
   }
 
   if (!input.amount || input.amount <= 0) {
-    return "Nominal penyesuaian saldo harus lebih besar dari nol.";
+    return translate(locale, "actionErrors.balanceAdjustmentAmountInvalid");
   }
 
   if (!input.note.trim()) {
-    return "Alasan penyesuaian saldo wajib diisi.";
+    return translate(locale, "actionErrors.balanceAdjustmentReasonRequired");
   }
 
   return null;

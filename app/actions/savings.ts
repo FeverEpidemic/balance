@@ -5,6 +5,7 @@ import { invalidateWalletReadCaches } from "@/lib/data/cache";
 import { dateStringToISO, isValidDateString } from "@/lib/utils";
 import {
   errorResult,
+  getActionTranslator,
   getWalletMemberUserIds,
   getNullableText,
   getNumericValue,
@@ -15,33 +16,33 @@ import {
   type ActionResult
 } from "@/app/actions/_shared";
 
-function mapSavingError(message: string) {
+function mapSavingError(message: string, t: Awaited<ReturnType<typeof getActionTranslator>>) {
   if (message.includes("insufficient_available_balance")) {
-    return "Saldo available wallet tidak cukup untuk setor ke saving.";
+    return t("actionErrors.walletAvailableBalanceInsufficient");
   }
 
   if (message.includes("insufficient_saving_balance")) {
-    return "Saldo saving tidak cukup untuk penarikan.";
+    return t("actionErrors.savingBalanceInsufficient");
   }
 
   if (message.includes("shared_saving_member_required")) {
-    return "Wallet shared wajib memilih anggota kontributor saat setor.";
+    return t("actionErrors.sharedSavingMemberRequired");
   }
 
   if (message.includes("saving_member_not_in_wallet")) {
-    return "Anggota kontributor tidak terdaftar di wallet ini.";
+    return t("actionErrors.savingMemberNotInWallet");
   }
 
   if (message.includes("current_balance_managed_by_entries")) {
-    return "Saldo saving hanya boleh berubah lewat mutasi setor atau tarik.";
+    return t("actionErrors.savingBalanceManagedByEntries");
   }
 
   if (message.includes("saving_entry_forbidden")) {
-    return "Anda tidak punya izin untuk menambah mutasi saving di wallet ini.";
+    return t("actionErrors.savingEntryForbidden");
   }
 
   if (message.includes("authentication_required")) {
-    return "Sesi login tidak ditemukan. Silakan login ulang.";
+    return t("actionErrors.authRequired");
   }
 
   return message;
@@ -73,13 +74,14 @@ export async function createSaving(_prevState: ActionResult, formData: FormData)
   const name = getTrimmedValue(formData, "name");
   const targetAmount = getTargetAmount(formData);
   const { supabase, user } = await requireUser();
+  const t = await getActionTranslator();
 
   if (!name) {
-    return errorResult("Nama saving harus diisi.");
+    return errorResult(t("actionErrors.savingNameRequired"));
   }
 
   if (targetAmount !== null && targetAmount < 0) {
-    return errorResult("Target saving tidak boleh negatif.");
+    return errorResult(t("actionErrors.savingTargetNegative"));
   }
 
   const { error } = await supabase.from("savings").insert({
@@ -91,7 +93,7 @@ export async function createSaving(_prevState: ActionResult, formData: FormData)
   });
 
   if (error) {
-    return errorResult(mapSavingError(error.message));
+    return errorResult(mapSavingError(error.message, t));
   }
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
@@ -104,7 +106,7 @@ export async function createSaving(_prevState: ActionResult, formData: FormData)
     includeOverview: true,
     sections: ["savings"]
   });
-  return successResult("Saving berhasil dibuat.", { resetForm: true });
+  return successResult(t("actionSuccess.savingCreated"), { resetForm: true });
 }
 
 export async function updateSaving(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -113,17 +115,18 @@ export async function updateSaving(_prevState: ActionResult, formData: FormData)
   const name = getTrimmedValue(formData, "name");
   const targetAmount = getTargetAmount(formData);
   const { supabase, user } = await requireUser();
+  const t = await getActionTranslator();
 
   if (!savingId) {
-    return errorResult("Saving tidak ditemukan.");
+    return errorResult(t("actionErrors.savingNotFound"));
   }
 
   if (!name) {
-    return errorResult("Nama saving harus diisi.");
+    return errorResult(t("actionErrors.savingNameRequired"));
   }
 
   if (targetAmount !== null && targetAmount < 0) {
-    return errorResult("Target saving tidak boleh negatif.");
+    return errorResult(t("actionErrors.savingTargetNegative"));
   }
 
   const { error } = await supabase
@@ -137,7 +140,7 @@ export async function updateSaving(_prevState: ActionResult, formData: FormData)
     .eq("wallet_id", walletId);
 
   if (error) {
-    return errorResult(mapSavingError(error.message));
+    return errorResult(mapSavingError(error.message, t));
   }
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
@@ -150,16 +153,17 @@ export async function updateSaving(_prevState: ActionResult, formData: FormData)
     includeOverview: true,
     sections: ["savings"]
   });
-  return successResult("Saving berhasil diperbarui.");
+  return successResult(t("actionSuccess.savingUpdated"));
 }
 
 export async function archiveSaving(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const walletId = getStringValue(formData, "wallet_id");
   const savingId = getStringValue(formData, "saving_id");
   const { supabase, user } = await requireUser();
+  const t = await getActionTranslator();
 
   if (!savingId) {
-    return errorResult("Saving tidak ditemukan.");
+    return errorResult(t("actionErrors.savingNotFound"));
   }
 
   const { error } = await supabase
@@ -172,7 +176,7 @@ export async function archiveSaving(_prevState: ActionResult, formData: FormData
     .eq("wallet_id", walletId);
 
   if (error) {
-    return errorResult(mapSavingError(error.message));
+    return errorResult(mapSavingError(error.message, t));
   }
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
@@ -185,7 +189,7 @@ export async function archiveSaving(_prevState: ActionResult, formData: FormData
     includeOverview: true,
     sections: ["savings"]
   });
-  return successResult("Saving berhasil diarsipkan.");
+  return successResult(t("actionSuccess.savingArchived"));
 }
 
 async function createSavingEntry(formData: FormData, entryType: "deposit" | "withdraw"): Promise<ActionResult> {
@@ -196,28 +200,29 @@ async function createSavingEntry(formData: FormData, entryType: "deposit" | "wit
   const note = getNullableText(formData, "note");
   const memberUserId = getTrimmedValue(formData, "member_user_id") || null;
   const { supabase } = await requireUser();
+  const t = await getActionTranslator();
 
   if (!savingId) {
-    return errorResult("Saving tidak ditemukan.");
+    return errorResult(t("actionErrors.savingNotFound"));
   }
 
   if (!happenedAt || !isValidDateString(happenedAt)) {
-    return errorResult("Tanggal mutasi saving harus valid.");
+    return errorResult(t("actionErrors.savingEntryDateInvalid"));
   }
 
   if (!amount || amount <= 0) {
-    return errorResult("Nominal mutasi saving harus lebih besar dari nol.");
+    return errorResult(t("actionErrors.savingEntryAmountInvalid"));
   }
 
   if (entryType === "deposit") {
     const walletKind = await getWalletKind(supabase, walletId);
 
     if (!walletKind) {
-      return errorResult("Wallet tidak ditemukan.");
+      return errorResult(t("actionErrors.walletNotFound"));
     }
 
     if (walletKind === "shared" && !memberUserId) {
-      return errorResult("Pilih anggota kontributor untuk setor saving shared.");
+      return errorResult(t("actionErrors.sharedSavingMemberRequired"));
     }
   }
 
@@ -232,7 +237,7 @@ async function createSavingEntry(formData: FormData, entryType: "deposit" | "wit
   });
 
   if (error) {
-    return errorResult(mapSavingError(error.message));
+    return errorResult(mapSavingError(error.message, t));
   }
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
@@ -245,7 +250,7 @@ async function createSavingEntry(formData: FormData, entryType: "deposit" | "wit
     includeOverview: true,
     sections: ["savings", "transactions", "budgets", "reports"]
   });
-  return successResult(entryType === "deposit" ? "Setor saving berhasil disimpan." : "Penarikan saving berhasil disimpan.", {
+  return successResult(entryType === "deposit" ? t("actionSuccess.savingDepositSaved") : t("actionSuccess.savingWithdrawalSaved"), {
     resetForm: true
   });
 }

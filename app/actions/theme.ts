@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { invalidateSettingsCache } from "@/lib/data/cache";
 import { errorResult, getActionLocale, getTrimmedValue, successResult, type ActionResult } from "@/app/actions/_shared";
-import { isLocale, LOCALE_COOKIE_NAME, localizePath } from "@/lib/i18n";
+import { isLocale, LOCALE_COOKIE_NAME, localizePath, translate } from "@/lib/i18n";
 import { THEME_COOKIE_NAME, isThemePreference } from "@/lib/theme";
 
 export async function updateThemePreference(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -16,7 +16,7 @@ export async function updateThemePreference(_prevState: ActionResult, formData: 
   const locale = await getActionLocale();
 
   if (!isThemePreference(preference)) {
-    return errorResult(locale === "en" ? "Invalid theme selection." : "Pilihan tema tidak valid.");
+    return errorResult(translate(locale, "settings.invalidTheme"));
   }
 
   const { error } = await supabase.from("profiles").update({ theme_preference: preference }).eq("id", user.id);
@@ -35,15 +35,16 @@ export async function updateThemePreference(_prevState: ActionResult, formData: 
   revalidatePath(localizePath(locale, "/settings"));
   revalidatePath("/", "layout");
 
-  return successResult(locale === "en" ? "App theme updated successfully." : "Tema aplikasi berhasil diperbarui.");
+  return successResult(translate(locale, "settings.themeUpdated"));
 }
 
 export async function updateLocalePreference(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const preference = getTrimmedValue(formData, "preferred_locale");
   const { supabase, user } = await requireUser();
+  const locale = await getActionLocale();
 
   if (!isLocale(preference)) {
-    return errorResult("Pilihan bahasa tidak valid.");
+    return errorResult(translate(locale, "settings.invalidLocale"));
   }
 
   const { error } = await supabase.from("profiles").update({ preferred_locale: preference }).eq("id", user.id);

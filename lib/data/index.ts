@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { getCurrentMonthKey } from "@/lib/finance";
-import { defaultLocale } from "@/lib/i18n";
+import { defaultLocale, translate, type AppLocale } from "@/lib/i18n";
 import { redisCache } from "@/lib/redis";
 import {
   buildMonthlyReport,
@@ -72,7 +72,7 @@ export const getShellData = cache(async (userId: string) => {
   ]);
 
   return {
-    userName: profiles[0]?.full_name || profiles[0]?.email || "Pengguna",
+    userName: profiles[0]?.full_name || profiles[0]?.email || translate(defaultLocale, "common.user"),
     walletCount: wallets.length,
     budgetCount: budgets.length,
     memberCount: new Set(memberRows.map((row) => row.user_id)).size,
@@ -85,8 +85,8 @@ export const getShellData = cache(async (userId: string) => {
   };
 });
 
-export const getDashboardData = cache(async (userId: string) => {
-  return redisCache.getOrSet(getDashboardCacheKey(userId), DASHBOARD_CACHE_TTL_SECONDS, async () => {
+export const getDashboardData = cache(async (userId: string, locale: AppLocale = defaultLocale) => {
+  return redisCache.getOrSet(getDashboardCacheKey(userId, locale), DASHBOARD_CACHE_TTL_SECONDS, async () => {
     const month = getCurrentMonthKey();
     const { memberships, walletIds } = await getMembershipContext(userId);
     const [shell, wallets, memberRows, budgets, recentTransactions, categories, splits, allTransactions, savings, savingEntries] = await Promise.all([
@@ -114,7 +114,8 @@ export const getDashboardData = cache(async (userId: string) => {
       savingEntries,
       categories,
       splits,
-      month
+      month,
+      locale
     });
   });
 });
@@ -180,8 +181,8 @@ export const getWalletBundle = cache(async (userId: string, walletId: string) =>
   } satisfies WalletBundle;
 });
 
-export const getWalletOverviewData = cache(async (userId: string, walletId: string) => {
-  return redisCache.getOrSet(getWalletOverviewCacheKey(userId, walletId), WALLET_OVERVIEW_CACHE_TTL_SECONDS, async () => {
+export const getWalletOverviewData = cache(async (userId: string, walletId: string, locale: AppLocale = defaultLocale) => {
+  return redisCache.getOrSet(getWalletOverviewCacheKey(userId, walletId, locale), WALLET_OVERVIEW_CACHE_TTL_SECONDS, async () => {
     const month = getCurrentMonthKey();
     const { memberships, walletIds } = await getMembershipContext(userId);
 
@@ -218,13 +219,14 @@ export const getWalletOverviewData = cache(async (userId: string, walletId: stri
       savings,
       savingEntries,
       templates,
-      month
+      month,
+      locale
     });
   });
 });
 
-export const getTransactionsPageData = cache(async (userId: string, walletId: string, selectedMonth: string) => {
-  return redisCache.getOrSet(getTransactionsCacheKey(userId, walletId, selectedMonth), TRANSACTIONS_CACHE_TTL_SECONDS, async () => {
+export const getTransactionsPageData = cache(async (userId: string, walletId: string, selectedMonth: string, locale: AppLocale = defaultLocale) => {
+  return redisCache.getOrSet(getTransactionsCacheKey(userId, walletId, selectedMonth, locale), TRANSACTIONS_CACHE_TTL_SECONDS, async () => {
     const { memberships, walletIds } = await getMembershipContext(userId);
 
     if (!walletIds.includes(walletId)) {
@@ -250,42 +252,50 @@ export const getTransactionsPageData = cache(async (userId: string, walletId: st
       memberships,
       categories,
       transactions,
-      selectedMonth
+      selectedMonth,
+      locale
     });
   });
 });
 
-export const getTransactionHistoryPageData = cache(async (userId: string, walletId: string, selectedMonth: string) => {
-  return redisCache.getOrSet(getTransactionHistoryCacheKey(userId, walletId, selectedMonth), TRANSACTIONS_CACHE_TTL_SECONDS, async () => {
-    const { memberships, walletIds } = await getMembershipContext(userId);
+export const getTransactionHistoryPageData = cache(
+  async (userId: string, walletId: string, selectedMonth: string, locale: AppLocale = defaultLocale) => {
+    return redisCache.getOrSet(
+      getTransactionHistoryCacheKey(userId, walletId, selectedMonth, locale),
+      TRANSACTIONS_CACHE_TTL_SECONDS,
+      async () => {
+        const { memberships, walletIds } = await getMembershipContext(userId);
 
-    if (!walletIds.includes(walletId)) {
-      return null;
-    }
+        if (!walletIds.includes(walletId)) {
+          return null;
+        }
 
-    const [shell, wallets, categories, transactions] = await Promise.all([
-      getShellData(userId),
-      queryWallets([walletId]),
-      queryCategories([walletId]),
-      queryTransactionsByMonth([walletId], selectedMonth)
-    ]);
+        const [shell, wallets, categories, transactions] = await Promise.all([
+          getShellData(userId),
+          queryWallets([walletId]),
+          queryCategories([walletId]),
+          queryTransactionsByMonth([walletId], selectedMonth)
+        ]);
 
-    const wallet = wallets[0];
+        const wallet = wallets[0];
 
-    if (!wallet) {
-      return null;
-    }
+        if (!wallet) {
+          return null;
+        }
 
-    return createTransactionHistoryPageData({
-      shell,
-      wallet,
-      memberships,
-      categories,
-      transactions,
-      selectedMonth
-    });
-  });
-});
+        return createTransactionHistoryPageData({
+          shell,
+          wallet,
+          memberships,
+          categories,
+          transactions,
+          selectedMonth,
+          locale
+        });
+      }
+    );
+  }
+);
 
 export const getBudgetsPageData = cache(async (userId: string, walletId: string, selectedMonth: string) => {
   return redisCache.getOrSet(getBudgetsCacheKey(userId, walletId, selectedMonth), BUDGETS_CACHE_TTL_SECONDS, async () => {
@@ -321,8 +331,8 @@ export const getBudgetsPageData = cache(async (userId: string, walletId: string,
   });
 });
 
-export const getRecurringTransactionsPageData = cache(async (userId: string, walletId: string) => {
-  return redisCache.getOrSet(getRecurringCacheKey(userId, walletId), RECURRING_CACHE_TTL_SECONDS, async () => {
+export const getRecurringTransactionsPageData = cache(async (userId: string, walletId: string, locale: AppLocale = defaultLocale) => {
+  return redisCache.getOrSet(getRecurringCacheKey(userId, walletId, locale), RECURRING_CACHE_TTL_SECONDS, async () => {
     const { memberships, walletIds } = await getMembershipContext(userId);
 
     if (!walletIds.includes(walletId)) {
@@ -347,7 +357,8 @@ export const getRecurringTransactionsPageData = cache(async (userId: string, wal
       wallet,
       memberships,
       categories,
-      recurringTransactions
+      recurringTransactions,
+      locale
     });
   });
 });
@@ -377,8 +388,8 @@ export const getSettingsData = cache(async (userId: string): Promise<SettingsDat
   });
 });
 
-export const getSavingsPageData = cache(async (userId: string, walletId: string) => {
-  return redisCache.getOrSet(getSavingsCacheKey(userId, walletId), SAVINGS_CACHE_TTL_SECONDS, async () => {
+export const getSavingsPageData = cache(async (userId: string, walletId: string, locale: AppLocale = defaultLocale) => {
+  return redisCache.getOrSet(getSavingsCacheKey(userId, walletId, locale), SAVINGS_CACHE_TTL_SECONDS, async () => {
     const month = getCurrentMonthKey();
     const { memberships, walletIds } = await getMembershipContext(userId);
 
@@ -410,7 +421,8 @@ export const getSavingsPageData = cache(async (userId: string, walletId: string)
       savings,
       savingEntries,
       budgets,
-      month
+      month,
+      locale
     });
 
     const memberIds = [...new Set(memberRows.map((row) => row.user_id))];
@@ -425,7 +437,8 @@ export const getSavingsPageData = cache(async (userId: string, walletId: string)
       profileMap,
       savings,
       savingEntries,
-      walletSummary
+      walletSummary,
+      locale
     });
   });
 });

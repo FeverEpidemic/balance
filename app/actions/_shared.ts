@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 export * from "@/app/actions/action-result";
 import { parseNumberInput } from "@/lib/finance";
-import { defaultLocale, LOCALE_COOKIE_NAME, localizePath, resolveLocale, type AppLocale } from "@/lib/i18n";
+import { defaultLocale, getTranslator, LOCALE_COOKIE_NAME, localizePath, resolveLocale, type AppLocale } from "@/lib/i18n";
 import { requireUser } from "@/lib/auth";
 
 export type MessageType = "error" | "message";
@@ -26,6 +26,10 @@ export function withMessage(path: string, type: MessageType, message: string) {
 export async function getLocalizedPath(path: string) {
   const locale = await getActionLocale();
   return localizePath(locale, path);
+}
+
+export async function getActionTranslator() {
+  return getTranslator(await getActionLocale());
 }
 
 export async function walletSectionPath(walletId: string, section?: WalletSection) {

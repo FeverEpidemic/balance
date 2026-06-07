@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useLocale } from "@/components/providers/locale-provider";
+import { getTranslator } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type InlineEditPanelProps = {
@@ -13,15 +15,20 @@ type InlineEditPanelProps = {
 };
 
 export function InlineEditPanel({
-  buttonLabel = "Ubah data",
+  buttonLabel,
   children,
   className,
   closeSignal,
-  description = "Panel ini bisa dibuka untuk memperbarui data tanpa pindah halaman.",
-  title = "Bisa diedit"
+  description,
+  title
 }: InlineEditPanelProps) {
+  const locale = useLocale();
+  const t = getTranslator(locale);
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const resolvedButtonLabel = buttonLabel ?? t("common.editData");
+  const resolvedDescription = description ?? t("common.inlineEditDescription");
+  const resolvedTitle = title ?? t("common.editable");
   const lastCloseSignalRef = useRef(closeSignal);
 
   useEffect(() => {
@@ -53,9 +60,9 @@ export function InlineEditPanel({
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex h-2.5 w-2.5 rounded-full bg-primary/65" aria-hidden="true" />
-            <p className="font-label text-xs font-semibold uppercase tracking-[0.14em] text-primary-strong">{title}</p>
+            <p className="font-label text-xs font-semibold uppercase tracking-[0.14em] text-primary-strong">{resolvedTitle}</p>
           </div>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">{resolvedDescription}</p>
         </div>
         <button
           type="button"
@@ -68,7 +75,7 @@ export function InlineEditPanel({
               : "border-border bg-overlay text-primary-strong hover:border-primary/20 hover:bg-primary-soft"
           )}
         >
-          {open ? "Tutup editor" : buttonLabel}
+          {open ? t("common.closeEditor") : resolvedButtonLabel}
         </button>
       </div>
       <div

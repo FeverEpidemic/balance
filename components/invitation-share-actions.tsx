@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "@/components/providers/locale-provider";
+import { getTranslator } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type InvitationShareActionsProps = {
@@ -10,44 +12,46 @@ type InvitationShareActionsProps = {
 };
 
 export function InvitationShareActions({ inviteUrl, role, walletName }: InvitationShareActionsProps) {
+  const locale = useLocale();
+  const t = getTranslator(locale);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(inviteUrl);
-      setFeedback("Tautan undangan disalin.");
+      setFeedback(t("inviteShare.copied"));
     } catch (error) {
       console.error("copyInviteLink:failed", { inviteUrl, error });
-      setFeedback("Gagal menyalin tautan. Silakan buka tautan lalu salin manual.");
+      setFeedback(t("inviteShare.copyFailed"));
     }
   }
 
   async function handleShare() {
     if (typeof navigator === "undefined" || typeof navigator.share !== "function") {
-      setFeedback("Fitur bagikan belum tersedia di perangkat ini. Gunakan tombol salin tautan.");
+      setFeedback(t("inviteShare.shareUnavailable"));
       return;
     }
 
     try {
       await navigator.share({
-        title: `Undangan wallet ${walletName}`,
-        text: `Bergabung ke wallet ${walletName} di Balance.`,
+        title: t("inviteShare.shareTitle", { walletName }),
+        text: t("inviteShare.shareText", { walletName }),
         url: inviteUrl
       });
-      setFeedback("Tautan undangan siap dibagikan.");
+      setFeedback(t("inviteShare.shareReady"));
     } catch (error) {
       if (error instanceof Error && error.name === "AbortError") {
         return;
       }
 
       console.error("shareInviteLink:failed", { inviteUrl, error });
-      setFeedback("Gagal membuka menu bagikan. Gunakan tombol salin tautan.");
+      setFeedback(t("inviteShare.shareFailed"));
     }
   }
 
   return (
     <div className="mt-3 rounded-lg border border-outline-variant bg-surface-container-lowest p-3">
-      <p className="text-xs font-medium text-foreground">Tautan undangan untuk role {role}</p>
+      <p className="text-xs font-medium text-foreground">{t("inviteShare.roleLink", { role })}</p>
       <a
         href={inviteUrl}
         target="_blank"
@@ -64,7 +68,7 @@ export function InvitationShareActions({ inviteUrl, role, walletName }: Invitati
             "inline-flex items-center justify-center rounded-lg border border-border bg-transparent px-3 py-2 font-label text-sm font-medium text-foreground transition hover:bg-muted"
           )}
         >
-          Salin tautan
+          {t("inviteShare.copyButton")}
         </button>
         <button
           type="button"
@@ -73,7 +77,7 @@ export function InvitationShareActions({ inviteUrl, role, walletName }: Invitati
             "inline-flex items-center justify-center rounded-lg border border-border bg-transparent px-3 py-2 font-label text-sm font-medium text-foreground transition hover:bg-muted"
           )}
         >
-          Bagikan
+          {t("inviteShare.shareButton")}
         </button>
       </div>
       {feedback && <p className="mt-2 text-xs text-muted-foreground">{feedback}</p>}

@@ -9,6 +9,8 @@ import {
 import { invalidateWalletReadCaches } from "@/lib/data/cache";
 import {
   errorResult,
+  getActionLocale,
+  getActionTranslator,
   getWalletMemberUserIds,
   getNullableText,
   getNumericValue,
@@ -19,8 +21,6 @@ import {
   type ActionResult
 } from "@/app/actions/_shared";
 import { dateStringToISO, isValidDateString } from "@/lib/utils";
-
-const LINKED_SAVING_TRANSACTION_MESSAGE = "Transaksi dari saving otomatis dibuat sistem. Ubah mutasinya dari tab Saving.";
 
 function readTransactionForm(formData: FormData) {
   return {
@@ -44,9 +44,9 @@ function readBalanceAdjustmentForm(formData: FormData) {
   };
 }
 
-function mapTransactionError(message: string) {
+function mapTransactionError(message: string, linkedSavingTransactionMessage: string) {
   if (message.includes("saving_transaction_managed_by_entries")) {
-    return LINKED_SAVING_TRANSACTION_MESSAGE;
+    return linkedSavingTransactionMessage;
   }
 
   return message;
@@ -93,13 +93,14 @@ async function ensureBalanceAdjustmentCategory(
 export async function createTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const { walletId, kind, categoryId, note, amount, happenedAt } = readTransactionForm(formData);
   const { supabase, user } = await requireUser();
+  const t = await getActionTranslator();
 
   if (!happenedAt || !isValidDateString(happenedAt)) {
-    return errorResult("Tanggal transaksi harus diisi dengan format yang valid.");
+    return errorResult(t("actionErrors.transactionDateInvalid"));
   }
 
   if (!amount || amount <= 0) {
-    return errorResult("Nominal transaksi harus lebih besar dari nol.");
+    return errorResult(t("actionErrors.transactionAmountInvalid"));
   }
 
   const { error } = await supabase.from("transactions").insert({
@@ -115,7 +116,7 @@ export async function createTransaction(_prevState: ActionResult, formData: Form
   });
 
   if (error) {
-    return errorResult(mapTransactionError(error.message));
+    return errorResult(mapTransactionError(error.message, t("actionStatus.linkedSavingTransaction")));
   }
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
@@ -128,18 +129,20 @@ export async function createTransaction(_prevState: ActionResult, formData: Form
     includeOverview: true,
     sections: ["transactions"]
   });
-  return successResult("Transaksi berhasil disimpan.", { resetForm: true });
+  return successResult(t("actionSuccess.transactionSaved"), { resetForm: true });
 }
 
 export async function createBalanceAdjustment(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const { walletId, direction, amount, note, happenedAt } = readBalanceAdjustmentForm(formData);
   const { supabase, user } = await requireUser();
+  const locale = await getActionLocale();
+  const t = await getActionTranslator();
   const validationError = getBalanceAdjustmentValidationError({
     amount,
     happenedAt,
     note,
     isValidDate: isValidDateString(happenedAt)
-  });
+  }, locale);
 
   if (validationError) {
     return errorResult(validationError);
@@ -149,7 +152,7 @@ export async function createBalanceAdjustment(_prevState: ActionResult, formData
   const categoryId = await ensureBalanceAdjustmentCategory(supabase, walletId, kind, user.id);
 
   if (!categoryId) {
-    return errorResult("Kategori penyesuaian saldo tidak dapat disiapkan.");
+    return errorResult(t("actionErrors.balanceAdjustmentCategoryUnavailable"));
   }
 
   const { error } = await supabase.from("transactions").insert({
@@ -178,33 +181,34 @@ export async function createBalanceAdjustment(_prevState: ActionResult, formData
     includeOverview: true,
     sections: ["transactions", "budgets", "reports"]
   });
-  return successResult("Penyesuaian saldo berhasil disimpan.", { resetForm: true });
+  return successResult(t("actionSuccess.balanceAdjustmentSaved"), { resetForm: true });
 }
 
 export async function updateTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const { walletId, transactionId, kind, categoryId, note, amount, happenedAt } = readTransactionForm(formData);
   const { supabase, user } = await requireUser();
+  const t = await getActionTranslator();
 
   if (!transactionId) {
-    return errorResult("Transaksi tidak ditemukan.");
+    return errorResult(t("actionErrors.transactionNotFound"));
   }
 
   if (!happenedAt || !isValidDateString(happenedAt)) {
-    return errorResult("Tanggal transaksi harus diisi dengan format yang valid.");
+    return errorResult(t("actionErrors.transactionDateInvalid"));
   }
 
   if (!amount || amount <= 0) {
-    return errorResult("Nominal transaksi harus lebih besar dari nol.");
+    return errorResult(t("actionErrors.transactionAmountInvalid"));
   }
 
   const linkedState = await getTransactionLinkState(supabase, walletId, transactionId);
 
   if (!linkedState) {
-    return errorResult("Transaksi tidak ditemukan.");
+    return errorResult(t("actionErrors.transactionNotFound"));
   }
 
   if (linkedState.saving_entry_id) {
-    return errorResult(LINKED_SAVING_TRANSACTION_MESSAGE);
+    return errorResult(t("actionStatus.linkedSavingTransaction"));
   }
 
   const nextCategoryId = linkedState.source === BALANCE_ADJUSTMENT_SOURCE
@@ -212,7 +216,7 @@ export async function updateTransaction(_prevState: ActionResult, formData: Form
     : categoryId || null;
 
   if (linkedState.source === BALANCE_ADJUSTMENT_SOURCE && !nextCategoryId) {
-    return errorResult("Kategori penyesuaian saldo tidak dapat disiapkan.");
+    return errorResult(t("actionErrors.balanceAdjustmentCategoryUnavailable"));
   }
 
   const { error } = await supabase
@@ -229,7 +233,7 @@ export async function updateTransaction(_prevState: ActionResult, formData: Form
     .eq("wallet_id", walletId);
 
   if (error) {
-    return errorResult(mapTransactionError(error.message));
+    return errorResult(mapTransactionError(error.message, t("actionStatus.linkedSavingTransaction")));
   }
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
@@ -242,31 +246,32 @@ export async function updateTransaction(_prevState: ActionResult, formData: Form
     includeOverview: true,
     sections: ["transactions", "budgets", "reports"]
   });
-  return successResult("Transaksi berhasil diperbarui.");
+  return successResult(t("actionSuccess.transactionUpdated"));
 }
 
 export async function deleteTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const { walletId, transactionId } = readTransactionForm(formData);
   const { supabase } = await requireUser();
+  const t = await getActionTranslator();
 
   if (!transactionId) {
-    return errorResult("Transaksi tidak ditemukan.");
+    return errorResult(t("actionErrors.transactionNotFound"));
   }
 
   const linkedState = await getTransactionLinkState(supabase, walletId, transactionId);
 
   if (!linkedState) {
-    return errorResult("Transaksi tidak ditemukan.");
+    return errorResult(t("actionErrors.transactionNotFound"));
   }
 
   if (linkedState.saving_entry_id) {
-    return errorResult(LINKED_SAVING_TRANSACTION_MESSAGE);
+    return errorResult(t("actionStatus.linkedSavingTransaction"));
   }
 
   const { error } = await supabase.from("transactions").delete().eq("id", transactionId).eq("wallet_id", walletId);
 
   if (error) {
-    return errorResult(mapTransactionError(error.message));
+    return errorResult(mapTransactionError(error.message, t("actionStatus.linkedSavingTransaction")));
   }
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
@@ -279,5 +284,5 @@ export async function deleteTransaction(_prevState: ActionResult, formData: Form
     includeOverview: true,
     sections: ["transactions", "budgets", "reports"]
   });
-  return successResult("Transaksi berhasil dihapus.");
+  return successResult(t("actionSuccess.transactionDeleted"));
 }

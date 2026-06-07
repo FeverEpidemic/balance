@@ -29,12 +29,13 @@ describe("i18n routing helpers", () => {
 
   it("warns in development when a translation key resolves to an object", () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    const originalNodeEnv = process.env.NODE_ENV;
+    const env = process.env as Record<string, string | undefined>;
+    const originalNodeEnv = env.NODE_ENV;
 
-    process.env.NODE_ENV = "development";
+    env.NODE_ENV = "development";
     expect(translate("id", "settings")).toBe("settings");
     expect(warnSpy).toHaveBeenCalledWith('Translation key "settings" for locale "id" resolved to a non-string value.');
 
-    process.env.NODE_ENV = originalNodeEnv;
+    env.NODE_ENV = originalNodeEnv;
   });
 });

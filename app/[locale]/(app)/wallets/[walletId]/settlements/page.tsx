@@ -7,16 +7,19 @@ import { CurrencyInput } from "@/components/ui/currency-input";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { ToastFeedback } from "@/components/ui/toast-feedback";
+import { getTranslator, resolveLocale } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function SettlementsPage({
   params,
   searchParams
 }: {
-  params: Promise<{ walletId: string }>;
+  params: Promise<{ locale: string; walletId: string }>;
   searchParams: Promise<{ error?: string; message?: string }>;
 }) {
-  const { walletId } = await params;
+  const { locale: localeParam, walletId } = await params;
+  const locale = resolveLocale(localeParam);
+  const t = getTranslator(locale);
   const query = await searchParams;
   const active = `/wallets/${walletId}/settlements`;
   const { user } = await requireUser();
@@ -29,8 +32,8 @@ export default async function SettlementsPage({
   return (
     <AppShell
       currentPath={active}
-      title="Pelunasan"
-      subtitle={`Pelunasan manual ${bundle.wallet.name}`}
+      title={t("settlements.pageTitle")}
+      subtitle={t("settlements.pageSubtitle", { walletName: bundle.wallet.name })}
       userName={bundle.shell.userName}
       walletCount={bundle.shell.walletCount}
       budgetCount={bundle.shell.budgetCount}
@@ -41,12 +44,12 @@ export default async function SettlementsPage({
       <ToastFeedback error={query.error} message={query.message} />
       <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="card">
-          <p className="eyebrow">Tambah pelunasan</p>
-          <h3 className="headline-md mt-2">Kurangi saldo hutang antar anggota</h3>
+          <p className="eyebrow">{t("settlements.createEyebrow")}</p>
+          <h3 className="headline-md mt-2">{t("settlements.createTitle")}</h3>
           <form action={createSettlement} className="mt-6 grid gap-4">
             <input type="hidden" name="wallet_id" value={walletId} />
             <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">Dari</span>
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("settlements.fromLabel")}</span>
               <select name="payer_user_id" defaultValue={bundle.members[0]?.user_id ?? ""} required>
                 {bundle.members.map((member) => {
                   const profile = bundle.profileMap.get(member.user_id);
@@ -59,7 +62,7 @@ export default async function SettlementsPage({
               </select>
             </label>
             <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">Ke</span>
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("settlements.toLabel")}</span>
               <select name="payee_user_id" defaultValue={bundle.members[1]?.user_id ?? bundle.members[0]?.user_id ?? ""} required>
                 {bundle.members.map((member) => {
                   const profile = bundle.profileMap.get(member.user_id);
@@ -72,21 +75,21 @@ export default async function SettlementsPage({
               </select>
             </label>
             <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">Nominal</span>
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("settlements.amountLabel")}</span>
               <CurrencyInput name="amount" defaultValue={325000} required />
             </label>
             <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">Catatan</span>
-              <input name="note" placeholder="Opsional" />
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("settlements.noteLabel")}</span>
+              <input name="note" placeholder={t("settlements.notePlaceholder")} />
             </label>
-            <SubmitButton pendingText="Menyimpan pelunasan...">Simpan pelunasan</SubmitButton>
+            <SubmitButton pendingText={t("settlements.savePending")}>{t("settlements.saveButton")}</SubmitButton>
           </form>
         </div>
         <div className="card">
-          <p className="eyebrow">Tagihan terbuka</p>
-          <h3 className="headline-md mt-2">Daftar pelunasan</h3>
+          <p className="eyebrow">{t("settlements.openEyebrow")}</p>
+          <h3 className="headline-md mt-2">{t("settlements.openTitle")}</h3>
           <div className="mt-6 stack-list">
-            {bundle.settlements.length === 0 ? <EmptyState title="Belum ada pelunasan" description="Pelunasan manual yang kamu simpan akan tercatat di sini." /> : null}
+            {bundle.settlements.length === 0 ? <EmptyState title={t("settlements.emptyTitle")} description={t("settlements.emptyDescription")} /> : null}
             {bundle.settlements.map((item) => {
               const payer = bundle.profileMap.get(item.payer_user_id);
               const payee = bundle.profileMap.get(item.payee_user_id);
@@ -95,9 +98,9 @@ export default async function SettlementsPage({
                 <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div>
                     <p className="font-medium">
-                      {(payer?.full_name || payer?.email || "Pengguna")} ke {(payee?.full_name || payee?.email || "Pengguna")}
+                      {(payer?.full_name || payer?.email || t("settlements.userFallback"))} {t("settlements.toConnector")} {(payee?.full_name || payee?.email || t("settlements.userFallback"))}
                     </p>
-                    <p className="mt-1 text-sm text-muted-foreground">{item.note || "Pelunasan manual"}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{item.note || t("settlements.manualNote")}</p>
                   </div>
                   <p className="metric">{formatCurrency(item.amount)}</p>
                 </div>
