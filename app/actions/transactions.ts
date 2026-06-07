@@ -123,7 +123,7 @@ export async function createTransaction(_prevState: ActionResult, formData: Form
     targets: ["overview", "transactions", "budgets"],
     dashboardUserIds
   });
-  revalidateWalletPaths(walletId, {
+  await revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
     sections: ["transactions"]
@@ -173,7 +173,7 @@ export async function createBalanceAdjustment(_prevState: ActionResult, formData
     targets: ["overview", "transactions", "budgets"],
     dashboardUserIds
   });
-  revalidateWalletPaths(walletId, {
+  await revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
     sections: ["transactions", "budgets", "reports"]
@@ -237,7 +237,7 @@ export async function updateTransaction(_prevState: ActionResult, formData: Form
     targets: ["overview", "transactions", "budgets"],
     dashboardUserIds
   });
-  revalidateWalletPaths(walletId, {
+  await revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
     sections: ["transactions", "budgets", "reports"]
@@ -274,7 +274,7 @@ export async function deleteTransaction(_prevState: ActionResult, formData: Form
     targets: ["overview", "transactions", "budgets"],
     dashboardUserIds
   });
-  revalidateWalletPaths(walletId, {
+  await revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
     sections: ["transactions", "budgets", "reports"]

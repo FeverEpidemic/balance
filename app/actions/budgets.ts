@@ -53,7 +53,7 @@ export async function createBudget(_prevState: ActionResult, formData: FormData)
     targets: ["overview", "budgets"],
     dashboardUserIds
   });
-  revalidateWalletPaths(walletId, {
+  await revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
     sections: ["budgets"]
@@ -93,7 +93,7 @@ export async function updateBudget(_prevState: ActionResult, formData: FormData)
     targets: ["overview", "budgets"],
     dashboardUserIds
   });
-  revalidateWalletPaths(walletId, {
+  await revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
     sections: ["budgets"]
@@ -120,7 +120,7 @@ export async function deleteBudget(_prevState: ActionResult, formData: FormData)
     targets: ["overview", "budgets"],
     dashboardUserIds
   });
-  revalidateWalletPaths(walletId, {
+  await revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
     sections: ["budgets"]

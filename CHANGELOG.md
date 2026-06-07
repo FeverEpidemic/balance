@@ -2,6 +2,28 @@
 
 ## [Unreleased] — 2026-06-07
 
+### Added — i18n Fondasi `id` dan `en`
+
+#### Peningkatan Routing dan Preferensi Bahasa
+- **Route utama kini siap memakai prefix locale:** Struktur halaman publik dan app area dipindah ke pola `/{locale}/...` agar URL, redirect auth, dan deep-link bahasa lebih konsisten.
+- **Preferensi bahasa kini tersimpan per akun dan tetap diingat lintas device:** Locale aktif mengikuti URL, disalin ke cookie untuk render cepat, dan disimpan ke `profiles.preferred_locale` supaya user kembali ke bahasa yang sama saat login lagi.
+- **Deteksi awal locale kini mendukung browser fallback:** Akses ke root `/` akan diarahkan ke locale hasil deteksi browser, lalu fallback aman ke Bahasa Indonesia bila tidak ada sinyal yang jelas.
+
+#### Peningkatan UX dan SEO Dasar
+- **`html lang`, metadata utama, dan beberapa surface publik kini locale-aware:** Root render, auth flow, settings, dan link navigasi utama mulai membaca locale aktif untuk title, redirect, serta copy penting lintas bahasa.
+- **Halaman Pengaturan kini punya pemilih bahasa:** User bisa mengganti bahasa aplikasi langsung dari surface pengaturan dengan persistensi akun dan cookie yang sinkron.
+- **Formatter angka/tanggal kini siap menerima locale aktif:** Helper currency/date, auth redirect helper, dan util routing mulai menghapus asumsi `id-ID` statis agar migrasi copy berikutnya lebih aman.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `app/[locale]/**`, `app/layout.tsx`, `middleware.ts` | Tambah route prefix locale, provider locale, redirect root berbasis browser detection, dan sinkronisasi cookie locale. |
+| `lib/{i18n,auth,auth-flow,utils,profile}.ts` | Tambah helper locale, localize path, fallback message, persistensi locale, dan formatter locale-aware. |
+| `app/actions/{_shared,auth,theme,api-keys,wallets,templates,settlements,onboarding,transactions,budgets,savings,recurring-transactions}.ts` | Sambungkan redirect, revalidate, dan update preferensi bahasa ke path locale-aware. |
+| `components/{app-shell,wallet-tabs,auth/google-sign-in-button,ui/button}.tsx`, `components/features/settings/settings-page-content.tsx` | Baca locale dari provider untuk link utama, auth UI, dan pengaturan bahasa/tema. |
+| `messages/{id,en}.json`, `supabase/migrations/0014_profile_preferred_locale.sql` | Tambah dictionary dasar dua bahasa dan kolom `preferred_locale` di tabel `profiles`. |
+| `tests/unit/{auth-flow,utils,i18n}.test.ts` | Tambah cakupan test untuk helper locale, redirect auth, dan formatter lintas bahasa. |
+
 ### Added — Dark Mode dengan 3 Pilihan Tema
 
 #### Peningkatan Tampilan

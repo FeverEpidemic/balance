@@ -1,6 +1,13 @@
 import { Button } from "@/components/ui/button";
+import { resolveLocale } from "@/lib/i18n";
 
-export default function OfflinePage() {
+export default async function OfflinePage({
+  params
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale: localeParam } = await params;
+  const locale = resolveLocale(localeParam);
   return (
     <main className="page-wrap flex min-h-screen items-center py-10">
       <section className="glass-panel-strong mx-auto w-full max-w-2xl rounded-[2rem] p-6 shadow-float md:p-10">
@@ -25,9 +32,9 @@ export default function OfflinePage() {
           </div>
         </div>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Button href="/">Coba lagi</Button>
+          <Button href="/">{locale === "en" ? "Try again" : "Coba lagi"}</Button>
           <Button href="/login" variant="ghost">
-            Buka login
+            {locale === "en" ? "Open login" : "Buka login"}
           </Button>
         </div>
       </section>

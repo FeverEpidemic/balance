@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useLocale } from "@/components/providers/locale-provider";
 import { createClient } from "@/lib/supabase/browser";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +11,7 @@ type GoogleSignInButtonProps = {
 };
 
 export function GoogleSignInButton({ callbackUrl, label }: GoogleSignInButtonProps) {
+  const locale = useLocale();
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -26,7 +28,7 @@ export function GoogleSignInButton({ callbackUrl, label }: GoogleSignInButtonPro
       });
 
       if (oauthError) {
-        setError("Google login belum bisa diproses. Silakan coba lagi.");
+        setError(locale === "en" ? "Google sign-in could not be processed yet. Please try again." : "Google login belum bisa diproses. Silakan coba lagi.");
       }
     });
   }
@@ -42,7 +44,7 @@ export function GoogleSignInButton({ callbackUrl, label }: GoogleSignInButtonPro
         )}
       >
         <GoogleIcon />
-        {isPending ? "Mengarahkan ke Google..." : label}
+        {isPending ? (locale === "en" ? "Redirecting to Google..." : "Mengarahkan ke Google...") : label}
       </button>
       {error ? <p className="text-sm text-danger">{error}</p> : null}
     </div>

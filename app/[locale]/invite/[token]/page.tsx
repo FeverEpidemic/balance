@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Notice } from "@/components/ui/notice";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { ToastFeedback } from "@/components/ui/toast-feedback";
+import { resolveLocale } from "@/lib/i18n";
+import { formatDateTime } from "@/lib/utils";
 
 type InviteRecord = {
   id: string;
@@ -19,10 +21,11 @@ export default async function InvitePage({
   params,
   searchParams
 }: {
-  params: Promise<{ token: string }>;
+  params: Promise<{ locale: string; token: string }>;
   searchParams: Promise<{ error?: string; message?: string }>;
 }) {
-  const { token } = await params;
+  const { locale: localeParam, token } = await params;
+  const locale = resolveLocale(localeParam);
   const query = await searchParams;
   const admin = createAdminClient();
   const supabase = await createClient();
@@ -75,10 +78,10 @@ export default async function InvitePage({
             </p>
             <p className="mt-3 text-sm text-muted-foreground">
               Berlaku sampai{" "}
-              {new Intl.DateTimeFormat("id-ID", {
+              {formatDateTime(invitation.expires_at, locale, {
                 dateStyle: "medium",
                 timeStyle: "short"
-              }).format(new Date(invitation.expires_at))}
+              })}
             </p>
           </>
         )}

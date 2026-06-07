@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { getCurrentMonthKey } from "@/lib/finance";
+import { defaultLocale } from "@/lib/i18n";
 import { redisCache } from "@/lib/redis";
 import {
   buildMonthlyReport,
@@ -76,6 +77,7 @@ export const getShellData = cache(async (userId: string) => {
     budgetCount: budgets.length,
     memberCount: new Set(memberRows.map((row) => row.user_id)).size,
     primaryWalletId: wallets[0]?.id ?? null,
+    preferredLocale: profiles[0]?.preferred_locale ?? defaultLocale,
     themePreference: profiles[0]?.theme_preference ?? "system",
     onboardingState: profiles[0]?.onboarding_state ?? "active",
     onboardingDismissedAt: profiles[0]?.onboarding_dismissed_at ?? null,
@@ -369,6 +371,7 @@ export const getSettingsData = cache(async (userId: string): Promise<SettingsDat
     return {
       shell,
       apiKeys,
+      preferredLocale: shell.preferredLocale ?? defaultLocale,
       themePreference: shell.themePreference ?? "system"
     };
   });

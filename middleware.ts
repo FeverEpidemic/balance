@@ -1,6 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabasePublishableKey, getSupabaseUrl } from "@/lib/env";
+import {
+  LOCALE_COOKIE_NAME,
+  defaultLocale,
+  getLocaleFromPathname,
+  isLocale,
+  localizePath,
+  resolvePreferredLocale,
+  stripLocaleFromPath
+} from "@/lib/i18n";
 
 const authRoutes = new Set(["/login", "/register"]);
 type CookieToSet = {
@@ -10,20 +19,46 @@ type CookieToSet = {
 };
 
 function isPublicPath(pathname: string) {
+  const path = stripLocaleFromPath(pathname);
   return (
-    pathname === "/" ||
-    pathname === "/offline" ||
-    pathname === "/sw.js" ||
-    pathname === "/manifest.webmanifest" ||
-    pathname === "/api/chat" ||
-    pathname.startsWith("/api/chat/") ||
-    authRoutes.has(pathname) ||
-    pathname.startsWith("/auth/") ||
-    pathname.startsWith("/invite/")
+    path === "/" ||
+    path === "/offline" ||
+    path === "/sw.js" ||
+    path === "/manifest.webmanifest" ||
+    path === "/api/chat" ||
+    path.startsWith("/api/chat/") ||
+    authRoutes.has(path) ||
+    path.startsWith("/auth/") ||
+    path.startsWith("/invite/")
   );
 }
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const pathnameLocale = getLocaleFromPathname(pathname);
+
+  if (pathname === "/") {
+    const detectedLocale = resolvePreferredLocale({
+      pathname,
+      cookieLocale: request.cookies.get(LOCALE_COOKIE_NAME)?.value,
+      acceptLanguage: request.headers.get("accept-language")
+    });
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = localizePath(detectedLocale, "/");
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (!pathnameLocale && !pathname.startsWith("/api/") && !pathname.startsWith("/auth/")) {
+    const detectedLocale = resolvePreferredLocale({
+      pathname,
+      cookieLocale: request.cookies.get(LOCALE_COOKIE_NAME)?.value,
+      acceptLanguage: request.headers.get("accept-language")
+    });
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.pathname = localizePath(detectedLocale, pathname);
+    return NextResponse.redirect(redirectUrl);
+  }
+
   let response = NextResponse.next({
     request
   });
@@ -51,18 +86,24 @@ export async function middleware(request: NextRequest) {
     data: { user }
   } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
+  const locale = pathnameLocale ?? defaultLocale;
+  response.cookies.set(LOCALE_COOKIE_NAME, locale, {
+    path: "/",
+    sameSite: "lax",
+    maxAge: 60 * 60 * 24 * 365
+  });
+  const localizedPath = stripLocaleFromPath(pathname);
 
   if (!user && !isPublicPath(pathname)) {
     const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/login";
-    loginUrl.searchParams.set("next", pathname);
+    loginUrl.pathname = localizePath(locale, "/login");
+    loginUrl.searchParams.set("next", localizedPath);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (user && authRoutes.has(pathname)) {
+  if (user && authRoutes.has(localizedPath)) {
     const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = "/dashboard";
+    dashboardUrl.pathname = localizePath(locale, "/dashboard");
     dashboardUrl.search = "";
     return NextResponse.redirect(dashboardUrl);
   }

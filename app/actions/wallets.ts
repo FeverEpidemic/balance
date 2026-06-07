@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { ensureProfileForUser } from "@/lib/profile";
 import { invalidateDashboardCache } from "@/lib/data/cache";
+import { localizePath } from "@/lib/i18n";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentMonthKey } from "@/lib/finance";
 import { getBudgetPresetRows, getStarterCategories, getStarterTemplates, type BudgetPreset, type WalletSetupPreset } from "@/lib/wallet-starter-templates";
@@ -14,7 +15,7 @@ import {
   WALLET_ACCEPT_INVITATION_FULL_MESSAGE,
   WALLET_CAPACITY_REACHED_MESSAGE
 } from "@/lib/wallet-capacity";
-import { getStringValue, getTrimmedValue, getWalletMemberUserIds, redirectWithMessage, withMessage } from "@/app/actions/_shared";
+import { getActionLocale, getLocalizedPath, getStringValue, getTrimmedValue, getWalletMemberUserIds, redirectWithMessage, withMessage } from "@/app/actions/_shared";
 
 function readWalletForm(formData: FormData) {
   return {
@@ -56,7 +57,7 @@ export async function createWallet(formData: FormData) {
   const profile = await ensureProfileForUser(user);
 
   if (!profile) {
-    redirectWithMessage("/wallets", "error", "Profile belum sinkron. Jalankan migrasi 0002 atau isi SUPABASE_SECRET_KEY.");
+    return await redirectWithMessage("/wallets", "error", "Profile belum sinkron. Jalankan migrasi 0002 atau isi SUPABASE_SECRET_KEY.");
   }
 
   const { data: wallet, error: walletError } = await supabase
@@ -72,7 +73,7 @@ export async function createWallet(formData: FormData) {
     .single();
 
   if (walletError || !wallet) {
-    redirectWithMessage("/wallets", "error", walletError?.message ?? "Gagal membuat wallet.");
+    return await redirectWithMessage("/wallets", "error", walletError?.message ?? "Gagal membuat wallet.");
   }
 
   const { error: memberError } = await supabase.from("wallet_members").insert({
@@ -84,7 +85,7 @@ export async function createWallet(formData: FormData) {
   });
 
   if (memberError) {
-    redirectWithMessage("/wallets", "error", memberError.message);
+    return await redirectWithMessage("/wallets", "error", memberError.message);
   }
 
   const starterCategories = getStarterCategories();
@@ -104,7 +105,7 @@ export async function createWallet(formData: FormData) {
     .select("id, name, kind");
 
   if (categoryError || !createdCategories) {
-    redirectWithMessage("/wallets", "error", categoryError?.message ?? "Gagal membuat kategori default.");
+    return await redirectWithMessage("/wallets", "error", categoryError?.message ?? "Gagal membuat kategori default.");
   }
 
   const categoryMap = new Map(
@@ -144,7 +145,7 @@ export async function createWallet(formData: FormData) {
     const { error: templateError } = await supabase.from("transaction_templates").insert(templateRows);
 
     if (templateError) {
-      redirectWithMessage("/wallets", "error", templateError.message);
+      return await redirectWithMessage("/wallets", "error", templateError.message);
     }
   }
 
@@ -166,14 +167,15 @@ export async function createWallet(formData: FormData) {
     const { error: budgetError } = await supabase.from("budgets").insert(budgetRows);
 
     if (budgetError) {
-      redirectWithMessage("/wallets", "error", budgetError.message);
+      return await redirectWithMessage("/wallets", "error", budgetError.message);
     }
   }
 
   await invalidateDashboardCache([user.id]);
-  revalidatePath("/dashboard");
-  revalidatePath("/wallets");
-  redirect(`/wallets/${wallet.id}`);
+  const locale = await getActionLocale();
+  revalidatePath(localizePath(locale, "/dashboard"));
+  revalidatePath(localizePath(locale, "/wallets"));
+  redirect(localizePath(locale, `/wallets/${wallet.id}`));
 }
 
 export async function createWalletInvitation(formData: FormData) {
@@ -181,19 +183,21 @@ export async function createWalletInvitation(formData: FormData) {
   const role = String(formData.get("role") ?? "viewer").trim() as "editor" | "viewer";
   const redirectPath = membersPath(walletId);
   const { supabase, user } = await requireUser();
+  const localizedWalletsPath = await getLocalizedPath("/wallets");
+  const localizedRedirectPath = await getLocalizedPath(redirectPath);
 
   if (!walletId) {
-    redirect(withMessage("/wallets", "error", "Wallet tidak ditemukan."));
+    redirect(withMessage(localizedWalletsPath, "error", "Wallet tidak ditemukan."));
   }
 
   if (!["editor", "viewer"].includes(role)) {
-    redirect(withMessage(redirectPath, "error", "Peran undangan tidak valid."));
+    redirect(withMessage(localizedRedirectPath, "error", "Peran undangan tidak valid."));
   }
 
   const profile = await ensureProfileForUser(user);
 
   if (!profile) {
-    redirect(withMessage(redirectPath, "error", "Profile belum sinkron. Jalankan migrasi 0002 atau isi SUPABASE_SECRET_KEY."));
+    redirect(withMessage(localizedRedirectPath, "error", "Profile belum sinkron. Jalankan migrasi 0002 atau isi SUPABASE_SECRET_KEY."));
   }
 
   const [{ data: membership, error: membershipError }, { data: wallet, error: walletError }] = await Promise.all([
@@ -202,21 +206,21 @@ export async function createWalletInvitation(formData: FormData) {
   ]);
 
   if (membershipError || membership?.role !== "owner") {
-    redirect(withMessage(redirectPath, "error", "Hanya owner wallet yang dapat mengundang anggota."));
+    redirect(withMessage(localizedRedirectPath, "error", "Hanya owner wallet yang dapat mengundang anggota."));
   }
 
   if (walletError || !wallet) {
-    redirect(withMessage(redirectPath, "error", walletError?.message ?? "Wallet tidak ditemukan."));
+    redirect(withMessage(localizedRedirectPath, "error", walletError?.message ?? "Wallet tidak ditemukan."));
   }
 
   const capacity = await getWalletCapacitySnapshot(supabase, walletId);
 
   if (capacity.error) {
-    redirect(withMessage(redirectPath, "error", capacity.error.message));
+    redirect(withMessage(localizedRedirectPath, "error", capacity.error.message));
   }
 
   if (capacity.memberCount + capacity.pendingInvitationCount >= MAX_WALLET_MEMBERS) {
-    redirect(withMessage(redirectPath, "error", WALLET_CAPACITY_REACHED_MESSAGE));
+    redirect(withMessage(localizedRedirectPath, "error", WALLET_CAPACITY_REACHED_MESSAGE));
   }
 
   const token = randomBytes(24).toString("hex");
@@ -241,30 +245,32 @@ export async function createWalletInvitation(formData: FormData) {
   const { data: invitation, error: invitationError } = invitationResult;
 
   if (invitationError || !invitation) {
-    redirect(withMessage(redirectPath, "error", invitationError?.message ?? "Gagal membuat undangan wallet."));
+    redirect(withMessage(localizedRedirectPath, "error", invitationError?.message ?? "Gagal membuat undangan wallet."));
   }
 
-  revalidatePath(redirectPath);
-  redirect(withMessage(redirectPath, "message", `Tautan undangan ${invitation.role} berhasil dibuat.`));
+  revalidatePath(localizedRedirectPath);
+  redirect(withMessage(localizedRedirectPath, "message", `Tautan undangan ${invitation.role} berhasil dibuat.`));
 }
 
 export async function acceptWalletInvitation(formData: FormData) {
   const token = String(formData.get("token") ?? "").trim();
   const { user } = await requireUser();
   const admin = createAdminClient();
+  const invitePath = await getLocalizedPath(`/invite/${token}`);
+  const walletsPath = await getLocalizedPath("/wallets");
 
   if (!token) {
-    redirect(withMessage("/wallets", "error", "Token undangan tidak ditemukan."));
+    redirect(withMessage(walletsPath, "error", "Token undangan tidak ditemukan."));
   }
 
   if (!admin) {
-    redirect(withMessage(`/invite/${token}`, "error", "SUPABASE_SECRET_KEY wajib diisi agar undangan dapat diterima."));
+    redirect(withMessage(invitePath, "error", "SUPABASE_SECRET_KEY wajib diisi agar undangan dapat diterima."));
   }
 
   const profile = await ensureProfileForUser(user);
 
   if (!profile) {
-    redirect(withMessage(`/invite/${token}`, "error", "Profile belum sinkron. Jalankan migrasi 0002 atau isi SUPABASE_SECRET_KEY."));
+    redirect(withMessage(invitePath, "error", "Profile belum sinkron. Jalankan migrasi 0002 atau isi SUPABASE_SECRET_KEY."));
   }
 
   const { data: invitation, error: invitationError } = await admin
@@ -274,15 +280,15 @@ export async function acceptWalletInvitation(formData: FormData) {
     .maybeSingle();
 
   if (invitationError || !invitation) {
-    redirect(withMessage(`/invite/${token}`, "error", invitationError?.message ?? "Undangan tidak ditemukan."));
+    redirect(withMessage(invitePath, "error", invitationError?.message ?? "Undangan tidak ditemukan."));
   }
 
   if (invitation.status === "accepted") {
-    redirect(withMessage(`/wallets/${invitation.wallet_id}`, "message", "Undangan ini sudah pernah diterima."));
+    redirect(withMessage(await getLocalizedPath(`/wallets/${invitation.wallet_id}`), "message", "Undangan ini sudah pernah diterima."));
   }
 
   if (invitation.status === "revoked") {
-    redirect(withMessage(`/invite/${token}`, "error", "Undangan ini sudah dibatalkan oleh pemilik wallet."));
+    redirect(withMessage(invitePath, "error", "Undangan ini sudah dibatalkan oleh pemilik wallet."));
   }
 
   if (new Date(invitation.expires_at).getTime() < Date.now()) {
@@ -294,7 +300,7 @@ export async function acceptWalletInvitation(formData: FormData) {
       })
       .eq("id", invitation.id);
 
-    redirect(withMessage(`/invite/${token}`, "error", "Undangan ini sudah kedaluwarsa."));
+    redirect(withMessage(invitePath, "error", "Undangan ini sudah kedaluwarsa."));
   }
 
   const { data: existingMember, error: existingMemberError } = await admin
@@ -305,18 +311,18 @@ export async function acceptWalletInvitation(formData: FormData) {
     .maybeSingle();
 
   if (existingMemberError) {
-    redirect(withMessage(`/invite/${token}`, "error", existingMemberError.message));
+    redirect(withMessage(invitePath, "error", existingMemberError.message));
   }
 
   if (!existingMember) {
     const capacity = await getWalletCapacitySnapshot(admin, invitation.wallet_id);
 
     if (capacity.error) {
-      redirect(withMessage(`/invite/${token}`, "error", capacity.error.message));
+      redirect(withMessage(invitePath, "error", capacity.error.message));
     }
 
     if (capacity.memberCount + capacity.pendingInvitationCount > MAX_WALLET_MEMBERS) {
-      redirect(withMessage(`/invite/${token}`, "error", WALLET_ACCEPT_INVITATION_FULL_MESSAGE));
+      redirect(withMessage(invitePath, "error", WALLET_ACCEPT_INVITATION_FULL_MESSAGE));
     }
   }
 
@@ -327,13 +333,14 @@ export async function acceptWalletInvitation(formData: FormData) {
 
   if (acceptError || !acceptedWalletId) {
     const errorMessage = acceptError?.message ?? "Gagal menerima undangan wallet.";
-    redirect(withMessage(`/invite/${token}`, "error", isWalletCapacityError(errorMessage) ? WALLET_ACCEPT_INVITATION_FULL_MESSAGE : errorMessage));
+    redirect(withMessage(invitePath, "error", isWalletCapacityError(errorMessage) ? WALLET_ACCEPT_INVITATION_FULL_MESSAGE : errorMessage));
   }
 
   const dashboardUserIds = await getWalletMemberUserIds(admin, acceptedWalletId);
   await invalidateDashboardCache(dashboardUserIds);
-  revalidatePath("/dashboard");
-  revalidatePath("/wallets");
-  revalidatePath(membersPath(acceptedWalletId));
-  redirect(withMessage(`/wallets/${acceptedWalletId}`, "message", "Undangan berhasil diterima."));
+  const locale = await getActionLocale();
+  revalidatePath(localizePath(locale, "/dashboard"));
+  revalidatePath(localizePath(locale, "/wallets"));
+  revalidatePath(await getLocalizedPath(membersPath(acceptedWalletId)));
+  redirect(withMessage(await getLocalizedPath(`/wallets/${acceptedWalletId}`), "message", "Undangan berhasil diterima."));
 }

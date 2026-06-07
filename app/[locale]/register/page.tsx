@@ -5,22 +5,28 @@ import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { ToastFeedback } from "@/components/ui/toast-feedback";
 import { getSiteUrl } from "@/lib/env";
+import { resolveLocale } from "@/lib/i18n";
 
 export default async function RegisterPage({
+  params,
   searchParams
 }: {
+  params: Promise<{ locale: string }>;
   searchParams: Promise<{ error?: string; message?: string; next?: string }>;
 }) {
-  const params = await searchParams;
-  const loginHref = params.next ? `/login?next=${encodeURIComponent(params.next)}` : "/login";
+  const { locale: localeParam } = await params;
+  const locale = resolveLocale(localeParam);
+  const query = await searchParams;
+  const loginHref = query.next ? `/login?next=${encodeURIComponent(query.next)}` : "/login";
   const callbackUrl = new URL("/auth/callback", getSiteUrl());
-  if (params.next) {
-    callbackUrl.searchParams.set("next", params.next);
+  if (query.next) {
+    callbackUrl.searchParams.set("next", query.next);
   }
+  callbackUrl.searchParams.set("locale", locale);
 
   return (
     <main className="page-wrap section-gap">
-      <ToastFeedback error={params.error} message={params.message} />
+      <ToastFeedback error={query.error} message={query.message} />
       <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <AuthBrandPanel
           eyebrow="Mulai dengan Balance"
@@ -41,15 +47,15 @@ export default async function RegisterPage({
               Buat akun dulu, lalu lanjutkan dengan wallet pertama Anda untuk mulai mencatat, mengatur anggaran, dan berbagi akses bila dibutuhkan.
             </p>
             <div className="mt-8 min-w-0 space-y-4">
-              <GoogleSignInButton callbackUrl={callbackUrl.toString()} label="Daftar dengan Google" />
+              <GoogleSignInButton callbackUrl={callbackUrl.toString()} label={locale === "en" ? "Sign up with Google" : "Daftar dengan Google"} />
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <div className="h-px flex-1 bg-border" />
-                <span>atau isi data akun</span>
+                <span>{locale === "en" ? "or fill in your account details" : "atau isi data akun"}</span>
                 <div className="h-px flex-1 bg-border" />
               </div>
             </div>
             <form action={signup} className="mt-8 grid min-w-0 gap-4 md:grid-cols-2">
-              <input type="hidden" name="next" value={params.next ?? "/wallets?message=Akun aktif. Buat wallet pertama Anda."} />
+              <input type="hidden" name="next" value={query.next ?? "/wallets?message=Akun aktif. Buat wallet pertama Anda."} />
               <label className="block">
                 <span className="mb-2 block font-label text-sm text-muted-foreground">Nama lengkap</span>
                 <input name="full_name" placeholder="Ilham Pratama" required />
@@ -60,18 +66,18 @@ export default async function RegisterPage({
               </label>
               <label className="block md:col-span-2">
                 <span className="mb-2 block font-label text-sm text-muted-foreground">Password</span>
-                <input name="password" type="password" placeholder="Minimal 8 karakter" required minLength={8} />
+                <input name="password" type="password" placeholder={locale === "en" ? "Minimum 8 characters" : "Minimal 8 karakter"} required minLength={8} />
               </label>
               <div className="md:col-span-2">
-                <SubmitButton className="w-full" pendingText="Membuat akun...">
-                  Buat akun
+                <SubmitButton className="w-full" pendingText={locale === "en" ? "Creating account..." : "Membuat akun..."}>
+                  {locale === "en" ? "Create account" : "Buat akun"}
                 </SubmitButton>
               </div>
             </form>
             <p className="mt-4 text-sm text-muted-foreground">
-              Sudah punya akun?{" "}
+              {locale === "en" ? "Already have an account?" : "Sudah punya akun?"}{" "}
               <Button href={loginHref} variant="ghost" className="min-h-0 rounded-none border-0 px-0 py-0 align-baseline shadow-none">
-                Login di sini
+                {locale === "en" ? "Sign in here" : "Login di sini"}
               </Button>
             </p>
           </div>

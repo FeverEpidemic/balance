@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { useLocale } from "@/components/providers/locale-provider";
+import { getTranslator, localizePath } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/actions/auth";
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -37,39 +41,41 @@ export function AppShell({
   currentWalletId?: string | null;
   headerAction?: ReactNode;
 }) {
+  const locale = useLocale();
+  const t = getTranslator(locale);
   const walletId = currentWalletId ?? primaryWalletId;
   const logoutButtonClassName = "rounded-full bg-primary-soft px-3 py-2 font-label text-xs text-primary-strong";
   const mobileUtilityButtonClassName = "glass-panel rounded-full px-3 py-2 font-label text-xs text-foreground";
   const navItems = [
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/wallets", label: "Wallet" },
-    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: "Transaksi" },
-    { href: walletId ? `/wallets/${walletId}/savings` : "/wallets", label: "Tabungan" },
-    { href: walletId ? `/wallets/${walletId}/budgets` : "/wallets", label: "Anggaran" },
-    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: "Laporan" },
-    { href: walletId ? `/wallets/${walletId}/members` : "/wallets", label: "Anggota" },
-    { href: walletId ? `/wallets/${walletId}/settlements` : "/wallets", label: "Pelunasan" },
-    { href: walletId ? `/wallets/${walletId}/templates` : "/wallets", label: "Template" },
-    { href: "/settings", label: "Pengaturan" }
+    { href: "/dashboard", label: t("common.dashboard") },
+    { href: "/wallets", label: t("common.wallet") },
+    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: t("common.transactions") },
+    { href: walletId ? `/wallets/${walletId}/savings` : "/wallets", label: t("common.savings") },
+    { href: walletId ? `/wallets/${walletId}/budgets` : "/wallets", label: t("common.budgets") },
+    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: t("common.reports") },
+    { href: walletId ? `/wallets/${walletId}/members` : "/wallets", label: t("common.members") },
+    { href: walletId ? `/wallets/${walletId}/settlements` : "/wallets", label: t("common.settlements") },
+    { href: walletId ? `/wallets/${walletId}/templates` : "/wallets", label: t("common.templates") },
+    { href: "/settings", label: t("common.settings") }
   ];
   const mobileNavItems = [
-    { href: "/dashboard", label: "Dashboard" },
-    { href: "/wallets", label: "Wallet" },
-    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: "Transaksi" },
-    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: "Laporan" },
-    { href: "/settings", label: "Pengaturan" }
+    { href: "/dashboard", label: t("common.dashboard") },
+    { href: "/wallets", label: t("common.wallet") },
+    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: t("common.transactions") },
+    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: t("common.reports") },
+    { href: "/settings", label: t("common.settings") }
   ];
   const mobileWalletShortcuts = walletId
     ? [
-        { href: `/wallets/${walletId}`, label: "Ringkasan" },
-        { href: `/wallets/${walletId}/transactions`, label: "Transaksi" },
-        { href: `/wallets/${walletId}/savings`, label: "Tabungan" },
-        { href: `/wallets/${walletId}/recurring`, label: "Otomatis" },
-        { href: `/wallets/${walletId}/budgets`, label: "Anggaran" },
-        { href: `/wallets/${walletId}/reports`, label: "Laporan" },
-        { href: `/wallets/${walletId}/members`, label: "Anggota" },
-        { href: `/wallets/${walletId}/settlements`, label: "Pelunasan" },
-        { href: `/wallets/${walletId}/templates`, label: "Template" }
+        { href: `/wallets/${walletId}`, label: t("common.overview") },
+        { href: `/wallets/${walletId}/transactions`, label: t("common.transactions") },
+        { href: `/wallets/${walletId}/savings`, label: t("common.savings") },
+        { href: `/wallets/${walletId}/recurring`, label: t("common.automatic") },
+        { href: `/wallets/${walletId}/budgets`, label: t("common.budgets") },
+        { href: `/wallets/${walletId}/reports`, label: t("common.reports") },
+        { href: `/wallets/${walletId}/members`, label: t("common.members") },
+        { href: `/wallets/${walletId}/settlements`, label: t("common.settlements") },
+        { href: `/wallets/${walletId}/templates`, label: t("common.templates") }
       ]
     : [];
 
@@ -80,11 +86,11 @@ export function AppShell({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="eyebrow">balance</p>
-              <h1 className="headline-md mt-2">Keuangan yang terstruktur menciptakan ketenangan pikiran</h1>
+              <h1 className="headline-md mt-2">{locale === "en" ? "Structured finances create peace of mind." : "Keuangan yang terstruktur menciptakan ketenangan pikiran"}</h1>
               <p className="mt-3 text-sm text-muted-foreground">{userName}</p>
             </div>
             <form action={logout}>
-              <button className={logoutButtonClassName}>Keluar</button>
+              <button className={logoutButtonClassName}>{t("common.logout")}</button>
             </form>
           </div>
           <nav className="mt-8 space-y-2">
@@ -111,23 +117,23 @@ export function AppShell({
                 <Sheet>
                   <SheetTrigger asChild>
                     <button type="button" className={mobileUtilityButtonClassName}>
-                      Menu
+                      {t("common.menu")}
                     </button>
                   </SheetTrigger>
                   <SheetContent>
                     <SheetHeader>
-                      <p className="eyebrow">Navigasi</p>
-                      <SheetTitle>Jelajahi wallet dan halaman utama</SheetTitle>
-                      <SheetDescription>Pakai drawer ini untuk pindah ke tujuan wallet yang lebih lengkap tanpa mengganggu bottom navigation utama.</SheetDescription>
+                      <p className="eyebrow">{locale === "en" ? "Navigation" : "Navigasi"}</p>
+                      <SheetTitle>{locale === "en" ? "Browse wallet areas and main pages" : "Jelajahi wallet dan halaman utama"}</SheetTitle>
+                      <SheetDescription>{locale === "en" ? "Use this drawer to jump to more detailed wallet destinations without disturbing the main bottom navigation." : "Pakai drawer ini untuk pindah ke tujuan wallet yang lebih lengkap tanpa mengganggu bottom navigation utama."}</SheetDescription>
                     </SheetHeader>
                     <div className="mt-6 space-y-6 overflow-y-auto pb-4">
                       <div>
-                        <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Utama</p>
+                        <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{locale === "en" ? "Main" : "Utama"}</p>
                         <nav className="mt-3 space-y-2">
                           {mobileNavItems.map((item) => (
-                            <SheetClose key={item.href} asChild>
+                <SheetClose key={item.href} asChild>
                               <Link
-                                href={item.href}
+                                href={localizePath(locale, item.href)}
                                 className={cn(
                                   "block rounded-xl px-4 py-3 text-sm transition",
                                   isActivePath(currentPath, item.href)
@@ -143,12 +149,12 @@ export function AppShell({
                       </div>
                       {mobileWalletShortcuts.length > 0 ? (
                         <div>
-                          <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Wallet aktif</p>
+                          <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{locale === "en" ? "Active wallet" : "Wallet aktif"}</p>
                           <nav className="mt-3 space-y-2">
                             {mobileWalletShortcuts.map((item) => (
                               <SheetClose key={item.href} asChild>
                                 <Link
-                                  href={item.href}
+                                  href={localizePath(locale, item.href)}
                                   className={cn(
                                     "block rounded-xl px-4 py-3 text-sm transition",
                                     isActivePath(currentPath, item.href)
@@ -167,7 +173,7 @@ export function AppShell({
                   </SheetContent>
                 </Sheet>
                 <form action={logout}>
-                  <button className={logoutButtonClassName}>Keluar</button>
+                  <button className={logoutButtonClassName}>{t("common.logout")}</button>
                 </form>
               </div>
             </div>
@@ -179,14 +185,14 @@ export function AppShell({
                   {headerAction ? <div className="shrink-0 md:hidden">{headerAction}</div> : null}
                 </div>
                 <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-                  Cek kondisi keuangan, rapikan catatan, dan jaga ritme finansial tetap tenang setiap hari.
+                  {locale === "en" ? "Review your finances, tidy up records, and keep a calm money rhythm every day." : "Cek kondisi keuangan, rapikan catatan, dan jaga ritme finansial tetap tenang setiap hari."}
                 </p>
                 {mobileWalletShortcuts.length > 0 ? (
                   <div className="touch-scroll-x mt-4 flex gap-2 pb-1 pr-1 lg:hidden">
                     {mobileWalletShortcuts.map((item) => (
                       <Link
                         key={item.href}
-                        href={item.href}
+                        href={localizePath(locale, item.href)}
                         className={cn(
                           "shrink-0 whitespace-nowrap rounded-full border px-3 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
                           isActivePath(currentPath, item.href)
@@ -204,15 +210,15 @@ export function AppShell({
                 {headerAction ? <div className="hidden md:flex w-full justify-start md:justify-end">{headerAction}</div> : null}
                 <div className="grid w-full max-w-sm grid-cols-3 gap-2 rounded-xl bg-card p-2 shadow-serene md:w-auto">
                   <div className="rounded-lg bg-muted px-3 py-2 text-center">
-                    <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Wallet</p>
+                    <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{t("common.wallet")}</p>
                     <p className="mt-1 metric text-sm">{walletCount}</p>
                   </div>
                   <div className="rounded-lg bg-muted px-3 py-2 text-center">
-                    <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Anggaran</p>
+                    <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{t("common.budgets")}</p>
                     <p className="mt-1 metric text-sm">{budgetCount}</p>
                   </div>
                   <div className="rounded-lg bg-muted px-3 py-2 text-center">
-                    <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">Anggota</p>
+                    <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{t("common.members")}</p>
                     <p className="mt-1 metric text-sm">{memberCount}</p>
                   </div>
                 </div>
@@ -227,10 +233,10 @@ export function AppShell({
       <nav className="glass-nav fixed inset-x-4 bottom-4 z-50 rounded-2xl p-2 backdrop-blur lg:hidden">
         <div className="touch-scroll-x flex gap-2">
           {mobileNavItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
+              <Link
+                key={item.href}
+                href={localizePath(locale, item.href)}
+                className={cn(
                 "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-3 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
                 isActivePath(currentPath, item.href) ? "bg-primary text-white" : "bg-transparent text-muted-foreground"
               )}

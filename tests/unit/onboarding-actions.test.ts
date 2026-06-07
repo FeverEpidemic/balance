@@ -71,7 +71,7 @@ describe("onboarding actions", () => {
     );
     expect(eqMock).toHaveBeenCalledWith("id", "user-1");
     expect(invalidateDashboardCacheMock).toHaveBeenCalledWith(["user-1"]);
-    expect(revalidatePathMock).toHaveBeenCalledWith("/dashboard");
+    expect(revalidatePathMock).toHaveBeenCalledWith("/id/dashboard");
   });
 
   it("completes onboarding and invalidates the dashboard cache", async () => {
@@ -86,6 +86,6 @@ describe("onboarding actions", () => {
     );
     expect(eqMock).toHaveBeenCalledWith("id", "user-1");
     expect(invalidateDashboardCacheMock).toHaveBeenCalledWith(["user-1"]);
-    expect(revalidatePathMock).toHaveBeenCalledWith("/dashboard");
+    expect(revalidatePathMock).toHaveBeenCalledWith("/id/dashboard");
   });
 });

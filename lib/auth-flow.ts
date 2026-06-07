@@ -1,3 +1,5 @@
+import { defaultLocale, localizePath, stripLocaleFromPath, type AppLocale } from "@/lib/i18n";
+
 export function sanitizeRedirectPath(next: string | null | undefined, fallback = "/dashboard") {
   if (!next) {
     return fallback;
@@ -7,7 +9,7 @@ export function sanitizeRedirectPath(next: string | null | undefined, fallback =
     return fallback;
   }
 
-  return next;
+  return stripLocaleFromPath(next);
 }
 
 export function withAuthMessage(
@@ -15,7 +17,8 @@ export function withAuthMessage(
   key: "error" | "message",
   value: string,
   next?: string | null,
-  fallbackNext = "/dashboard"
+  fallbackNext = "/dashboard",
+  locale: AppLocale = defaultLocale
 ) {
   const params = new URLSearchParams({ [key]: value });
   const safeNext = sanitizeRedirectPath(next, fallbackNext);
@@ -24,5 +27,5 @@ export function withAuthMessage(
     params.set("next", safeNext);
   }
 
-  return `${path}?${params.toString()}`;
+  return `${localizePath(locale, path)}?${params.toString()}`;
 }

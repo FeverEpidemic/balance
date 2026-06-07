@@ -19,7 +19,7 @@ const {
   updateMock.mockReturnValue({ eq: eqMock });
   fromMock.mockReturnValue({ update: updateMock });
   eqMock.mockResolvedValue({ error: null });
-  cookiesMock.mockResolvedValue({ set: cookieSetMock });
+  cookiesMock.mockResolvedValue({ get: vi.fn(), set: cookieSetMock });
 
   return {
     requireUserMock: vi.fn(),
@@ -62,7 +62,7 @@ describe("theme actions", () => {
     eqMock.mockResolvedValue({ error: null });
     updateMock.mockReturnValue({ eq: eqMock });
     fromMock.mockReturnValue({ update: updateMock });
-    cookiesMock.mockResolvedValue({ set: cookieSetMock });
+    cookiesMock.mockResolvedValue({ get: vi.fn(), set: cookieSetMock });
     requireUserMock.mockResolvedValue({
       user: { id: "user-1" },
       supabase: {
@@ -89,7 +89,7 @@ describe("theme actions", () => {
       })
     );
     expect(invalidateSettingsCacheMock).toHaveBeenCalledWith("user-1");
-    expect(revalidatePathMock).toHaveBeenCalledWith("/settings");
+    expect(revalidatePathMock).toHaveBeenCalledWith("/id/settings");
     expect(revalidatePathMock).toHaveBeenCalledWith("/", "layout");
     expect(result).toMatchObject({
       status: "success"

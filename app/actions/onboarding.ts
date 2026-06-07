@@ -2,7 +2,9 @@
 
 import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
+import { getActionLocale } from "@/app/actions/_shared";
 import { invalidateDashboardCache } from "@/lib/data/cache";
+import { localizePath } from "@/lib/i18n";
 
 async function updateOnboardingState(state: "dismissed" | "completed") {
   const { supabase, user } = await requireUser();
@@ -25,7 +27,7 @@ async function updateOnboardingState(state: "dismissed" | "completed") {
   }
 
   await invalidateDashboardCache([user.id]);
-  revalidatePath("/dashboard");
+  revalidatePath(localizePath(await getActionLocale(), "/dashboard"));
 }
 
 export async function dismissOnboarding() {

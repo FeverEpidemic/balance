@@ -1,37 +1,45 @@
+import { getLocaleTag, resolveLocale, type AppLocale } from "@/lib/i18n";
+
 export function cn(...values: Array<string | false | null | undefined>) {
   return values.filter(Boolean).join(" ");
 }
 
-const currencyInputFormatter = new Intl.NumberFormat("id-ID", {
-  style: "currency",
-  currency: "IDR",
-  maximumFractionDigits: 0
-});
+function createCurrencyFormatter(locale: AppLocale) {
+  return new Intl.NumberFormat(getLocaleTag(locale), {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0
+  });
+}
 
-export function formatCurrency(value: number) {
-  return currencyInputFormatter.format(value);
+export function formatCurrency(value: number, locale: AppLocale = "id") {
+  return createCurrencyFormatter(resolveLocale(locale)).format(value);
 }
 
 export function sanitizeCurrencyInput(value: string) {
   return value.replace(/[^\d]/g, "");
 }
 
-export function formatCurrencyInputValue(value: string | number) {
+export function formatCurrencyInputValue(value: string | number, locale: AppLocale = "id") {
   const digits = typeof value === "number" ? String(Math.trunc(value)) : sanitizeCurrencyInput(value);
 
   if (!digits) {
     return "";
   }
 
-  return currencyInputFormatter.format(Number(digits));
+  return createCurrencyFormatter(resolveLocale(locale)).format(Number(digits));
 }
 
-export function formatShortDate(value: string) {
-  return new Intl.DateTimeFormat("id-ID", {
+export function formatShortDate(value: string, locale: AppLocale = "id") {
+  return new Intl.DateTimeFormat(getLocaleTag(resolveLocale(locale)), {
     day: "2-digit",
     month: "short",
     year: "numeric"
   }).format(new Date(value));
+}
+
+export function formatDateTime(value: string, locale: AppLocale = "id", options?: Intl.DateTimeFormatOptions) {
+  return new Intl.DateTimeFormat(getLocaleTag(resolveLocale(locale)), options).format(new Date(value));
 }
 
 export function getTodayDateString(): string {

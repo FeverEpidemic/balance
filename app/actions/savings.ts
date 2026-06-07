@@ -99,7 +99,7 @@ export async function createSaving(_prevState: ActionResult, formData: FormData)
     targets: ["overview", "savings"],
     dashboardUserIds
   });
-  revalidateWalletPaths(walletId, {
+  await revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
     sections: ["savings"]
@@ -145,7 +145,7 @@ export async function updateSaving(_prevState: ActionResult, formData: FormData)
     targets: ["overview", "savings"],
     dashboardUserIds
   });
-  revalidateWalletPaths(walletId, {
+  await revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
     sections: ["savings"]
@@ -180,7 +180,7 @@ export async function archiveSaving(_prevState: ActionResult, formData: FormData
     targets: ["overview", "savings"],
     dashboardUserIds
   });
-  revalidateWalletPaths(walletId, {
+  await revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
     sections: ["savings"]
@@ -240,7 +240,7 @@ async function createSavingEntry(formData: FormData, entryType: "deposit" | "wit
     targets: ["overview", "savings", "transactions", "budgets"],
     dashboardUserIds
   });
-  revalidateWalletPaths(walletId, {
+  await revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
     sections: ["savings", "transactions", "budgets", "reports"]

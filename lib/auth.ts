@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import type { User } from "@supabase/supabase-js";
+import { defaultLocale, LOCALE_COOKIE_NAME, localizePath, resolveLocale } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 import { ensureProfileForUser } from "@/lib/profile";
 
@@ -10,7 +12,9 @@ export async function requireUser() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/login");
+    const cookieStore = await cookies();
+    const locale = resolveLocale(cookieStore.get(LOCALE_COOKIE_NAME)?.value ?? defaultLocale);
+    redirect(localizePath(locale, "/login"));
   }
 
   await ensureProfileForUser(user);

@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
 import { RouteTransition } from "@/components/ui/route-transition";
 import { ToastProvider } from "@/components/ui/toast-provider";
+import { LOCALE_COOKIE_NAME, defaultLocale, resolveLocale } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 import { getThemeBootstrapScript, parseThemePreference, resolveAppliedTheme, THEME_COOKIE_NAME } from "@/lib/theme";
 import "./globals.css";
@@ -25,8 +26,8 @@ const label = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Balance | Keuangan yang lebih tenang",
-  description: "Aplikasi keuangan rumah tangga yang tenang, ringan, dan mobile responsive.",
+  title: "Balance",
+  description: "Balance",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -56,6 +57,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const cookieStore = await cookies();
   const cookiePreference = parseThemePreference(cookieStore.get(THEME_COOKIE_NAME)?.value);
+  const localePreference = resolveLocale(cookieStore.get(LOCALE_COOKIE_NAME)?.value ?? defaultLocale);
   let themePreference = cookiePreference;
 
   const supabase = await createClient();
@@ -72,7 +74,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
   return (
     <html
-      lang="id"
+      lang={localePreference}
       suppressHydrationWarning
       data-theme={appliedTheme}
       data-theme-preference={themePreference}

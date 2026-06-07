@@ -3,9 +3,10 @@
 import { requireUser } from "@/lib/auth";
 import { generateApiKey, hashApiKey } from "@/lib/chat-auth";
 import { invalidateSettingsCache } from "@/lib/data/cache";
-import { errorResult, successResult, type ActionResult } from "@/app/actions/_shared";
+import { errorResult, getActionLocale, successResult, type ActionResult } from "@/app/actions/_shared";
 import { getTrimmedValue } from "@/app/actions/_shared";
 import { revalidatePath } from "next/cache";
+import { localizePath } from "@/lib/i18n";
 
 export async function createApiKey(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   const name = getTrimmedValue(formData, "name");
@@ -29,7 +30,7 @@ export async function createApiKey(_prevState: ActionResult, formData: FormData)
   }
 
   await invalidateSettingsCache(user.id);
-  revalidatePath("/settings");
+  revalidatePath(localizePath(await getActionLocale(), "/settings"));
 
   return successResult(rawKey, { resetForm: true });
 }
@@ -53,7 +54,7 @@ export async function revokeApiKey(_prevState: ActionResult, formData: FormData)
   }
 
   await invalidateSettingsCache(user.id);
-  revalidatePath("/settings");
+  revalidatePath(localizePath(await getActionLocale(), "/settings"));
 
   return successResult("API key berhasil dicabut.");
 }
@@ -77,7 +78,7 @@ export async function deleteApiKey(_prevState: ActionResult, formData: FormData)
   }
 
   await invalidateSettingsCache(user.id);
-  revalidatePath("/settings");
+  revalidatePath(localizePath(await getActionLocale(), "/settings"));
 
   return successResult("API key berhasil dihapus permanen.");
 }

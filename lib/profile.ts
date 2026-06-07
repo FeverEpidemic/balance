@@ -1,4 +1,5 @@
 import type { User } from "@supabase/supabase-js";
+import { defaultLocale } from "@/lib/i18n";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,6 +21,7 @@ export async function ensureProfileForUser(user: User) {
     id: user.id,
     full_name: user.user_metadata.full_name ?? user.user_metadata.name ?? null,
     email: user.email ?? null,
+    preferred_locale: defaultLocale,
     default_currency: "IDR"
   };
 

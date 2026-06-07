@@ -1,3 +1,5 @@
+import type { AppLocale } from "@/lib/i18n";
+
 export type WalletRole = "owner" | "editor" | "viewer";
 export type WalletKind = "personal" | "shared";
 export type TransactionKind = "income" | "expense";
@@ -12,6 +14,7 @@ export type ProfileRow = {
   id: string;
   full_name: string | null;
   email: string | null;
+  preferred_locale: AppLocale;
   theme_preference: ThemePreference;
   onboarding_state: OnboardingState;
   onboarding_dismissed_at: string | null;
@@ -159,6 +162,7 @@ export type SettingsApiKeyItem = {
 export type SettingsData = {
   shell: ShellData;
   apiKeys: SettingsApiKeyItem[];
+  preferredLocale: AppLocale;
   themePreference: ThemePreference;
 };
 
@@ -168,6 +172,7 @@ export type ShellData = {
   budgetCount: number;
   memberCount: number;
   primaryWalletId: string | null;
+  preferredLocale?: AppLocale;
   themePreference?: ThemePreference;
   onboardingState?: OnboardingState;
   onboardingDismissedAt?: string | null;

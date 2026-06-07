@@ -5,9 +5,11 @@ import { redirect } from "next/navigation";
 import { parseNumberInput } from "@/lib/finance";
 import { requireUser } from "@/lib/auth";
 import { invalidateWalletReadCaches } from "@/lib/data/cache";
+import { getLocalizedPath } from "@/app/actions/_shared";
 
-function redirectToTemplates(walletId: string, type: "error" | "message", message: string) {
-  redirect(`/wallets/${walletId}/templates?${new URLSearchParams({ [type]: message }).toString()}`);
+async function redirectToTemplates(walletId: string, type: "error" | "message", message: string) {
+  const path = await getLocalizedPath(`/wallets/${walletId}/templates`);
+  redirect(`${path}?${new URLSearchParams({ [type]: message }).toString()}`);
 }
 
 export async function createTemplate(formData: FormData) {
@@ -31,10 +33,10 @@ export async function createTemplate(formData: FormData) {
   });
 
   if (error) {
-    redirectToTemplates(walletId, "error", error.message);
+    await redirectToTemplates(walletId, "error", error.message);
   }
 
   await invalidateWalletReadCaches(walletId, { targets: ["overview"] });
-  revalidatePath(`/wallets/${walletId}/templates`);
-  redirectToTemplates(walletId, "message", "Template berhasil disimpan.");
+  revalidatePath(await getLocalizedPath(`/wallets/${walletId}/templates`));
+  await redirectToTemplates(walletId, "message", "Template berhasil disimpan.");
 }
