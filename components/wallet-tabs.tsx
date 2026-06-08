@@ -30,7 +30,9 @@ export function WalletTabs({ walletId, active }: { walletId: string; active: str
               href={localizePath(locale, href)}
               className={cn(
                 "whitespace-nowrap rounded-xl px-3 py-2 font-label text-xs font-semibold uppercase tracking-[0.12em] transition sm:px-4 sm:py-3 sm:text-sm sm:normal-case sm:tracking-[0.02em]",
-                active === href ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted"
+                active === href
+                  ? "bg-primary text-[var(--button-primary-text)] shadow-serene hover:bg-primary-hover"
+                  : "text-muted-foreground hover:bg-[color:color-mix(in_srgb,var(--muted)_88%,var(--surface-container-lowest)_12%)] hover:text-foreground"
               )}
             >
               {tab.label}

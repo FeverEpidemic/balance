@@ -47,6 +47,11 @@ export function AppShell({
   const walletId = currentWalletId ?? primaryWalletId;
   const logoutButtonClassName = "rounded-full bg-primary-soft px-3 py-2 font-label text-xs text-primary-strong";
   const mobileUtilityButtonClassName = "glass-panel rounded-full px-3 py-2 font-label text-xs text-foreground";
+  const activeWalletLinkClassName = "bg-primary text-[var(--button-primary-text)] shadow-serene hover:bg-primary-hover";
+  const inactiveWalletLinkClassName =
+    "bg-muted text-foreground hover:bg-[color:color-mix(in_srgb,var(--muted)_82%,var(--surface-container-lowest)_18%)] hover:text-foreground";
+  const inactiveWalletPillClassName =
+    "glass-panel border text-muted-foreground hover:border-primary/25 hover:bg-[color:var(--primary-soft)] hover:text-foreground";
   const navItems = [
     { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" as const },
     { href: "/wallets", label: t("common.wallet"), icon: "wallet" as const },
@@ -136,7 +141,7 @@ export function AppShell({
                         <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{t("app.navigationMain")}</p>
                         <nav className="mt-3 space-y-2">
                           {mobileNavItems.map((item) => (
-                <SheetClose key={item.href} asChild>
+                            <SheetClose key={item.href} asChild>
                               <Link
                                 href={localizePath(locale, item.href)}
                                 className={cn(
@@ -164,8 +169,8 @@ export function AppShell({
                                   className={cn(
                                     "flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition",
                                     isActivePath(currentPath, item.href)
-                                      ? "bg-primary text-[var(--button-primary-text)]"
-                                      : "bg-muted text-foreground hover:bg-white"
+                                      ? activeWalletLinkClassName
+                                      : inactiveWalletLinkClassName
                                   )}
                                 >
                                   <AppIcon name={item.icon} className="h-4 w-4" />
@@ -203,8 +208,8 @@ export function AppShell({
                         className={cn(
                           "shrink-0 whitespace-nowrap rounded-full border px-3 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
                           isActivePath(currentPath, item.href)
-                            ? "border-primary bg-primary text-[var(--button-primary-text)]"
-                            : "glass-panel border text-muted-foreground"
+                            ? "border-primary bg-primary text-[var(--button-primary-text)] shadow-serene hover:bg-primary-hover"
+                            : inactiveWalletPillClassName
                         )}
                       >
                         <span className="inline-flex items-center gap-2">

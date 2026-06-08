@@ -2,6 +2,19 @@
 
 ## [Unreleased] - 2026-06-08
 
+### Fixed - Kontras Chart Dashboard dan Navigasi Wallet di Dua Theme
+
+#### Perbaikan UI
+- **Chart pengeluaran harian kini lebih aman di light mode dan dark mode:** Surface chart, garis grid, batang aktif, serta ring highlight hari ini sekarang memakai token warna berbasis tema sehingga tetap terbaca tanpa glare di light mode atau tenggelam di dark mode.
+- **State aktif tab dan shortcut wallet kini konsisten lintas theme:** Teks aktif tidak lagi memakai putih hardcoded di atas `bg-primary`, jadi label wallet tetap jelas saat dark mode menggunakan `on-primary` yang lebih gelap.
+- **Hover wallet di mobile tidak lagi terasa "terlalu putih" pada dark mode:** Shortcut wallet nonaktif sekarang memakai hover berbasis token muted/primary-soft, bukan `hover:bg-white`, supaya tetap harmonis dengan surface gelap.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/features/dashboard/dashboard-daily-expense-chart.tsx` | Samakan surface, grid, batang, dan highlight chart ke token warna theme-aware. |
+| `components/{app-shell,wallet-tabs}.tsx` | Rapikan warna state aktif dan hover wallet agar kontras tetap aman di light/dark mode. |
+
 ### Fixed - Warna Card Panel Login/Register Lebih Selaras
 
 #### Perbaikan UI

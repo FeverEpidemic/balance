@@ -1,85 +1,31 @@
 import type { DailyExpenseItem } from "@/lib/data";
 import { getTranslator, type AppLocale } from "@/lib/i18n";
-import { formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 
-const CHART_WIDTH = 720;
-const CHART_HEIGHT = 248;
-const CHART_PADDING_X = 28;
-const CHART_PADDING_TOP = 20;
-const CHART_PADDING_BOTTOM = 30;
-const CHART_GRID_STEPS = 4;
+const CHART_HEIGHT = 192;
+const MIN_BAR_HEIGHT = 6;
 
-type ChartPoint = DailyExpenseItem & {
-  x: number;
-  y: number;
-};
-
-function buildChartPoints(items: DailyExpenseItem[], maxAmount: number) {
-  const baseline = CHART_HEIGHT - CHART_PADDING_BOTTOM;
-  const usableHeight = baseline - CHART_PADDING_TOP;
-  const step = items.length > 1 ? (CHART_WIDTH - CHART_PADDING_X * 2) / (items.length - 1) : 0;
-
-  return items.map((item, index) => {
-    const x = CHART_PADDING_X + step * index;
-    const y = maxAmount > 0 ? baseline - (item.amount / maxAmount) * usableHeight : baseline;
-
-    return {
-      ...item,
-      x,
-      y
-    } satisfies ChartPoint;
-  });
-}
-
-function buildSmoothPath(points: ChartPoint[]) {
-  if (points.length === 0) {
-    return "";
+function getBarHeight(amount: number, maxAmount: number) {
+  if (amount <= 0 || maxAmount <= 0) {
+    return MIN_BAR_HEIGHT;
   }
 
-  if (points.length === 1) {
-    return `M ${points[0].x} ${points[0].y}`;
-  }
-
-  let path = `M ${points[0].x} ${points[0].y}`;
-
-  for (let index = 1; index < points.length - 1; index += 1) {
-    const current = points[index];
-    const next = points[index + 1];
-    const midX = (current.x + next.x) / 2;
-    const midY = (current.y + next.y) / 2;
-
-    path += ` Q ${current.x} ${current.y} ${midX} ${midY}`;
-  }
-
-  const lastPoint = points[points.length - 1];
-  path += ` T ${lastPoint.x} ${lastPoint.y}`;
-
-  return path;
+  return Math.max((amount / maxAmount) * CHART_HEIGHT, 18);
 }
 
 function getTickIndexes(length: number) {
-  if (length <= 7) {
+  if (length <= 6) {
     return Array.from({ length }, (_, index) => index);
   }
 
   const indexes = new Set<number>([0, length - 1]);
-  const step = Math.max(Math.floor((length - 1) / 5), 1);
+  const step = Math.max(Math.floor((length - 1) / 4), 1);
 
   for (let index = step; index < length - 1; index += step) {
     indexes.add(index);
   }
 
   return Array.from(indexes).sort((left, right) => left - right);
-}
-
-function getYAxisTicks(maxAmount: number) {
-  return Array.from({ length: CHART_GRID_STEPS }, (_, index) => {
-    const ratio = index / (CHART_GRID_STEPS - 1);
-    const value = Math.round(maxAmount * (1 - ratio));
-    const y = CHART_PADDING_TOP + (CHART_HEIGHT - CHART_PADDING_BOTTOM - CHART_PADDING_TOP) * ratio;
-
-    return { ratio, value, y };
-  });
 }
 
 export function DashboardDailyExpenseChart({
@@ -91,16 +37,7 @@ export function DashboardDailyExpenseChart({
 }) {
   const t = getTranslator(locale);
   const maxAmount = Math.max(...dailyExpenses.map((item) => item.amount), 0);
-  const chartPoints = buildChartPoints(dailyExpenses, maxAmount);
-  const linePath = buildSmoothPath(chartPoints);
-  const chartBaseline = CHART_HEIGHT - CHART_PADDING_BOTTOM;
-  const todayPoint = chartPoints.find((item) => item.isToday) ?? null;
-  const areaPath =
-    chartPoints.length > 1
-      ? `${linePath} L ${chartPoints[chartPoints.length - 1].x} ${chartBaseline} L ${chartPoints[0].x} ${chartBaseline} Z`
-      : "";
   const tickIndexes = getTickIndexes(dailyExpenses.length);
-  const yAxisTicks = getYAxisTicks(maxAmount);
   const peakExpense = dailyExpenses.reduce<DailyExpenseItem | null>((peak, item) => {
     if (!peak || item.amount > peak.amount) {
       return item;
@@ -112,119 +49,72 @@ export function DashboardDailyExpenseChart({
 
   return (
     <>
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="theme-primary-pill inline-flex rounded-full px-3 py-1.5 font-label text-[11px] font-semibold uppercase tracking-[0.12em]">
-          {t("dashboard.dailyExpensePeakLabel")}: {peakExpense ? peakExpense.dayLabel : "-"}
+      <div className="mt-6 rounded-[1.5rem] border border-[color:var(--soft-border)] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--surface-container-lowest)_88%,transparent),color-mix(in_srgb,var(--surface)_94%,transparent))] p-3 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--surface-container-lowest)_48%,transparent)] sm:p-4">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+              {t("dashboard.dailyExpenseRangeLabel", { value: `0 - ${formatCurrency(maxAmount, locale)}` })}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">{t("dashboard.dailyExpenseChartHint")}</p>
+          </div>
+          <div className="text-right">
+            <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{t("dashboard.dailyExpensePeakLabel")}</p>
+            <p className="metric mt-1 text-base text-primary-strong">
+              {peakExpense ? formatCurrency(peakExpense.amount, locale) : formatCurrency(0, locale)}
+            </p>
+          </div>
         </div>
-        <div className="theme-primary-pill inline-flex rounded-full px-3 py-1.5 font-label text-[11px] font-semibold uppercase tracking-[0.12em]">
-          {t("dashboard.dailyExpenseActiveDaysValue", { count: activeDays })}
-        </div>
-      </div>
 
-      <div className="mt-6 overflow-x-auto pb-2">
-        <div className="min-w-[42rem] rounded-[1.5rem] border border-[color:var(--soft-border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.84),rgba(239,238,231,0.9))] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] sm:p-4">
-          <svg
-            viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`}
-            className="h-[18rem] w-full"
-            role="img"
-            aria-label={t("dashboard.dailyExpenseTitle")}
+        <div className="relative">
+          <div className="pointer-events-none absolute inset-x-0 top-0 flex h-48 flex-col justify-between">
+            {[0, 1, 2, 3].map((line) => (
+              <div key={line} className="border-t border-dashed border-[color:color-mix(in_srgb,var(--border)_80%,transparent)]" />
+            ))}
+          </div>
+
+          <div
+            className="relative grid h-56 items-end gap-1 pt-3"
+            style={{ gridTemplateColumns: `repeat(${dailyExpenses.length}, minmax(0, 1fr))` }}
           >
-            <defs>
-              <linearGradient id="daily-expense-fill" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.04" />
-              </linearGradient>
-            </defs>
-
-            {yAxisTicks.map((tick) => {
-              return (
-                <g key={tick.ratio}>
-                  <line
-                    x1={CHART_PADDING_X}
-                    x2={CHART_WIDTH - CHART_PADDING_X}
-                    y1={tick.y}
-                    y2={tick.y}
-                    stroke="var(--border)"
-                    strokeDasharray="4 8"
-                    strokeWidth="1"
-                  />
-                  <text
-                    x={8}
-                    y={tick.y + 4}
-                    fill="var(--muted-foreground)"
-                    fontSize="11"
-                    style={{ fontVariantNumeric: "tabular-nums" }}
-                  >
-                    {formatCurrency(tick.value, locale)}
-                  </text>
-                </g>
-              );
-            })}
-
-            {todayPoint ? (
-              <rect
-                x={todayPoint.x - 8}
-                y={CHART_PADDING_TOP}
-                width="16"
-                height={chartBaseline - CHART_PADDING_TOP}
-                fill="var(--primary)"
-                fillOpacity="0.05"
-                rx="8"
-              />
-            ) : null}
-
-            {areaPath ? <path d={areaPath} fill="url(#daily-expense-fill)" /> : null}
-            {linePath ? <path d={linePath} fill="none" stroke="var(--primary)" strokeLinecap="round" strokeWidth="3" /> : null}
-
-            {chartPoints.map((item) => {
+            {dailyExpenses.map((item, index) => {
               const isPeak = peakExpense?.date === item.date && item.amount > 0;
-              const isHighlighted = item.isToday || isPeak;
-
-              if (!isHighlighted) {
-                return null;
-              }
+              const showLabel = tickIndexes.includes(index);
 
               return (
-                <g key={item.date}>
-                  <circle cx={item.x} cy={item.y} r="7" fill="var(--card)" stroke="var(--primary)" strokeOpacity="0.22" strokeWidth="5" />
-                  <circle cx={item.x} cy={item.y} r="3.5" fill={isPeak ? "var(--primary-strong)" : "var(--primary)"} />
-                </g>
-              );
-            })}
+                <div key={item.date} className="flex min-w-0 flex-col items-center justify-end gap-2">
+                  <div className="flex h-48 w-full items-end justify-center">
+                    <div
+                      aria-label={`${item.date}: ${formatCurrency(item.amount, locale)}`}
+                      className={cn(
+                        "w-full rounded-full transition-all",
+                        item.amount > 0
+                          ? "bg-[linear-gradient(180deg,color-mix(in_srgb,var(--primary-soft-strong)_72%,var(--surface-container-lowest)_28%),var(--primary))]"
+                          : "bg-[color:color-mix(in_srgb,var(--border)_72%,transparent)]",
+                        isPeak ? "shadow-[0_10px_24px_-14px_color-mix(in_srgb,var(--primary-strong)_55%,transparent)]" : "",
+                        item.isToday
+                          ? "ring-2 ring-[color:color-mix(in_srgb,var(--primary)_24%,transparent)] ring-offset-2 ring-offset-[color:var(--surface-container-lowest)]"
+                          : ""
+                      )}
+                      style={{
+                        height: `${getBarHeight(item.amount, maxAmount)}px`,
+                        maxWidth: "0.75rem"
+                      }}
+                      title={`${item.date}: ${formatCurrency(item.amount, locale)}`}
+                    />
+                  </div>
 
-            {tickIndexes.map((index) => {
-              const item = chartPoints[index];
-
-              return (
-                <g key={item.date}>
-                  <line x1={item.x} x2={item.x} y1={chartBaseline} y2={chartBaseline + 6} stroke="var(--outline-variant)" strokeWidth="1" />
-                  <text
-                    x={item.x}
-                    y={CHART_HEIGHT - 8}
-                    fill={item.isToday ? "var(--primary-strong)" : "var(--muted-foreground)"}
-                    fontSize="11"
-                    textAnchor="middle"
-                    style={{ fontVariantNumeric: "tabular-nums" }}
+                  <span
+                    className={cn(
+                      "font-label text-[10px] leading-none text-muted-foreground",
+                      showLabel ? "opacity-100" : "opacity-0",
+                      item.isToday ? "text-primary-strong" : ""
+                    )}
                   >
                     {item.dayLabel}
-                  </text>
-                </g>
+                  </span>
+                </div>
               );
             })}
-          </svg>
-
-          <div className="mt-3 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
-            <p>{t("dashboard.dailyExpenseRangeLabel", { value: `0 - ${formatCurrency(maxAmount, locale)}` })}</p>
-            <p className="sm:text-right">
-              {todayPoint
-                ? t("dashboard.dailyExpenseTodayLabel", {
-                    day: todayPoint.dayLabel,
-                    amount: formatCurrency(todayPoint.amount, locale)
-                  })
-                : peakExpense
-                  ? `${peakExpense.dayLabel}: ${formatCurrency(peakExpense.amount, locale)}`
-                  : formatCurrency(0, locale)}
-            </p>
           </div>
         </div>
       </div>
