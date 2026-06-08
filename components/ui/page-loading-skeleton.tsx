@@ -277,21 +277,43 @@ export function DashboardLoadingSkeleton({ locale = defaultLocale }: { locale?: 
       <section className="mt-4 grid gap-4 2xl:grid-cols-12">
         <div className="card 2xl:col-span-7">
           <PageSectionHeading />
-          <div className="mt-6 grid gap-4 xl:grid-cols-2 min-[1700px]:grid-cols-3">
+          <div className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(17rem,1fr))] gap-4">
             {Array.from({ length: 3 }).map((_, index) => (
-              <div key={index} className="info-tile">
-                <SkeletonBlock className="h-5 w-32" />
-                <SkeletonBlock className="mt-2 h-4 w-24" />
-                <SkeletonBlock className="mt-5 h-9 w-36" />
+              <div key={index} className="relative overflow-hidden rounded-[1.4rem] border bg-card p-4">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top_left,rgba(224,231,187,0.9),transparent_58%)] opacity-80" />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
+                    <SkeletonBlock className="h-11 w-11 rounded-2xl" />
+                    <div className="min-w-0 flex-1">
+                      <SkeletonBlock className="h-5 w-32" />
+                      <SkeletonBlock className="mt-2 h-4 w-24" />
+                    </div>
+                  </div>
+                  <SkeletonBlock className="h-7 w-20 rounded-full" />
+                </div>
+                <div className="mt-5 rounded-[1.25rem] border border-[color:var(--soft-border)] p-4">
+                  <SkeletonBlock className="h-4 w-24" />
+                  <SkeletonBlock className="mt-2 h-9 w-40" />
+                </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
                   <SkeletonBlock className="h-20 w-full rounded-xl" />
                   <SkeletonBlock className="h-20 w-full rounded-xl" />
                 </div>
-                <SkeletonBlock className="mt-4 h-2 w-full rounded-full" />
-                <div className="mt-3 flex gap-3">
-                  <SkeletonBlock className="h-4 w-20" />
-                  <SkeletonBlock className="h-4 w-28" />
+                <div className="mt-5 rounded-[1.25rem] border border-[color:var(--soft-border)] p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <SkeletonBlock className="h-4 w-20" />
+                    <SkeletonBlock className="h-5 w-10" />
+                  </div>
+                  <div className="mt-4 flex items-end justify-between gap-3">
+                    <div>
+                      <SkeletonBlock className="h-4 w-20" />
+                      <SkeletonBlock className="mt-2 h-5 w-24" />
+                    </div>
+                    <SkeletonBlock className="h-4 w-28" />
+                  </div>
+                  <SkeletonBlock className="mt-3 h-2 w-full rounded-full" />
                 </div>
+                <SkeletonBlock className="mt-5 h-12 w-full rounded-full" />
               </div>
             ))}
           </div>
@@ -336,7 +358,7 @@ export function WalletsLoadingSkeleton({ locale = defaultLocale }: { locale?: Ap
 
       <section className="wallet-grid">
         {Array.from({ length: 3 }).map((_, index) => (
-          <article key={index} className="card">
+          <article key={index} className="card flex h-full flex-col">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <SkeletonBlock className="h-6 w-36" />
@@ -344,7 +366,8 @@ export function WalletsLoadingSkeleton({ locale = defaultLocale }: { locale?: Ap
               </div>
               <SkeletonBlock className="h-7 w-20 rounded-full" />
             </div>
-            <SkeletonBlock className="mt-6 h-10 w-40" />
+            <SkeletonBlock className="mt-6 h-4 w-24" />
+            <SkeletonBlock className="mt-2 h-10 w-40" />
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <SkeletonBlock className="h-24 w-full rounded-xl" />
               <SkeletonBlock className="h-24 w-full rounded-xl" />
@@ -353,6 +376,11 @@ export function WalletsLoadingSkeleton({ locale = defaultLocale }: { locale?: Ap
               <SkeletonBlock className="h-20 w-full rounded-xl" />
               <SkeletonBlock className="h-20 w-full rounded-xl" />
               <SkeletonBlock className="h-20 w-full rounded-xl" />
+            </div>
+            <SkeletonBlock className="mt-4 h-2 w-full rounded-full" />
+            <div className="mt-3 flex gap-3">
+              <SkeletonBlock className="h-4 w-20" />
+              <SkeletonBlock className="h-4 w-28" />
             </div>
             <SkeletonBlock className="mt-6 h-12 w-full rounded-full" />
           </article>

@@ -191,6 +191,8 @@
     "dailyExpensePeakLabel": "Puncak bulan ini",
     "dailyExpenseActiveDaysLabel": "Hari aktif",
     "dailyExpenseActiveDaysValue": "{count} hari",
+    "dailyExpenseRangeLabel": "Rentang: {value}",
+    "dailyExpenseTodayLabel": "Hari ini {day}: {amount}",
     "dailyExpenseChartHint": "Geser chart untuk melihat seluruh tanggal.",
     "outstandingSplitLabel": "Sisa split bill",
     "outstandingSplitDetail": "Akumulasi patungan yang masih perlu dibereskan antar anggota.",

@@ -2,6 +2,43 @@
 
 ## [Unreleased] - 2026-06-08
 
+### Fixed - Warna Card Panel Login/Register Lebih Selaras
+
+#### Perbaikan UI
+- **Panel brand auth kini terasa lebih menyatu dengan palet Serene Capital:** Kartu highlight dan panel ritme tidak lagi memakai blok sage gelap yang terlalu berat di atas surface terang.
+- **Hierarchy teks dibuat lebih tenang dan terbaca:** Judul, eyebrow, subtitle, dan label internal kini memakai tone forest/sage yang lebih konsisten dengan card utama.
+- **Kontras tetap terjaga tanpa terasa keras:** Panel kecil sekarang memakai cream translucent dengan border dan shadow lembut agar masih terpisah jelas tetapi tidak tampak "nempel asing".
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/auth/auth-brand-panel.tsx` | Samakan warna teks, tile highlight, dan panel ritme pada surface auth brand agar lebih harmonis di login/register. |
+
+### Fixed - Visual Chart Dashboard Lebih Tenang dan Mudah Dibaca
+
+#### Perbaikan UI
+- **Chart pengeluaran harian tidak lagi terasa seperti deretan batang sempit yang padat:** Visual dashboard kini memakai area/line chart yang lebih halus sehingga pola belanja bulanan lebih cepat terbaca.
+- **Penekanan data penting dibuat lebih jelas tanpa terasa ramai:** Hari ini dan titik pengeluaran puncak sekarang ditandai langsung di chart, sementara grid dan sumbu bawah dibuat tipis agar tetap mengikuti nuansa Serene Capital.
+- **Scroll horizontal di mobile tetap aman tetapi lebih natural:** Chart mempertahankan ruang baca minimum untuk bulan penuh tanpa membuat isi kartu terasa sesak.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/features/dashboard/dashboard-daily-expense-chart.tsx` | Ganti chart batang menjadi SVG area/line chart yang lebih halus, tambah grid lembut, marker highlight, dan ringkasan sumbu sederhana. |
+
+### Fixed - Proporsi Card Wallet di Dashboard dan Halaman Wallet
+
+#### Perbaikan UI
+- **Card wallet kini tidak lagi dipaksa terlalu sempit di viewport tanggung:** Grid wallet aktif di dashboard dan daftar wallet sekarang memakai pola auto-fit dengan lebar minimum, sehingga card turun baris lebih natural daripada memadat aneh.
+- **Hierarchy isi card dibuat lebih tenang dan seimbang:** Saldo utama dipisahkan lebih jelas dari detail saldo turunan, area anggota/anggaran diringkas ke panel bawah, dan CTA buka wallet tetap mudah ditemukan.
+- **Loading skeleton, micro-interaction, dan status anggaran ikut disesuaikan:** Struktur skeleton dashboard dan halaman wallet kini mengikuti komposisi card baru, kartu wallet aktif mendapat hover serta animasi masuk ringan yang tetap menghormati `prefers-reduced-motion`, dan wallet dengan anggaran yang mulai mepet kini punya tone visual yang lebih mudah dipindai tanpa terasa agresif.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/features/{dashboard/dashboard-content,wallets/wallets-page-content}.tsx` | Rapikan layout card wallet, CTA, progress anggaran, dan susunan detail saldo. |
+| `components/ui/page-loading-skeleton.tsx`, `app/globals.css` | Ubah grid wallet ke auto-fit dan samakan skeleton dengan komposisi card baru. |
+
 ### Changed - Polish Ikon, Dashboard, dan Kartu Transaksi
 
 #### Peningkatan UI Serene Capital

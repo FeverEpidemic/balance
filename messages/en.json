@@ -191,6 +191,8 @@
     "dailyExpensePeakLabel": "Peak this month",
     "dailyExpenseActiveDaysLabel": "Active days",
     "dailyExpenseActiveDaysValue": "{count} days",
+    "dailyExpenseRangeLabel": "Range: {value}",
+    "dailyExpenseTodayLabel": "Today {day}: {amount}",
     "dailyExpenseChartHint": "Scroll the chart to see every date.",
     "outstandingSplitLabel": "Outstanding split bill",
     "outstandingSplitDetail": "Accumulated shared expenses that still need to be settled between members.",

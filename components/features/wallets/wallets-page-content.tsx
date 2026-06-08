@@ -81,54 +81,78 @@ export function WalletsPageContent({
 
       <section className="wallet-grid">
         {dashboard.wallets.length === 0 ? (
-          <div className="md:col-span-2 xl:col-span-3">
+          <div>
             <EmptyState
               title={t("wallets.emptyTitle")}
               description={t("wallets.emptyDescription")}
             />
           </div>
         ) : null}
-        {dashboard.wallets.map((wallet) => (
-          <article key={wallet.id} className="card">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-display text-xl">{wallet.name}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{wallet.kind === "shared" ? t("common.walletKindShared") : t("common.walletKindPersonal")}</p>
+        {dashboard.wallets.map((wallet) => {
+          const budgetUsagePercent = wallet.budgetThisMonth > 0 ? Math.min(Math.round((wallet.spentThisMonth / wallet.budgetThisMonth) * 100), 100) : 0;
+
+          return (
+            <article key={wallet.id} className="card flex h-full flex-col">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-display text-xl">{wallet.name}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{wallet.kind === "shared" ? t("common.walletKindShared") : t("common.walletKindPersonal")}</p>
+                </div>
+                <Badge>{wallet.role}</Badge>
               </div>
-              <Badge>{wallet.role}</Badge>
-            </div>
-            <p className="metric mt-6 text-3xl">{formatCurrency(wallet.totalBalance)}</p>
-            <div className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
-              <div className="info-tile">
-                <p className="text-muted-foreground">{t("wallets.availableBalance")}</p>
-                <p className="metric mt-2">{formatCurrency(wallet.availableBalance)}</p>
+
+              <div className="mt-6">
+                <p className="eyebrow">{t("dashboard.totalBalanceLabel")}</p>
+                <p className="metric mt-2 text-[2rem] leading-none sm:text-3xl">{formatCurrency(wallet.totalBalance)}</p>
               </div>
-              <div className="info-tile">
-                <p className="text-muted-foreground">{t("wallets.savingBalance")}</p>
-                <p className="metric mt-2">{formatCurrency(wallet.savingBalance)}</p>
+
+              <div className="mt-6 grid gap-3 text-sm sm:grid-cols-2">
+                <div className="subtle-panel">
+                  <p className="text-muted-foreground">{t("wallets.availableBalance")}</p>
+                  <p className="metric mt-2 text-lg">{formatCurrency(wallet.availableBalance)}</p>
+                </div>
+                <div className="subtle-panel">
+                  <p className="text-muted-foreground">{t("wallets.savingBalance")}</p>
+                  <p className="metric mt-2 text-lg">{formatCurrency(wallet.savingBalance)}</p>
+                </div>
               </div>
-            </div>
-            <div className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
-              <div className="info-tile">
-                <p className="text-muted-foreground">{t("wallets.usedAmount")}</p>
-                <p className="metric mt-2">{formatCurrency(wallet.spentThisMonth)}</p>
+
+              <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+                <div className="subtle-panel">
+                  <p className="text-muted-foreground">{t("wallets.usedAmount")}</p>
+                  <p className="metric mt-2">{formatCurrency(wallet.spentThisMonth)}</p>
+                </div>
+                <div className="subtle-panel">
+                  <p className="text-muted-foreground">{t("wallets.budgetAmount")}</p>
+                  <p className="metric mt-2">{formatCurrency(wallet.budgetThisMonth)}</p>
+                </div>
+                <div className="subtle-panel">
+                  <p className="text-muted-foreground">{t("wallets.membersCount")}</p>
+                  <p className="metric mt-2">{wallet.members}</p>
+                </div>
               </div>
-              <div className="info-tile">
-                <p className="text-muted-foreground">{t("wallets.budgetAmount")}</p>
-                <p className="metric mt-2">{formatCurrency(wallet.budgetThisMonth)}</p>
+
+              <div className="mt-4 h-2 rounded-full bg-muted">
+                <div className="h-2 rounded-full bg-primary transition-[width]" style={{ width: `${budgetUsagePercent}%` }} />
               </div>
-              <div className="info-tile">
-                <p className="text-muted-foreground">{t("wallets.membersCount")}</p>
-                <p className="metric mt-2">{wallet.members}</p>
+
+              <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+                <span>{t("dashboard.walletMembers", { count: wallet.members })}</span>
+                <span>
+                  {wallet.budgetThisMonth > 0
+                    ? t("dashboard.walletBudgetUsed", { percent: budgetUsagePercent })
+                    : t("dashboard.walletNoBudget")}
+                </span>
               </div>
-            </div>
-            <div className="mt-6">
-              <Button href={`/wallets/${wallet.id}`} className="w-full">
-                {t("wallets.openWallet")}
-              </Button>
-            </div>
-          </article>
-        ))}
+
+              <div className="mt-6">
+                <Button href={`/wallets/${wallet.id}`} className="w-full rounded-full">
+                  {t("wallets.openWallet")}
+                </Button>
+              </div>
+            </article>
+          );
+        })}
       </section>
     </AppShell>
   );

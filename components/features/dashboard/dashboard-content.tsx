@@ -2,12 +2,14 @@ import { AppShell } from "@/components/app-shell";
 import { DashboardDailyExpenseChart } from "@/components/features/dashboard/dashboard-daily-expense-chart";
 import { DashboardOnboardingCard } from "@/components/features/dashboard/dashboard-onboarding-card";
 import { AppIcon, CategoryIcon } from "@/components/ui/app-icon";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/ui/stat-card";
 import type { DashboardData } from "@/lib/data";
 import { getTranslator, type AppLocale } from "@/lib/i18n";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
+import type { CSSProperties } from "react";
 
 export function DashboardContent({ dashboard, locale }: { dashboard: DashboardData; locale: AppLocale }) {
   const t = getTranslator(locale);
@@ -92,52 +94,99 @@ export function DashboardContent({ dashboard, locale }: { dashboard: DashboardDa
               {t("common.viewAll")}
             </Button>
           </div>
-          <div className="mt-6 grid gap-4 xl:grid-cols-2 min-[1700px]:grid-cols-3">
+          <div className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(17rem,1fr))] gap-4">
             {dashboard.wallets.length === 0 ? (
-              <div className="lg:col-span-2">
+              <div>
                 <EmptyState title={t("dashboard.emptyWalletTitle")} description={t("dashboard.emptyWalletDescription")} />
               </div>
             ) : null}
-            {dashboard.wallets.map((wallet) => (
-              <div key={wallet.id} className="info-tile">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-display text-lg">{wallet.name}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {wallet.kind === "shared" ? t("common.walletKindShared") : t("common.walletKindPersonal")}
-                    </p>
+            {dashboard.wallets.map((wallet, index) => {
+              const budgetUsagePercent = wallet.budgetThisMonth > 0 ? Math.min(Math.round((wallet.spentThisMonth / wallet.budgetThisMonth) * 100), 100) : 0;
+              const budgetTone = budgetUsagePercent >= 90 ? "text-danger" : budgetUsagePercent >= 70 ? "text-foreground" : "text-primary";
+              const budgetPanelClassName =
+                budgetUsagePercent >= 90
+                  ? "border-[color:var(--danger-border)] bg-[color:var(--danger-soft)]"
+                  : budgetUsagePercent >= 70
+                    ? "border-[color:rgba(89,95,61,0.2)] bg-[color:color-mix(in_srgb,var(--primary-soft)_40%,var(--muted))]"
+                    : "border-[color:var(--soft-border)] bg-muted";
+              const budgetBarClassName =
+                budgetUsagePercent >= 90
+                  ? "bg-[linear-gradient(90deg,var(--danger),#d98989)]"
+                  : budgetUsagePercent >= 70
+                    ? "bg-[linear-gradient(90deg,var(--primary-strong),var(--primary-soft-strong))]"
+                    : "bg-[linear-gradient(90deg,var(--primary),var(--primary-soft-strong))]";
+              const budgetTrackClassName = budgetUsagePercent >= 90 ? "bg-white/70 dark:bg-black/20" : "bg-card";
+
+              return (
+                <article
+                  key={wallet.id}
+                  className="wallet-card-enter group relative flex h-full min-w-0 flex-col overflow-hidden rounded-[1.4rem] border bg-card p-4 transition duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_24px_46px_-28px_rgba(45,54,39,0.34),inset_0_1px_0_rgba(255,255,255,0.42)]"
+                  style={{ "--wallet-card-delay": `${index * 70}ms` } as CSSProperties}
+                >
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top_left,rgba(224,231,187,0.9),transparent_58%)] opacity-80 transition duration-200 ease-out group-hover:opacity-100" />
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-[color:var(--soft-border)] bg-card shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] transition duration-200 ease-out group-hover:scale-[1.03] group-hover:shadow-[0_12px_24px_-18px_rgba(89,95,61,0.45),inset_0_1px_0_rgba(255,255,255,0.6)]">
+                        <AppIcon name="wallet" className="h-5 w-5 transition duration-200 ease-out group-hover:scale-105" tone="primary" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate font-display text-lg">{wallet.name}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {wallet.kind === "shared" ? t("common.walletKindShared") : t("common.walletKindPersonal")}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge>{wallet.role}</Badge>
                   </div>
-                  <span className="theme-primary-pill inline-flex rounded-full px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em]">{wallet.role}</span>
-                </div>
-                <p className="metric mt-4 text-2xl">{formatCurrency(wallet.totalBalance)}</p>
-                <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                  <div className="subtle-panel">
-                    <p className="text-muted-foreground">{t("dashboard.availableBalanceLabel")}</p>
-                    <p className="metric mt-2">{formatCurrency(wallet.availableBalance)}</p>
+
+                  <div className="mt-5 rounded-[1.25rem] border border-[color:var(--soft-border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(245,244,237,0.92))] p-4 transition duration-200 ease-out group-hover:border-[color:rgba(89,95,61,0.16)] group-hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(245,244,237,0.98))]">
+                    <p className="eyebrow">{t("dashboard.totalBalanceLabel")}</p>
+                    <p className="metric mt-2 text-[1.9rem] leading-none sm:text-3xl">{formatCurrency(wallet.totalBalance)}</p>
                   </div>
-                  <div className="subtle-panel">
-                    <p className="text-muted-foreground">{t("dashboard.savingBalanceLabel")}</p>
-                    <p className="metric mt-2">{formatCurrency(wallet.savingBalance)}</p>
+
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    <div className="subtle-panel">
+                      <p className="text-sm text-muted-foreground">{t("dashboard.availableBalanceLabel")}</p>
+                      <p className="metric mt-2 text-lg">{formatCurrency(wallet.availableBalance)}</p>
+                    </div>
+                    <div className="subtle-panel">
+                      <p className="text-sm text-muted-foreground">{t("dashboard.savingBalanceLabel")}</p>
+                      <p className="metric mt-2 text-lg">{formatCurrency(wallet.savingBalance)}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="mt-4 h-2 rounded-full bg-card">
-                  <div
-                    className="h-2 rounded-full bg-primary"
-                    style={{ width: `${wallet.budgetThisMonth > 0 ? Math.min((wallet.spentThisMonth / wallet.budgetThisMonth) * 100, 100) : 0}%` }}
-                  />
-                </div>
-                <div className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-                  <span>{t("dashboard.walletMembers", { count: wallet.members })}</span>
-                  <span>
-                    {wallet.budgetThisMonth > 0
-                      ? t("dashboard.walletBudgetUsed", {
-                          percent: Math.round((wallet.spentThisMonth / wallet.budgetThisMonth) * 100)
-                        })
-                      : t("dashboard.walletNoBudget")}
-                  </span>
-                </div>
-              </div>
-            ))}
+
+                  <div className={`mt-5 rounded-[1.25rem] border p-4 transition duration-200 ease-out group-hover:border-[color:rgba(89,95,61,0.16)] ${budgetPanelClassName}`}>
+                    <div className="flex items-center justify-between gap-3 text-sm">
+                      <span className="text-muted-foreground">{t("common.members")}</span>
+                      <span className="metric text-base">{wallet.members}</span>
+                    </div>
+                    <div className="mt-4 flex items-end justify-between gap-3">
+                      <div>
+                        <p className="text-sm text-muted-foreground">{t("common.budgets")}</p>
+                        <p className="metric mt-1 text-base">{formatCurrency(wallet.budgetThisMonth)}</p>
+                      </div>
+                      <span className={`text-right text-sm ${budgetTone}`}>
+                        {wallet.budgetThisMonth > 0
+                          ? t("dashboard.walletBudgetUsed", { percent: budgetUsagePercent })
+                          : t("dashboard.walletNoBudget")}
+                      </span>
+                    </div>
+                    <div className={`mt-3 h-2.5 rounded-full ${budgetTrackClassName}`}>
+                      <div
+                        className={`h-2.5 rounded-full transition-[width,filter] duration-200 ease-out group-hover:brightness-105 ${budgetBarClassName}`}
+                        style={{ width: `${budgetUsagePercent}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-5">
+                    <Button href={`/wallets/${wallet.id}`} variant="soft" className="w-full rounded-full transition duration-200 ease-out group-hover:bg-[var(--primary-soft-strong)]">
+                      {t("wallets.openWallet")}
+                    </Button>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </div>
 
