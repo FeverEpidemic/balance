@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useLocale } from "@/components/providers/locale-provider";
+import { AppIcon } from "@/components/ui/app-icon";
 import { getTranslator, localizePath } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/actions/auth";
@@ -47,35 +48,35 @@ export function AppShell({
   const logoutButtonClassName = "rounded-full bg-primary-soft px-3 py-2 font-label text-xs text-primary-strong";
   const mobileUtilityButtonClassName = "glass-panel rounded-full px-3 py-2 font-label text-xs text-foreground";
   const navItems = [
-    { href: "/dashboard", label: t("common.dashboard") },
-    { href: "/wallets", label: t("common.wallet") },
-    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: t("common.transactions") },
-    { href: walletId ? `/wallets/${walletId}/savings` : "/wallets", label: t("common.savings") },
-    { href: walletId ? `/wallets/${walletId}/budgets` : "/wallets", label: t("common.budgets") },
-    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: t("common.reports") },
-    { href: walletId ? `/wallets/${walletId}/members` : "/wallets", label: t("common.members") },
-    { href: walletId ? `/wallets/${walletId}/settlements` : "/wallets", label: t("common.settlements") },
-    { href: walletId ? `/wallets/${walletId}/templates` : "/wallets", label: t("common.templates") },
-    { href: "/settings", label: t("common.settings") }
+    { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" as const },
+    { href: "/wallets", label: t("common.wallet"), icon: "wallet" as const },
+    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: t("common.transactions"), icon: "transactions" as const },
+    { href: walletId ? `/wallets/${walletId}/savings` : "/wallets", label: t("common.savings"), icon: "savings" as const },
+    { href: walletId ? `/wallets/${walletId}/budgets` : "/wallets", label: t("common.budgets"), icon: "budgets" as const },
+    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: t("common.reports"), icon: "reports" as const },
+    { href: walletId ? `/wallets/${walletId}/members` : "/wallets", label: t("common.members"), icon: "members" as const },
+    { href: walletId ? `/wallets/${walletId}/settlements` : "/wallets", label: t("common.settlements"), icon: "settlements" as const },
+    { href: walletId ? `/wallets/${walletId}/templates` : "/wallets", label: t("common.templates"), icon: "templates" as const },
+    { href: "/settings", label: t("common.settings"), icon: "settings" as const }
   ];
   const mobileNavItems = [
-    { href: "/dashboard", label: t("common.dashboard") },
-    { href: "/wallets", label: t("common.wallet") },
-    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: t("common.transactions") },
-    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: t("common.reports") },
-    { href: "/settings", label: t("common.settings") }
+    { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" as const },
+    { href: "/wallets", label: t("common.wallet"), icon: "wallet" as const },
+    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: t("common.transactions"), icon: "transactions" as const },
+    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: t("common.reports"), icon: "reports" as const },
+    { href: "/settings", label: t("common.settings"), icon: "settings" as const }
   ];
   const mobileWalletShortcuts = walletId
     ? [
-        { href: `/wallets/${walletId}`, label: t("common.overview") },
-        { href: `/wallets/${walletId}/transactions`, label: t("common.transactions") },
-        { href: `/wallets/${walletId}/savings`, label: t("common.savings") },
-        { href: `/wallets/${walletId}/recurring`, label: t("common.automatic") },
-        { href: `/wallets/${walletId}/budgets`, label: t("common.budgets") },
-        { href: `/wallets/${walletId}/reports`, label: t("common.reports") },
-        { href: `/wallets/${walletId}/members`, label: t("common.members") },
-        { href: `/wallets/${walletId}/settlements`, label: t("common.settlements") },
-        { href: `/wallets/${walletId}/templates`, label: t("common.templates") }
+        { href: `/wallets/${walletId}`, label: t("common.overview"), icon: "overview" as const },
+        { href: `/wallets/${walletId}/transactions`, label: t("common.transactions"), icon: "transactions" as const },
+        { href: `/wallets/${walletId}/savings`, label: t("common.savings"), icon: "savings" as const },
+        { href: `/wallets/${walletId}/recurring`, label: t("common.automatic"), icon: "automatic" as const },
+        { href: `/wallets/${walletId}/budgets`, label: t("common.budgets"), icon: "budgets" as const },
+        { href: `/wallets/${walletId}/reports`, label: t("common.reports"), icon: "reports" as const },
+        { href: `/wallets/${walletId}/members`, label: t("common.members"), icon: "members" as const },
+        { href: `/wallets/${walletId}/settlements`, label: t("common.settlements"), icon: "settlements" as const },
+        { href: `/wallets/${walletId}/templates`, label: t("common.templates"), icon: "templates" as const }
       ]
     : [];
 
@@ -99,11 +100,12 @@ export function AppShell({
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "block rounded-lg px-4 py-3 text-sm transition",
+                  "flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition",
                   isActivePath(currentPath, item.href) ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-muted"
                 )}
               >
-                {item.label}
+                <AppIcon name={item.icon} className="h-4 w-4" tone={isActivePath(currentPath, item.href) ? "primary" : "muted"} />
+                <span>{item.label}</span>
               </Link>
             ))}
           </nav>
@@ -117,7 +119,10 @@ export function AppShell({
                 <Sheet>
                   <SheetTrigger asChild>
                     <button type="button" className={mobileUtilityButtonClassName}>
-                      {t("common.menu")}
+                      <span className="inline-flex items-center gap-2">
+                        <AppIcon name="menu" className="h-4 w-4" tone="muted" />
+                        <span>{t("common.menu")}</span>
+                      </span>
                     </button>
                   </SheetTrigger>
                   <SheetContent>
@@ -135,13 +140,14 @@ export function AppShell({
                               <Link
                                 href={localizePath(locale, item.href)}
                                 className={cn(
-                                  "block rounded-xl px-4 py-3 text-sm transition",
+                                  "flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition",
                                   isActivePath(currentPath, item.href)
                                     ? "bg-muted font-medium text-foreground"
                                     : "text-muted-foreground hover:bg-muted"
                                 )}
                               >
-                                {item.label}
+                                <AppIcon name={item.icon} className="h-4 w-4" tone={isActivePath(currentPath, item.href) ? "primary" : "muted"} />
+                                <span>{item.label}</span>
                               </Link>
                             </SheetClose>
                           ))}
@@ -156,13 +162,14 @@ export function AppShell({
                                 <Link
                                   href={localizePath(locale, item.href)}
                                   className={cn(
-                                    "block rounded-xl px-4 py-3 text-sm transition",
+                                    "flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition",
                                     isActivePath(currentPath, item.href)
-                                      ? "bg-primary text-white"
+                                      ? "bg-primary text-[var(--button-primary-text)]"
                                       : "bg-muted text-foreground hover:bg-white"
                                   )}
                                 >
-                                  {item.label}
+                                  <AppIcon name={item.icon} className="h-4 w-4" />
+                                  <span>{item.label}</span>
                                 </Link>
                               </SheetClose>
                             ))}
@@ -196,11 +203,14 @@ export function AppShell({
                         className={cn(
                           "shrink-0 whitespace-nowrap rounded-full border px-3 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
                           isActivePath(currentPath, item.href)
-                            ? "border-primary bg-primary text-white"
+                            ? "border-primary bg-primary text-[var(--button-primary-text)]"
                             : "glass-panel border text-muted-foreground"
                         )}
                       >
-                        {item.label}
+                        <span className="inline-flex items-center gap-2">
+                          <AppIcon name={item.icon} className="h-3.5 w-3.5" />
+                          <span>{item.label}</span>
+                        </span>
                       </Link>
                     ))}
                   </div>
@@ -237,11 +247,14 @@ export function AppShell({
                 key={item.href}
                 href={localizePath(locale, item.href)}
                 className={cn(
-                "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-3 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
-                isActivePath(currentPath, item.href) ? "bg-primary text-white" : "bg-transparent text-muted-foreground"
+                "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
+                isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "bg-transparent text-muted-foreground"
               )}
             >
-              {item.label}
+              <span className="flex flex-col items-center justify-center gap-1">
+                <AppIcon name={item.icon} className="h-4 w-4" />
+                <span>{item.label}</span>
+              </span>
             </Link>
           ))}
         </div>

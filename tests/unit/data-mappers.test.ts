@@ -161,6 +161,7 @@ describe("data mappers", () => {
     expect(dashboard.wallets).toHaveLength(2);
     expect(dashboard.recentTransactions[2]).toMatchObject({
       category: "Sewa",
+      categoryColor: "#abcdef",
       splitLabel: "Split rata"
     });
     expect(dashboard.categorySpend[0]).toMatchObject({
@@ -370,7 +371,8 @@ describe("data mappers", () => {
     expect(pageData.transactions).toHaveLength(7);
     expect(pageData.transactions.find((transaction) => transaction.id === "t2")).toMatchObject({
       title: "Pemasukan",
-      categoryName: "Gaji"
+      categoryName: "Gaji",
+      categoryColor: "#654321"
     });
     expect(pageData.transactions.find((transaction) => transaction.id === "t1")?.isRecurring).toBe(true);
     expect(pageData.transactions.find((transaction) => transaction.id === "t6")).toMatchObject({

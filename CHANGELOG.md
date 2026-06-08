@@ -2,6 +2,22 @@
 
 ## [Unreleased] - 2026-06-08
 
+### Changed - Polish Ikon, Dashboard, dan Kartu Transaksi
+
+#### Peningkatan UI Serene Capital
+- **Navigasi app kini memakai set ikon inline SVG yang konsisten:** Sidebar desktop, drawer mobile, shortcut wallet, bottom nav, dan loading skeleton sekarang memakai ikon stroke rounded yang mengikuti tone warna desain.
+- **Form kategori transaksi tetap native tetapi lebih jelas:** Select kategori kini dibungkus leading icon berdasarkan kategori aktif tanpa mengganti aksesibilitas native select atau menambah dependency baru.
+- **Kartu transaksi terbaru dibuat lebih ringkas dan lebih informatif:** Item transaksi sekarang menampilkan ikon kategori, metadata pendek, nominal, tanggal, chip editable untuk owner/editor, serta affordance edit yang hanya dibuka saat dibutuhkan.
+- **Dashboard mendapat hierarchy yang lebih tegas:** Ringkasan saldo total, kategori pengeluaran terbesar, transaksi terbaru, dan CTA tambah transaksi tampil lebih fokus tanpa perubahan loader utama atau migrasi database.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/{app-shell,ui/page-loading-skeleton,ui/app-icon,ui/category-select}.tsx` | Tambah helper ikon reusable dan pakai ikon konsisten di nav, shortcut, drawer, bottom nav, dan skeleton. |
+| `components/features/{dashboard/dashboard-content,transactions/transactions-page-content,transactions/transaction-history-page-content}.tsx` | Polish hierarchy dashboard, wrapper select kategori berikon, serta kartu transaksi ringkas dengan affordance edit yang lebih jelas. |
+| `lib/data/{types,mappers}.ts`, `tests/unit/data-mappers.test.ts` | Tambah `categoryColor` non-persisten untuk recent transaction dan transaction list item, lalu update test mapper. |
+| `messages/{id,en}.json` | Rapikan copy dashboard dan transaksi agar sesuai surface baru yang lebih ringkas. |
+
 ### Changed - Chart Pengeluaran Harian di Dashboard
 
 #### Peningkatan Visualisasi Dashboard

@@ -14,8 +14,10 @@ import { deleteTransaction, updateTransaction } from "@/app/actions/transactions
 import { AppShell } from "@/components/app-shell";
 import { useLocale } from "@/components/providers/locale-provider";
 import { ActionForm } from "@/components/ui/action-form";
+import { AppIcon, CategoryIcon } from "@/components/ui/app-icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CategorySelect } from "@/components/ui/category-select";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -75,11 +77,14 @@ function TransactionEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button type="button" variant="ghost" size="sm">
-            {t("transactions.edit")}
-          </Button>
-        </DialogTrigger>
+      <DialogTrigger asChild>
+        <Button type="button" variant="ghost" size="sm">
+          <span className="inline-flex items-center gap-2">
+            <AppIcon name="edit" className="h-4 w-4" tone="primary" />
+            <span>{t("transactions.edit")}</span>
+          </span>
+        </Button>
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("transactions.editTitle")}</DialogTitle>
@@ -102,14 +107,13 @@ function TransactionEditDialog({
           ) : (
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.categoryLabel")}</span>
-              <select name="category_id" defaultValue={transaction.categoryId ?? ""}>
-                <option value="">{t("common.noCategory")}</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+              <CategorySelect
+                name="category_id"
+                categories={categories}
+                defaultValue={transaction.categoryId ?? ""}
+                includeEmptyOption
+                emptyLabel={t("common.noCategory")}
+              />
             </label>
           )}
           <label className="block">
@@ -178,31 +182,38 @@ function HistoryMobileCard({
   t: ReturnType<typeof getTranslator>;
 }) {
   return (
-    <div
-      className={`list-card ${
-        transaction.kind === "expense" ? "theme-danger-pill" : "theme-success-pill"
-      }`}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="font-medium">{transaction.title}</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {transaction.categoryName} • {transaction.splitLabel}
-          </p>
-          <TransactionMetaBadges transaction={transaction} t={t} />
+    <div className="list-card">
+      <div className="flex items-start gap-3">
+        <span
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border bg-card"
+          style={{ borderColor: `${transaction.categoryColor}33`, color: transaction.categoryColor }}
+        >
+          <CategoryIcon categoryName={transaction.categoryName} kind={transaction.kind} className="h-5 w-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="truncate font-medium">{transaction.title}</p>
+                {!transaction.isSavingLinked && canMutate ? <Badge>{t("common.editable")}</Badge> : null}
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">{transaction.categoryName} / {transaction.splitLabel}</p>
+              <TransactionMetaBadges transaction={transaction} t={t} />
+            </div>
+            <div className="text-right">
+              <p className={`metric ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
+                {formatCurrency(transaction.kind === "expense" ? -transaction.amount : transaction.amount)}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">{formatShortDate(transaction.happenedAt)}</p>
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <TransactionKindBadge kind={transaction.kind} t={t} />
+          </div>
+          <div className="mt-4">
+            <TransactionActions canMutate={canMutate} categories={categories} transaction={transaction} walletId={walletId} t={t} />
+          </div>
         </div>
-        <div className="text-right">
-          <p className={`metric ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
-            {formatCurrency(transaction.kind === "expense" ? -transaction.amount : transaction.amount)}
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">{formatShortDate(transaction.happenedAt)}</p>
-        </div>
-      </div>
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        <TransactionKindBadge kind={transaction.kind} t={t} />
-      </div>
-      <div className="mt-4">
-        <TransactionActions canMutate={canMutate} categories={categories} transaction={transaction} walletId={walletId} t={t} />
       </div>
     </div>
   );
@@ -235,8 +246,18 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
       header: t("transactions.historyTableDescription"),
       cell: ({ row }) => (
         <div className="min-w-0">
-          <p className="font-medium">{row.original.title}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{row.original.note || row.original.splitLabel}</p>
+          <div className="flex items-center gap-3">
+            <span
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border bg-card"
+              style={{ borderColor: `${row.original.categoryColor}33`, color: row.original.categoryColor }}
+            >
+              <CategoryIcon categoryName={row.original.categoryName} kind={row.original.kind} className="h-4.5 w-4.5" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-medium">{row.original.title}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{row.original.note || row.original.splitLabel}</p>
+            </div>
+          </div>
           <TransactionMetaBadges transaction={row.original} t={t} />
         </div>
       )
@@ -360,7 +381,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
             </div>
           ) : (
             <>
-      <div className="glass-panel mt-6 hidden overflow-x-auto rounded-[1rem] lg:block">
+              <div className="glass-panel mt-6 hidden overflow-x-auto rounded-[1rem] lg:block">
                 <Table>
                   <TableHeader className="sticky top-0 z-10 bg-card backdrop-blur">
                     {table.getHeaderGroups().map((headerGroup) => (
@@ -419,9 +440,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
               </div>
 
               <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-muted-foreground">
-                  {t("transactions.historyShowingCount", { count: rowCount })}
-                </p>
+                <p className="text-sm text-muted-foreground">{t("transactions.historyShowingCount", { count: rowCount })}</p>
                 <div className="flex gap-2">
                   <Button type="button" variant="ghost" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
                     {t("transactions.historyPrevious")}

@@ -214,6 +214,7 @@ export type DashboardRecentTransaction = {
   walletId: string;
   walletName: string;
   category: string;
+  categoryColor: string;
   title: string;
   kind: TransactionKind;
   amount: number;
@@ -330,6 +331,7 @@ export type TransactionListItem = {
   source: TransactionSource;
   categoryId: string | null;
   categoryName: string;
+  categoryColor: string;
   amount: number;
   note: string | null;
   happenedAt: string;

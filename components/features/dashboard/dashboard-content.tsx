@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/app-shell";
 import { DashboardDailyExpenseChart } from "@/components/features/dashboard/dashboard-daily-expense-chart";
 import { DashboardOnboardingCard } from "@/components/features/dashboard/dashboard-onboarding-card";
+import { AppIcon, CategoryIcon } from "@/components/ui/app-icon";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/ui/stat-card";
@@ -27,31 +28,45 @@ export function DashboardContent({ dashboard, locale }: { dashboard: DashboardDa
         <Button
           href={transactionsHref}
           variant="soft"
-          className="min-h-[2.75rem] min-w-[2.75rem] rounded-full border border-border bg-overlay px-0 py-0 shadow-none hover:shadow-none"
+          className="min-h-[2.75rem] gap-2 rounded-full border border-border bg-overlay px-3 shadow-none hover:shadow-none"
         >
-          <span
-            aria-hidden="true"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-card ring-1 ring-inset ring-border"
-          >
-            <svg viewBox="0 0 20 20" fill="none" className="h-3 w-3" role="img">
-              <path d="M10 4.5V15.5M4.5 10H15.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-card ring-1 ring-inset ring-border">
+            <AppIcon name="plus" className="h-4 w-4" tone="primary" />
           </span>
-          <span className="sr-only">{t("dashboard.addTransaction")}</span>
+          <span className="hidden sm:inline">{t("dashboard.addTransaction")}</span>
+          <span className="sr-only sm:hidden">{t("dashboard.addTransaction")}</span>
         </Button>
       }
     >
       <DashboardOnboardingCard onboarding={dashboard.onboarding} />
 
-      <section id="ringkasan-finansial" className="grid gap-4 scroll-mt-28 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label={t("dashboard.availableBalanceLabel")} value={dashboard.totalAvailableBalance} detail={t("dashboard.availableBalanceDetail")} />
-        <StatCard label={t("dashboard.savingBalanceLabel")} value={dashboard.totalSavingBalance} detail={t("dashboard.savingBalanceDetail")} />
-        <StatCard label={t("dashboard.totalBalanceLabel")} value={dashboard.totalBalance} detail={t("dashboard.totalBalanceDetail")} />
-      </section>
+      <section id="ringkasan-finansial" className="grid gap-4 scroll-mt-28 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
+        <div className="card">
+          <p className="eyebrow">{t("dashboard.title")}</p>
+          <h3 className="headline-md mt-2">{t("dashboard.totalBalanceLabel")}</h3>
+          <p className="metric mt-5 text-3xl sm:text-4xl">{formatCurrency(dashboard.totalBalance)}</p>
+          <p className="mt-3 max-w-xl text-sm text-muted-foreground">{t("dashboard.totalBalanceDetail")}</p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="subtle-panel">
+              <p className="text-sm text-muted-foreground">{t("dashboard.availableBalanceLabel")}</p>
+              <p className="metric mt-2 text-xl">{formatCurrency(dashboard.totalAvailableBalance)}</p>
+            </div>
+            <div className="subtle-panel">
+              <p className="text-sm text-muted-foreground">{t("dashboard.savingBalanceLabel")}</p>
+              <p className="metric mt-2 text-xl">{formatCurrency(dashboard.totalSavingBalance)}</p>
+            </div>
+            <div className="subtle-panel sm:col-span-2 xl:col-span-1">
+              <p className="text-sm text-muted-foreground">{t("dashboard.outstandingSplitLabel")}</p>
+              <p className="metric mt-2 text-xl">{formatCurrency(dashboard.outstandingSplit)}</p>
+            </div>
+          </div>
+        </div>
 
-      <section className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard label={t("dashboard.monthExpenseLabel")} value={dashboard.totalExpenseThisMonth} detail={t("dashboard.monthExpenseDetail")} />
-        <StatCard label={t("dashboard.outstandingSplitLabel")} value={dashboard.outstandingSplit} detail={t("dashboard.outstandingSplitDetail")} />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+          <StatCard label={t("dashboard.monthExpenseLabel")} value={dashboard.totalExpenseThisMonth} detail={t("dashboard.monthExpenseDetail")} />
+          <StatCard label={t("dashboard.availableBalanceLabel")} value={dashboard.totalAvailableBalance} detail={t("dashboard.availableBalanceDetail")} />
+          <StatCard label={t("dashboard.savingBalanceLabel")} value={dashboard.totalSavingBalance} detail={t("dashboard.savingBalanceDetail")} />
+        </div>
       </section>
 
       <section className="mt-4 card">
@@ -61,10 +76,7 @@ export function DashboardContent({ dashboard, locale }: { dashboard: DashboardDa
           <DashboardDailyExpenseChart dailyExpenses={dashboard.dailyExpenses} locale={locale} />
         ) : (
           <div className="mt-6">
-            <EmptyState
-              title={t("dashboard.dailyExpenseEmptyTitle")}
-              description={t("dashboard.dailyExpenseEmptyDescription")}
-            />
+            <EmptyState title={t("dashboard.dailyExpenseEmptyTitle")} description={t("dashboard.dailyExpenseEmptyDescription")} />
           </div>
         )}
       </section>
@@ -83,10 +95,7 @@ export function DashboardContent({ dashboard, locale }: { dashboard: DashboardDa
           <div className="mt-6 grid gap-4 xl:grid-cols-2 min-[1700px]:grid-cols-3">
             {dashboard.wallets.length === 0 ? (
               <div className="lg:col-span-2">
-                <EmptyState
-                  title={t("dashboard.emptyWalletTitle")}
-                  description={t("dashboard.emptyWalletDescription")}
-                />
+                <EmptyState title={t("dashboard.emptyWalletTitle")} description={t("dashboard.emptyWalletDescription")} />
               </div>
             ) : null}
             {dashboard.wallets.map((wallet) => (
@@ -133,20 +142,32 @@ export function DashboardContent({ dashboard, locale }: { dashboard: DashboardDa
         </div>
 
         <div className="card 2xl:col-span-5">
-          <p className="eyebrow">{t("dashboard.categoryEyebrow")}</p>
-          <h3 className="headline-md mt-2">{t("dashboard.categoryTitle")}</h3>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="eyebrow">{t("dashboard.categoryEyebrow")}</p>
+              <h3 className="headline-md mt-2">{t("dashboard.categoryTitle")}</h3>
+            </div>
+            {dashboard.categorySpend.length > 0 ? <BadgeLike>{dashboard.categorySpend.length}</BadgeLike> : null}
+          </div>
           <div className="mt-6 stack-list">
             {dashboard.categorySpend.length === 0 ? (
               <EmptyState title={t("dashboard.emptyCategoryTitle")} description={t("dashboard.emptyCategoryDescription")} />
             ) : null}
             {dashboard.categorySpend.map((item) => (
               <div key={item.name} className="list-card">
-                <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                  <span>{item.name}</span>
-                  <span className="metric">{formatCurrency(item.value)}</span>
-                </div>
-                <div className="h-3 rounded-full bg-muted">
-                  <div className="h-3 rounded-full" style={{ width: `${Math.max((item.value / dashboard.categorySpend[0].value) * 100, 18)}%`, backgroundColor: item.color }} />
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-card" style={{ borderColor: `${item.color}33`, color: item.color }}>
+                    <CategoryIcon categoryName={item.name} kind="expense" className="h-4.5 w-4.5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+                      <span className="truncate">{item.name}</span>
+                      <span className="metric">{formatCurrency(item.value)}</span>
+                    </div>
+                    <div className="h-3 rounded-full bg-muted">
+                      <div className="h-3 rounded-full" style={{ width: `${Math.max((item.value / dashboard.categorySpend[0].value) * 100, 18)}%`, backgroundColor: item.color }} />
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -169,16 +190,28 @@ export function DashboardContent({ dashboard, locale }: { dashboard: DashboardDa
             <EmptyState title={t("dashboard.emptyRecentTitle")} description={t("dashboard.emptyRecentDescription")} />
           ) : null}
           {dashboard.recentTransactions.map((transaction) => (
-            <div key={transaction.id} className="list-card flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="font-medium">{transaction.title}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{transaction.walletName} • {transaction.category} • {transaction.splitLabel}</p>
-              </div>
-              <div className="text-left md:text-right">
-                <p className={`metric text-lg ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
-                  {formatCurrency(transaction.kind === "expense" ? -transaction.amount : transaction.amount)}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">{formatShortDate(transaction.date)}</p>
+            <div key={transaction.id} className="list-card">
+              <div className="flex items-start gap-3">
+                <span
+                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border bg-card"
+                  style={{ borderColor: `${transaction.categoryColor}33`, color: transaction.categoryColor }}
+                >
+                  <CategoryIcon categoryName={transaction.category} kind={transaction.kind} className="h-5 w-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">{transaction.title}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{transaction.walletName} / {transaction.category} / {transaction.splitLabel}</p>
+                    </div>
+                    <div className="text-left md:text-right">
+                      <p className={`metric text-lg ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
+                        {formatCurrency(transaction.kind === "expense" ? -transaction.amount : transaction.amount)}
+                      </p>
+                      <p className="mt-1 text-sm text-muted-foreground">{formatShortDate(transaction.date)}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           ))}
@@ -186,4 +219,8 @@ export function DashboardContent({ dashboard, locale }: { dashboard: DashboardDa
       </section>
     </AppShell>
   );
+}
+
+function BadgeLike({ children }: { children: number }) {
+  return <span className="theme-primary-pill inline-flex rounded-full px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em]">{children}</span>;
 }

@@ -199,6 +199,7 @@ export function buildRecentTransactions(
     category: transaction.category_id
       ? categoryById.get(transaction.category_id)?.name ?? translate(locale, "common.noCategory")
       : translate(locale, "common.noCategory"),
+    categoryColor: transaction.category_id ? categoryById.get(transaction.category_id)?.color ?? "#595f3d" : "#595f3d",
     title:
       transaction.note ||
       (isBalanceAdjustmentSource(transaction.source)
@@ -370,6 +371,7 @@ export function buildTransactionListItems(
     categoryName: transaction.category_id
       ? categoryById.get(transaction.category_id)?.name ?? translate(locale, "common.noCategory")
       : translate(locale, "common.noCategory"),
+    categoryColor: transaction.category_id ? categoryById.get(transaction.category_id)?.color ?? "#595f3d" : "#595f3d",
     amount: transaction.amount,
     note: transaction.note,
     happenedAt: transaction.happened_at,

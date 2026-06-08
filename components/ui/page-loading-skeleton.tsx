@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { AppIcon } from "@/components/ui/app-icon";
 import { defaultLocale, getTranslator, type AppLocale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -20,10 +21,12 @@ function SkeletonBlock({
 
 function AppNavLink({
   href,
+  icon,
   label,
   currentPath
 }: {
   href: string;
+  icon: Parameters<typeof AppIcon>[0]["name"];
   label: string;
   currentPath: string;
 }) {
@@ -32,11 +35,12 @@ function AppNavLink({
   return (
     <div
       className={cn(
-        "block rounded-lg px-4 py-3 text-sm transition",
+        "flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition",
         active ? "bg-muted font-medium text-foreground" : "text-muted-foreground"
       )}
     >
-      {label}
+      <AppIcon name={icon} className="h-4 w-4" tone={active ? "primary" : "muted"} />
+      <span>{label}</span>
     </div>
   );
 }
@@ -122,33 +126,33 @@ function AppShellSkeleton({
   const t = getTranslator(locale);
   const walletId = walletContext ? "loading-wallet" : null;
   const navItems = [
-    { href: "/dashboard", label: t("common.dashboard") },
-    { href: "/wallets", label: t("common.wallet") },
-    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: t("common.transactions") },
-    { href: walletId ? `/wallets/${walletId}/savings` : "/wallets", label: t("common.savings") },
-    { href: walletId ? `/wallets/${walletId}/budgets` : "/wallets", label: t("common.budgets") },
-    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: t("common.reports") },
-    { href: walletId ? `/wallets/${walletId}/members` : "/wallets", label: t("common.members") },
-    { href: walletId ? `/wallets/${walletId}/settlements` : "/wallets", label: t("common.settlements") },
-    { href: walletId ? `/wallets/${walletId}/templates` : "/wallets", label: t("common.templates") }
+    { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" as const },
+    { href: "/wallets", label: t("common.wallet"), icon: "wallet" as const },
+    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: t("common.transactions"), icon: "transactions" as const },
+    { href: walletId ? `/wallets/${walletId}/savings` : "/wallets", label: t("common.savings"), icon: "savings" as const },
+    { href: walletId ? `/wallets/${walletId}/budgets` : "/wallets", label: t("common.budgets"), icon: "budgets" as const },
+    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: t("common.reports"), icon: "reports" as const },
+    { href: walletId ? `/wallets/${walletId}/members` : "/wallets", label: t("common.members"), icon: "members" as const },
+    { href: walletId ? `/wallets/${walletId}/settlements` : "/wallets", label: t("common.settlements"), icon: "settlements" as const },
+    { href: walletId ? `/wallets/${walletId}/templates` : "/wallets", label: t("common.templates"), icon: "templates" as const }
   ];
   const mobileNavItems = [
-    { href: "/dashboard", label: t("common.dashboard") },
-    { href: "/wallets", label: t("common.wallet") },
-    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: t("common.transactions") },
-    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: t("common.reports") }
+    { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" as const },
+    { href: "/wallets", label: t("common.wallet"), icon: "wallet" as const },
+    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: t("common.transactions"), icon: "transactions" as const },
+    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: t("common.reports"), icon: "reports" as const }
   ];
   const shortcuts = walletId
     ? [
-        { href: `/wallets/${walletId}`, label: t("common.overview") },
-        { href: `/wallets/${walletId}/transactions`, label: t("common.transactions") },
-        { href: `/wallets/${walletId}/savings`, label: t("common.savings") },
-        { href: `/wallets/${walletId}/recurring`, label: t("common.automatic") },
-        { href: `/wallets/${walletId}/budgets`, label: t("common.budgets") },
-        { href: `/wallets/${walletId}/reports`, label: t("common.reports") },
-        { href: `/wallets/${walletId}/members`, label: t("common.members") },
-        { href: `/wallets/${walletId}/settlements`, label: t("common.settlements") },
-        { href: `/wallets/${walletId}/templates`, label: t("common.templates") }
+        { href: `/wallets/${walletId}`, label: t("common.overview"), icon: "overview" as const },
+        { href: `/wallets/${walletId}/transactions`, label: t("common.transactions"), icon: "transactions" as const },
+        { href: `/wallets/${walletId}/savings`, label: t("common.savings"), icon: "savings" as const },
+        { href: `/wallets/${walletId}/recurring`, label: t("common.automatic"), icon: "automatic" as const },
+        { href: `/wallets/${walletId}/budgets`, label: t("common.budgets"), icon: "budgets" as const },
+        { href: `/wallets/${walletId}/reports`, label: t("common.reports"), icon: "reports" as const },
+        { href: `/wallets/${walletId}/members`, label: t("common.members"), icon: "members" as const },
+        { href: `/wallets/${walletId}/settlements`, label: t("common.settlements"), icon: "settlements" as const },
+        { href: `/wallets/${walletId}/templates`, label: t("common.templates"), icon: "templates" as const }
       ]
     : [];
 
@@ -167,7 +171,7 @@ function AppShellSkeleton({
           </div>
           <nav className="mt-8 space-y-2">
             {navItems.map((item) => (
-              <AppNavLink key={item.href} currentPath={currentPath} href={item.href} label={item.label} />
+              <AppNavLink key={item.href} currentPath={currentPath} href={item.href} icon={item.icon} label={item.label} />
             ))}
           </nav>
         </aside>
@@ -195,11 +199,14 @@ function AppShellSkeleton({
                           className={cn(
                             "shrink-0 whitespace-nowrap rounded-full border px-3 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.12em]",
                             active
-                              ? "border-primary bg-primary text-white"
+                              ? "border-primary bg-primary text-[var(--button-primary-text)]"
                               : "glass-panel border text-muted-foreground"
                           )}
                         >
-                          {item.label}
+                          <span className="inline-flex items-center gap-2">
+                            <AppIcon name={item.icon} className="h-3.5 w-3.5" />
+                            <span>{item.label}</span>
+                          </span>
                         </div>
                       );
                     })}
@@ -230,11 +237,14 @@ function AppShellSkeleton({
             <div
               key={item.href}
               className={cn(
-                "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-3 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em]",
-                isActivePath(currentPath, item.href) ? "bg-primary text-white" : "text-muted-foreground"
+                "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em]",
+                isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "text-muted-foreground"
               )}
             >
-              {item.label}
+              <span className="flex flex-col items-center justify-center gap-1">
+                <AppIcon name={item.icon} className="h-4 w-4" />
+                <span>{item.label}</span>
+              </span>
             </div>
           ))}
         </div>
