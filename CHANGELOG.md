@@ -2,6 +2,19 @@
 
 ## [Unreleased] - 2026-06-08
 
+### Fixed - Visual Chart Dashboard Lebih Tenang dan Mudah Dibaca
+
+#### Perbaikan UI
+- **Chart pengeluaran harian tidak lagi terasa seperti deretan batang sempit yang padat:** Visual dashboard kini memakai area/line chart yang lebih halus sehingga pola belanja bulanan lebih cepat terbaca.
+- **Penekanan data penting dibuat lebih jelas tanpa terasa ramai:** Hari ini dan titik pengeluaran puncak sekarang ditandai langsung di chart, sementara grid dan sumbu bawah dibuat tipis agar tetap mengikuti nuansa Serene Capital.
+- **Scroll horizontal di mobile tetap aman tetapi lebih natural:** Chart mempertahankan ruang baca minimum untuk bulan penuh tanpa membuat isi kartu terasa sesak.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/features/dashboard/dashboard-daily-expense-chart.tsx` | Ganti chart batang menjadi SVG area/line chart yang lebih halus, tambah grid lembut, marker highlight, dan ringkasan sumbu sederhana. |
+| `messages/{id,en}.json` | Tambah copy chart untuk label rentang dan highlight hari ini agar tetap locale-aware. |
+
 ### Fixed - Warna Card Panel Login/Register Lebih Selaras
 
 #### Perbaikan UI
