@@ -2,6 +2,29 @@
 
 ## [Unreleased] - 2026-06-08
 
+### Changed - Dokumentasi Theme Modes di AGENTS
+
+#### Peningkatan Dokumentasi Agent
+- **`AGENTS.md` kini ikut menegaskan bahwa semua perubahan UI harus aman di dua tema render:** Light Mode dan Dark Mode.
+- **Instruksi implementasi dibuat lebih operasional untuk agent coding:** Prefer semantic theme tokens dan shared classes dibanding warna hardcoded agar hover, overlay, chart, dan focus state tetap benar di kedua theme.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `AGENTS.md` | Tambah panduan eksplisit soal dua theme render dan anjuran memakai token theme-aware untuk semua perubahan UI. |
+
+### Changed - Dokumentasi Theme Modes di DESIGN
+
+#### Peningkatan Dokumentasi Agent
+- **`DESIGN.md` kini menjelaskan secara eksplisit bahwa Balance selalu dirender dalam dua mode visual:** Light Mode dan Dark Mode, walaupun preferensi user juga bisa memakai opsi `system`.
+- **Arah visual dark mode kini terdokumentasi lebih jelas:** Agent lain tidak lagi perlu menebak apakah palet Serene Capital hanya berlaku untuk light mode atau juga untuk surface gelap.
+- **Sumber token tema runtime ikut diperjelas:** Dokumentasi sekarang mengarahkan implementasi konkret light/dark ke `app/globals.css` agar perubahan UI berikutnya tetap memakai semantic tokens.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `DESIGN.md` | Tambah section khusus theme modes, jelaskan relasi `light`/`dark`/`system`, dan pertegas panduan token lintas theme. |
+
 ### Fixed - Kontras Chart Dashboard dan Navigasi Wallet di Dua Theme
 
 #### Perbaikan UI

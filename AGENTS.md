@@ -69,7 +69,9 @@ Prefer `npm run typecheck` and `npm run test` before handing off code changes. F
 
 - Keep user-facing copy in Bahasa Indonesia unless the surrounding surface is already English or operational.
 - Preserve the calm "Serene Capital" visual language from `DESIGN.md`: cream surfaces, sage/forest accents, generous whitespace, rounded cards, soft shadows, and tabular numeric displays.
+- The UI supports **two rendered themes: Light Mode and Dark Mode**. Treat both as first-class surfaces for every user-facing change. The `system` preference only selects between these two applied themes.
 - Prefer existing UI primitives in `components/ui/` and shared classes from `app/globals.css` (`card`, `headline-*`, `metric`, `page-wrap`, `data-grid`, etc.).
+- Prefer semantic theme tokens and existing shared classes over hardcoded colors so contrast, hover states, overlays, charts, and focus states remain correct in both themes.
 - Ensure all finance values use existing formatting helpers such as `formatCurrency`.
 - Keep layouts mobile-responsive first, then enhance with Tailwind breakpoints.
 - Avoid introducing unrelated design systems, icon packs, animation libraries, or CSS frameworks unless the user explicitly wants them.

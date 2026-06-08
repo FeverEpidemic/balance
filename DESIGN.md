@@ -118,9 +118,21 @@ The design system is centered on "Financial Wellness through Tranquility." It ai
 
 The UI evokes a sense of order and breathability. It utilizes heavy whitespace to prevent information density fatigue, ensuring that complex financial data feels approachable. The emotional response is one of confidence, clarity, and "digital quiet."
 
+## Theme Modes
+
+Balance is designed for **two rendered visual modes: Light Mode and Dark Mode**. Agents should assume every user-facing surface, component state, and data visualization must work in both modes unless a task explicitly says otherwise.
+
+- **Light Mode** is the default Serene Capital expression: warm cream backgrounds, sage actions, forest emphasis, and soft white cards.
+- **Dark Mode** keeps the same calm personality, but shifts surfaces into deep moss/forest tones with lighter sage accents and warm off-white text.
+- **System preference exists, but it only chooses between these two rendered modes.** In implementation terms, user preference may be `light`, `dark`, or `system`, while the actual applied UI is always either light or dark.
+- **Do not treat dark mode as an afterthought.** Avoid hardcoded white text, pure-black backgrounds, or light-only shadows/borders. Use theme tokens so contrast, hover states, overlays, charts, and focus rings remain legible in both modes.
+- **Source of truth for runtime theme tokens lives in `app/globals.css`.** This document describes the visual direction; the concrete light and dark CSS variables are maintained in the global theme tokens.
+
 ## Colors
 
 The palette is anchored by **Sage Green**, a color chosen for its association with growth and stability. To ensure accessibility and professional polish, the primary sage is slightly desaturated to `#8C936D`.
+
+The token block at the top of this file should be read as the **light-mode reference palette**. Dark-mode equivalents follow the same semantic roles (`background`, `surface`, `primary`, `border`, `foreground`, and related container tokens), but are tuned to darker moss/forest surfaces in code.
 
 - **Primary (Sage):** Used for primary actions, active states, and positive growth trends.
 - **Secondary (Cream):** Used for the main application background to reduce eye strain compared to pure white.
@@ -153,6 +165,8 @@ Depth is achieved through **Tonal Layers** and **Ambient Shadows**.
 
 Avoid harsh black shadows; instead, use a hint of the Tertiary Forest green in the shadow color to maintain a natural, warm feel.
 
+In **Dark Mode**, depth should rely more on tonal separation than brighter borders alone: elevated cards, drawers, dialogs, and overlays should feel layered through darker surface steps, controlled translucency, and softer black-based shadows rather than glowing outlines.
+
 ## Shapes
 
 The shape language is purposefully **Rounded** to counter the "cold" nature of financial data. 
@@ -175,6 +189,8 @@ Cards are the primary vessel for data. They should have no border, a White backg
 
 ### Data Visualization
 Charts should use a simplified color palette: Sage Green for primary data, Forest Green for secondary comparisons, and a muted Cream-Gray for grid lines. Lines should be smoothed (interpolation) rather than jagged.
+
+All chart strokes, fills, grid lines, labels, and highlights must be theme-aware. A chart that reads clearly in Light Mode must remain equally legible in Dark Mode without relying on opacity values that disappear against dark surfaces.
 
 ### Chips & Tags
 Used for transaction categories. They should have a low-opacity background of the color they represent (e.g., 10% opacity Sage) with a high-opacity text of the same hue.
