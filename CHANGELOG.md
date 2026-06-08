@@ -1,5 +1,21 @@
 # Changelog
 
+## [Unreleased] - 2026-06-08
+
+### Changed - Chart Pengeluaran Harian di Dashboard
+
+#### Peningkatan Visualisasi Dashboard
+- **Kartu pengeluaran harian kini menjadi chart batang bulanan:** Section Dashboard tidak lagi menampilkan daftar nominal sparse, tetapi chart harian penuh untuk seluruh tanggal pada bulan berjalan.
+- **Hari tanpa transaksi tetap terlihat sebagai nol:** Agregasi harian dashboard sekarang mengisi seluruh tanggal bulan aktif agar tren pengeluaran lebih mudah dibaca tanpa lompatan tanggal.
+- **Visual tetap ringan tanpa library chart baru:** Implementasi mengikuti pola HTML/CSS sederhana seperti halaman laporan, lengkap dengan ringkasan hari puncak dan jumlah hari aktif.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/features/dashboard/{dashboard-content,dashboard-daily-expense-chart}.tsx` | Ganti daftar pengeluaran harian dengan chart batang server-side dan ringkasan pendamping. |
+| `lib/data/{types,mappers}.ts` | Ubah `dailyExpenses` menjadi series bulanan penuh dengan label hari dan metadata tampilan. |
+| `messages/{id,en}.json`, `tests/unit/data-mappers.test.ts` | Tambah copy caption chart dan update test agar mencakup zero-filled daily series. |
+
 ## [Unreleased] — 2026-06-07
 
 ### Added — Kartu Pengeluaran Harian di Dashboard

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildDailyExpenses,
   buildMonthlyReport,
   buildRecurringTransactionListItems,
   buildWalletSummaries,
@@ -166,16 +167,74 @@ describe("data mappers", () => {
       name: "Sewa",
       value: 800000
     });
-    expect(dashboard.dailyExpenses).toEqual([
-      { day: 2, date: "2026-05-02", amount: 800000 },
-      { day: 3, date: "2026-05-03", amount: 300000 },
-      { day: 10, date: "2026-05-10", amount: 200000 },
-      { day: 11, date: "2026-05-11", amount: 150000 },
-      { day: 15, date: "2026-05-15", amount: 50000 },
-      { day: 21, date: "2026-05-21", amount: 50000 }
-    ]);
+    expect(dashboard.dailyExpenses).toHaveLength(31);
+    expect(dashboard.dailyExpenses[0]).toMatchObject({
+      day: 1,
+      dayLabel: "1",
+      date: "2026-05-01",
+      amount: 0,
+      isToday: false
+    });
+    expect(dashboard.dailyExpenses[1]).toMatchObject({
+      day: 2,
+      dayLabel: "2",
+      date: "2026-05-02",
+      amount: 800000,
+      isToday: false
+    });
+    expect(dashboard.dailyExpenses[2]).toMatchObject({
+      day: 3,
+      dayLabel: "3",
+      date: "2026-05-03",
+      amount: 300000,
+      isToday: false
+    });
+    expect(dashboard.dailyExpenses[9]).toMatchObject({
+      day: 10,
+      dayLabel: "10",
+      date: "2026-05-10",
+      amount: 200000,
+      isToday: false
+    });
+    expect(dashboard.dailyExpenses[19]).toMatchObject({
+      day: 20,
+      dayLabel: "20",
+      date: "2026-05-20",
+      amount: 0,
+      isToday: false
+    });
+    expect(dashboard.dailyExpenses[20]).toMatchObject({
+      day: 21,
+      dayLabel: "21",
+      date: "2026-05-21",
+      amount: 50000,
+      isToday: false
+    });
     expect(dashboard.onboarding.isVisible).toBe(true);
     expect(dashboard.onboarding.state).toBe("completed");
+  });
+
+  it("builds a full-month daily expense series with zero-filled dates", () => {
+    const dailyExpenses = buildDailyExpenses(
+      [
+        transactions[0],
+        transactions[2],
+        transactions[4],
+        transactions[5],
+        transactions[8],
+        { ...transactions[0], id: "t1b", amount: 50000, happened_at: "2026-05-10" },
+        { ...transactions[1], id: "t2b", amount: 700000, happened_at: "2026-05-10" }
+      ],
+      "2026-05"
+    );
+
+    expect(dailyExpenses).toHaveLength(31);
+    expect(dailyExpenses[0]).toMatchObject({ date: "2026-05-01", amount: 0 });
+    expect(dailyExpenses[1]).toMatchObject({ date: "2026-05-02", amount: 800000 });
+    expect(dailyExpenses[8]).toMatchObject({ date: "2026-05-09", amount: 0 });
+    expect(dailyExpenses[9]).toMatchObject({ date: "2026-05-10", amount: 250000 });
+    expect(dailyExpenses[14]).toMatchObject({ date: "2026-05-15", amount: 50000 });
+    expect(dailyExpenses[30]).toMatchObject({ date: "2026-05-31", amount: 0 });
   });
 
   it("shows onboarding for a new user without a wallet", () => {

@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/app-shell";
+import { DashboardDailyExpenseChart } from "@/components/features/dashboard/dashboard-daily-expense-chart";
 import { DashboardOnboardingCard } from "@/components/features/dashboard/dashboard-onboarding-card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -10,6 +11,7 @@ import { formatCurrency, formatShortDate } from "@/lib/utils";
 export function DashboardContent({ dashboard, locale }: { dashboard: DashboardData; locale: AppLocale }) {
   const t = getTranslator(locale);
   const transactionsHref = dashboard.shell.primaryWalletId ? `/wallets/${dashboard.shell.primaryWalletId}/transactions` : "/wallets";
+  const hasDailyExpenses = dashboard.dailyExpenses.some((item) => item.amount > 0);
 
   return (
     <AppShell
@@ -55,20 +57,16 @@ export function DashboardContent({ dashboard, locale }: { dashboard: DashboardDa
       <section className="mt-4 card">
         <p className="eyebrow">{t("dashboard.dailyExpenseEyebrow")}</p>
         <h3 className="headline-md mt-2">{t("dashboard.dailyExpenseTitle")}</h3>
-        <div className="mt-6 stack-list">
-          {dashboard.dailyExpenses.length === 0 ? (
+        {hasDailyExpenses ? (
+          <DashboardDailyExpenseChart dailyExpenses={dashboard.dailyExpenses} locale={locale} />
+        ) : (
+          <div className="mt-6">
             <EmptyState
               title={t("dashboard.dailyExpenseEmptyTitle")}
               description={t("dashboard.dailyExpenseEmptyDescription")}
             />
-          ) : null}
-          {dashboard.dailyExpenses.map((item) => (
-            <div key={item.date} className="list-card flex items-center justify-between gap-3">
-              <span className="text-sm">{t("dashboard.dailyExpenseDayLabel", { day: item.day })}</span>
-              <span className="metric text-danger">{formatCurrency(item.amount, locale)}</span>
-            </div>
-          ))}
-        </div>
+          </div>
+        )}
       </section>
 
       <section className="mt-4 grid gap-4 2xl:grid-cols-12">

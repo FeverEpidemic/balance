@@ -229,8 +229,10 @@ export type DashboardCategorySpend = {
 
 export type DailyExpenseItem = {
   day: number;
+  dayLabel: string;
   date: string;
   amount: number;
+  isToday: boolean;
 };
 
 export type DashboardData = {

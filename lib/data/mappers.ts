@@ -248,8 +248,11 @@ export function buildCategorySpend(
     .slice(0, 4) satisfies DashboardCategorySpend[];
 }
 
-export function buildDailyExpenses(transactions: TransactionRow[]) {
+export function buildDailyExpenses(transactions: TransactionRow[], month: string) {
   const expenseByDay = new Map<string, number>();
+  const [year, monthNumber] = month.split("-").map(Number);
+  const daysInMonth = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+  const today = new Date().toISOString().slice(0, 10);
 
   transactions
     .filter((row) => row.kind === "expense")
@@ -258,13 +261,18 @@ export function buildDailyExpenses(transactions: TransactionRow[]) {
       expenseByDay.set(dateKey, (expenseByDay.get(dateKey) ?? 0) + row.amount);
     });
 
-  return [...expenseByDay.entries()]
-    .map(([date, amount]) => ({
-      day: Number.parseInt(date.slice(8, 10), 10),
+  return Array.from({ length: daysInMonth }, (_, index) => {
+    const day = index + 1;
+    const date = `${month}-${String(day).padStart(2, "0")}`;
+
+    return {
+      day,
+      dayLabel: String(day),
       date,
-      amount
-    }))
-    .sort((left, right) => left.date.localeCompare(right.date)) satisfies DailyExpenseItem[];
+      amount: expenseByDay.get(date) ?? 0,
+      isToday: date === today
+    };
+  }) satisfies DailyExpenseItem[];
 }
 
 export function buildDashboardOnboarding(args: {
@@ -613,7 +621,7 @@ export function createDashboardData(args: {
     wallets: walletSummaries,
     recentTransactions: buildRecentTransactions(recentTransactions, categories, wallets, locale),
     categorySpend: buildCategorySpend(currentMonthTransactions, categories, locale),
-    dailyExpenses: buildDailyExpenses(currentMonthTransactions)
+    dailyExpenses: buildDailyExpenses(currentMonthTransactions, month)
   } satisfies DashboardData;
 }
 
