@@ -237,7 +237,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
       cell: ({ row }) => (
         <div>
           <p className="font-medium">{formatShortDate(row.original.happenedAt)}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{row.original.happenedAt.slice(11, 16) || "00:00"}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{row.original.happenedAt?.slice(11, 16) || "00:00"}</p>
         </div>
       )
     },

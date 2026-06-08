@@ -374,7 +374,7 @@ export function buildTransactionListItems(
     categoryColor: transaction.category_id ? categoryById.get(transaction.category_id)?.color ?? "#595f3d" : "#595f3d",
     amount: transaction.amount,
     note: transaction.note,
-    happenedAt: transaction.happened_at,
+    happenedAt: transaction.happened_at ?? new Date().toISOString(),
     splitType: transaction.split_type,
     splitLabel:
       transaction.split_type === "equal"

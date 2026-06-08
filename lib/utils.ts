@@ -31,6 +31,7 @@ export function formatCurrencyInputValue(value: string | number, locale: AppLoca
 }
 
 export function formatShortDate(value: string, locale: AppLocale = "id") {
+  if (!value) return "";
   return new Intl.DateTimeFormat(getLocaleTag(resolveLocale(locale)), {
     day: "2-digit",
     month: "short",
