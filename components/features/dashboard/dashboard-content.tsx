@@ -45,8 +45,8 @@ export function DashboardContent({ dashboard, locale }: { dashboard: DashboardDa
       <section id="ringkasan-finansial" className="grid gap-4 scroll-mt-28 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
         <div className="card">
           <p className="eyebrow">{t("dashboard.title")}</p>
-          <h3 className="headline-md mt-2">{t("dashboard.totalBalanceLabel")}</h3>
-          <p className="metric mt-5 text-3xl sm:text-4xl">{formatCurrency(dashboard.totalBalance)}</p>
+          <h3 className="headline-md mt-2 text-foreground">{t("dashboard.totalBalanceLabel")}</h3>
+          <p className="metric mt-5 text-3xl text-foreground sm:text-4xl">{formatCurrency(dashboard.totalBalance)}</p>
           <p className="mt-3 max-w-xl text-sm text-muted-foreground">{t("dashboard.totalBalanceDetail")}</p>
           <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <div className="subtle-panel">
@@ -139,9 +139,9 @@ export function DashboardContent({ dashboard, locale }: { dashboard: DashboardDa
                     <Badge>{wallet.role}</Badge>
                   </div>
 
-                  <div className="mt-5 rounded-[1.25rem] border border-[color:var(--soft-border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(245,244,237,0.92))] p-4 transition duration-200 ease-out group-hover:border-[color:rgba(89,95,61,0.16)] group-hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(245,244,237,0.98))]">
-                    <p className="eyebrow">{t("dashboard.totalBalanceLabel")}</p>
-                    <p className="metric mt-2 text-[1.9rem] leading-none sm:text-3xl">{formatCurrency(wallet.totalBalance)}</p>
+                  <div className="mt-5 rounded-[1.25rem] border border-[color:var(--soft-border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(245,244,237,0.92))] p-4 text-foreground transition duration-200 ease-out group-hover:border-[color:rgba(89,95,61,0.16)] group-hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(245,244,237,0.98))] dark:bg-[linear-gradient(180deg,rgba(42,51,41,0.96),rgba(32,39,31,0.98))]">
+                    <p className="font-label text-xs font-semibold uppercase tracking-[0.16em] text-primary-strong">{t("dashboard.totalBalanceLabel")}</p>
+                    <p className="metric mt-2 text-[1.9rem] leading-none text-foreground sm:text-3xl">{formatCurrency(wallet.totalBalance)}</p>
                   </div>
 
                   <div className="mt-5 grid gap-3 sm:grid-cols-2">
