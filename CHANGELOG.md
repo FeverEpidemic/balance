@@ -8,6 +8,7 @@
 - **Panel brand auth kini terasa lebih menyatu dengan palet Serene Capital:** Kartu highlight dan panel ritme tidak lagi memakai blok sage gelap yang terlalu berat di atas surface terang.
 - **Hierarchy teks dibuat lebih tenang dan terbaca:** Judul, eyebrow, subtitle, dan label internal kini memakai tone forest/sage yang lebih konsisten dengan card utama.
 - **Kontras tetap terjaga tanpa terasa keras:** Panel kecil sekarang memakai cream translucent dengan border dan shadow lembut agar masih terpisah jelas tetapi tidak tampak "nempel asing".
+- **Dark mode kini ikut aman dibaca:** Treatment panel auth dipisah menjadi surface khusus per theme sehingga versi gelap tetap hangat, berlapis, dan tidak tenggelam ke background.
 
 #### File Diubah
 | File | Perubahan |
