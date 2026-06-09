@@ -3,7 +3,9 @@ import {
   dateStringToISO,
   formatCurrency,
   formatCurrencyInputValue,
+  formatDateTime,
   formatShortDate,
+  formatTimeOfDay,
   getTodayDateString,
   isValidDateString,
   sanitizeCurrencyInput,
@@ -67,6 +69,13 @@ describe("currency input utilities", () => {
     expect(formatCurrency(1250000, "en")).toBe("IDR 1,250,000");
     expect(formatShortDate("2026-05-29", "id")).toBe("29 Mei 2026");
     expect(formatShortDate("2026-05-29", "en")).toBe("May 29, 2026");
+  });
+
+  it("returns safe fallbacks for invalid date display values", () => {
+    expect(formatShortDate("bukan-tanggal")).toBe("-");
+    expect(formatShortDate("")).toBe("-");
+    expect(formatDateTime("bukan-tanggal")).toBe("");
+    expect(formatTimeOfDay("bukan-tanggal")).toBe("");
   });
 
   it("normalizes file name segments for downloads", () => {

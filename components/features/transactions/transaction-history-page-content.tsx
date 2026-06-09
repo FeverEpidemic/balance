@@ -1,12 +1,14 @@
 "use client";
 
-import { useDeferredValue, useState } from "react";
+import { useDeferredValue, useEffect, useState } from "react";
 import {
   type ColumnDef,
   flexRender,
+  functionalUpdate,
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  type PaginationState,
   type SortingState,
   useReactTable
 } from "@tanstack/react-table";
@@ -27,7 +29,8 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { TransactionHistoryPageData, TransactionListItem } from "@/lib/data";
 import { getLocaleTag, getTranslator } from "@/lib/i18n";
-import { formatCurrency, formatShortDate, toDateInputValue } from "@/lib/utils";
+import { TRANSACTION_HISTORY_PAGE_SIZE, clampTransactionHistoryPageIndex } from "@/lib/transaction-history-pagination";
+import { formatCurrency, formatShortDate, formatTimeOfDay, toDateInputValue } from "@/lib/utils";
 
 function matchesTransactionSearch(transaction: TransactionListItem, search: string, localeTag: string, t: ReturnType<typeof getTranslator>) {
   if (!search) {
@@ -228,6 +231,10 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
   const canMutate = data.currentUserRole === "owner" || data.currentUserRole === "editor";
   const [sorting, setSorting] = useState<SortingState>([{ id: "happenedAt", desc: true }]);
   const [search, setSearch] = useState("");
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: TRANSACTION_HISTORY_PAGE_SIZE
+  });
   const deferredSearch = useDeferredValue(search.trim().toLocaleLowerCase(localeTag));
   const filteredTransactions = data.transactions.filter((transaction) => matchesTransactionSearch(transaction, deferredSearch, localeTag, t));
 
@@ -238,7 +245,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
       cell: ({ row }) => (
         <div>
           <p className="font-medium">{formatShortDate(row.original.happenedAt)}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{row.original.happenedAt?.slice(11, 16) || "00:00"}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{formatTimeOfDay(row.original.happenedAt, locale) || "00:00"}</p>
         </div>
       )
     },
@@ -309,21 +316,48 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
     data: filteredTransactions,
     columns,
     state: {
-      sorting
+      sorting,
+      pagination
     },
     onSortingChange: setSorting,
-    initialState: {
-      pagination: {
-        pageIndex: 0,
-        pageSize: 12
-      }
+    onPaginationChange: (updater) => {
+      setPagination((current) => {
+        const next = functionalUpdate(updater, current);
+        const nextPageIndex = clampTransactionHistoryPageIndex(next.pageIndex, filteredTransactions.length, next.pageSize);
+
+        return {
+          ...next,
+          pageIndex: nextPageIndex
+        };
+      });
     },
+    autoResetPageIndex: false,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel()
   });
 
-  const rowCount = table.getRowModel().rows.length;
+  useEffect(() => {
+    setPagination((current) => ({ ...current, pageIndex: 0 }));
+  }, [deferredSearch]);
+
+  useEffect(() => {
+    setPagination((current) => {
+      const nextPageIndex = clampTransactionHistoryPageIndex(current.pageIndex, filteredTransactions.length, current.pageSize);
+
+      if (nextPageIndex === current.pageIndex) {
+        return current;
+      }
+
+      return {
+        ...current,
+        pageIndex: nextPageIndex
+      };
+    });
+  }, [filteredTransactions.length]);
+
+  const paginatedRows = table.getRowModel().rows;
+  const rowCount = paginatedRows.length;
 
   return (
     <AppShell
@@ -414,7 +448,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
                     ))}
                   </TableHeader>
                   <TableBody>
-                    {table.getRowModel().rows.map((row) => (
+                    {paginatedRows.map((row) => (
                       <TableRow
                         key={row.id}
                         className={row.original.kind === "expense" ? "bg-[rgba(180,94,94,0.04)]" : "bg-[rgba(91,143,98,0.05)]"}
@@ -429,7 +463,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
               </div>
 
               <div className="mt-6 stack-list lg:hidden">
-                {table.getRowModel().rows.map((row) => (
+                {paginatedRows.map((row) => (
                   <HistoryMobileCard
                     key={row.original.id}
                     canMutate={canMutate}

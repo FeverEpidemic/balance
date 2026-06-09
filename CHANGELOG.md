@@ -2,6 +2,20 @@
 
 ## [Unreleased] - 2026-06-09
 
+### Fixed - Crash Pagination Riwayat Transaksi
+
+#### Perbaikan Stabilitas History Transaksi
+- **Pagination histori transaksi kini memakai state terkontrol:** Tombol `Berikutnya` dan `Sebelumnya` tidak lagi bergantung pada state internal tabel yang bisa menjadi tidak sinkron saat hasil filter berubah.
+- **Perpindahan halaman kini otomatis direset atau di-clamp saat dataset menyusut:** Pencarian dan perubahan hasil tidak lagi meninggalkan `pageIndex` di halaman yang sudah tidak valid.
+- **Render tanggal dan jam transaksi kini tahan terhadap data buruk:** Formatter tanggal/jam mengembalikan fallback aman alih-alih melempar error ketika menemukan nilai `happenedAt` yang invalid.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/features/transactions/transaction-history-page-content.tsx` | Ubah pagination history menjadi controlled state, reset/clamp page index, dan render jam transaksi memakai formatter aman. |
+| `lib/{utils,transaction-history-pagination}.ts` | Kuatkan formatter tanggal/jam dengan fallback aman dan tambah helper pagination murni untuk logic clamp/slice. |
+| `tests/unit/{utils,transaction-history-pagination}.test.ts` | Tambah cakupan test untuk fallback tanggal invalid, halaman 2, dan reset/clamp pagination. |
+
 ### Added - Export Excel Transaksi dan Export PDF Laporan
 
 #### Peningkatan Export dan Pelaporan

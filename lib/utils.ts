@@ -12,6 +12,15 @@ function createCurrencyFormatter(locale: AppLocale) {
   });
 }
 
+function parseDateValue(value: string) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 export function formatCurrency(value: number, locale: AppLocale = "id") {
   return createCurrencyFormatter(resolveLocale(locale)).format(value);
 }
@@ -31,16 +40,35 @@ export function formatCurrencyInputValue(value: string | number, locale: AppLoca
 }
 
 export function formatShortDate(value: string, locale: AppLocale = "id") {
-  if (!value) return "";
+  const date = parseDateValue(value);
+
+  if (!date) {
+    return "-";
+  }
+
   return new Intl.DateTimeFormat(getLocaleTag(resolveLocale(locale)), {
     day: "2-digit",
     month: "short",
     year: "numeric"
-  }).format(new Date(value));
+  }).format(date);
 }
 
 export function formatDateTime(value: string, locale: AppLocale = "id", options?: Intl.DateTimeFormatOptions) {
-  return new Intl.DateTimeFormat(getLocaleTag(resolveLocale(locale)), options).format(new Date(value));
+  const date = parseDateValue(value);
+
+  if (!date) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat(getLocaleTag(resolveLocale(locale)), options).format(date);
+}
+
+export function formatTimeOfDay(value: string, locale: AppLocale = "id") {
+  return formatDateTime(value, locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  });
 }
 
 export function getTodayDateString(): string {
