@@ -30,6 +30,7 @@
     "reports": "Laporan",
     "settlements": "Pelunasan",
     "templates": "Template",
+    "changelogs": "Changelog",
     "overview": "Ringkasan",
     "automatic": "Otomatis",
     "language": "Bahasa",
@@ -53,6 +54,19 @@
     "walletKindPersonal": "Wallet pribadi",
     "noCategory": "Tanpa kategori",
     "viewAll": "Lihat semua"
+  },
+  "changelogs": {
+    "title": "Changelog",
+    "subtitle": "Yang baru di Balance",
+    "description": "Lihat pembaruan fitur dan peningkatan di setiap versi.",
+    "dialogTitle": "Yang Baru",
+    "dialogDescription": "Berikut perubahan sejak kunjungan terakhir Anda.",
+    "dialogDismiss": "Mengerti",
+    "dialogViewAll": "Lihat semua changelog",
+    "emptyTitle": "Belum ada changelog",
+    "emptyDescription": "Pembaruan fitur akan muncul di sini saat versi baru dirilis.",
+    "versionLabel": "Versi",
+    "featuresLabel": "Yang termasuk"
   },
   "auth": {
     "errorEyebrow": "Auth Error",

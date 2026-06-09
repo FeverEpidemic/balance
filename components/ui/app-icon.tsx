@@ -15,6 +15,7 @@ type AppIconName =
   | "members"
   | "settlements"
   | "templates"
+  | "changelog"
   | "settings"
   | "overview"
   | "automatic"
@@ -163,6 +164,17 @@ export function AppIcon({
           <path d="M7 5.5h10a1.5 1.5 0 0 1 1.5 1.5v10A1.5 1.5 0 0 1 17 18.5H7A1.5 1.5 0 0 1 5.5 17V7A1.5 1.5 0 0 1 7 5.5Z" />
           <path d="M8.5 9.5h7" />
           <path d="M8.5 13h7" />
+        </StrokeIcon>
+      );
+    case "changelog":
+      return (
+        <StrokeIcon className={className} tone={tone}>
+          <path d="M6.5 7.5h8.5a2.5 2.5 0 0 1 2.5 2.5v7.5l-3-2h-8A2.5 2.5 0 0 1 4 13V10a2.5 2.5 0 0 1 2.5-2.5Z" />
+          <path d="M8 10.5h5" />
+          <path d="M8 13h3.5" />
+          <path d="M18 4.5v2" />
+          <path d="M20.5 7h-2" />
+          <path d="m19.75 5.25-1.5 1.5" />
         </StrokeIcon>
       );
     case "settings":

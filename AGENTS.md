@@ -100,4 +100,5 @@ Prefer `npm run typecheck` and `npm run test` before handing off code changes. F
 - Preserve unrelated user work in the git tree. Do not revert files unless explicitly instructed.
 - Before large behavioral changes, check the migrations, data loaders, server actions, and tests together so database, cache, and UI stay aligned.
 - After making changes to the project, update `CHANGELOG.md` with the relevant entry.
+- When adding or changing user-facing product features, also update `lib/changelogs.ts` with a newest-first feature changelog entry so the in-app `/changelogs` page and "What's New" popup stay current. Do not add purely internal refactors, dependency bumps, or invisible code-only maintenance unless they materially affect users.
 - After changes, summarize what changed, what was verified, and any residual risks or follow-up work.

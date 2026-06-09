@@ -2,6 +2,20 @@
 
 ## [Unreleased] - 2026-06-09
 
+### Added - Halaman Changelog dan Popup Pembaruan
+
+#### Peningkatan Komunikasi Produk
+- **Balance kini punya halaman `/changelogs` untuk ringkasan pembaruan fitur:** User bisa melihat timeline versi, tanggal rilis, deskripsi, dan daftar fitur utama tanpa membaca changelog teknis repo.
+- **Popup "Yang Baru" otomatis muncul saat ada versi fitur yang belum dibaca:** Dialog client-side membandingkan versi terakhir yang dilihat di `localStorage` dan hanya menampilkan entry yang lebih baru.
+- **Navigasi changelog tersedia di sidebar desktop dan drawer mobile:** Bottom navigation tetap ringkas dengan lima item utama, sementara changelog bisa diakses dari menu lengkap.
+- **Instruksi agent kini mengingatkan update changelog produk otomatis:** Perubahan fitur user-facing berikutnya harus ikut memperbarui `lib/changelogs.ts` agar halaman dan popup tetap relevan.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `lib/changelogs.ts`, `components/features/changelogs/*`, `app/[locale]/(app)/changelogs/page.tsx` | Tambah data changelog statis, halaman timeline, dan popup unread berbasis localStorage. |
+| `components/{app-shell,ui/app-icon}.tsx`, `messages/{id,en}.json` | Tambah item navigasi, ikon changelog, dan copy bilingual untuk halaman/dialog. |
+
 ### Fixed - Crash Pagination Riwayat Transaksi
 
 #### Perbaikan Stabilitas History Transaksi
