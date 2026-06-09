@@ -94,6 +94,7 @@ Prefer `npm run typecheck` and `npm run test` before handing off code changes. F
 
 ## Agent Workflow
 
+- Check docs folder first to understand the repo and project
 - Inspect the relevant files before editing; do not rely on assumptions from framework defaults.
 - Make focused changes that fit the existing architecture rather than introducing new abstractions early.
 - Preserve unrelated user work in the git tree. Do not revert files unless explicitly instructed.
