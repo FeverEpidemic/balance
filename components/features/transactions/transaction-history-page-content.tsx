@@ -12,6 +12,7 @@ import {
 } from "@tanstack/react-table";
 import { deleteTransaction, updateTransaction } from "@/app/actions/transactions";
 import { AppShell } from "@/components/app-shell";
+import { ExportExcelButton } from "@/components/features/transactions/export-excel-button";
 import { useLocale } from "@/components/providers/locale-provider";
 import { ActionForm } from "@/components/ui/action-form";
 import { AppIcon, CategoryIcon } from "@/components/ui/app-icon";
@@ -345,6 +346,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("transactions.historyDescription")}</p>
             </div>
             <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
+              <ExportExcelButton transactions={data.transactions} walletName={data.walletName} selectedMonth={data.selectedMonth} />
               <Button href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}`} variant="ghost" className="w-full sm:w-auto">
                 {t("transactions.historyBackToInput")}
               </Button>

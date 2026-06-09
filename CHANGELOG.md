@@ -1,5 +1,22 @@
 # Changelog
 
+## [Unreleased] - 2026-06-09
+
+### Added - Export Excel Transaksi dan Export PDF Laporan
+
+#### Peningkatan Export dan Pelaporan
+- **Histori transaksi kini bisa diunduh sebagai file Excel per bulan aktif:** Tombol export baru mengambil seluruh transaksi bulan terpilih, bukan hanya hasil pencarian atau pagination yang sedang terlihat.
+- **Halaman laporan kini bisa menghasilkan PDF bulanan yang lebih rapi untuk dibagikan:** File PDF dirender di server dengan ringkasan income, expense, net, tabel tren bulanan, dan breakdown kategori pengeluaran.
+- **Locale dan copy export ikut menyesuaikan bahasa aktif:** Label tombol, nama kolom, dan isi laporan PDF memakai dictionary `id/en` yang sama dengan surface aplikasi.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/features/{transactions/export-excel-button,reports/export-pdf-button}.tsx` | Tambah tombol export client-side untuk Excel dan trigger download PDF dari API. |
+| `app/api/reports/[walletId]/pdf/route.ts`, `lib/pdf/*` | Tambah pipeline data + dokumen PDF server-side dengan auth dan membership check. |
+| `components/features/transactions/transaction-history-page-content.tsx`, `app/[locale]/(app)/wallets/[walletId]/reports/page.tsx` | Pasang tombol export ke halaman histori transaksi dan reports. |
+| `components/ui/app-icon.tsx`, `messages/{id,en}.json`, `lib/utils.ts` | Tambah ikon download, copy i18n export, dan helper nama file aman. |
+
 ## [Unreleased] - 2026-06-08
 
 ### Changed - Dokumentasi Theme Modes di AGENTS

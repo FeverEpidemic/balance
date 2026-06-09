@@ -7,6 +7,7 @@ import {
   getTodayDateString,
   isValidDateString,
   sanitizeCurrencyInput,
+  toFileSafeSegment,
   toDateInputValue
 } from "../../lib/utils";
 
@@ -66,5 +67,10 @@ describe("currency input utilities", () => {
     expect(formatCurrency(1250000, "en")).toBe("IDR 1,250,000");
     expect(formatShortDate("2026-05-29", "id")).toBe("29 Mei 2026");
     expect(formatShortDate("2026-05-29", "en")).toBe("May 29, 2026");
+  });
+
+  it("normalizes file name segments for downloads", () => {
+    expect(toFileSafeSegment("Wallet Rumah Utama")).toBe("wallet-rumah-utama");
+    expect(toFileSafeSegment("  Laporan/Mei 2026  ")).toBe("laporan-mei-2026");
   });
 });

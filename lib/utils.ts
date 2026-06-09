@@ -71,3 +71,12 @@ export function isValidDateString(value: string): boolean {
 export function dateStringToISO(value: string): string {
   return new Date(value).toISOString();
 }
+
+export function toFileSafeSegment(value: string) {
+  return value
+    .trim()
+    .toLocaleLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60) || "file";
+}

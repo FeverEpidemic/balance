@@ -269,6 +269,8 @@
     "historyDescription": "Sort, search, and manage transactions for the selected month without weighing down the main input page.",
     "historyBackToInput": "Back to input",
     "historyMonthFilter": "Month filter",
+    "exportExcel": "Export Excel",
+    "exportGenerating": "Generating Excel...",
     "historySearchLabel": "Search transactions in this month",
     "historySearchPlaceholder": "Search notes, categories, or type",
     "historyMatchCount": "{count} matching transactions for {month}.",
@@ -651,6 +653,9 @@
   "reports": {
     "pageTitle": "Reports",
     "pageSubtitle": "Reports for {walletName}",
+    "exportPdf": "Export PDF",
+    "exportPdfGenerating": "Generating PDF...",
+    "exportPdfError": "The PDF could not be generated right now. Please try again shortly.",
     "trendEyebrow": "Monthly trend",
     "trendTitle": "Income vs expenses",
     "emptyTitle": "No report data yet",
@@ -659,7 +664,17 @@
     "insightTitle": "Current month summary",
     "incomeLabel": "Income",
     "expenseLabel": "Expenses",
-    "remainingBudgetLabel": "Remaining budget"
+    "remainingBudgetLabel": "Remaining budget",
+    "pdfSummaryIncome": "Income",
+    "pdfSummaryExpense": "Expenses",
+    "pdfSummaryNet": "Net",
+    "pdfMonthlyTitle": "Monthly summary",
+    "pdfMonthlyColMonth": "Month",
+    "pdfMonthlyColIncome": "Income",
+    "pdfMonthlyColExpense": "Expenses",
+    "pdfMonthlyColNet": "Net",
+    "pdfCategoryTitle": "Expense category mix",
+    "pdfGeneratedAt": "Generated"
   },
   "members": {
     "pageTitle": "Members",

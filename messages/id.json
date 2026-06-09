@@ -269,6 +269,8 @@
     "historyDescription": "Urutkan, cari, dan kelola transaksi pada bulan terpilih tanpa membebani halaman input utama.",
     "historyBackToInput": "Kembali ke input",
     "historyMonthFilter": "Filter bulan",
+    "exportExcel": "Export Excel",
+    "exportGenerating": "Menyiapkan Excel...",
     "historySearchLabel": "Cari transaksi bulan ini",
     "historySearchPlaceholder": "Cari catatan, kategori, atau jenis",
     "historyMatchCount": "{count} transaksi cocok untuk {month}.",
@@ -651,6 +653,9 @@
   "reports": {
     "pageTitle": "Laporan",
     "pageSubtitle": "Laporan {walletName}",
+    "exportPdf": "Export PDF",
+    "exportPdfGenerating": "Menyiapkan PDF...",
+    "exportPdfError": "PDF belum bisa dibuat sekarang. Coba lagi sebentar lagi.",
     "trendEyebrow": "Tren bulanan",
     "trendTitle": "Pemasukan vs pengeluaran",
     "emptyTitle": "Belum ada data laporan",
@@ -659,7 +664,17 @@
     "insightTitle": "Ringkasan bulan berjalan",
     "incomeLabel": "Pemasukan",
     "expenseLabel": "Pengeluaran",
-    "remainingBudgetLabel": "Sisa anggaran"
+    "remainingBudgetLabel": "Sisa anggaran",
+    "pdfSummaryIncome": "Pemasukan",
+    "pdfSummaryExpense": "Pengeluaran",
+    "pdfSummaryNet": "Neto",
+    "pdfMonthlyTitle": "Ringkasan bulanan",
+    "pdfMonthlyColMonth": "Bulan",
+    "pdfMonthlyColIncome": "Pemasukan",
+    "pdfMonthlyColExpense": "Pengeluaran",
+    "pdfMonthlyColNet": "Neto",
+    "pdfCategoryTitle": "Komposisi kategori pengeluaran",
+    "pdfGeneratedAt": "Dibuat"
   },
   "members": {
     "pageTitle": "Anggota",

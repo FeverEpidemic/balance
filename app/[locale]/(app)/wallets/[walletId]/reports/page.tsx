@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { ExportPdfButton } from "@/components/features/reports/export-pdf-button";
 import { requireUser } from "@/lib/auth";
 import { buildMonthlyReport, getWalletBundle } from "@/lib/data";
 import { AppShell } from "@/components/app-shell";
@@ -32,6 +33,7 @@ export default async function ReportsPage({ params }: { params: Promise<{ locale
       memberCount={bundle.shell.memberCount}
       primaryWalletId={bundle.shell.primaryWalletId}
       currentWalletId={walletId}
+      headerAction={<ExportPdfButton walletId={walletId} />}
     >
       <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="card">
