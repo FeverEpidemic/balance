@@ -1,6 +1,6 @@
 import "server-only";
 import { getCurrentMonthKey } from "@/lib/finance";
-import { getPeriodRange, type RekapPeriod } from "@/lib/chat-auth";
+import { getPeriodRange, getPreviousPeriodRange, type RekapPeriod } from "@/lib/chat-auth";
 import { queryBudgets, queryCategories, queryCurrentUserWalletIds, queryTransactions, queryWallets } from "@/lib/data/queries";
 import type { BudgetRow, CategoryRow, TransactionRow, WalletRow } from "@/lib/data/types";
 
@@ -51,6 +51,30 @@ export type AiTransactionItem = {
   categoryName: string;
 };
 
+export type AiCategoryFocus = {
+  categoryId: string;
+  categoryName: string;
+  totalExpense: number;
+  transactionCount: number;
+  walletNames: string[];
+  recentNotes: string[];
+  budget?: {
+    month: string;
+    amount: number;
+    spent: number;
+    remaining: number;
+    usagePercent: number;
+    status: "safe" | "warning" | "over";
+  } | null;
+  previousPeriod?: {
+    range: { start: string; end: string };
+    totalExpense: number;
+    transactionCount: number;
+    deltaAmount: number;
+    deltaPercent: number | null;
+  } | null;
+};
+
 async function getAccessibleWallets(userId: string) {
   const memberships = await queryCurrentUserWalletIds(userId);
   const walletIds = memberships.map((item) => item.wallet_id);
@@ -74,6 +98,15 @@ function buildCategoryMap(categories: CategoryRow[]) {
 
 function buildWalletMap(wallets: WalletRow[]) {
   return new Map(wallets.map((wallet) => [wallet.id, wallet]));
+}
+
+function normalizeForMatch(value: string) {
+  return value
+    .toLocaleLowerCase("id-ID")
+    .normalize("NFKD")
+    .replace(/[^\p{Letter}\p{Number}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export async function getAiWalletOptions(userId: string): Promise<AiWalletOption[]> {
@@ -177,6 +210,119 @@ export async function getFinancialRecapForUser(userId: string, period: RekapPeri
         transactionCount: value.transactionCount
       }))
       .sort((a, b) => b.transactionCount - a.transactionCount)
+  };
+}
+
+export async function getCategoryFocusForUser(
+  userId: string,
+  period: RekapPeriod,
+  prompt: string,
+  walletId?: string | null
+): Promise<AiCategoryFocus | null> {
+  const normalizedPrompt = normalizeForMatch(prompt);
+
+  if (!normalizedPrompt) {
+    return null;
+  }
+
+  const { walletIds, wallets } = await getAccessibleWallets(userId);
+  assertAccessibleWallet(walletIds, walletId);
+  const targetWalletIds = walletId ? [walletId] : walletIds;
+  const currentMonth = getCurrentMonthKey();
+  const [allTransactions, categories, budgets] = await Promise.all([
+    queryTransactions(targetWalletIds),
+    queryCategories(targetWalletIds),
+    queryBudgets(targetWalletIds, currentMonth)
+  ]);
+  const expenseCategories = categories.filter((category) => category.kind === "expense");
+  const matchedCategory = expenseCategories
+    .sort((a, b) => b.name.length - a.name.length)
+    .find((category) => normalizedPrompt.includes(normalizeForMatch(category.name)));
+
+  if (!matchedCategory) {
+    return null;
+  }
+
+  const range = getPeriodRange(period);
+  const previousRange = getPreviousPeriodRange(period);
+  const startAt = Date.parse(range.start);
+  const endAt = Date.parse(range.end);
+  const previousStartAt = Date.parse(previousRange.start);
+  const previousEndAt = Date.parse(previousRange.end);
+  const walletMap = buildWalletMap(wallets);
+  const matchingTransactions = allTransactions.filter((transaction) => {
+    const happenedAt = Date.parse(transaction.happened_at);
+
+    return (
+      transaction.kind === "expense" &&
+      transaction.category_id === matchedCategory.id &&
+      Number.isFinite(happenedAt) &&
+      happenedAt >= startAt &&
+      happenedAt <= endAt
+    );
+  });
+  const previousMatchingTransactions = allTransactions.filter((transaction) => {
+    const happenedAt = Date.parse(transaction.happened_at);
+
+    return (
+      transaction.kind === "expense" &&
+      transaction.category_id === matchedCategory.id &&
+      Number.isFinite(happenedAt) &&
+      happenedAt >= previousStartAt &&
+      happenedAt <= previousEndAt
+    );
+  });
+
+  const walletNames = Array.from(
+    new Set(matchingTransactions.map((transaction) => walletMap.get(transaction.wallet_id)?.name ?? "Wallet"))
+  );
+  const recentNotes = matchingTransactions
+    .map((transaction) => transaction.note?.trim())
+    .filter((note): note is string => Boolean(note))
+    .slice(0, 3);
+  const matchedBudget = budgets.find((budget) => budget.category_id === matchedCategory.id);
+  const monthTransactions = allTransactions.filter(
+    (transaction) =>
+      transaction.kind === "expense" &&
+      transaction.category_id === matchedCategory.id &&
+      transaction.happened_at.startsWith(currentMonth)
+  );
+  const spentThisMonth = monthTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+  const budgetInfo = matchedBudget
+    ? {
+        month: currentMonth,
+        amount: matchedBudget.amount,
+        spent: spentThisMonth,
+        remaining: matchedBudget.amount - spentThisMonth,
+        usagePercent: matchedBudget.amount > 0 ? Math.round((spentThisMonth / matchedBudget.amount) * 100) : 0,
+        status:
+          matchedBudget.amount > 0 && spentThisMonth > matchedBudget.amount
+            ? ("over" as const)
+            : matchedBudget.amount > 0 && spentThisMonth >= matchedBudget.amount * 0.8
+              ? ("warning" as const)
+              : ("safe" as const)
+      }
+    : null;
+  const previousTotalExpense = previousMatchingTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+  const currentTotalExpense = matchingTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+  const deltaAmount = currentTotalExpense - previousTotalExpense;
+  const previousPeriodInfo = {
+    range: previousRange,
+    totalExpense: previousTotalExpense,
+    transactionCount: previousMatchingTransactions.length,
+    deltaAmount,
+    deltaPercent: previousTotalExpense > 0 ? Math.round((deltaAmount / previousTotalExpense) * 100) : null
+  };
+
+  return {
+    categoryId: matchedCategory.id,
+    categoryName: matchedCategory.name,
+    totalExpense: currentTotalExpense,
+    transactionCount: matchingTransactions.length,
+    walletNames,
+    recentNotes,
+    budget: budgetInfo,
+    previousPeriod: previousPeriodInfo
   };
 }
 

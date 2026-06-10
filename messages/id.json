@@ -72,7 +72,7 @@
     "placeholder": "Tulis pertanyaan tentang kondisi keuanganmu...",
     "emptyPrompt": "Tulis pertanyaan dulu, lalu saya bantu baca kondisi keuanganmu.",
     "send": "Kirim",
-    "shortcutHint": "Enter untuk kirim, Shift+Enter untuk baris baru.",
+    "shortcutHint": "Enter untuk baris baru, Ctrl+Enter atau Cmd+Enter untuk kirim.",
     "quickStart": "Rekap bulan ini",
     "emptyState": "Mulai percakapan dari rekap yang paling kamu butuhkan.",
     "emptyDescription": "Asisten ini bisa membaca ringkasan wallet, menyorot pengeluaran besar, dan membantu menjelaskan arah keuanganmu.",

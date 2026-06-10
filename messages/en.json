@@ -72,7 +72,7 @@
     "placeholder": "Ask something about your finances...",
     "emptyPrompt": "Please write a question first, then I can help read your financial condition.",
     "send": "Send",
-    "shortcutHint": "Press Enter to send, Shift+Enter for a new line.",
+    "shortcutHint": "Press Enter for a new line, and use Ctrl+Enter or Cmd+Enter to send.",
     "quickStart": "This month's recap",
     "emptyState": "Start with the recap you need most.",
     "emptyDescription": "This assistant can read wallet summaries, highlight major spending, and explain your financial direction.",

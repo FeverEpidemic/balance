@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ChatInput } from "@/components/features/chat/chat-input";
 import { ChatMessage } from "@/components/features/chat/chat-message";
 import { ChatSuggestions } from "@/components/features/chat/chat-suggestions";
 import { AppIcon } from "@/components/ui/app-icon";
 import { Button } from "@/components/ui/button";
+import { CHAT_STORAGE_KEY, buildChatRequestMessages, sanitizeStoredChatSession, type ChatIntent, type UiChatMessage } from "@/lib/chat-session";
 import type { AppLocale } from "@/lib/i18n";
 import { getTranslator } from "@/lib/i18n";
 
@@ -28,23 +29,61 @@ type ChatPageContentProps = {
   wallets: WalletOption[];
 };
 
-type UiMessage = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  isStreaming?: boolean;
-};
-
 const periods = ["day", "week", "month"] as const;
 
 export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps) {
   const t = getTranslator(locale);
-  const [messages, setMessages] = useState<UiMessage[]>([]);
+  const [messages, setMessages] = useState<UiChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [hasHydratedSession, setHasHydratedSession] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<(typeof periods)[number]>("month");
   const [selectedWalletId, setSelectedWalletId] = useState<string>("");
   const [activeSuggestion, setActiveSuggestion] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const raw = window.localStorage.getItem(CHAT_STORAGE_KEY);
+
+    if (!raw) {
+      setHasHydratedSession(true);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      const stored = sanitizeStoredChatSession(parsed);
+
+      if (!stored) {
+        setHasHydratedSession(true);
+        return;
+      }
+
+      setMessages(stored.messages);
+      setSelectedPeriod(stored.selectedPeriod);
+      setSelectedWalletId(stored.selectedWalletId);
+      setActiveSuggestion(stored.activeSuggestion);
+    } catch {
+      window.localStorage.removeItem(CHAT_STORAGE_KEY);
+    } finally {
+      setHasHydratedSession(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydratedSession) {
+      return;
+    }
+
+    window.localStorage.setItem(
+      CHAT_STORAGE_KEY,
+      JSON.stringify({
+        messages,
+        selectedPeriod,
+        selectedWalletId,
+        activeSuggestion
+      })
+    );
+  }, [activeSuggestion, hasHydratedSession, messages, selectedPeriod, selectedWalletId]);
 
   const suggestions = useMemo(
     () => [
@@ -57,23 +96,25 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
     [t]
   );
 
-  async function handleSubmit(overridePrompt?: string) {
+  async function handleSubmit(overridePrompt?: string, options?: { period?: (typeof periods)[number]; intent?: ChatIntent }) {
     const prompt = (overridePrompt ?? input).trim();
 
     if (!prompt || isLoading) {
       return;
     }
 
-    const userMessage: UiMessage = {
+    const effectivePeriod = options?.period ?? selectedPeriod;
+    const intent = options?.intent ?? "chat";
+    const userMessage: UiChatMessage = {
       id: `${Date.now()}-user`,
       role: "user",
       content: prompt
     };
     const assistantId = `${Date.now()}-assistant`;
+    const nextMessages = intent === "recap" ? [userMessage] : [...messages, userMessage];
 
-    setMessages((current) => [
-      ...current,
-      userMessage,
+    setMessages([
+      ...nextMessages,
       {
         id: assistantId,
         role: "assistant",
@@ -91,13 +132,15 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          messages: [...messages, userMessage].map((message) => ({
-            role: message.role,
-            content: message.content
-          })),
+          intent,
+          messages: buildChatRequestMessages({
+            history: messages,
+            userMessage,
+            intent
+          }),
           locale,
           walletId: selectedWalletId || undefined,
-          period: selectedPeriod
+          period: effectivePeriod
         })
       });
 
@@ -173,6 +216,15 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
     }
   }
 
+  function handleRecapSuggestion(period: (typeof periods)[number]) {
+    const prompt = t(`chat.prompts.${period}`);
+    const suggestion = suggestions.find((item) => item.key === period);
+
+    setSelectedPeriod(period);
+    setActiveSuggestion(suggestion?.key);
+    void handleSubmit(prompt, { period, intent: "recap" });
+  }
+
   return (
     <AppShell
       currentPath="/chat"
@@ -184,20 +236,31 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
       memberCount={shell.memberCount}
       primaryWalletId={shell.primaryWalletId}
       headerAction={
-        <Button type="button" variant="soft" className="rounded-full" onClick={() => handleSubmit(t("chat.prompts.month"))}>
+        <Button type="button" variant="soft" className="rounded-full" onClick={() => handleRecapSuggestion("month")}>
           {t("chat.quickStart")}
         </Button>
       }
     >
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_22rem]">
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <div className="card space-y-4">
             <ChatSuggestions
               items={suggestions}
               activeKey={activeSuggestion}
               onSelect={(prompt) => {
-                setActiveSuggestion(suggestions.find((item) => item.prompt === prompt)?.key);
-                void handleSubmit(prompt);
+                const selected = suggestions.find((item) => item.prompt === prompt);
+
+                if (!selected) {
+                  return;
+                }
+
+                if (selected.key === "day" || selected.key === "week" || selected.key === "month") {
+                  handleRecapSuggestion(selected.key);
+                  return;
+                }
+
+                setActiveSuggestion(selected.key);
+                void handleSubmit(prompt, { intent: "chat" });
               }}
             />
 
@@ -216,8 +279,8 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
               ))}
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
-              <div>
+            <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
+              <div className="min-w-0">
                 <label className="mb-2 block font-label text-xs uppercase tracking-[0.12em] text-muted-foreground">{t("common.wallet")}</label>
                 <select value={selectedWalletId} onChange={(event) => setSelectedWalletId(event.target.value)}>
                   <option value="">{t("chat.allWallets")}</option>
@@ -228,14 +291,14 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
                   ))}
                 </select>
               </div>
-              <div className="rounded-[1rem] border border-[color:var(--soft-border)] bg-muted px-4 py-3">
+              <div className="min-w-0 rounded-[1rem] border border-[color:var(--soft-border)] bg-muted px-4 py-3">
                 <p className="font-label text-xs uppercase tracking-[0.12em] text-muted-foreground">{t("chat.infoTitle")}</p>
                 <p className="mt-2 text-sm text-foreground/80">{t("chat.infoDescription")}</p>
               </div>
             </div>
           </div>
 
-          <div className="card min-h-[24rem]">
+          <div className="card min-h-[24rem] min-w-0 overflow-hidden">
             {messages.length === 0 ? (
               <div className="flex min-h-[20rem] flex-col items-center justify-center rounded-[1.2rem] border border-dashed border-[color:var(--soft-border)] bg-muted/50 px-6 text-center">
                 <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-card shadow-serene">
@@ -245,7 +308,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
                 <p className="mt-2 max-w-xl text-sm text-muted-foreground">{t("chat.emptyDescription")}</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="min-w-0 space-y-4">
                 {messages.map((message) => (
                   <ChatMessage key={message.id} role={message.role} content={message.content} isStreaming={message.isStreaming} />
                 ))}
@@ -256,7 +319,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
           <ChatInput value={input} onChange={setInput} onSubmit={() => void handleSubmit()} disabled={isLoading} locale={locale} />
         </div>
 
-        <aside className="space-y-4">
+        <aside className="min-w-0 space-y-4">
           <div className="card">
             <p className="eyebrow">{t("chat.sidebarTitle")}</p>
             <h3 className="headline-md mt-2">{t("chat.sidebarHeading")}</h3>

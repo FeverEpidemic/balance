@@ -14,6 +14,10 @@ type ChatInputProps = {
   locale: AppLocale;
 };
 
+export function shouldSubmitChatFromKeydown(event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey">) {
+  return event.key === "Enter" && (event.ctrlKey || event.metaKey);
+}
+
 export function ChatInput({ value, onChange, onSubmit, disabled = false, locale }: ChatInputProps) {
   const ref = useRef<HTMLTextAreaElement | null>(null);
   const t = getTranslator(locale);
@@ -28,7 +32,7 @@ export function ChatInput({ value, onChange, onSubmit, disabled = false, locale 
   }, [value]);
 
   return (
-    <div className="rounded-[1.4rem] border border-[color:var(--soft-border)] bg-card p-3 shadow-serene">
+    <div className="min-w-0 rounded-[1.4rem] border border-[color:var(--soft-border)] bg-card p-3 shadow-serene sm:p-4">
       <textarea
         ref={ref}
         value={value}
@@ -36,18 +40,23 @@ export function ChatInput({ value, onChange, onSubmit, disabled = false, locale 
         disabled={disabled}
         maxLength={MAX_CHAT_MESSAGE_LENGTH}
         placeholder={t("chat.placeholder")}
-        className="min-h-[3rem] resize-none border-0 bg-transparent px-1 py-2 shadow-none focus:shadow-none"
+        className="min-h-[3rem] resize-none overflow-y-auto break-words border-0 bg-transparent px-1 py-2 shadow-none focus:shadow-none"
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {
-          if (event.key === "Enter" && !event.shiftKey) {
+          if (shouldSubmitChatFromKeydown(event.nativeEvent)) {
             event.preventDefault();
             onSubmit();
           }
         }}
       />
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <p className="text-xs text-muted-foreground">{t("chat.shortcutHint")}</p>
-        <Button type="button" onClick={onSubmit} disabled={disabled || !value.trim()} className="rounded-full px-5">
+      <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="max-w-full text-xs leading-5 text-muted-foreground">{t("chat.shortcutHint")}</p>
+        <Button
+          type="button"
+          onClick={onSubmit}
+          disabled={disabled || !value.trim()}
+          className="w-full rounded-full px-5 sm:w-auto"
+        >
           {t("chat.send")}
         </Button>
       </div>

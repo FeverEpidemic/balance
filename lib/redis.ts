@@ -194,8 +194,13 @@ export function createRedisCache(getClient: CacheClientFactory = getRedisClient)
           const cached = await client.get(qualifiedKey);
 
           if (cached !== null) {
-            trackRedisMetric("hits");
-            return JSON.parse(cached) as T;
+            try {
+              trackRedisMetric("hits");
+              return JSON.parse(cached) as T;
+            } catch {
+              trackRedisMetric("readErrors");
+              logRedisEvent("warn", "parse failed", { key });
+            }
           }
 
           trackRedisMetric("misses");

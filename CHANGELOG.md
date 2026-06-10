@@ -2,6 +2,38 @@
 
 ## [Unreleased] - 2026-06-10
 
+### Fixed - Mobile Layout dan Shortcut Input AI Chat
+
+#### Perbaikan Kenyamanan AI Chat
+- **Card chat history dan input message kini lebih aman di layar kecil:** Bubble pesan, kata panjang tanpa spasi, dan konten AI yang panjang tidak lagi mudah mendorong layout melebar ke samping.
+- **Composer AI chat kini lebih nyaman untuk pesan multi-baris:** `Enter` sekarang membuat baris baru, sementara `Ctrl+Enter` atau `Cmd+Enter` dipakai untuk kirim cepat selain tombol `Kirim`.
+- **Footer input lebih fleksibel di mobile:** Hint shortcut dan tombol kirim kini tetap rapi saat ruang horizontal terbatas.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `components/features/chat/{chat-message,chat-page-content,chat-input}.tsx` | Rapikan batas lebar bubble, cegah overflow horizontal, dan ubah shortcut submit agar `Enter` membuat newline. |
+| `tests/unit/chat-input-shortcuts.test.ts`, `messages/{id,en}.json`, `lib/changelogs.ts` | Tambah test shortcut keyboard, perbarui hint bilingual, dan tambah entry What's New baru. |
+
+### Fixed - AI Chat Rekap dan Riwayat Percakapan
+
+#### Perbaikan Stabilitas Asisten AI
+- **Chip `Rekap hari ini`, `Rekap minggu ini`, dan `Rekap bulan ini` kini selalu memakai periode yang benar:** Suggestion tidak lagi diam-diam tetap mengirim konteks bulanan saat user memilih rekap harian atau mingguan.
+- **Permintaan rekap eksplisit kini dijawab langsung dari data Balance secara deterministik:** User tetap menerima ringkasan pemasukan, pengeluaran, net, jumlah transaksi, dan sorotan utama meski model AI/provider sedang tidak konsisten.
+- **Riwayat chat sekarang tetap tersimpan saat user pindah tab atau kembali ke halaman chat:** State percakapan, wallet terpilih, dan periode aktif dipersist ke storage client lalu dipulihkan saat halaman dibuka lagi.
+- **Pertanyaan chat bebas tidak lagi sering jatuh ke penutup generik yang sama:** Route AI kini memakai jawaban final pertama saat model sudah selesai, alih-alih meminta jawaban kedua tanpa turn user baru.
+- **Jawaban AI bebas kini dipaksa lebih berbobot:** Prompt sistem sekarang menuntut fakta konkret dari data, dan fallback server-side mengambil alih bila respons model terlalu generik.
+- **Penyebutan kategori seperti `cicilan`, `makan`, atau `transport` kini lebih nyambung dengan data user:** Route chat mendeteksi kategori dari pertanyaan user lalu menambah konteks kategori spesifik ke prompt dan fallback jawaban.
+- **Kategori yang disebut user kini ikut dibaca bersama status anggaran bulan berjalan:** Saat ada anggaran aktif, chat bisa memberi sinyal apakah kategori itu masih aman, mulai mepet, atau sudah lewat batas.
+- **Kategori kini bisa dibandingkan dengan periode sebelumnya yang setara:** Pertanyaan seperti `cicilan bulan ini vs bulan lalu` atau `makan minggu ini dibanding minggu lalu` kini punya konteks delta nominal dan persentase.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `app/api/ai/chat/route.ts`, `lib/ai/{data,recap-message,chat-response,fallback-response}.ts`, `lib/ai/prompts.ts`, `lib/chat-auth.ts` | Tambah deteksi kategori dari prompt user, status anggaran kategori, pembanding periode sebelumnya, fallback jawaban substantif, dan instruksi agar AI wajib menjawab dengan fakta konkret. |
+| `components/features/chat/chat-page-content.tsx`, `lib/chat-session.ts` | Sinkronkan chip rekap dengan periode aktif yang benar dan persist session chat ke `localStorage`. |
+| `tests/unit/{ai-recap-message,ai-chat-response,ai-fallback-response,ai-category-focus,chat-session}.test.ts`, `lib/changelogs.ts` | Tambah test helper rekap/session/response/fallback/category-focus dan entry What's New baru. |
+
 ### Added - Guard Rail AI Chat dan Limit Fair Use
 
 #### Peningkatan Keamanan dan Batas Penggunaan

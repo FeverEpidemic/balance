@@ -37,16 +37,16 @@ export function ChatMessage({ role, content, isStreaming = false }: ChatMessageP
   const isUser = role === "user";
 
   return (
-    <div className={cn("flex", isUser ? "justify-end" : "justify-start")} style={{ animation: "page-enter 220ms ease-out" }}>
+    <div className={cn("flex min-w-0", isUser ? "justify-end" : "justify-start")} style={{ animation: "page-enter 220ms ease-out" }}>
       <div
         className={cn(
-          "max-w-[85%] rounded-[1.35rem] px-4 py-3 text-sm leading-7 shadow-serene",
+          "min-w-0 max-w-[92%] overflow-hidden rounded-[1.35rem] px-4 py-3 text-sm leading-7 shadow-serene sm:max-w-[88%] lg:max-w-[85%]",
           isUser
             ? "bg-primary-soft text-primary-strong"
             : "border border-[color:var(--soft-border)] bg-card text-foreground"
         )}
       >
-        <div className="prose prose-sm max-w-none prose-p:my-0 prose-ul:my-0 prose-ul:pl-5 prose-li:my-0 dark:prose-invert">
+        <div className="prose prose-sm max-w-none break-words prose-p:my-0 prose-ul:my-0 prose-ul:pl-5 prose-li:my-0 dark:prose-invert [&_*]:break-words">
           <div dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }} />
         </div>
         {isStreaming ? (

@@ -105,6 +105,23 @@ describe("redis cache wrapper", () => {
     expect(getRedisMetricsSnapshot().readErrors).toBe(1);
   });
 
+  it("falls back to loader when cached json is malformed", async () => {
+    process.env.REDIS_KEY_PREFIX = "test";
+    const fakeClient = createFakeClient({
+      "test:user:u1:dashboard": ""
+    });
+    const cache = createRedisCache(async () => fakeClient);
+    const loader = vi.fn(async () => ({ ok: true }));
+
+    const result = await cache.getOrSet("user:u1:dashboard", 60, loader);
+
+    expect(result).toEqual({ ok: true });
+    expect(loader).toHaveBeenCalledTimes(1);
+    expect(fakeClient.store.get("test:user:u1:dashboard")).toBe(JSON.stringify({ ok: true }));
+    expect(getRedisMetricsSnapshot().readErrors).toBe(1);
+    expect(getRedisMetricsSnapshot().misses).toBe(1);
+  });
+
   it("deletes keys by prefix without touching other namespaces", async () => {
     process.env.REDIS_KEY_PREFIX = "balance";
     const fakeClient = createFakeClient({

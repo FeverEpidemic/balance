@@ -13,6 +13,33 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.6.3",
+    date: "2026-06-10",
+    title: "AI chat lebih nyaman di mobile",
+    description: "Halaman AI chat sekarang lebih rapi di layar kecil, dan input pesan mendukung Enter untuk baris baru.",
+    features: [
+      { icon: "📱", text: "Card riwayat chat dan bubble pesan kini lebih aman dari layout melebar di layar mobile." },
+      { icon: "↩️", text: "Enter sekarang membuat baris baru agar kamu bisa menulis pesan panjang dengan lebih nyaman." },
+      { icon: "⌨️", text: "Kirim pesan kini didukung lewat Ctrl+Enter atau Cmd+Enter, selain tombol Kirim." }
+    ]
+  },
+  {
+    version: "1.6.2",
+    date: "2026-06-10",
+    title: "Chat recap lebih stabil",
+    description: "Rekap AI sekarang lebih konsisten menampilkan ringkasan yang benar, dan riwayat percakapan tidak hilang saat kamu berpindah tab.",
+    features: [
+      { icon: "🗓️", text: "Chip rekap harian, mingguan, dan bulanan kini selalu memakai periode yang sesuai." },
+      { icon: "🧾", text: "Permintaan rekap langsung menghasilkan ringkasan data Balance yang lebih deterministik." },
+      { icon: "💬", text: "Riwayat chat, wallet aktif, dan periode pilihan kini dipulihkan saat kamu kembali ke halaman chat." },
+      { icon: "🧠", text: "Pertanyaan chat bebas tidak lagi sering dijawab dengan penutup generik yang sama." },
+      { icon: "📌", text: "Jawaban AI kini lebih dipaksa menyebut fakta konkret seperti angka, kategori, atau wallet aktif." },
+      { icon: "🏷️", text: "Saat kamu menyebut kategori seperti cicilan atau makan, chat sekarang lebih fokus ke kategori itu." },
+      { icon: "📊", text: "Kategori yang kamu sebut kini bisa langsung dibaca bersama status anggaran bulan berjalannya." },
+      { icon: "↔️", text: "Kategori yang sama kini bisa dibandingkan dengan periode sebelumnya yang setara." }
+    ]
+  },
+  {
     version: "1.6.1",
     date: "2026-06-10",
     title: "Safer AI chat and fair-use limits",

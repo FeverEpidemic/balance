@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateApiKey, hashApiKey, getPeriodRange } from "@/lib/chat-auth";
+import { generateApiKey, hashApiKey, getPeriodRange, getPreviousPeriodRange } from "@/lib/chat-auth";
 
 describe("generateApiKey", () => {
   it("returns a key with the bal_ prefix", () => {
@@ -92,5 +92,25 @@ describe("getPeriodRange", () => {
       expect(() => new Date(end)).not.toThrow();
       expect(new Date(start).getTime()).toBeLessThanOrEqual(new Date(end).getTime());
     });
+  });
+});
+
+describe("getPreviousPeriodRange", () => {
+  it("returns yesterday for day period", () => {
+    const { start, end } = getPreviousPeriodRange("day", new Date("2026-06-10T12:00:00.000Z"));
+    expect(start).toBe("2026-06-09T00:00:00.000Z");
+    expect(end).toBe("2026-06-09T23:59:59.999Z");
+  });
+
+  it("returns previous comparable week window", () => {
+    const { start, end } = getPreviousPeriodRange("week", new Date("2026-06-10T12:00:00.000Z"));
+    expect(start).toBe("2026-06-01T00:00:00.000Z");
+    expect(end).toBe("2026-06-03T23:59:59.999Z");
+  });
+
+  it("returns previous comparable month window", () => {
+    const { start, end } = getPreviousPeriodRange("month", new Date("2026-06-10T12:00:00.000Z"));
+    expect(start).toBe("2026-05-01T00:00:00.000Z");
+    expect(end).toBe("2026-05-10T23:59:59.999Z");
   });
 });

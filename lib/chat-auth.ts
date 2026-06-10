@@ -18,8 +18,8 @@ export function hashApiKey(rawKey: string): string {
 
 export type RekapPeriod = "day" | "week" | "month";
 
-export function getPeriodRange(period: RekapPeriod): { start: string; end: string } {
-  const now = new Date();
+export function getPeriodRange(period: RekapPeriod, nowInput?: Date): { start: string; end: string } {
+  const now = nowInput ?? new Date();
   const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
 
   if (period === "day") {
@@ -37,6 +37,63 @@ export function getPeriodRange(period: RekapPeriod): { start: string; end: strin
   // month (default)
   const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0));
   return { start: start.toISOString(), end: end.toISOString() };
+}
+
+export function getPreviousPeriodRange(period: RekapPeriod, nowInput?: Date): { start: string; end: string } {
+  const now = nowInput ?? new Date();
+
+  if (period === "day") {
+    const previousDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1));
+    return getPeriodRange("day", previousDay);
+  }
+
+  if (period === "week") {
+    const currentDayOfWeek = now.getUTCDay();
+    const diffToMonday = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1;
+    const previousWeekReference = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 7, now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds(), now.getUTCMilliseconds())
+    );
+    const previousWeekMonday = new Date(
+      Date.UTC(
+        previousWeekReference.getUTCFullYear(),
+        previousWeekReference.getUTCMonth(),
+        previousWeekReference.getUTCDate() - diffToMonday,
+        0,
+        0,
+        0,
+        0
+      )
+    );
+    const previousWeekComparableEnd = new Date(
+      Date.UTC(
+        previousWeekMonday.getUTCFullYear(),
+        previousWeekMonday.getUTCMonth(),
+        previousWeekMonday.getUTCDate() + diffToMonday,
+        23,
+        59,
+        59,
+        999
+      )
+    );
+
+    return {
+      start: previousWeekMonday.toISOString(),
+      end: previousWeekComparableEnd.toISOString()
+    };
+  }
+
+  const previousMonth = now.getUTCMonth() - 1;
+  const previousMonthStart = new Date(Date.UTC(now.getUTCFullYear(), previousMonth, 1, 0, 0, 0, 0));
+  const lastDayOfPreviousMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0)).getUTCDate();
+  const comparableDay = Math.min(now.getUTCDate(), lastDayOfPreviousMonth);
+  const previousMonthEnd = new Date(
+    Date.UTC(previousMonthStart.getUTCFullYear(), previousMonthStart.getUTCMonth(), comparableDay, 23, 59, 59, 999)
+  );
+
+  return {
+    start: previousMonthStart.toISOString(),
+    end: previousMonthEnd.toISOString()
+  };
 }
 
 export async function verifyApiKey(header: string | null): Promise<{ userId: string; keyId: string; name: string } | null> {
