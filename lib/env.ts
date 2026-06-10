@@ -93,3 +93,47 @@ export function getChatApiRateLimitMaxRequests() {
 export function getChatApiRateLimitWindowSeconds() {
   return readPositiveIntegerEnv("CHAT_API_RATE_LIMIT_WINDOW_SECONDS", 60);
 }
+
+export function getAiChatEnabled() {
+  return readBooleanEnv("AI_CHAT_ENABLED", true);
+}
+
+export function getFreeTierMaxMonthlyTransactions() {
+  return readPositiveIntegerEnv("FREE_TIER_MAX_MONTHLY_TRANSACTIONS", 20);
+}
+
+export function getTransactionRateLimitEnabled() {
+  return readBooleanEnv("TRANSACTION_RATE_LIMIT_ENABLED", true);
+}
+
+export function getTransactionRateLimitMaxRequests() {
+  return readPositiveIntegerEnv("TRANSACTION_RATE_LIMIT_MAX_REQUESTS", 30);
+}
+
+export function getTransactionRateLimitWindowSeconds() {
+  return readPositiveIntegerEnv("TRANSACTION_RATE_LIMIT_WINDOW_SECONDS", 60);
+}
+
+export function getAiChatRateLimitEnabled() {
+  return readBooleanEnv("AI_CHAT_RATE_LIMIT_ENABLED", true);
+}
+
+export function getAiChatRateLimitMaxRequests() {
+  return readPositiveIntegerEnv("AI_CHAT_RATE_LIMIT_MAX_REQUESTS", 20);
+}
+
+export function getAiChatRateLimitWindowSeconds() {
+  return readPositiveIntegerEnv("AI_CHAT_RATE_LIMIT_WINDOW_SECONDS", 60);
+}
+
+export function getAiChatModel() {
+  return process.env.AI_CHAT_MODEL?.trim() || "deepseek-v4-flash";
+}
+
+export function getDeepseekBaseUrl() {
+  return process.env.DEEPSEEK_BASE_URL?.trim() || "https://api.deepseek.com/v1";
+}
+
+export function getDeepseekApiKey() {
+  return process.env.DEEPSEEK_API_KEY?.trim() || null;
+}

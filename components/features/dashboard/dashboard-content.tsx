@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/app-shell";
+import { DashboardAiInsight } from "@/components/features/dashboard/dashboard-ai-insight";
 import { DashboardDailyExpenseChart } from "@/components/features/dashboard/dashboard-daily-expense-chart";
 import { DashboardOnboardingCard } from "@/components/features/dashboard/dashboard-onboarding-card";
 import { AppIcon, CategoryIcon } from "@/components/ui/app-icon";
@@ -70,6 +71,8 @@ export function DashboardContent({ dashboard, locale }: { dashboard: DashboardDa
           <StatCard label={t("dashboard.savingBalanceLabel")} value={dashboard.totalSavingBalance} detail={t("dashboard.savingBalanceDetail")} />
         </div>
       </section>
+
+      <DashboardAiInsight locale={locale} />
 
       <section className="mt-4 card">
         <p className="eyebrow">{t("dashboard.dailyExpenseEyebrow")}</p>

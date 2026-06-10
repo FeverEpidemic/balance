@@ -63,6 +63,7 @@ export function AppShell({
     { href: walletId ? `/wallets/${walletId}/members` : "/wallets", label: t("common.members"), icon: "members" as const },
     { href: walletId ? `/wallets/${walletId}/settlements` : "/wallets", label: t("common.settlements"), icon: "settlements" as const },
     { href: walletId ? `/wallets/${walletId}/templates` : "/wallets", label: t("common.templates"), icon: "templates" as const },
+    { href: "/chat", label: t("common.aiAssistant"), icon: "chat" as const },
     { href: "/changelogs", label: t("common.changelogs"), icon: "changelog" as const },
     { href: "/settings", label: t("common.settings"), icon: "settings" as const }
   ];
@@ -71,6 +72,7 @@ export function AppShell({
     { href: "/wallets", label: t("common.wallet"), icon: "wallet" as const },
     { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: t("common.transactions"), icon: "transactions" as const },
     { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: t("common.reports"), icon: "reports" as const },
+    { href: "/chat", label: t("common.aiAssistant"), icon: "chat" as const },
     { href: "/changelogs", label: t("common.changelogs"), icon: "changelog" as const },
     { href: "/settings", label: t("common.settings"), icon: "settings" as const }
   ];

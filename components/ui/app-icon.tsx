@@ -17,6 +17,7 @@ type AppIconName =
   | "templates"
   | "changelog"
   | "settings"
+  | "chat"
   | "overview"
   | "automatic"
   | "menu"
@@ -182,6 +183,14 @@ export function AppIcon({
         <StrokeIcon className={className} tone={tone}>
           <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z" />
           <path d="M19 12a7 7 0 0 0-.08-1l1.75-1.35-1.7-2.95-2.1.67a7.1 7.1 0 0 0-1.73-1L14.75 4h-3.5l-.39 2.37a7.1 7.1 0 0 0-1.73 1l-2.1-.67-1.7 2.95L5.08 11a7 7 0 0 0 0 2l-1.75 1.35 1.7 2.95 2.1-.67a7.1 7.1 0 0 0 1.73 1l.39 2.37h3.5l.39-2.37a7.1 7.1 0 0 0 1.73-1l2.1.67 1.7-2.95L18.92 13c.05-.33.08-.66.08-1Z" />
+        </StrokeIcon>
+      );
+    case "chat":
+      return (
+        <StrokeIcon className={className} tone={tone}>
+          <path d="M6.5 7h11A2.5 2.5 0 0 1 20 9.5v6A2.5 2.5 0 0 1 17.5 18H11l-4.5 2v-2H6.5A2.5 2.5 0 0 1 4 15.5v-6A2.5 2.5 0 0 1 6.5 7Z" />
+          <path d="M8.5 11h7" />
+          <path d="M8.5 14h4.5" />
         </StrokeIcon>
       );
     case "overview":

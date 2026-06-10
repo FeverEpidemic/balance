@@ -13,6 +13,17 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.6.0",
+    date: "2026-06-10",
+    title: "AI insight and finance chat",
+    description: "Balance now includes a dedicated AI assistant page and a lightweight dashboard insight card to explain your finances in friendlier language.",
+    features: [
+      { icon: "🤖", text: "Open a dedicated AI assistant page to ask for daily, weekly, or monthly financial recaps." },
+      { icon: "💡", text: "See a short AI-generated dashboard insight without leaving the main overview." },
+      { icon: "🧾", text: "AI answers can pull deeper recap, transaction, and budget context when needed." }
+    ]
+  },
+  {
     version: "1.5.0",
     date: "2026-06-09",
     title: "Fitur What's New",

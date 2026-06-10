@@ -1,5 +1,22 @@
 # Changelog
 
+## [Unreleased] - 2026-06-10
+
+### Added - AI Chatbot Insight dan Rekap Keuangan
+
+#### Peningkatan Asisten Finansial
+- **Balance kini punya halaman `/chat` khusus Asisten AI:** User bisa bertanya dengan bahasa natural untuk melihat rekap harian, mingguan, atau bulanan, lengkap dengan opsi fokus ke wallet tertentu.
+- **Dashboard sekarang menampilkan panel "Insight AI":** Kartu naratif singkat dirender terpisah dari stat card agar user cepat memahami kondisi keuangan tanpa membuka halaman lain.
+- **Integrasi DeepSeek memakai endpoint OpenAI-compatible di sisi server:** Konteks rekap utama di-inject ke prompt, lalu AI tetap bisa meminta detail transaksi atau status anggaran melalui tool call server-side saat memang perlu.
+- **Fallback tetap ramah saat AI dimatikan atau provider bermasalah:** Dashboard insight diam-diam menghilang bila gagal, sementara halaman chat memberi pesan yang tenang alih-alih merusak flow utama aplikasi.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `app/api/ai/{chat,insight}/route.ts`, `lib/ai/*`, `.env.example`, `package*.json` | Tambah infrastruktur AI DeepSeek-compatible, prompt/tooling server-side, insight JSON endpoint, dan streaming chat SSE. |
+| `app/[locale]/(app)/chat/page.tsx`, `components/features/chat/*` | Tambah halaman chat khusus Asisten AI dengan suggestion chips, selector periode/wallet, streaming bubble, dan panel bantuan. |
+| `components/features/dashboard/dashboard-{content,ai-insight}.tsx`, `components/{app-shell,ui/app-icon}.tsx`, `messages/{id,en}.json`, `lib/changelogs.ts` | Sisipkan panel insight di dashboard, tambah item navigasi baru, ikon chat, copy bilingual, dan entry What's New. |
+
 ## [Unreleased] - 2026-06-09
 
 ### Added - Halaman Changelog dan Popup Pembaruan

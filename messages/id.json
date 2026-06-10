@@ -53,7 +53,56 @@
     "walletKindShared": "Wallet bersama",
     "walletKindPersonal": "Wallet pribadi",
     "noCategory": "Tanpa kategori",
-    "viewAll": "Lihat semua"
+    "viewAll": "Lihat semua",
+    "aiAssistant": "Asisten AI"
+  },
+  "ai": {
+    "disabled": "Asisten AI sedang belum aktif.",
+    "rateLimited": "Permintaan AI sedang terlalu ramai. Coba lagi sebentar."
+  },
+  "insight": {
+    "cardTitle": "Sorotan keuangan bulan ini",
+    "cardEyebrow": "Insight AI",
+    "loading": "AI sedang merangkum kondisi keuanganmu...",
+    "error": "Insight AI belum tersedia saat ini."
+  },
+  "chat": {
+    "pageTitle": "Asisten AI",
+    "pageSubtitle": "Tanya rekap, pola belanja, dan peluang hemat dengan bahasa yang lebih natural.",
+    "placeholder": "Tulis pertanyaan tentang kondisi keuanganmu...",
+    "send": "Kirim",
+    "shortcutHint": "Enter untuk kirim, Shift+Enter untuk baris baru.",
+    "quickStart": "Rekap bulan ini",
+    "emptyState": "Mulai percakapan dari rekap yang paling kamu butuhkan.",
+    "emptyDescription": "Asisten ini bisa membaca ringkasan wallet, menyorot pengeluaran besar, dan membantu menjelaskan arah keuanganmu.",
+    "errorState": "Maaf, jawaban AI belum bisa dimuat sekarang. Coba lagi beberapa saat lagi ya.",
+    "allWallets": "Semua wallet",
+    "infoTitle": "Konteks aktif",
+    "infoDescription": "Pertanyaanmu akan dibaca bersama rekap periode yang dipilih, lalu AI bisa meminta detail tambahan jika memang perlu.",
+    "sidebarTitle": "Bisa dibantu apa",
+    "sidebarHeading": "Gunakan asisten ini untuk membaca kondisi, bukan cuma angka.",
+    "sidebarPoint1": "Minta rekap hari ini, minggu ini, atau bulan ini dengan nada yang lebih mudah dipahami.",
+    "sidebarPoint2": "Tanyakan area pengeluaran yang paling berat supaya lebih cepat tahu titik boros.",
+    "sidebarPoint3": "Pakai filter wallet kalau kamu ingin fokus ke satu dompet tertentu.",
+    "suggestions": {
+      "day": "Rekap hari ini",
+      "week": "Rekap minggu ini",
+      "month": "Rekap bulan ini",
+      "save": "Saran hemat",
+      "analysis": "Analisis pengeluaran"
+    },
+    "prompts": {
+      "day": "Tolong rangkum kondisi keuangan hari ini dengan bahasa sederhana.",
+      "week": "Buatkan rekap minggu ini dan soroti pengeluaran yang paling menonjol.",
+      "month": "Berikan rekap bulan ini dan insight singkat yang paling penting.",
+      "save": "Dari data yang ada, area mana yang paling realistis untuk dihemat dulu?",
+      "analysis": "Analisis pola pengeluaran saya dan jelaskan apa yang paling perlu diperhatikan."
+    },
+    "period": {
+      "day": "Hari ini",
+      "week": "Minggu ini",
+      "month": "Bulan ini"
+    }
   },
   "changelogs": {
     "title": "Changelog",

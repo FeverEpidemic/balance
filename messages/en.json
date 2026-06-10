@@ -53,7 +53,56 @@
     "walletKindShared": "Shared wallet",
     "walletKindPersonal": "Personal wallet",
     "noCategory": "No category",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "aiAssistant": "AI Assistant"
+  },
+  "ai": {
+    "disabled": "AI chat is currently unavailable.",
+    "rateLimited": "AI requests are busy right now. Please try again shortly."
+  },
+  "insight": {
+    "cardTitle": "This month's financial highlight",
+    "cardEyebrow": "AI Insight",
+    "loading": "AI is summarizing your finances...",
+    "error": "AI insight is unavailable right now."
+  },
+  "chat": {
+    "pageTitle": "AI Assistant",
+    "pageSubtitle": "Ask for summaries, spending patterns, and savings ideas in a more natural way.",
+    "placeholder": "Ask something about your finances...",
+    "send": "Send",
+    "shortcutHint": "Press Enter to send, Shift+Enter for a new line.",
+    "quickStart": "This month's recap",
+    "emptyState": "Start with the recap you need most.",
+    "emptyDescription": "This assistant can read wallet summaries, highlight major spending, and explain your financial direction.",
+    "errorState": "Sorry, the AI answer could not be loaded right now. Please try again shortly.",
+    "allWallets": "All wallets",
+    "infoTitle": "Active context",
+    "infoDescription": "Your question is read together with the selected period recap, and AI can request extra detail only when needed.",
+    "sidebarTitle": "What it can do",
+    "sidebarHeading": "Use this assistant to read the story behind the numbers.",
+    "sidebarPoint1": "Ask for a recap of today, this week, or this month in simpler language.",
+    "sidebarPoint2": "Ask which spending area is weighing the most so you can spot pressure faster.",
+    "sidebarPoint3": "Use the wallet filter when you want to focus on one wallet only.",
+    "suggestions": {
+      "day": "Today's recap",
+      "week": "This week's recap",
+      "month": "This month's recap",
+      "save": "Savings advice",
+      "analysis": "Spending analysis"
+    },
+    "prompts": {
+      "day": "Please summarize today's financial condition in simple language.",
+      "week": "Create a recap for this week and highlight the most noticeable spending.",
+      "month": "Give me this month's recap and the most important short insight.",
+      "save": "Based on the current data, where is the most realistic area to save first?",
+      "analysis": "Analyze my spending pattern and explain what needs the most attention."
+    },
+    "period": {
+      "day": "Today",
+      "week": "This week",
+      "month": "This month"
+    }
   },
   "changelogs": {
     "title": "Changelogs",
