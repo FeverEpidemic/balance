@@ -1,6 +1,6 @@
 import "server-only";
 import type { ChatCompletionMessageToolCall, ChatCompletionTool } from "openai/resources/chat/completions";
-import { getBudgetStatusForUser, getFinancialRecapForUser, getRecentTransactionsForUser } from "@/lib/ai/data";
+import { createTransactionViaAi, getBudgetStatusForUser, getCategoriesForWallets, getFinancialRecapForUser, getRecentTransactionsForUser } from "@/lib/ai/data";
 import type { RekapPeriod } from "@/lib/chat-auth";
 
 export const aiTools: ChatCompletionTool[] = [
@@ -60,6 +60,64 @@ export const aiTools: ChatCompletionTool[] = [
         required: ["walletId"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "getCategories",
+      description: "Ambil daftar kategori yang bisa dipakai user, opsional difokuskan ke satu wallet.",
+      parameters: {
+        type: "object",
+        properties: {
+          walletId: {
+            type: "string",
+            description: "Opsional. Isi jika hanya perlu kategori dari satu wallet."
+          }
+        }
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "createTransaction",
+      description:
+        "Catat transaksi baru setelah user secara eksplisit meminta atau mengonfirmasi pencatatan. Gunakan getCategories dulu jika kategori belum jelas.",
+      parameters: {
+        type: "object",
+        properties: {
+          walletId: {
+            type: "string",
+            description: "Wallet tujuan transaksi. Wajib."
+          },
+          kind: {
+            type: "string",
+            enum: ["income", "expense"]
+          },
+          amount: {
+            type: "number",
+            minimum: 1
+          },
+          categoryId: {
+            type: "string",
+            description: "Opsional. Gunakan ID kategori jika sudah diketahui."
+          },
+          categoryName: {
+            type: "string",
+            description: "Opsional. Nama kategori sebagai fallback jika ID belum tersedia."
+          },
+          note: {
+            type: "string",
+            description: "Opsional. Catatan transaksi singkat."
+          },
+          happenedAt: {
+            type: "string",
+            description: "Opsional. Format YYYY-MM-DD. Jika kosong, pakai hari ini."
+          }
+        },
+        required: ["walletId", "kind", "amount"]
+      }
+    }
   }
 ];
 
@@ -77,23 +135,45 @@ export async function executeAiToolCall(userId: string, toolCall: ChatCompletion
   }
 
   const args = parseArguments(toolCall.function.arguments);
-
-  switch (toolCall.function.name) {
-    case "getFinancialRecap":
-      return JSON.stringify(
-        await getFinancialRecapForUser(
-          userId,
-          ((args.period as RekapPeriod | undefined) ?? "month"),
-          (args.walletId as string | undefined) ?? null
-        )
-      );
-    case "getTransactions":
-      return JSON.stringify(
-        await getRecentTransactionsForUser(userId, (args.walletId as string | undefined) ?? null, Number(args.limit) || 8)
-      );
-    case "getBudgetStatus":
-      return JSON.stringify(await getBudgetStatusForUser(userId, String(args.walletId ?? "")));
-    default:
-      return JSON.stringify({ error: "UNKNOWN_TOOL" });
+  try {
+    switch (toolCall.function.name) {
+      case "getFinancialRecap":
+        return JSON.stringify(
+          await getFinancialRecapForUser(
+            userId,
+            ((args.period as RekapPeriod | undefined) ?? "month"),
+            (args.walletId as string | undefined) ?? null
+          )
+        );
+      case "getTransactions":
+        return JSON.stringify(
+          await getRecentTransactionsForUser(userId, (args.walletId as string | undefined) ?? null, Number(args.limit) || 8)
+        );
+      case "getBudgetStatus":
+        return JSON.stringify(await getBudgetStatusForUser(userId, String(args.walletId ?? "")));
+      case "getCategories":
+        return JSON.stringify(
+          await getCategoriesForWallets(userId, typeof args.walletId === "string" && args.walletId ? [args.walletId] : undefined)
+        );
+      case "createTransaction":
+        return JSON.stringify(
+          await createTransactionViaAi(userId, {
+            walletId: String(args.walletId ?? ""),
+            kind: args.kind === "income" ? "income" : "expense",
+            amount: Number(args.amount),
+            categoryId: typeof args.categoryId === "string" ? args.categoryId : null,
+            categoryName: typeof args.categoryName === "string" ? args.categoryName : null,
+            note: typeof args.note === "string" ? args.note : null,
+            happenedAt: typeof args.happenedAt === "string" ? args.happenedAt : null
+          })
+        );
+      default:
+        return JSON.stringify({ error: "UNKNOWN_TOOL" });
+    }
+  } catch (error) {
+    return JSON.stringify({
+      error: error instanceof Error ? error.message : "TOOL_EXECUTION_FAILED",
+      tool: toolCall.function.name
+    });
   }
 }

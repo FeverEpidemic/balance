@@ -2,6 +2,21 @@
 
 ## [Unreleased] - 2026-06-10
 
+### Added - AI Chat Bisa Mencatat Transaksi
+
+#### Peningkatan Asisten Finansial
+- **AI chat kini bisa membantu mencatat transaksi baru langsung dari percakapan:** Setelah user memberi instruksi yang jelas, asisten dapat membuat pemasukan atau pengeluaran baru lewat tool call server-side yang tetap memakai akses user asli.
+- **Daftar kategori kini tersedia untuk tool AI:** Asisten bisa membaca kategori per wallet, lalu memilih atau menawarkan kategori yang paling relevan sebelum mencatat transaksi.
+- **Flow pencatatan AI tetap mengikuti guard rail transaksi utama:** Limit plan free, rate limit transaksi, validasi tanggal/nominal, pemeriksaan role wallet, cache invalidation, dan revalidasi halaman tetap selaras dengan flow input manual.
+- **Halaman chat kini lebih eksplisit soal kemampuan baru ini:** Copy bantuan dan suggestion chip diperbarui agar user tahu asisten bisa membantu mencatat transaksi, bukan hanya menganalisis data.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `lib/ai/{data,tools,prompts}.ts` | Tambah helper kategori, create transaction via AI berbasis RLS user, tool definition/execution baru, dan instruksi prompt untuk flow pencatatan transaksi. |
+| `components/features/chat/chat-page-content.tsx`, `messages/{id,en}.json` | Tambah affordance UI/copy agar kemampuan pencatatan transaksi lebih terlihat di halaman chat. |
+| `tests/unit/{ai-tools,ai-prompts}.test.ts`, `lib/changelogs.ts` | Tambah safety net untuk tool/prompt AI dan entry What's New baru. |
+
 ### Fixed - Mobile Layout dan Shortcut Input AI Chat
 
 #### Perbaikan Kenyamanan AI Chat

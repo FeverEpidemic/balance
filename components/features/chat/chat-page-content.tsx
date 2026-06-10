@@ -90,6 +90,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
       { key: "day", label: t("chat.suggestions.day"), prompt: t("chat.prompts.day") },
       { key: "week", label: t("chat.suggestions.week"), prompt: t("chat.prompts.week") },
       { key: "month", label: t("chat.suggestions.month"), prompt: t("chat.prompts.month") },
+      { key: "record", label: t("chat.suggestions.record"), prompt: t("chat.prompts.record") },
       { key: "save", label: t("chat.suggestions.save"), prompt: t("chat.prompts.save") },
       { key: "analysis", label: t("chat.suggestions.analysis"), prompt: t("chat.prompts.analysis") }
     ],
@@ -327,6 +328,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
               <p>{t("chat.sidebarPoint1")}</p>
               <p>{t("chat.sidebarPoint2")}</p>
               <p>{t("chat.sidebarPoint3")}</p>
+              <p>{t("chat.sidebarPoint4")}</p>
             </div>
           </div>
         </aside>

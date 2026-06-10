@@ -1,8 +1,14 @@
 import "server-only";
 import { getCurrentMonthKey } from "@/lib/finance";
+import { invalidateWalletReadCaches } from "@/lib/data/cache";
 import { getPeriodRange, getPreviousPeriodRange, type RekapPeriod } from "@/lib/chat-auth";
 import { queryBudgets, queryCategories, queryCurrentUserWalletIds, queryTransactions, queryWallets } from "@/lib/data/queries";
-import type { BudgetRow, CategoryRow, TransactionRow, WalletRow } from "@/lib/data/types";
+import type { BudgetRow, CategoryRow, TransactionKind, TransactionRow, WalletRow } from "@/lib/data/types";
+import { consumeTransactionRateLimit } from "@/lib/rate-limit";
+import { checkFreeTransactionLimit, incrementTransactionCount } from "@/lib/transaction-limits";
+import { createClient } from "@/lib/supabase/server";
+import { dateStringToISO, getTodayDateString, isValidDateString } from "@/lib/utils";
+import { getActionTranslator, getWalletMemberUserIds, revalidateWalletPaths } from "@/app/actions/_shared";
 
 export type AiWalletOption = {
   id: string;
@@ -51,6 +57,44 @@ export type AiTransactionItem = {
   categoryName: string;
 };
 
+export type AiCategoryOption = {
+  id: string;
+  walletId: string;
+  walletName: string;
+  name: string;
+  kind: CategoryRow["kind"];
+  color: string;
+  isSystem: boolean;
+};
+
+export type AiCreateTransactionParams = {
+  walletId: string;
+  kind: TransactionKind;
+  amount: number;
+  categoryId?: string | null;
+  categoryName?: string | null;
+  note?: string | null;
+  happenedAt?: string | null;
+};
+
+export type AiCreateTransactionResult = {
+  ok: boolean;
+  code?: string;
+  message: string;
+  transaction?: {
+    id: string;
+    walletId: string;
+    walletName: string;
+    kind: TransactionKind;
+    amount: number;
+    happenedAt: string;
+    categoryId: string | null;
+    categoryName: string;
+    note: string | null;
+    source: "manual";
+  };
+};
+
 export type AiCategoryFocus = {
   categoryId: string;
   categoryName: string;
@@ -81,6 +125,7 @@ async function getAccessibleWallets(userId: string) {
   const wallets = await queryWallets(walletIds);
 
   return {
+    memberships,
     walletIds,
     wallets
   };
@@ -98,6 +143,14 @@ function buildCategoryMap(categories: CategoryRow[]) {
 
 function buildWalletMap(wallets: WalletRow[]) {
   return new Map(wallets.map((wallet) => [wallet.id, wallet]));
+}
+
+function mapTransactionError(message: string, linkedSavingTransactionMessage: string) {
+  if (message.includes("saving_transaction_managed_by_entries")) {
+    return linkedSavingTransactionMessage;
+  }
+
+  return message;
 }
 
 function normalizeForMatch(value: string) {
@@ -210,6 +263,204 @@ export async function getFinancialRecapForUser(userId: string, period: RekapPeri
         transactionCount: value.transactionCount
       }))
       .sort((a, b) => b.transactionCount - a.transactionCount)
+  };
+}
+
+export async function getCategoriesForWallets(userId: string, walletIds?: string[] | null): Promise<AiCategoryOption[]> {
+  const access = await getAccessibleWallets(userId);
+  const requestedWalletIds = walletIds?.filter(Boolean) ?? [];
+
+  requestedWalletIds.forEach((walletId) => assertAccessibleWallet(access.walletIds, walletId));
+
+  const targetWalletIds = requestedWalletIds.length > 0 ? requestedWalletIds : access.walletIds;
+  const [wallets, categories] = await Promise.all([
+    targetWalletIds.length === access.walletIds.length ? access.wallets : queryWallets(targetWalletIds),
+    queryCategories(targetWalletIds)
+  ]);
+  const walletMap = buildWalletMap(wallets);
+
+  return categories.map((category) => ({
+    id: category.id,
+    walletId: category.wallet_id,
+    walletName: walletMap.get(category.wallet_id)?.name ?? "Wallet",
+    name: category.name,
+    kind: category.kind,
+    color: category.color,
+    isSystem: category.is_system
+  }));
+}
+
+export async function resolveCategoryByName(
+  userId: string,
+  walletId: string,
+  categoryName: string,
+  kind: TransactionKind
+): Promise<AiCategoryOption | null> {
+  const normalizedCategoryName = normalizeForMatch(categoryName);
+
+  if (!normalizedCategoryName) {
+    return null;
+  }
+
+  const categories = await getCategoriesForWallets(userId, [walletId]);
+  const matchingCategories = categories
+    .filter((category) => category.kind === kind)
+    .sort((a, b) => b.name.length - a.name.length);
+
+  const exactMatch = matchingCategories.find((category) => normalizeForMatch(category.name) === normalizedCategoryName);
+
+  if (exactMatch) {
+    return exactMatch;
+  }
+
+  return (
+    matchingCategories.find((category) => {
+      const normalizedExisting = normalizeForMatch(category.name);
+      return normalizedExisting.includes(normalizedCategoryName) || normalizedCategoryName.includes(normalizedExisting);
+    }) ?? null
+  );
+}
+
+export async function createTransactionViaAi(userId: string, params: AiCreateTransactionParams): Promise<AiCreateTransactionResult> {
+  const { memberships, walletIds, wallets } = await getAccessibleWallets(userId);
+  const t = await getActionTranslator();
+  assertAccessibleWallet(walletIds, params.walletId);
+
+  const membership = memberships.find((item) => item.wallet_id === params.walletId);
+
+  if (!membership || membership.role === "viewer") {
+    return {
+      ok: false,
+      code: "WALLET_WRITE_DENIED",
+      message: t("actionErrors.transactionWriteForbidden")
+    };
+  }
+
+  if (params.kind !== "income" && params.kind !== "expense") {
+    return {
+      ok: false,
+      code: "TRANSACTION_KIND_INVALID",
+      message: t("actionErrors.transactionCategoryKindMismatch")
+    };
+  }
+
+  if (!Number.isFinite(params.amount) || params.amount <= 0) {
+    return {
+      ok: false,
+      code: "TRANSACTION_AMOUNT_INVALID",
+      message: t("actionErrors.transactionAmountInvalid")
+    };
+  }
+
+  const happenedAt = (params.happenedAt ?? "").trim() || getTodayDateString();
+
+  if (!isValidDateString(happenedAt)) {
+    return {
+      ok: false,
+      code: "TRANSACTION_DATE_INVALID",
+      message: t("actionErrors.transactionDateInvalid")
+    };
+  }
+
+  const transactionLimit = await checkFreeTransactionLimit(userId);
+
+  if (!transactionLimit.allowed) {
+    return {
+      ok: false,
+      code: "FREE_TIER_TRANSACTION_LIMIT_REACHED",
+      message: t("actionErrors.freeTierTransactionLimitReached", {
+        maxTransactions: transactionLimit.maxMonthlyTransactions
+      })
+    };
+  }
+
+  const rateLimit = await consumeTransactionRateLimit(userId);
+
+  if (!rateLimit.allowed) {
+    return {
+      ok: false,
+      code: "TRANSACTION_RATE_LIMITED",
+      message: t("actionErrors.transactionRateLimited")
+    };
+  }
+
+  const walletMap = buildWalletMap(wallets);
+  const categories = await getCategoriesForWallets(userId, [params.walletId]);
+  let resolvedCategory = categories.find((category) => category.id === (params.categoryId ?? "")) ?? null;
+
+  if (params.categoryId && !resolvedCategory) {
+    return {
+      ok: false,
+      code: "CATEGORY_NOT_FOUND",
+      message: t("actionErrors.transactionCategoryNotFound")
+    };
+  }
+
+  if (resolvedCategory && resolvedCategory.kind !== params.kind) {
+    return {
+      ok: false,
+      code: "CATEGORY_KIND_MISMATCH",
+      message: t("actionErrors.transactionCategoryKindMismatch")
+    };
+  }
+
+  if (!resolvedCategory && params.categoryName) {
+    resolvedCategory = await resolveCategoryByName(userId, params.walletId, params.categoryName, params.kind);
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("transactions")
+    .insert({
+      wallet_id: params.walletId,
+      category_id: resolvedCategory?.id ?? null,
+      kind: params.kind,
+      amount: params.amount,
+      note: params.note?.trim() || null,
+      happened_at: dateStringToISO(happenedAt),
+      source: "manual",
+      created_by: userId,
+      updated_by: userId
+    })
+    .select("id, wallet_id, category_id, kind, amount, happened_at, note, source")
+    .single();
+
+  if (error || !data) {
+    return {
+      ok: false,
+      code: "TRANSACTION_INSERT_FAILED",
+      message: mapTransactionError(error?.message ?? "TRANSACTION_INSERT_FAILED", t("actionStatus.linkedSavingTransaction"))
+    };
+  }
+
+  await incrementTransactionCount(userId);
+
+  const dashboardUserIds = await getWalletMemberUserIds(supabase, params.walletId);
+  await invalidateWalletReadCaches(params.walletId, {
+    targets: ["overview", "transactions", "budgets"],
+    dashboardUserIds
+  });
+  await revalidateWalletPaths(params.walletId, {
+    includeDashboard: true,
+    includeOverview: true,
+    sections: ["transactions", "budgets", "reports"]
+  });
+
+  return {
+    ok: true,
+    message: t("actionSuccess.transactionSaved"),
+    transaction: {
+      id: data.id,
+      walletId: data.wallet_id,
+      walletName: walletMap.get(data.wallet_id)?.name ?? "Wallet",
+      kind: data.kind,
+      amount: data.amount,
+      happenedAt: data.happened_at,
+      categoryId: data.category_id,
+      categoryName: resolvedCategory?.name ?? "Tanpa kategori",
+      note: data.note,
+      source: "manual"
+    }
   };
 }
 

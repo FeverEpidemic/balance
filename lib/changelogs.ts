@@ -13,6 +13,17 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.6.4",
+    date: "2026-06-10",
+    title: "AI chat bisa bantu catat transaksi",
+    description: "Asisten AI sekarang tidak hanya membaca data, tetapi juga bisa membantu mencatat pemasukan dan pengeluaran baru dengan flow yang lebih aman.",
+    features: [
+      { icon: "🧾", text: "AI chat kini bisa mencatat transaksi baru langsung ke wallet setelah kamu memberi detail dan konfirmasi yang jelas." },
+      { icon: "🏷️", text: "Asisten bisa membaca daftar kategori per wallet agar pemilihan kategori transaksi terasa lebih tepat." },
+      { icon: "🛡️", text: "Pencatatan lewat AI tetap mengikuti batas plan free, rate limit, akses wallet, dan invalidasi cache yang sama seperti input manual." }
+    ]
+  },
+  {
     version: "1.6.3",
     date: "2026-06-10",
     title: "AI chat lebih nyaman di mobile",
