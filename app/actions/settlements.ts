@@ -36,7 +36,7 @@ export async function createSettlement(formData: FormData) {
   });
 
   if (error) {
-    await redirectToSettlements(walletId, "error", error.message);
+    await redirectToSettlements(walletId, "error", translate(locale, "actionErrors.unexpectedError"));
   }
 
   revalidatePath(await getLocalizedPath(`/wallets/${walletId}/settlements`));

@@ -830,7 +830,10 @@
     "recurringNotFound": "Recurring transaction tidak ditemukan.",
     "recurringAlreadyEnded": "Recurring transaction sudah berakhir dan tidak bisa dilanjutkan.",
     "apiKeyNameRequired": "Nama API key harus diisi.",
-    "apiKeyNotFound": "Key tidak ditemukan."
+    "apiKeyNotFound": "Key tidak ditemukan.",
+    "duplicateEntry": "Data sudah ada. Tidak dapat membuat duplikat.",
+    "referenceNotFound": "Data terkait tidak ditemukan. Periksa kembali pilihan Anda.",
+    "unexpectedError": "Terjadi kesalahan tak terduga. Silakan coba lagi."
   },
   "actionSuccess": {
     "budgetSaved": "Budget berhasil disimpan.",

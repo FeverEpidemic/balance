@@ -19,6 +19,7 @@ import {
   getStringValue,
   getTrimmedValue,
   revalidateWalletPaths,
+  safeDbError,
   successResult,
   type ActionResult
 } from "@/app/actions/_shared";
@@ -46,12 +47,15 @@ function readBalanceAdjustmentForm(formData: FormData) {
   };
 }
 
-function mapTransactionError(message: string, linkedSavingTransactionMessage: string) {
-  if (message.includes("saving_transaction_managed_by_entries")) {
-    return linkedSavingTransactionMessage;
+function mapTransactionError(error: unknown, linkedSavingTransactionMessage: string, t: (key: string, values?: Record<string, string | number>) => string) {
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message: string }).message;
+    if (message.includes("saving_transaction_managed_by_entries")) {
+      return linkedSavingTransactionMessage;
+    }
   }
 
-  return message;
+  return safeDbError(error, "actionErrors.unexpectedError", t);
 }
 
 async function getTransactionLinkState(
@@ -76,13 +80,11 @@ async function getTransactionLinkState(
 async function ensureBalanceAdjustmentCategory(
   supabase: Awaited<ReturnType<typeof requireUser>>["supabase"],
   walletId: string,
-  kind: "income" | "expense",
-  userId: string
+  kind: "income" | "expense"
 ) {
   const { data, error } = await supabase.rpc("ensure_balance_adjustment_category", {
     target_wallet_id: walletId,
-    target_kind: kind,
-    actor_user_id: userId
+    target_kind: kind
   });
 
   if (error || !data) {
@@ -134,7 +136,7 @@ export async function createTransaction(_prevState: ActionResult, formData: Form
   });
 
   if (error) {
-    return errorResult(mapTransactionError(error.message, t("actionStatus.linkedSavingTransaction")));
+    return errorResult(mapTransactionError(error, t("actionStatus.linkedSavingTransaction"), t));
   }
 
   await incrementTransactionCount(user.id);
@@ -185,7 +187,7 @@ export async function createBalanceAdjustment(_prevState: ActionResult, formData
   }
 
   const kind = getBalanceAdjustmentKind(direction);
-  const categoryId = await ensureBalanceAdjustmentCategory(supabase, walletId, kind, user.id);
+  const categoryId = await ensureBalanceAdjustmentCategory(supabase, walletId, kind);
 
   if (!categoryId) {
     return errorResult(t("actionErrors.balanceAdjustmentCategoryUnavailable"));
@@ -204,7 +206,7 @@ export async function createBalanceAdjustment(_prevState: ActionResult, formData
   });
 
   if (error) {
-    return errorResult(error.message);
+    return errorResult(safeDbError(error, "actionErrors.unexpectedError", t));
   }
 
   await incrementTransactionCount(user.id);
@@ -250,7 +252,7 @@ export async function updateTransaction(_prevState: ActionResult, formData: Form
   }
 
   const nextCategoryId = linkedState.source === BALANCE_ADJUSTMENT_SOURCE
-    ? await ensureBalanceAdjustmentCategory(supabase, walletId, kind as "income" | "expense", user.id)
+    ? await ensureBalanceAdjustmentCategory(supabase, walletId, kind as "income" | "expense")
     : categoryId || null;
 
   if (linkedState.source === BALANCE_ADJUSTMENT_SOURCE && !nextCategoryId) {
@@ -271,7 +273,7 @@ export async function updateTransaction(_prevState: ActionResult, formData: Form
     .eq("wallet_id", walletId);
 
   if (error) {
-    return errorResult(mapTransactionError(error.message, t("actionStatus.linkedSavingTransaction")));
+    return errorResult(mapTransactionError(error, t("actionStatus.linkedSavingTransaction"), t));
   }
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
@@ -309,7 +311,7 @@ export async function deleteTransaction(_prevState: ActionResult, formData: Form
   const { error } = await supabase.from("transactions").delete().eq("id", transactionId).eq("wallet_id", walletId);
 
   if (error) {
-    return errorResult(mapTransactionError(error.message, t("actionStatus.linkedSavingTransaction")));
+    return errorResult(mapTransactionError(error, t("actionStatus.linkedSavingTransaction"), t));
   }
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);

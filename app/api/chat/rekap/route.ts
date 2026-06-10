@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
     .order("happened_at", { ascending: false });
 
   if (txError) {
-    return NextResponse.json({ error: txError.message }, { status: 500 });
+    return NextResponse.json({ error: "query_failed" }, { status: 500 });
   }
 
   const txRows = (transactions ?? []) as Pick<TransactionRow, "id" | "wallet_id" | "category_id" | "kind" | "amount" | "happened_at">[];

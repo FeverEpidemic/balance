@@ -93,6 +93,9 @@ export type InvitationRow = {
   created_at: string;
 };
 
+/** Invitation data without the bearer token — safe for non-owner members. */
+export type InvitationRowSafe = Omit<InvitationRow, "token">;
+
 export type TransactionSplitRow = {
   wallet_id: string;
   owed_amount: number;
@@ -262,7 +265,7 @@ export type WalletBundle = {
   settlements: SettlementRow[];
   templates: TemplateRow[];
   transactions: TransactionRow[];
-  invitations: InvitationRow[];
+  invitations: InvitationRowSafe[];
   wallet: WalletSummary;
 };
 

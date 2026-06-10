@@ -39,7 +39,7 @@ export async function createTemplate(formData: FormData) {
   });
 
   if (error) {
-    await redirectToTemplates(walletId, "error", error.message);
+    await redirectToTemplates(walletId, "error", translate(locale, "actionErrors.unexpectedError"));
   }
 
   await invalidateWalletReadCaches(walletId, { targets: ["overview"] });

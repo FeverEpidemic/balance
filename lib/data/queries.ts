@@ -4,6 +4,7 @@ import type {
   BudgetRow,
   CategoryRow,
   InvitationRow,
+  InvitationRowSafe,
   ProfileRow,
   RecurringTransactionRow,
   SettlementRow,
@@ -275,7 +276,7 @@ export async function queryInvitations(walletIds: string[]) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("wallet_invitations")
-    .select("id, wallet_id, role, token, status, invited_by, expires_at, created_at")
+    .select("id, wallet_id, role, status, invited_by, expires_at, created_at")
     .in("wallet_id", walletIds)
     .order("created_at", { ascending: false });
 
@@ -283,7 +284,28 @@ export async function queryInvitations(walletIds: string[]) {
     throw error;
   }
 
-  return (data ?? []) as InvitationRow[];
+  return (data ?? []) as InvitationRowSafe[];
+}
+
+/** Fetch invitation tokens via admin client (bypasses RLS) for owner-gated use. */
+export async function queryInvitationTokens(walletId: string): Promise<Map<string, string>> {
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  const admin = createAdminClient();
+
+  if (!admin) {
+    return new Map();
+  }
+
+  const { data } = await admin
+    .from("wallet_invitations")
+    .select("id, token")
+    .eq("wallet_id", walletId);
+
+  const map = new Map<string, string>();
+  (data ?? []).forEach((row) => {
+    map.set(row.id, row.token);
+  });
+  return map;
 }
 
 export async function queryUserApiKeys(userId: string) {

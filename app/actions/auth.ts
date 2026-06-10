@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { defaultLocale, LOCALE_COOKIE_NAME, localizePath, resolveLocale, translate } from "@/lib/i18n";
@@ -43,8 +43,7 @@ export async function signup(formData: FormData) {
     String(formData.get("next") ?? `/wallets?message=${walletReadyMessage}`),
     `/wallets?message=${walletReadyMessage}`
   );
-  const headerStore = await headers();
-  const origin = headerStore.get("origin") ?? getSiteUrl();
+  const origin = getSiteUrl();
   const confirmUrl = new URL("/auth/confirm", origin);
   confirmUrl.searchParams.set("next", next);
   confirmUrl.searchParams.set("locale", locale);

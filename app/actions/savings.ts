@@ -12,6 +12,7 @@ import {
   getStringValue,
   getTrimmedValue,
   revalidateWalletPaths,
+  safeDbError,
   successResult,
   type ActionResult
 } from "@/app/actions/_shared";
@@ -45,7 +46,7 @@ function mapSavingError(message: string, t: Awaited<ReturnType<typeof getActionT
     return t("actionErrors.authRequired");
   }
 
-  return message;
+  return safeDbError({ message }, "actionErrors.unexpectedError", t);
 }
 
 async function getWalletKind(supabase: Awaited<ReturnType<typeof requireUser>>["supabase"], walletId: string) {

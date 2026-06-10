@@ -1,4 +1,4 @@
-import type { InvitationRow, WalletMemberRow } from "@/lib/data/types";
+import type { InvitationRow, InvitationRowSafe, WalletMemberRow } from "@/lib/data/types";
 import { defaultLocale, translate, type AppLocale } from "@/lib/i18n";
 
 export const MAX_WALLET_MEMBERS = 5;
@@ -13,7 +13,7 @@ export function getWalletAcceptInvitationFullMessage(locale: AppLocale = default
   return translate(locale, "actionErrors.inviteAcceptanceFull");
 }
 
-export function countPendingInvitations(invitations: InvitationRow[]) {
+export function countPendingInvitations(invitations: InvitationRowSafe[]) {
   return invitations.filter((invitation) => invitation.status === "pending").length;
 }
 
@@ -29,7 +29,7 @@ export function isWalletAtCapacity(memberCount: number, pendingInvitationCount: 
   return getOccupiedWalletSlots(memberCount, pendingInvitationCount) >= MAX_WALLET_MEMBERS;
 }
 
-export function summarizeWalletCapacity(members: WalletMemberRow[], invitations: InvitationRow[]) {
+export function summarizeWalletCapacity(members: WalletMemberRow[], invitations: InvitationRowSafe[]) {
   const memberCount = members.length;
   const pendingInvitationCount = countPendingInvitations(invitations);
   const occupiedSlots = getOccupiedWalletSlots(memberCount, pendingInvitationCount);

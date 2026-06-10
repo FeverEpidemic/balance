@@ -2,6 +2,43 @@
 
 ## [Unreleased] - 2026-06-10
 
+### Changed - Security Hardening (7 Fixes)
+
+#### Perbaikan Keamanan
+
+- **RPC `ensure_balance_adjustment_category` diamankan:** Parameter `actor_user_id` dihapus; fungsi sekarang menggunakan `auth.uid()` dan memeriksa role `owner`/`editor` via `private.has_wallet_role()`.
+- **API-key transaction route kini mematuhi limit free tier & rate limit:** Route `/api/chat/transaction` sekarang memanggil `checkFreeTransactionLimit`, `consumeTransactionRateLimit`, dan `incrementTransactionCount` — sejalan dengan flow manual.
+- **Token undangan hanya bisa dibaca oleh owner:** Kebijakan RLS `wallet_invitations` diubah menjadi owner-only; non-owner tidak lagi bisa melihat token undangan melalui query biasa. Halaman members menggunakan admin client untuk mengambil token saat user adalah owner.
+- **Insert anggota wallet dibatasi:** Kebijakan `wallet_members_insert_owner` kini hanya mengizinkan pembuat wallet menambahkan dirinya sebagai owner saat pembuatan wallet.
+- **URL konfirmasi signup menggunakan origin yang dikonfigurasi:** Mengganti `headers().get("origin")` dengan `getSiteUrl()` untuk mencegah serangan terbuka melalui header `Origin`.
+- **Ekspor Excel terlindung dari formula injection:** Sel yang diawali `=`, `+`, `-`, `@`, tab, atau CR diberi prefix `'` untuk memaksa format teks.
+- **Pesan error database tidak lagi bocor ke pengguna:** Semua `error.message` yang sebelumnya dikembalikan langsung ke pengguna kini dipetakan melalui `safeDbError()` atau pesan aman yang sudah diterjemahkan. Berlaku di actions: budgets, settlements, transactions, wallets, api-keys, recurring-transactions, templates, theme, savings. Berlaku juga di endpoint API: `/api/chat/transaction` dan `/api/chat/rekap`.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `supabase/migrations/0011_security_fixes.sql` | Migrasi baru: RPC diamankan, RLS invites owner-only, insert wallet_members dibatasi. |
+| `app/actions/_shared.ts` | Tambah helper `safeDbError()`. |
+| `app/actions/transactions.ts` | Hapus parameter userId RPC, tambah safeDbError. |
+| `app/actions/budgets.ts` | Ganti error.message dengan safeDbError. |
+| `app/actions/settlements.ts` | Ganti error.message dengan pesan aman. |
+| `app/actions/wallets.ts` | Ganti error.message dengan pesan aman (12 titik). |
+| `app/actions/api-keys.ts` | Ganti error.message dengan safeDbError. |
+| `app/actions/recurring-transactions.ts` | Ganti error.message dengan safeDbError. |
+| `app/actions/savings.ts` | Ganti error.message dengan safeDbError di fallback mapSavingError. |
+| `app/actions/templates.ts` | Ganti error.message dengan pesan aman. |
+| `app/actions/theme.ts` | Ganti error.message dengan translate. |
+| `app/actions/auth.ts` | Ganti `headers().get("origin")` dengan `getSiteUrl()`. |
+| `app/api/chat/transaction/route.ts` | Tambah free tier / rate limit; sembunyikan insertError.message. |
+| `app/api/chat/rekap/route.ts` | Sembunyikan txError.message. |
+| `lib/data/queries.ts` | Pisah queryInvitations jadi safe (tanpa token) + admin-client token query. |
+| `lib/data/types.ts` | Tambah `InvitationRowSafe`. |
+| `lib/data/index.ts` | Export `queryInvitationTokens`. |
+| `lib/wallet-capacity.ts` | Update parameter type ke InvitationRowSafe. |
+| `components/features/transactions/export-excel-button.tsx` | Tambah sanitasi formula injection. |
+| `messages/{id,en}.json` | Tambah key `duplicateEntry`, `referenceNotFound`, `unexpectedError`. |
+| `app/[locale]/(app)/wallets/[walletId]/members/page.tsx` | Token undangan diambil via admin client. |
+
 ### Added - Reset Riwayat AI Chat
 
 #### Peningkatan Kontrol Percakapan

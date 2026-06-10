@@ -22,7 +22,7 @@ export async function updateThemePreference(_prevState: ActionResult, formData: 
   const { error } = await supabase.from("profiles").update({ theme_preference: preference }).eq("id", user.id);
 
   if (error) {
-    return errorResult(error.message);
+    return errorResult(translate(locale, "actionErrors.unexpectedError"));
   }
 
   cookieStore.set(THEME_COOKIE_NAME, preference, {
@@ -50,7 +50,7 @@ export async function updateLocalePreference(_prevState: ActionResult, formData:
   const { error } = await supabase.from("profiles").update({ preferred_locale: preference }).eq("id", user.id);
 
   if (error) {
-    return errorResult(error.message);
+    return errorResult(translate(locale, "actionErrors.unexpectedError"));
   }
 
   const cookieStore = await cookies();

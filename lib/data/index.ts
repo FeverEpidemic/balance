@@ -34,6 +34,7 @@ import {
   queryBudgets,
   queryCategories,
   queryCurrentUserWalletIds,
+  queryInvitationTokens,
   queryInvitations,
   queryProfiles,
   queryRecurringTransactions,
@@ -52,6 +53,7 @@ import type { SettingsApiKeyItem, SettingsData, WalletBundle } from "@/lib/data/
 
 export * from "@/lib/data/mappers";
 export * from "@/lib/data/types";
+export { queryInvitationTokens } from "@/lib/data/queries";
 
 async function getMembershipContext(userId: string) {
   const memberships = await queryCurrentUserWalletIds(userId);

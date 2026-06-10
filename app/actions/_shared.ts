@@ -99,3 +99,16 @@ export async function getWalletMemberUserIds(
 
   return [...new Set(data.map((row) => row.user_id))];
 }
+
+export function safeDbError(
+  error: unknown,
+  fallbackKey: string,
+  t: (key: string, values?: Record<string, string | number>) => string
+): string {
+  if (error && typeof error === "object" && "code" in error) {
+    const code = (error as { code?: string }).code;
+    if (code === "23505") return t("actionErrors.duplicateEntry");
+    if (code === "23503") return t("actionErrors.referenceNotFound");
+  }
+  return t(fallbackKey);
+}

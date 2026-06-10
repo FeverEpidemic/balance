@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { createWalletInvitation } from "@/app/actions/wallets";
 import { requireUser } from "@/lib/auth";
-import { getWalletBundle } from "@/lib/data";
+import { getWalletBundle, queryInvitationTokens } from "@/lib/data";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -38,6 +38,9 @@ export default async function MembersPage({
   }
 
   const pendingInvitations = bundle.invitations.filter((invite) => invite.status === "pending");
+  const invitationTokens = bundle.wallet.role === "owner"
+    ? await queryInvitationTokens(walletId)
+    : new Map<string, string>();
   const capacity = summarizeWalletCapacity(bundle.members, bundle.invitations);
   const siteUrl = getSiteUrl();
 
@@ -113,7 +116,7 @@ export default async function MembersPage({
                   </div>
                   {bundle.wallet.role === "owner" ? (
                     <InvitationShareActions
-                      inviteUrl={`${siteUrl}/invite/${invite.token}`}
+                      inviteUrl={`${siteUrl}/invite/${invitationTokens.get(invite.id) ?? ""}`}
                       role={invite.role}
                       walletName={bundle.wallet.name}
                     />

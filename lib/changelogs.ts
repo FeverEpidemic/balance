@@ -13,6 +13,21 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.6.6",
+    date: "2026-06-14",
+    title: "Peningkatan keamanan dan perlindungan data",
+    description: "Balance kini lebih aman dengan 7 perbaikan keamanan: perlindungan RPC, pembatasan akses token undangan, pencegahan kebocoran error database, dan lainnya.",
+    features: [
+      { icon: "🔒", text: "RPC penyesuaian saldo kini hanya bisa dipanggil oleh owner/editor wallet." },
+      { icon: "🔑", text: "Token undangan hanya bisa dibaca oleh owner wallet — anggota lain tidak bisa melihatnya." },
+      { icon: "📋", text: "Hanya pembuat wallet yang bisa menambah diri sebagai owner saat membuat wallet." },
+      { icon: "📉", text: "Route API transaksi kini mematuhi batas free tier dan rate limit." },
+      { icon: "🔗", text: "URL konfirmasi signup menggunakan alamat server yang dikonfigurasi, bukan dari header request." },
+      { icon: "📄", text: "Ekspor Excel terlindungi dari penyisipan formula berbahaya." },
+      { icon: "🛡️", text: "Pesan error database tidak lagi bocor ke pengguna — semua error dibungkus dengan teks aman." }
+    ]
+  },
+  {
     version: "1.6.5",
     date: "2026-06-12",
     title: "Reset riwayat AI Chat",

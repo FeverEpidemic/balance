@@ -10,6 +10,7 @@ import {
   getNumericValue,
   getStringValue,
   revalidateWalletPaths,
+  safeDbError,
   successResult,
   type ActionResult
 } from "@/app/actions/_shared";
@@ -109,7 +110,7 @@ export async function createRecurringTransaction(_prevState: ActionResult, formD
   });
 
   if (error) {
-    return errorResult(error.message);
+    return errorResult(safeDbError(error, "actionErrors.unexpectedError", t));
   }
 
   await invalidateWalletReadCaches(input.walletId, { targets: ["recurring"] });
@@ -170,7 +171,7 @@ export async function updateRecurringTransaction(_prevState: ActionResult, formD
     .eq("wallet_id", input.walletId);
 
   if (error) {
-    return errorResult(error.message);
+    return errorResult(safeDbError(error, "actionErrors.unexpectedError", t));
   }
 
   await invalidateWalletReadCaches(input.walletId, { targets: ["recurring"] });
@@ -200,7 +201,7 @@ export async function pauseRecurringTransaction(_prevState: ActionResult, formDa
     .eq("wallet_id", walletId);
 
   if (error) {
-    return errorResult(error.message);
+    return errorResult(safeDbError(error, "actionErrors.unexpectedError", t));
   }
 
   await invalidateWalletReadCaches(walletId, { targets: ["recurring"] });
@@ -253,7 +254,7 @@ export async function resumeRecurringTransaction(_prevState: ActionResult, formD
     .eq("wallet_id", walletId);
 
   if (error) {
-    return errorResult(error.message);
+    return errorResult(safeDbError(error, "actionErrors.unexpectedError", t));
   }
 
   await invalidateWalletReadCaches(walletId, { targets: ["recurring"] });
@@ -280,7 +281,7 @@ export async function deleteRecurringTransaction(_prevState: ActionResult, formD
     .eq("wallet_id", walletId);
 
   if (error) {
-    return errorResult(error.message);
+    return errorResult(safeDbError(error, "actionErrors.unexpectedError", t));
   }
 
   await invalidateWalletReadCaches(walletId, { targets: ["recurring"] });

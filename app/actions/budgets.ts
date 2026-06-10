@@ -9,6 +9,7 @@ import {
   getNumericValue,
   getStringValue,
   revalidateWalletPaths,
+  safeDbError,
   successResult,
   type ActionResult
 } from "@/app/actions/_shared";
@@ -47,7 +48,7 @@ export async function createBudget(_prevState: ActionResult, formData: FormData)
   );
 
   if (error) {
-    return errorResult(error.message);
+    return errorResult(safeDbError(error, "actionErrors.unexpectedError", t));
   }
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
@@ -88,7 +89,7 @@ export async function updateBudget(_prevState: ActionResult, formData: FormData)
     .eq("wallet_id", walletId);
 
   if (error) {
-    return errorResult(error.message);
+    return errorResult(safeDbError(error, "actionErrors.unexpectedError", t));
   }
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
@@ -116,7 +117,7 @@ export async function deleteBudget(_prevState: ActionResult, formData: FormData)
   const { error } = await supabase.from("budgets").delete().eq("id", budgetId).eq("wallet_id", walletId);
 
   if (error) {
-    return errorResult(error.message);
+    return errorResult(safeDbError(error, "actionErrors.unexpectedError", t));
   }
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);

@@ -74,7 +74,7 @@ export async function createWallet(formData: FormData) {
     .single();
 
   if (walletError || !wallet) {
-    return await redirectWithMessage("/wallets", "error", walletError?.message ?? translate(locale, "actionErrors.walletCreateFailed"));
+    return await redirectWithMessage("/wallets", "error", translate(locale, "actionErrors.walletCreateFailed"));
   }
 
   const { error: memberError } = await supabase.from("wallet_members").insert({
@@ -86,7 +86,7 @@ export async function createWallet(formData: FormData) {
   });
 
   if (memberError) {
-    return await redirectWithMessage("/wallets", "error", memberError.message);
+    return await redirectWithMessage("/wallets", "error", translate(locale, "actionErrors.unexpectedError"));
   }
 
   const starterCategories = getStarterCategories();
@@ -106,7 +106,7 @@ export async function createWallet(formData: FormData) {
     .select("id, name, kind");
 
   if (categoryError || !createdCategories) {
-    return await redirectWithMessage("/wallets", "error", categoryError?.message ?? translate(locale, "actionErrors.defaultCategoriesCreateFailed"));
+    return await redirectWithMessage("/wallets", "error", translate(locale, "actionErrors.defaultCategoriesCreateFailed"));
   }
 
   const categoryMap = new Map(
@@ -146,7 +146,7 @@ export async function createWallet(formData: FormData) {
     const { error: templateError } = await supabase.from("transaction_templates").insert(templateRows);
 
     if (templateError) {
-      return await redirectWithMessage("/wallets", "error", templateError.message);
+      return await redirectWithMessage("/wallets", "error", translate(locale, "actionErrors.unexpectedError"));
     }
   }
 
@@ -168,7 +168,7 @@ export async function createWallet(formData: FormData) {
     const { error: budgetError } = await supabase.from("budgets").insert(budgetRows);
 
     if (budgetError) {
-      return await redirectWithMessage("/wallets", "error", budgetError.message);
+      return await redirectWithMessage("/wallets", "error", translate(locale, "actionErrors.unexpectedError"));
     }
   }
 
@@ -211,13 +211,13 @@ export async function createWalletInvitation(formData: FormData) {
   }
 
   if (walletError || !wallet) {
-    redirect(withMessage(localizedRedirectPath, "error", walletError?.message ?? translate(locale, "actionErrors.walletNotFound")));
+    redirect(withMessage(localizedRedirectPath, "error", translate(locale, "actionErrors.walletNotFound")));
   }
 
   const capacity = await getWalletCapacitySnapshot(supabase, walletId);
 
   if (capacity.error) {
-    redirect(withMessage(localizedRedirectPath, "error", capacity.error.message));
+    redirect(withMessage(localizedRedirectPath, "error", translate(locale, "actionErrors.unexpectedError")));
   }
 
   if (capacity.memberCount + capacity.pendingInvitationCount >= MAX_WALLET_MEMBERS) {
@@ -246,7 +246,7 @@ export async function createWalletInvitation(formData: FormData) {
   const { data: invitation, error: invitationError } = invitationResult;
 
   if (invitationError || !invitation) {
-    redirect(withMessage(localizedRedirectPath, "error", invitationError?.message ?? translate(locale, "actionErrors.walletInvitationCreateFailed")));
+    redirect(withMessage(localizedRedirectPath, "error", translate(locale, "actionErrors.walletInvitationCreateFailed")));
   }
 
   revalidatePath(localizedRedirectPath);
@@ -284,7 +284,7 @@ export async function acceptWalletInvitation(formData: FormData) {
     .maybeSingle();
 
   if (invitationError || !invitation) {
-    redirect(withMessage(invitePath, "error", invitationError?.message ?? translate(locale, "actionErrors.inviteNotFound")));
+    redirect(withMessage(invitePath, "error", translate(locale, "actionErrors.inviteNotFound")));
   }
 
   if (invitation.status === "accepted") {
@@ -315,14 +315,14 @@ export async function acceptWalletInvitation(formData: FormData) {
     .maybeSingle();
 
   if (existingMemberError) {
-    redirect(withMessage(invitePath, "error", existingMemberError.message));
+    redirect(withMessage(invitePath, "error", translate(locale, "actionErrors.unexpectedError")));
   }
 
   if (!existingMember) {
     const capacity = await getWalletCapacitySnapshot(admin, invitation.wallet_id);
 
     if (capacity.error) {
-      redirect(withMessage(invitePath, "error", capacity.error.message));
+      redirect(withMessage(invitePath, "error", translate(locale, "actionErrors.unexpectedError")));
     }
 
     if (capacity.memberCount + capacity.pendingInvitationCount > MAX_WALLET_MEMBERS) {
@@ -336,8 +336,11 @@ export async function acceptWalletInvitation(formData: FormData) {
   });
 
   if (acceptError || !acceptedWalletId) {
-    const errorMessage = acceptError?.message ?? translate(locale, "actionErrors.walletInvitationAcceptFailed");
-    redirect(withMessage(invitePath, "error", isWalletCapacityError(errorMessage) ? getWalletAcceptInvitationFullMessage(locale) : errorMessage));
+    const rawMessage = acceptError?.message ?? "";
+    if (isWalletCapacityError(rawMessage)) {
+      redirect(withMessage(invitePath, "error", getWalletAcceptInvitationFullMessage(locale)));
+    }
+    redirect(withMessage(invitePath, "error", translate(locale, "actionErrors.walletInvitationAcceptFailed")));
   }
 
   const dashboardUserIds = await getWalletMemberUserIds(admin, acceptedWalletId);

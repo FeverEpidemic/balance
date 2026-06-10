@@ -830,7 +830,10 @@
     "recurringNotFound": "Recurring transaction not found.",
     "recurringAlreadyEnded": "This recurring transaction has already ended and cannot be resumed.",
     "apiKeyNameRequired": "API key name is required.",
-    "apiKeyNotFound": "Key not found."
+    "apiKeyNotFound": "Key not found.",
+    "duplicateEntry": "Data already exists. Cannot create a duplicate.",
+    "referenceNotFound": "Related data not found. Please check your selection.",
+    "unexpectedError": "An unexpected error occurred. Please try again."
   },
   "actionSuccess": {
     "budgetSaved": "Budget saved successfully.",

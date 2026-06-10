@@ -3,7 +3,7 @@
 import { requireUser } from "@/lib/auth";
 import { generateApiKey, hashApiKey } from "@/lib/chat-auth";
 import { invalidateSettingsCache } from "@/lib/data/cache";
-import { errorResult, getActionLocale, getActionTranslator, successResult, type ActionResult } from "@/app/actions/_shared";
+import { errorResult, getActionLocale, getActionTranslator, safeDbError, successResult, type ActionResult } from "@/app/actions/_shared";
 import { getTrimmedValue } from "@/app/actions/_shared";
 import { revalidatePath } from "next/cache";
 import { localizePath } from "@/lib/i18n";
@@ -27,7 +27,7 @@ export async function createApiKey(_prevState: ActionResult, formData: FormData)
   });
 
   if (error) {
-    return errorResult(error.message);
+    return errorResult(safeDbError(error, "actionErrors.unexpectedError", t));
   }
 
   await invalidateSettingsCache(user.id);
@@ -52,7 +52,7 @@ export async function revokeApiKey(_prevState: ActionResult, formData: FormData)
     .eq("user_id", user.id);
 
   if (error) {
-    return errorResult(error.message);
+    return errorResult(safeDbError(error, "actionErrors.unexpectedError", t));
   }
 
   await invalidateSettingsCache(user.id);
@@ -77,7 +77,7 @@ export async function deleteApiKey(_prevState: ActionResult, formData: FormData)
     .eq("user_id", user.id);
 
   if (error) {
-    return errorResult(error.message);
+    return errorResult(safeDbError(error, "actionErrors.unexpectedError", t));
   }
 
   await invalidateSettingsCache(user.id);
