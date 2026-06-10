@@ -2,6 +2,22 @@
 
 ## [Unreleased] - 2026-06-10
 
+### Added - Guard Rail AI Chat dan Limit Fair Use
+
+#### Peningkatan Keamanan dan Batas Penggunaan
+- **User free kini dibatasi maksimal 20 transaksi per bulan:** Counter bulanan tersimpan di profil user dan otomatis reset saat bulan UTC berganti.
+- **Aksi transaksi sekarang punya rate limit per user:** Permintaan create transaksi dan penyesuaian saldo dibatasi agar spam singkat tidak membanjiri insert.
+- **AI chat kini punya rate limit dan filter input statis:** Prompt injection, topik jelas non-keuangan, dan pesan di atas 500 karakter ditolak lebih awal dengan fallback SSE yang tetap ramah.
+- **Prompt sistem AI diperkeras untuk tetap fokus di domain finansial:** Asisten diarahkan mengabaikan upaya override instruksi, permintaan kode, dan topik exploit.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `supabase/migrations/0015_user_plan_tier.sql`, `.env.example`, `lib/env.ts` | Tambah kolom plan/counter bulanan dan knob env baru untuk kuota transaksi serta rate limit. |
+| `lib/{transaction-limits,rate-limit}.ts`, `app/actions/transactions.ts` | Tambah pengecekan plan free, reset/increment counter bulanan, dan limiter transaksi per user. |
+| `app/api/ai/chat/route.ts`, `lib/ai/{guard,prompts}.ts`, `components/features/chat/chat-input.tsx` | Tambah validasi pesan AI, limiter chat, header rate limit, hardening prompt, dan batas 500 karakter di client. |
+| `tests/unit/{transaction-limits,ai-chat-guard,rate-limit}.test.ts`, `messages/{id,en}.json`, `lib/changelogs.ts` | Tambah cakupan test, copy bilingual baru, dan entry What's New terbaru. |
+
 ### Added - AI Chatbot Insight dan Rekap Keuangan
 
 #### Peningkatan Asisten Finansial

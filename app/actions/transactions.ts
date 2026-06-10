@@ -7,6 +7,8 @@ import {
   getBalanceAdjustmentValidationError
 } from "@/lib/balance-adjustments";
 import { invalidateWalletReadCaches } from "@/lib/data/cache";
+import { consumeTransactionRateLimit } from "@/lib/rate-limit";
+import { checkFreeTransactionLimit, incrementTransactionCount } from "@/lib/transaction-limits";
 import {
   errorResult,
   getActionLocale,
@@ -103,6 +105,22 @@ export async function createTransaction(_prevState: ActionResult, formData: Form
     return errorResult(t("actionErrors.transactionAmountInvalid"));
   }
 
+  const transactionLimit = await checkFreeTransactionLimit(user.id);
+
+  if (!transactionLimit.allowed) {
+    return errorResult(
+      t("actionErrors.freeTierTransactionLimitReached", {
+        maxTransactions: transactionLimit.maxMonthlyTransactions
+      })
+    );
+  }
+
+  const rateLimit = await consumeTransactionRateLimit(user.id);
+
+  if (!rateLimit.allowed) {
+    return errorResult(t("actionErrors.transactionRateLimited"));
+  }
+
   const { error } = await supabase.from("transactions").insert({
     wallet_id: walletId,
     category_id: categoryId || null,
@@ -118,6 +136,8 @@ export async function createTransaction(_prevState: ActionResult, formData: Form
   if (error) {
     return errorResult(mapTransactionError(error.message, t("actionStatus.linkedSavingTransaction")));
   }
+
+  await incrementTransactionCount(user.id);
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
   await invalidateWalletReadCaches(walletId, {
@@ -148,6 +168,22 @@ export async function createBalanceAdjustment(_prevState: ActionResult, formData
     return errorResult(validationError);
   }
 
+  const transactionLimit = await checkFreeTransactionLimit(user.id);
+
+  if (!transactionLimit.allowed) {
+    return errorResult(
+      t("actionErrors.freeTierTransactionLimitReached", {
+        maxTransactions: transactionLimit.maxMonthlyTransactions
+      })
+    );
+  }
+
+  const rateLimit = await consumeTransactionRateLimit(user.id);
+
+  if (!rateLimit.allowed) {
+    return errorResult(t("actionErrors.transactionRateLimited"));
+  }
+
   const kind = getBalanceAdjustmentKind(direction);
   const categoryId = await ensureBalanceAdjustmentCategory(supabase, walletId, kind, user.id);
 
@@ -170,6 +206,8 @@ export async function createBalanceAdjustment(_prevState: ActionResult, formData
   if (error) {
     return errorResult(error.message);
   }
+
+  await incrementTransactionCount(user.id);
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
   await invalidateWalletReadCaches(walletId, {

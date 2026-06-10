@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { MAX_CHAT_MESSAGE_LENGTH } from "@/lib/ai/guard-shared";
 import type { AppLocale } from "@/lib/i18n";
 import { getTranslator } from "@/lib/i18n";
 
@@ -33,6 +34,7 @@ export function ChatInput({ value, onChange, onSubmit, disabled = false, locale 
         value={value}
         rows={1}
         disabled={disabled}
+        maxLength={MAX_CHAT_MESSAGE_LENGTH}
         placeholder={t("chat.placeholder")}
         className="min-h-[3rem] resize-none border-0 bg-transparent px-1 py-2 shadow-none focus:shadow-none"
         onChange={(event) => onChange(event.target.value)}

@@ -1,9 +1,14 @@
 import "server-only";
-import { NextResponse } from "next/server";
 import {
+  getAiChatRateLimitEnabled,
+  getAiChatRateLimitMaxRequests,
+  getAiChatRateLimitWindowSeconds,
   getChatApiRateLimitEnabled,
   getChatApiRateLimitMaxRequests,
-  getChatApiRateLimitWindowSeconds
+  getChatApiRateLimitWindowSeconds,
+  getTransactionRateLimitEnabled,
+  getTransactionRateLimitMaxRequests,
+  getTransactionRateLimitWindowSeconds
 } from "@/lib/env";
 import { redisCache } from "@/lib/redis";
 
@@ -85,7 +90,48 @@ export async function consumeChatApiRateLimit(keyId: string, now?: number) {
   });
 }
 
-export function applyRateLimitHeaders(response: NextResponse, result: RateLimitResult, now = Date.now()) {
+function buildAllowedFallback(limit: number, windowSeconds: number, now = Date.now()) {
+  const currentEpochSeconds = Math.floor(now / 1000);
+  const windowStart = currentEpochSeconds - (currentEpochSeconds % windowSeconds);
+
+  return {
+    allowed: true,
+    limit,
+    remaining: limit,
+    resetAt: (windowStart + windowSeconds) * 1000,
+    usedRedis: false
+  } satisfies RateLimitResult;
+}
+
+export async function consumeTransactionRateLimit(userId: string, now?: number) {
+  if (!getTransactionRateLimitEnabled()) {
+    return buildAllowedFallback(getTransactionRateLimitMaxRequests(), getTransactionRateLimitWindowSeconds(), now);
+  }
+
+  return consumeRateLimit({
+    namespace: "rate-limit:transaction",
+    key: userId,
+    limit: getTransactionRateLimitMaxRequests(),
+    windowSeconds: getTransactionRateLimitWindowSeconds(),
+    now
+  });
+}
+
+export async function consumeAiChatRateLimit(userId: string, now?: number) {
+  if (!getAiChatRateLimitEnabled()) {
+    return buildAllowedFallback(getAiChatRateLimitMaxRequests(), getAiChatRateLimitWindowSeconds(), now);
+  }
+
+  return consumeRateLimit({
+    namespace: "rate-limit:ai-chat",
+    key: userId,
+    limit: getAiChatRateLimitMaxRequests(),
+    windowSeconds: getAiChatRateLimitWindowSeconds(),
+    now
+  });
+}
+
+export function applyRateLimitHeaders(response: Response, result: RateLimitResult, now = Date.now()) {
   response.headers.set("X-RateLimit-Limit", String(result.limit));
   response.headers.set("X-RateLimit-Remaining", String(result.remaining));
   response.headers.set("X-RateLimit-Reset", String(Math.floor(result.resetAt / 1000)));

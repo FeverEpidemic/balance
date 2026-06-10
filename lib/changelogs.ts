@@ -13,6 +13,17 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.6.1",
+    date: "2026-06-10",
+    title: "Safer AI chat and fair-use limits",
+    description: "Balance now protects AI chat and free-plan transaction usage with clearer safety checks and calmer guard rails.",
+    features: [
+      { icon: "🛡️", text: "AI chat now rejects unsafe prompts, obvious off-topic requests, and overly long messages before they reach the model." },
+      { icon: "⏱️", text: "AI chat requests now use per-user rate limits with friendlier retry guidance." },
+      { icon: "📉", text: "Free plans now enforce a monthly transaction cap so usage stays predictable and fair." }
+    ]
+  },
+  {
     version: "1.6.0",
     date: "2026-06-10",
     title: "AI insight and finance chat",

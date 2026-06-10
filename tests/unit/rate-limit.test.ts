@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { applyRateLimitHeaders, consumeRateLimit } from "@/lib/rate-limit";
+import {
+  applyRateLimitHeaders,
+  consumeAiChatRateLimit,
+  consumeRateLimit,
+  consumeTransactionRateLimit
+} from "@/lib/rate-limit";
 import { redisCache } from "@/lib/redis";
 import { NextResponse } from "next/server";
 
@@ -142,5 +147,46 @@ describe("applyRateLimitHeaders", () => {
     );
 
     expect(response.headers.get("Retry-After")).toBe("45");
+  });
+});
+
+describe("named rate limit helpers", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    delete process.env.TRANSACTION_RATE_LIMIT_ENABLED;
+    delete process.env.TRANSACTION_RATE_LIMIT_MAX_REQUESTS;
+    delete process.env.TRANSACTION_RATE_LIMIT_WINDOW_SECONDS;
+    delete process.env.AI_CHAT_RATE_LIMIT_ENABLED;
+    delete process.env.AI_CHAT_RATE_LIMIT_MAX_REQUESTS;
+    delete process.env.AI_CHAT_RATE_LIMIT_WINDOW_SECONDS;
+  });
+
+  it("returns an allow result when transaction rate limiting is disabled", async () => {
+    process.env.TRANSACTION_RATE_LIMIT_ENABLED = "false";
+    process.env.TRANSACTION_RATE_LIMIT_MAX_REQUESTS = "30";
+    process.env.TRANSACTION_RATE_LIMIT_WINDOW_SECONDS = "60";
+
+    const result = await consumeTransactionRateLimit("user-1", Date.UTC(2026, 5, 6, 10, 0, 15));
+
+    expect(result).toEqual({
+      allowed: true,
+      limit: 30,
+      remaining: 30,
+      resetAt: Date.UTC(2026, 5, 6, 10, 1, 0),
+      usedRedis: false
+    });
+  });
+
+  it("uses the ai-chat namespace when consuming AI chat limits", async () => {
+    process.env.AI_CHAT_RATE_LIMIT_ENABLED = "true";
+    process.env.AI_CHAT_RATE_LIMIT_MAX_REQUESTS = "20";
+    process.env.AI_CHAT_RATE_LIMIT_WINDOW_SECONDS = "60";
+    const incrementSpy = vi.spyOn(redisCache, "increment").mockResolvedValue(1);
+
+    const result = await consumeAiChatRateLimit("user-9", Date.UTC(2026, 5, 6, 10, 0, 15));
+
+    expect(incrementSpy).toHaveBeenCalledWith("rate-limit:ai-chat:user-9:1780740000", 60);
+    expect(result.allowed).toBe(true);
+    expect(result.remaining).toBe(19);
   });
 });

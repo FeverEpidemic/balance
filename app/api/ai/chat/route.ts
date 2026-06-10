@@ -1,11 +1,13 @@
 import { cookies } from "next/headers";
+import { validateChatMessage } from "@/lib/ai/guard";
 import { getAiClient, getAiModel, isAiChatAvailable } from "@/lib/ai/client";
 import { getAiWalletOptions, getFinancialRecapForUser } from "@/lib/ai/data";
 import { buildChatMessages, buildAiSystemPrompt } from "@/lib/ai/prompts";
 import { aiTools, executeAiToolCall } from "@/lib/ai/tools";
 import { requireUser } from "@/lib/auth";
 import { type RekapPeriod } from "@/lib/chat-auth";
-import { LOCALE_COOKIE_NAME, resolveLocale } from "@/lib/i18n";
+import { LOCALE_COOKIE_NAME, getTranslator, resolveLocale } from "@/lib/i18n";
+import { applyRateLimitHeaders, consumeAiChatRateLimit } from "@/lib/rate-limit";
 
 type ChatRequestBody = {
   messages?: Array<{ role: "user" | "assistant"; content: string }>;
@@ -14,12 +16,14 @@ type ChatRequestBody = {
   locale?: string;
 };
 
-function createSseResponse(stream: ReadableStream) {
+function createSseResponse(stream: ReadableStream, init?: ResponseInit) {
   return new Response(stream, {
+    ...init,
     headers: {
       "Content-Type": "text/event-stream; charset=utf-8",
       "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive"
+      Connection: "keep-alive",
+      ...(init?.headers ?? {})
     }
   });
 }
@@ -28,7 +32,7 @@ function emitSse(encoder: TextEncoder, payload: unknown) {
   return encoder.encode(`data: ${JSON.stringify(payload)}\n\n`);
 }
 
-function createFriendlyFallbackStream(message: string) {
+function createFriendlyFallbackStream(message: string, init?: ResponseInit) {
   return createSseResponse(
     new ReadableStream({
       start(controller) {
@@ -37,7 +41,8 @@ function createFriendlyFallbackStream(message: string) {
         controller.enqueue(emitSse(encoder, { type: "done" }));
         controller.close();
       }
-    })
+    }),
+    init
   );
 }
 
@@ -46,20 +51,39 @@ export async function POST(request: Request) {
   const cookieStore = await cookies();
   const body = (await request.json()) as ChatRequestBody;
   const locale = resolveLocale(body.locale ?? cookieStore.get(LOCALE_COOKIE_NAME)?.value);
+  const t = getTranslator(locale);
   const period = body.period ?? "month";
   const walletId = body.walletId ?? null;
-  const userMessages = (body.messages ?? []).filter((message) => message.content.trim().length > 0).slice(-12);
+  const recentMessages = (body.messages ?? []).filter((message) => message.content.trim().length > 0).slice(-12);
+  const userMessages = recentMessages.filter((message) => message.role === "user");
 
   if (!userMessages.length) {
-    return createFriendlyFallbackStream(locale === "en" ? "Please write a question first." : "Tulis pertanyaan dulu, lalu saya bantu baca kondisi keuanganmu.");
+    return createFriendlyFallbackStream(t("chat.emptyPrompt"));
+  }
+
+  const aiRateLimit = await consumeAiChatRateLimit(user.id);
+
+  if (!aiRateLimit.allowed) {
+    return applyRateLimitHeaders(createFriendlyFallbackStream(t("ai.rateLimited"), { status: 429 }), aiRateLimit);
+  }
+
+  for (const message of userMessages) {
+    const validation = validateChatMessage(message.content);
+
+    if (!validation.ok) {
+      const messageKey =
+        validation.reason === "too_long"
+          ? "chat.validationTooLong"
+          : validation.reason === "unsafe"
+            ? "chat.validationUnsafe"
+            : "chat.validationOffTopic";
+
+      return applyRateLimitHeaders(createFriendlyFallbackStream(t(messageKey), { status: 400 }), aiRateLimit);
+    }
   }
 
   if (!isAiChatAvailable()) {
-    return createFriendlyFallbackStream(
-      locale === "en"
-        ? "AI chat is currently unavailable. Please try again after the DeepSeek configuration is enabled."
-        : "Asisten AI sedang belum aktif. Coba lagi setelah konfigurasi DeepSeek diaktifkan."
-    );
+    return applyRateLimitHeaders(createFriendlyFallbackStream(t("chat.unavailable")), aiRateLimit);
   }
 
   try {
@@ -74,7 +98,7 @@ export async function POST(request: Request) {
       throw new Error("AI_CLIENT_UNAVAILABLE");
     }
 
-    const initialMessages = buildChatMessages(systemPrompt, userMessages);
+    const initialMessages = buildChatMessages(systemPrompt, recentMessages);
     const conversationMessages: Parameters<typeof client.chat.completions.create>[0]["messages"] = [...initialMessages];
 
     for (let index = 0; index < 3; index += 1) {
@@ -125,7 +149,7 @@ export async function POST(request: Request) {
       stream: true
     });
 
-    return createSseResponse(
+    const response = createSseResponse(
       new ReadableStream({
         async start(controller) {
           const encoder = new TextEncoder();
@@ -145,10 +169,7 @@ export async function POST(request: Request) {
             controller.enqueue(
               emitSse(encoder, {
                 type: "token",
-                content:
-                  locale === "en"
-                    ? "A temporary issue happened while streaming the answer. Please try again in a moment."
-                    : "Ada kendala sementara saat mengalirkan jawaban. Coba lagi sebentar lagi ya."
+                content: t("chat.streamFailed")
               })
             );
             controller.enqueue(emitSse(encoder, { type: "done" }));
@@ -157,11 +178,9 @@ export async function POST(request: Request) {
         }
       })
     );
+
+    return applyRateLimitHeaders(response, aiRateLimit);
   } catch {
-    return createFriendlyFallbackStream(
-      locale === "en"
-        ? "I couldn't prepare the AI answer right now. Please try again in a moment."
-        : "Saya belum bisa menyiapkan jawaban AI sekarang. Coba lagi beberapa saat lagi ya."
-    );
+    return applyRateLimitHeaders(createFriendlyFallbackStream(t("chat.prepareFailed")), aiRateLimit);
   }
 }
