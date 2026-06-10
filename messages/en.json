@@ -112,7 +112,10 @@
       "day": "Today",
       "week": "This week",
       "month": "This month"
-    }
+    },
+    "resetHistory": "Reset Chat History",
+    "resetConfirm": "Are you sure you want to clear all chat history? This cannot be undone.",
+    "resetDone": "Chat history cleared."
   },
   "changelogs": {
     "title": "Changelogs",

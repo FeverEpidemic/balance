@@ -112,7 +112,10 @@
       "day": "Hari ini",
       "week": "Minggu ini",
       "month": "Bulan ini"
-    }
+    },
+    "resetHistory": "Reset Riwayat Chat",
+    "resetConfirm": "Yakin ingin menghapus seluruh riwayat chat? Tindakan ini tidak bisa dibatalkan.",
+    "resetDone": "Riwayat chat berhasil dihapus."
   },
   "changelogs": {
     "title": "Changelog",

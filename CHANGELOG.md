@@ -2,6 +2,19 @@
 
 ## [Unreleased] - 2026-06-10
 
+### Added - Reset Riwayat AI Chat
+
+#### Peningkatan Kontrol Percakapan
+- **Halaman AI chat kini punya tombol reset di pojok kanan atas:** Setelah diklik, muncul konfirmasi dua langkah yang mencegah penghapusan riwayat chat secara tidak sengaja.
+- **Konfirmasi sebelum menghapus:** Tombol "Reset" berubah menjadi pertanyaan konfirmasi dengan opsi "Ya, Hapus" dan "Batal".
+- **Semua state di-reset bersih:** Pesan, periode, wallet aktif, dan input kembali ke kondisi awal tanpa perlu reload halaman.
+
+#### File Diubah
+| File | Perubahan |
+|---|---|
+| `lib/chat-session.ts` | Tambah fungsi `clearChatHistory()` untuk menghapus localStorage. |
+| `components/features/chat/chat-page-content.tsx`, `messages/{id,en}.json` | Tambah tombol reset dengan konfirmasi dua langkah dan terjemahan baru. |
+
 ### Added - AI Chat Bisa Mencatat Transaksi
 
 #### Peningkatan Asisten Finansial

@@ -37,6 +37,12 @@ export function buildChatRequestMessages(input: {
   })) satisfies OutgoingChatMessage[];
 }
 
+export function clearChatHistory(): void {
+  if (typeof window !== "undefined") {
+    window.localStorage.removeItem(CHAT_STORAGE_KEY);
+  }
+}
+
 export function sanitizeStoredChatSession(value: unknown): StoredChatSession | null {
   if (!value || typeof value !== "object") {
     return null;

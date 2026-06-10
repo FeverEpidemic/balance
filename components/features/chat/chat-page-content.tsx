@@ -7,7 +7,7 @@ import { ChatMessage } from "@/components/features/chat/chat-message";
 import { ChatSuggestions } from "@/components/features/chat/chat-suggestions";
 import { AppIcon } from "@/components/ui/app-icon";
 import { Button } from "@/components/ui/button";
-import { CHAT_STORAGE_KEY, buildChatRequestMessages, sanitizeStoredChatSession, type ChatIntent, type UiChatMessage } from "@/lib/chat-session";
+import { CHAT_STORAGE_KEY, buildChatRequestMessages, clearChatHistory, sanitizeStoredChatSession, type ChatIntent, type UiChatMessage } from "@/lib/chat-session";
 import type { AppLocale } from "@/lib/i18n";
 import { getTranslator } from "@/lib/i18n";
 
@@ -40,6 +40,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
   const [selectedPeriod, setSelectedPeriod] = useState<(typeof periods)[number]>("month");
   const [selectedWalletId, setSelectedWalletId] = useState<string>("");
   const [activeSuggestion, setActiveSuggestion] = useState<string | undefined>(undefined);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(CHAT_STORAGE_KEY);
@@ -217,6 +218,20 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
     }
   }
 
+  function handleReset() {
+    if (!showResetConfirm) {
+      setShowResetConfirm(true);
+      return;
+    }
+    clearChatHistory();
+    setMessages([]);
+    setSelectedPeriod("month");
+    setSelectedWalletId("");
+    setActiveSuggestion(undefined);
+    setInput("");
+    setShowResetConfirm(false);
+  }
+
   function handleRecapSuggestion(period: (typeof periods)[number]) {
     const prompt = t(`chat.prompts.${period}`);
     const suggestion = suggestions.find((item) => item.key === period);
@@ -300,6 +315,33 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
           </div>
 
           <div className="card min-h-[24rem] min-w-0 overflow-hidden">
+            {messages.length > 0 && (
+              <div className="flex items-center justify-end mb-3">
+                {showResetConfirm ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">{t("chat.resetConfirm")}</span>
+                    <Button type="button" variant="primary" size="sm" onClick={handleReset}>
+                      Ya, Hapus
+                    </Button>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => setShowResetConfirm(false)}>
+                      {t("common.cancel")}
+                    </Button>
+                  </div>
+                ) : (
+                  <Button type="button" variant="ghost" size="sm" onClick={handleReset}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+                         className="stroke-current" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4.5 7h15" />
+                      <path d="M9.5 7V5.5a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1V7" />
+                      <path d="M5.5 7l1 13h11l1-13" />
+                      <path d="M10 10.5v6" />
+                      <path d="M14 10.5v6" />
+                    </svg>
+                    {t("chat.resetHistory")}
+                  </Button>
+                )}
+              </div>
+            )}
             {messages.length === 0 ? (
               <div className="flex min-h-[20rem] flex-col items-center justify-center rounded-[1.2rem] border border-dashed border-[color:var(--soft-border)] bg-muted/50 px-6 text-center">
                 <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-card shadow-serene">

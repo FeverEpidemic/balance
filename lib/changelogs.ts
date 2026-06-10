@@ -13,6 +13,16 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.6.5",
+    date: "2026-06-12",
+    title: "Reset riwayat AI Chat",
+    description: "Halaman AI chat kini punya tombol untuk menghapus seluruh riwayat percakapan dengan satu klik.",
+    features: [
+      { icon: "🗑️", text: "Tombol reset di pojok kanan atas card chat untuk menghapus seluruh percakapan." },
+      { icon: "🛡️", text: "Konfirmasi dua langkah mencegah penghapusan riwayat secara tidak sengaja." }
+    ]
+  },
+  {
     version: "1.6.4",
     date: "2026-06-10",
     title: "AI chat bisa bantu catat transaksi",
