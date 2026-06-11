@@ -3,7 +3,7 @@ import { createAiChatCompletion, getAiClient, getAiModel } from "@/lib/ai/client
 import type { AiFinancialRecap } from "@/lib/ai/data";
 import { formatCurrency } from "@/lib/utils";
 
-function buildDeterministicInsight(recap: AiFinancialRecap) {
+export function buildDeterministicInsight(recap: AiFinancialRecap) {
   const category = recap.topExpenseCategories[0];
   const direction = recap.net >= 0 ? "masih positif" : "sedang tertekan";
   const base = `Bulan ini arus kas kamu ${direction}: pemasukan ${formatCurrency(recap.totalIncome)} dan pengeluaran ${formatCurrency(recap.totalExpense)}, jadi net ${formatCurrency(recap.net)}.`;

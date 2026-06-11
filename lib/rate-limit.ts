@@ -3,6 +3,8 @@ import {
   getAiChatRateLimitEnabled,
   getAiChatRateLimitMaxRequests,
   getAiChatRateLimitWindowSeconds,
+  getAiChatDailyLimitEnabled,
+  getAiChatDailyLimitMax,
   getChatApiRateLimitEnabled,
   getChatApiRateLimitMaxRequests,
   getChatApiRateLimitWindowSeconds,
@@ -131,10 +133,36 @@ export async function consumeAiChatRateLimit(userId: string, now?: number) {
   });
 }
 
+export async function consumeAiChatDailyLimit(userId: string, now?: number) {
+  if (!getAiChatDailyLimitEnabled()) {
+    return buildAllowedFallback(getAiChatDailyLimitMax(), 86400, now);
+  }
+
+  return consumeRateLimit({
+    namespace: "rate-limit:ai-chat-daily",
+    key: userId,
+    limit: getAiChatDailyLimitMax(),
+    windowSeconds: 86400,
+    now
+  });
+}
+
 export function applyRateLimitHeaders(response: Response, result: RateLimitResult, now = Date.now()) {
   response.headers.set("X-RateLimit-Limit", String(result.limit));
   response.headers.set("X-RateLimit-Remaining", String(result.remaining));
   response.headers.set("X-RateLimit-Reset", String(Math.floor(result.resetAt / 1000)));
+
+  if (!result.allowed) {
+    response.headers.set("Retry-After", String(Math.max(0, Math.ceil((result.resetAt - now) / 1000))));
+  }
+
+  return response;
+}
+
+export function applyDailyLimitHeaders(response: Response, result: RateLimitResult, now = Date.now()) {
+  response.headers.set("X-DailyLimit-Limit", String(result.limit));
+  response.headers.set("X-DailyLimit-Remaining", String(result.remaining));
+  response.headers.set("X-DailyLimit-Reset", String(Math.floor(result.resetAt / 1000)));
 
   if (!result.allowed) {
     response.headers.set("Retry-After", String(Math.max(0, Math.ceil((result.resetAt - now) / 1000))));

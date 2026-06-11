@@ -13,6 +13,41 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.7.4",
+    date: "2026-06-11",
+    title: "Daily chat limit & indikator kuota dua baris",
+    description: "AI Chat sekarang punya batas harian (default 20/hari) dan sidebar menampilkan dua progress bar: kuota per menit dan kuota harian.",
+    features: [
+      { icon: "📅", text: "Daily limit AI Chat: maksimal 20 chat per hari (bisa diatur lewat env). Reset otomatis setiap hari." },
+      { icon: "📊", text: "Sidebar sekarang nampilin dua baris: kuota per menit (real-time) dan kuota harian (statis, reset besok)." },
+      { icon: "🚫", text: "Kalau kuota harian habis, chat langsung ditolak dengan pesan 'Kuota chat hari ini sudah habis'." },
+      { icon: "🌐", text: "Semua teks indikator mendukung Bahasa Indonesia dan Inggris." }
+    ]
+  },
+  {
+    version: "1.7.3",
+    date: "2026-06-11",
+    title: "Indikator kuota AI Chat di sidebar",
+    description: "Sekarang kamu bisa lihat sisa pakai AI Chat langsung dari sidebar — progress bar tipis dengan sisa kuota dan countdown mundur saat habis.",
+    features: [
+      { icon: "📊", text: "Progress bar kuota AI Chat di sidebar: tunjukkan sisa pakai dari batas yang ditentukan (misal \"15 dari 20\")." },
+      { icon: "⏳", text: "Saat kuota habis, muncul countdown mundur (\"Reset 42dtk\") yang update tiap detik hingga window reset." },
+      { icon: "🌐", text: "Indikator mendukung Bahasa Indonesia dan Inggris sesuai pengaturan bahasa aplikasi." }
+    ]
+  },
+  {
+    version: "1.7.2",
+    date: "2026-06-11",
+    title: "Insight AI dashboard terasa jauh lebih cepat",
+    description: "Kartu Insight AI di Dashboard sekarang lebih sigap dibuka berkat cache stale-while-revalidate, fallback deterministik instan, dan penyegaran ulang otomatis setelah transaksi berubah.",
+    features: [
+      { icon: "⚡", text: "Insight Dashboard kini bisa langsung tampil dari cache fresh atau stale tanpa menunggu panggilan AI selesai." },
+      { icon: "🪶", text: "Saat cache kosong total, kamu tetap langsung melihat insight ringkas berbasis data transaksi bulan ini." },
+      { icon: "🔄", text: "Narasi AI yang lebih kaya dipanaskan di background dan otomatis menggantikan fallback saat sudah siap." },
+      { icon: "🧹", text: "Setelah transaksi ditambah, diubah, atau dihapus, cache insight ikut dibersihkan agar pembacaan berikutnya tetap relevan." }
+    ]
+  },
+  {
     version: "1.7.1",
     date: "2026-06-11",
     title: "AI chat lebih hemat konteks dan lebih sigap",

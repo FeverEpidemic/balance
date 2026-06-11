@@ -60,6 +60,7 @@
   "ai": {
     "disabled": "Asisten AI sedang belum aktif.",
     "rateLimited": "Permintaan AI sedang terlalu ramai. Coba lagi sebentar.",
+    "dailyRateLimited": "Kuota chat hari ini sudah habis. Silakan coba lagi besok.",
     "upstreamRateLimited": "Server AI eksternal sedang sibuk. Coba lagi sebentar ya."
   },
   "insight": {
@@ -127,7 +128,13 @@
     "confidenceMedium": "AI perlu konfirmasi",
     "confidenceLow": "AI kurang yakin, sebaiknya catat manual",
     "duplicateDetected": "Transaksi serupa sudah tercatat dalam 5 menit terakhir",
-    "dailyCapExceeded": "Pengeluaran hari ini sudah melebihi batas harian"
+    "dailyCapExceeded": "Pengeluaran hari ini sudah melebihi batas harian",
+    "rateLimitLabel": "Kuota AI",
+    "rateLimitRemaining": "{remaining} dari {limit}",
+    "rateLimitExhausted": "Habis",
+    "rateLimitResetIn": "Reset {seconds}dtk",
+    "dailyRateLimitLabel": "Kuota Harian",
+    "dailyRateLimitResetTomorrow": "Reset besok"
   },
   "changelogs": {
     "title": "Changelog",

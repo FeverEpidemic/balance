@@ -1,10 +1,21 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { getFinancialRecapForUser } from "@/lib/ai/data";
-import { generateRecapNarrative } from "@/lib/ai/recap";
+import { buildDeterministicInsight, generateRecapNarrative } from "@/lib/ai/recap";
 import { requireUser } from "@/lib/auth";
 import { redisCache } from "@/lib/redis";
 
-const INSIGHT_TTL_SECONDS = 60 * 15;
+const INSIGHT_FRESH_TTL_SECONDS = 60 * 45;
+const INSIGHT_STALE_TTL_SECONDS = 60 * 60 * 4;
+
+function runAfterResponse(task: () => Promise<void>) {
+  after(async () => {
+    try {
+      await task();
+    } catch {
+      // Insight generation is best-effort and should never break the dashboard.
+    }
+  });
+}
 
 export async function GET(request: Request) {
   const { user } = await requireUser();
@@ -13,11 +24,27 @@ export async function GET(request: Request) {
   const cacheKey = `ai:insight:${user.id}:${walletId ?? "all"}`;
 
   try {
-    const insight = await redisCache.getOrSet(cacheKey, INSIGHT_TTL_SECONDS, async () => {
-      const recap = await getFinancialRecapForUser(user.id, "month", walletId);
-      return {
-        insight: await generateRecapNarrative(recap)
+    const recap = await getFinancialRecapForUser(user.id, "month", walletId);
+    const insight = await redisCache.getOrSetSwr(cacheKey, INSIGHT_FRESH_TTL_SECONDS, INSIGHT_STALE_TTL_SECONDS, async ({ reason }) => {
+      if (reason === "refresh") {
+        return {
+          insight: await generateRecapNarrative(recap)
+        };
+      }
+
+      const deterministicInsight = {
+        insight: buildDeterministicInsight(recap)
       };
+
+      runAfterResponse(async () => {
+        const refreshedInsight = {
+          insight: await generateRecapNarrative(recap)
+        };
+
+        await redisCache.setSwr(cacheKey, INSIGHT_FRESH_TTL_SECONDS, INSIGHT_STALE_TTL_SECONDS, refreshedInsight);
+      });
+
+      return deterministicInsight;
     });
 
     return NextResponse.json(insight);

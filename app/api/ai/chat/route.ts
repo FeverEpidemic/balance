@@ -17,7 +17,7 @@ import { aiTools, executeAiToolCall } from "@/lib/ai/tools";
 import { requireUser } from "@/lib/auth";
 import { type RekapPeriod } from "@/lib/chat-auth";
 import { LOCALE_COOKIE_NAME, getTranslator, resolveLocale } from "@/lib/i18n";
-import { applyRateLimitHeaders, consumeAiChatRateLimit } from "@/lib/rate-limit";
+import { applyDailyLimitHeaders, applyRateLimitHeaders, consumeAiChatDailyLimit, consumeAiChatRateLimit, type RateLimitResult } from "@/lib/rate-limit";
 import { budgetConversationMessages, estimateConversationTokens } from "@/lib/ai/token-budget";
 import { getAiChatTokenBudget } from "@/lib/env";
 
@@ -86,10 +86,16 @@ export async function POST(request: Request) {
     return createFriendlyFallbackStream(t("chat.emptyPrompt"));
   }
 
+  const aiDailyLimit = await consumeAiChatDailyLimit(user.id);
+
+  if (!aiDailyLimit.allowed) {
+    return applyDailyLimitHeaders(createFriendlyFallbackStream(t("ai.dailyRateLimited"), { status: 429 }), aiDailyLimit);
+  }
+
   const aiRateLimit = await consumeAiChatRateLimit(user.id);
 
   if (!aiRateLimit.allowed) {
-    return applyRateLimitHeaders(createFriendlyFallbackStream(t("ai.rateLimited"), { status: 429 }), aiRateLimit);
+    return applyRateLimitHeaders(applyDailyLimitHeaders(createFriendlyFallbackStream(t("ai.rateLimited"), { status: 429 }), aiDailyLimit), aiRateLimit);
   }
 
   for (const message of userMessages) {
@@ -103,12 +109,12 @@ export async function POST(request: Request) {
             ? "chat.validationUnsafe"
             : "chat.validationOffTopic";
 
-      return applyRateLimitHeaders(createFriendlyFallbackStream(t(messageKey), { status: 400 }), aiRateLimit);
+      return applyDailyLimitHeaders(applyRateLimitHeaders(createFriendlyFallbackStream(t(messageKey), { status: 400 }), aiRateLimit), aiDailyLimit);
     }
   }
 
   if (!isAiChatAvailable()) {
-    return applyRateLimitHeaders(createFriendlyFallbackStream(t("chat.unavailable")), aiRateLimit);
+    return applyDailyLimitHeaders(applyRateLimitHeaders(createFriendlyFallbackStream(t("chat.unavailable")), aiRateLimit), aiDailyLimit);
   }
 
   try {
@@ -116,7 +122,7 @@ export async function POST(request: Request) {
     const tokenBudget = getAiChatTokenBudget();
 
     if (exceedsPreflightCompactBudget({ messages: recentMessages, tokenBudget })) {
-      return applyRateLimitHeaders(createFriendlyFallbackStream(t("chat.validationTooLong"), { status: 400 }), aiRateLimit);
+      return applyDailyLimitHeaders(applyRateLimitHeaders(createFriendlyFallbackStream(t("chat.validationTooLong"), { status: 400 }), aiRateLimit), aiDailyLimit);
     }
 
     const [wallets, recap, categoryFocus] = await Promise.all([
@@ -126,7 +132,7 @@ export async function POST(request: Request) {
     ]);
 
     if (intent === "recap") {
-      return applyRateLimitHeaders(createFriendlyFallbackStream(buildDirectRecapMessage(recap)), aiRateLimit);
+      return applyDailyLimitHeaders(applyRateLimitHeaders(createFriendlyFallbackStream(buildDirectRecapMessage(recap)), aiRateLimit), aiDailyLimit);
     }
 
     const fullSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus });
@@ -228,10 +234,10 @@ export async function POST(request: Request) {
         console.warn("[AI] tool-loop upstream failed, using local fallback");
       }
 
-      return applyRateLimitHeaders(
+      return applyDailyLimitHeaders(applyRateLimitHeaders(
         createFriendlyFallbackStream(buildFallbackFinanceAnswer(latestUserMessage, recap, categoryFocus)),
         aiRateLimit
-      );
+      ), aiDailyLimit);
     }
 
     // After tool loop: check for NEEDS_CONFIRMATION and emit SSE directly
@@ -263,7 +269,7 @@ export async function POST(request: Request) {
     })();
 
     if (needsConfirmationResult) {
-      return applyRateLimitHeaders(
+      return applyDailyLimitHeaders(applyRateLimitHeaders(
         createSseResponse(
           new ReadableStream({
             start(controller) {
@@ -281,7 +287,7 @@ export async function POST(request: Request) {
           })
         ),
         aiRateLimit
-      );
+      ), aiDailyLimit);
     }
 
     if (!shouldStreamFinalReply && finalAssistantContent) {
@@ -289,7 +295,7 @@ export async function POST(request: Request) {
         ? buildFallbackFinanceAnswer(latestUserMessage, recap, categoryFocus)
         : finalAssistantContent;
 
-      return applyRateLimitHeaders(createFriendlyFallbackStream(responseText), aiRateLimit);
+      return applyDailyLimitHeaders(applyRateLimitHeaders(createFriendlyFallbackStream(responseText), aiRateLimit), aiDailyLimit);
     }
 
     // ── Final budget check before streaming ─────────────────────────
@@ -373,7 +379,7 @@ export async function POST(request: Request) {
         })
       );
 
-      return applyRateLimitHeaders(response, aiRateLimit);
+      return applyDailyLimitHeaders(applyRateLimitHeaders(response, aiRateLimit), aiDailyLimit);
     } catch (streamCreateError: unknown) {
       // Streaming creation failed — fallback to local answer
       if (streamCreateError instanceof AiUpstreamRateLimitedError) {
@@ -382,14 +388,14 @@ export async function POST(request: Request) {
         console.warn("[AI] stream creation upstream failed, using local fallback");
       }
 
-      return applyRateLimitHeaders(
+      return applyDailyLimitHeaders(applyRateLimitHeaders(
         createFriendlyFallbackStream(buildFallbackFinanceAnswer(latestUserMessage, recap, categoryFocus)),
         aiRateLimit
-      );
+      ), aiDailyLimit);
     }
   } catch (error: unknown) {
     // Unexpected error (e.g. AI_CLIENT_UNAVAILABLE, data layer failure)
     console.warn("[AI] unexpected error in chat route", (error as Error)?.message ?? error);
-    return applyRateLimitHeaders(createFriendlyFallbackStream(t("chat.prepareFailed")), aiRateLimit);
+    return applyDailyLimitHeaders(applyRateLimitHeaders(createFriendlyFallbackStream(t("chat.prepareFailed")), aiRateLimit), aiDailyLimit);
   }
 }

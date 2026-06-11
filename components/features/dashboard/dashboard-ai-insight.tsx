@@ -13,7 +13,7 @@ export function DashboardAiInsight({ locale }: { locale: AppLocale }) {
   useEffect(() => {
     let isMounted = true;
 
-    void fetch("/api/ai/insight", { cache: "no-store" })
+    void fetch("/api/ai/insight")
       .then(async (response) => response.json() as Promise<{ insight?: string }>)
       .then((payload) => {
         if (isMounted) {

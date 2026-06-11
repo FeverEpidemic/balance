@@ -1,6 +1,6 @@
 import "server-only";
 import { getCurrentMonthKey } from "@/lib/finance";
-import { invalidateWalletReadCaches } from "@/lib/data/cache";
+import { invalidateAiInsightCache, invalidateWalletReadCaches } from "@/lib/data/cache";
 import { getPeriodRange, getPreviousPeriodRange, type RekapPeriod } from "@/lib/chat-auth";
 import { queryBudgets, queryCategories, queryCurrentUserWalletIds, queryTransactions, queryWallets } from "@/lib/data/queries";
 import type { BudgetRow, CategoryRow, TransactionKind, TransactionRow, WalletRow } from "@/lib/data/types";
@@ -440,6 +440,7 @@ export async function createTransactionViaAi(userId: string, params: AiCreateTra
     targets: ["overview", "transactions", "budgets"],
     dashboardUserIds
   });
+  await invalidateAiInsightCache(dashboardUserIds);
   await revalidateWalletPaths(params.walletId, {
     includeDashboard: true,
     includeOverview: true,

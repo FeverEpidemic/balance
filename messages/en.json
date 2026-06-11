@@ -60,6 +60,7 @@
   "ai": {
     "disabled": "AI chat is currently unavailable.",
     "rateLimited": "AI requests are busy right now. Please try again shortly.",
+    "dailyRateLimited": "Daily chat quota has been exhausted. Please try again tomorrow.",
     "upstreamRateLimited": "External AI server is busy right now. Please try again shortly."
   },
   "insight": {
@@ -127,7 +128,13 @@
     "confidenceMedium": "AI needs confirmation",
     "confidenceLow": "AI is unsure, better record manually",
     "duplicateDetected": "A similar transaction was found within the last 5 minutes",
-    "dailyCapExceeded": "Today's spending has exceeded the daily limit"
+    "dailyCapExceeded": "Today's spending has exceeded the daily limit",
+    "rateLimitLabel": "AI Quota",
+    "rateLimitRemaining": "{remaining} of {limit}",
+    "rateLimitExhausted": "Exhausted",
+    "rateLimitResetIn": "Reset in {seconds}s",
+    "dailyRateLimitLabel": "Daily Quota",
+    "dailyRateLimitResetTomorrow": "Resets tomorrow"
   },
   "changelogs": {
     "title": "Changelogs",

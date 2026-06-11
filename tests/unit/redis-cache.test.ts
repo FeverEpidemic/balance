@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createRedisCache, getRedisMetricsSnapshot, redisCache, resetRedisMetrics } from "@/lib/redis";
 import {
+  getAiInsightCachePattern,
   getBudgetsCacheKey,
   getCategoriesCacheKey,
   getDashboardCacheKey,
@@ -9,6 +10,7 @@ import {
   getTransactionsCacheKey,
   getWalletOverviewCacheKey,
   getWalletReadCachePatterns,
+  invalidateAiInsightCache,
   invalidateDashboardCache,
   invalidateWalletReadCaches
 } from "@/lib/data/cache";
@@ -25,7 +27,7 @@ function createFakeClient(initialState: Record<string, string> = {}) {
     async get(key: string) {
       return store.get(key) ?? null;
     },
-    async set(key: string, value: string) {
+    async set(key: string, value: string, _options?: { EX: number }) {
       store.set(key, value);
     },
     async del(keys: string[]) {
@@ -123,6 +125,45 @@ describe("redis cache wrapper", () => {
     expect(getRedisMetricsSnapshot().misses).toBe(1);
   });
 
+  it("returns stale SWR data immediately and refreshes it in the background", async () => {
+    process.env.REDIS_KEY_PREFIX = "balance";
+    const fakeClient = createFakeClient({
+      "balance:ai:insight:u1:all:stale": JSON.stringify({ insight: "stale insight" })
+    });
+    const cache = createRedisCache(async () => fakeClient);
+    const loader = vi.fn(async () => ({ insight: "fresh insight" }));
+
+    const result = await cache.getOrSetSwr("ai:insight:u1:all", 60, 300, loader);
+
+    expect(result).toEqual({ insight: "stale insight" });
+    expect(loader).toHaveBeenCalledTimes(0);
+
+    await new Promise((resolve) => setTimeout(resolve, 5));
+
+    expect(loader).toHaveBeenCalledTimes(1);
+    expect(loader).toHaveBeenCalledWith({ reason: "refresh" });
+    expect(fakeClient.store.get("balance:ai:insight:u1:all:fresh")).toBe(JSON.stringify({ insight: "fresh insight" }));
+    expect(fakeClient.store.get("balance:ai:insight:u1:all:stale")).toBe(JSON.stringify({ insight: "fresh insight" }));
+  });
+
+  it("hydrates both fresh and stale SWR keys on a total miss", async () => {
+    process.env.REDIS_KEY_PREFIX = "balance";
+    const fakeClient = createFakeClient();
+    const cache = createRedisCache(async () => fakeClient);
+    const loader = vi.fn(async () => ({ insight: "generated" }));
+
+    const result = await cache.getOrSetSwr("ai:insight:u1:all", 60, 300, loader);
+
+    expect(result).toEqual({ insight: "generated" });
+    expect(loader).toHaveBeenCalledWith({ reason: "miss" });
+    expect(fakeClient.store.get("balance:ai:insight:u1:all:fresh")).toBe(JSON.stringify({ insight: "generated" }));
+    expect(fakeClient.store.get("balance:ai:insight:u1:all:stale")).toBe(JSON.stringify({ insight: "generated" }));
+    expect(getRedisMetricsSnapshot()).toMatchObject({
+      misses: 1,
+      writes: 2
+    });
+  });
+
   it("deletes keys by prefix without touching other namespaces", async () => {
     process.env.REDIS_KEY_PREFIX = "balance";
     const fakeClient = createFakeClient({
@@ -203,6 +244,7 @@ describe("cache key scoping", () => {
     expect(getRecurringCacheKey("u1", "w1", "en")).toBe("wallet:w1:user:u1:recurring:en");
     expect(getSavingsCacheKey("u1", "w1")).toBe("wallet:w1:user:u1:savings");
     expect(getSavingsCacheKey("u1", "w1", "en")).toBe("wallet:w1:user:u1:savings:en");
+    expect(getAiInsightCachePattern("u1")).toBe("ai:insight:u1:*");
   });
 
   it("builds wallet cache patterns per target", () => {
@@ -256,5 +298,16 @@ describe("granular cache invalidation helpers", () => {
       getDashboardCacheKey("u3", "en")
     ]);
     expect(prefixSpy).not.toHaveBeenCalled();
+  });
+
+  it("invalidates AI insight cache for the specified users only", async () => {
+    const patternSpy = vi.spyOn(redisCache, "delByPatterns").mockResolvedValue(undefined);
+
+    await invalidateAiInsightCache(["u1", "u3"]);
+
+    expect(patternSpy).toHaveBeenCalledWith([
+      "ai:insight:u1:*",
+      "ai:insight:u3:*"
+    ]);
   });
 });

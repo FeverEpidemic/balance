@@ -3,6 +3,7 @@ import { createClient } from "redis";
 
 type Serializable = null | boolean | number | string | Serializable[] | { [key: string]: Serializable };
 type CacheLoader<T> = () => Promise<T>;
+type SwrCacheLoader<T> = (context: { reason: "miss" | "refresh" }) => Promise<T>;
 type CacheClient = {
   get(key: string): Promise<string | null>;
   set(key: string, value: string, options?: { EX: number }): Promise<unknown>;
@@ -73,6 +74,7 @@ let redisMetrics: RedisCacheMetrics = {
   invalidations: 0
 };
 let lastRedisMetricsFlushAt = Date.now();
+const swrRefreshInFlight = new Set<string>();
 
 function logRedisEvent(level: "info" | "warn", message: string, details?: Record<string, unknown>) {
   if (!isRedisMetricsEnabled()) {
@@ -183,7 +185,70 @@ function qualifyKey(key: string) {
   return `${getRedisKeyPrefix()}:${key}`;
 }
 
+function scheduleBackgroundWork(task: () => Promise<void>) {
+  setTimeout(() => {
+    void task().catch(() => {
+      // Background refreshes are best-effort.
+    });
+  }, 0);
+}
+
+function parseCachedValue<T>(cached: string, key: string): { ok: true; value: T } | { ok: false } {
+  try {
+    return {
+      ok: true,
+      value: JSON.parse(cached) as T
+    };
+  } catch {
+    trackRedisMetric("readErrors");
+    logRedisEvent("warn", "parse failed", { key });
+    return { ok: false };
+  }
+}
+
 export function createRedisCache(getClient: CacheClientFactory = getRedisClient) {
+  async function writeValue(key: string, ttlSeconds: number, value: Serializable) {
+    const client = await getClient();
+
+    if (!client) {
+      return;
+    }
+
+    try {
+      await client.set(qualifyKey(key), JSON.stringify(value), {
+        EX: ttlSeconds
+      });
+      trackRedisMetric("writes");
+    } catch {
+      trackRedisMetric("writeErrors");
+      logRedisEvent("warn", "write failed", { key, ttlSeconds });
+    }
+  }
+
+  async function writeSwrValue(key: string, ttlFreshSeconds: number, ttlStaleSeconds: number, value: Serializable) {
+    const client = await getClient();
+
+    if (!client) {
+      return;
+    }
+
+    try {
+      const serializedValue = JSON.stringify(value);
+      await Promise.all([
+        client.set(qualifyKey(`${key}:fresh`), serializedValue, {
+          EX: ttlFreshSeconds
+        }),
+        client.set(qualifyKey(`${key}:stale`), serializedValue, {
+          EX: ttlStaleSeconds
+        })
+      ]);
+      trackRedisMetric("writes", 2);
+    } catch {
+      trackRedisMetric("writeErrors");
+      logRedisEvent("warn", "swr write failed", { key, ttlFreshSeconds, ttlStaleSeconds });
+    }
+  }
+
   return {
     async getOrSet<T extends Serializable>(key: string, ttlSeconds: number, loader: CacheLoader<T>) {
       const client = await getClient();
@@ -194,12 +259,11 @@ export function createRedisCache(getClient: CacheClientFactory = getRedisClient)
           const cached = await client.get(qualifiedKey);
 
           if (cached !== null) {
-            try {
+            const parsed = parseCachedValue<T>(cached, key);
+
+            if (parsed.ok) {
               trackRedisMetric("hits");
-              return JSON.parse(cached) as T;
-            } catch {
-              trackRedisMetric("readErrors");
-              logRedisEvent("warn", "parse failed", { key });
+              return parsed.value;
             }
           }
 
@@ -214,19 +278,78 @@ export function createRedisCache(getClient: CacheClientFactory = getRedisClient)
       const freshValue = await loader();
 
       if (client) {
-        try {
-          await client.set(qualifiedKey, JSON.stringify(freshValue), {
-            EX: ttlSeconds
-          });
-          trackRedisMetric("writes");
-        } catch {
-          // Ignore cache write failures.
-          trackRedisMetric("writeErrors");
-          logRedisEvent("warn", "write failed", { key, ttlSeconds });
-        }
+        await writeValue(key, ttlSeconds, freshValue);
       }
 
       return freshValue;
+    },
+    async getOrSetSwr<T extends Serializable>(
+      key: string,
+      ttlFreshSeconds: number,
+      ttlStaleSeconds: number,
+      loader: SwrCacheLoader<T>
+    ) {
+      const client = await getClient();
+
+      if (!client) {
+        return loader({ reason: "miss" });
+      }
+
+      const freshKey = qualifyKey(`${key}:fresh`);
+      const staleKey = qualifyKey(`${key}:stale`);
+
+      try {
+        const freshCached = await client.get(freshKey);
+
+        if (freshCached !== null) {
+          const parsedFresh = parseCachedValue<T>(freshCached, `${key}:fresh`);
+
+          if (parsedFresh.ok) {
+            trackRedisMetric("hits");
+            return parsedFresh.value;
+          }
+        }
+
+        const staleCached = await client.get(staleKey);
+
+        if (staleCached !== null) {
+          const parsedStale = parseCachedValue<T>(staleCached, `${key}:stale`);
+
+          if (parsedStale.ok) {
+            trackRedisMetric("hits");
+
+            if (!swrRefreshInFlight.has(key)) {
+              swrRefreshInFlight.add(key);
+              scheduleBackgroundWork(async () => {
+                try {
+                  const refreshedValue = await loader({ reason: "refresh" });
+                  await writeSwrValue(key, ttlFreshSeconds, ttlStaleSeconds, refreshedValue);
+                } finally {
+                  swrRefreshInFlight.delete(key);
+                }
+              });
+            }
+
+            return parsedStale.value;
+          }
+        }
+
+        trackRedisMetric("misses");
+      } catch {
+        trackRedisMetric("readErrors");
+        logRedisEvent("warn", "swr read failed", { key });
+        return loader({ reason: "miss" });
+      }
+
+      const freshValue = await loader({ reason: "miss" });
+      await writeSwrValue(key, ttlFreshSeconds, ttlStaleSeconds, freshValue);
+      return freshValue;
+    },
+    async set<T extends Serializable>(key: string, ttlSeconds: number, value: T) {
+      await writeValue(key, ttlSeconds, value);
+    },
+    async setSwr<T extends Serializable>(key: string, ttlFreshSeconds: number, ttlStaleSeconds: number, value: T) {
+      await writeSwrValue(key, ttlFreshSeconds, ttlStaleSeconds, value);
     },
     async del(key: string | string[]) {
       const client = await getClient();

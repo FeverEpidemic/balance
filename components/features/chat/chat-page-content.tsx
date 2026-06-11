@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { ChatInput } from "@/components/features/chat/chat-input";
 import { ChatMessage } from "@/components/features/chat/chat-message";
+import { ChatRateLimitIndicator, type RateLimitInfo } from "@/components/features/chat/chat-rate-limit-indicator";
 import { ChatSuggestions } from "@/components/features/chat/chat-suggestions";
 import { AppIcon } from "@/components/ui/app-icon";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,8 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
   };
   const [pendingTransaction, setPendingTransaction] = useState<PendingTransaction | null>(null);
   const [pendingConfidence, setPendingConfidence] = useState<number>(0);
+  const [rateLimitInfo, setRateLimitInfo] = useState<RateLimitInfo | null>(null);
+  const [dailyLimitInfo, setDailyLimitInfo] = useState<RateLimitInfo | null>(null);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(CHAT_STORAGE_KEY);
@@ -164,6 +167,30 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
       });
 
       clearTimeout(fetchTimeoutId);
+
+      const rateLimitLimit = response.headers.get("X-RateLimit-Limit");
+      const rateLimitRemaining = response.headers.get("X-RateLimit-Remaining");
+      const rateLimitReset = response.headers.get("X-RateLimit-Reset");
+
+      if (rateLimitLimit && rateLimitRemaining && rateLimitReset) {
+        setRateLimitInfo({
+          limit: Number(rateLimitLimit),
+          remaining: Number(rateLimitRemaining),
+          resetAt: Number(rateLimitReset) * 1000
+        });
+      }
+
+      const dailyLimitLimit = response.headers.get("X-DailyLimit-Limit");
+      const dailyLimitRemaining = response.headers.get("X-DailyLimit-Remaining");
+      const dailyLimitReset = response.headers.get("X-DailyLimit-Reset");
+
+      if (dailyLimitLimit && dailyLimitRemaining && dailyLimitReset) {
+        setDailyLimitInfo({
+          limit: Number(dailyLimitLimit),
+          remaining: Number(dailyLimitRemaining),
+          resetAt: Number(dailyLimitReset) * 1000
+        });
+      }
 
       if (!response.body) {
         throw new Error("EMPTY_STREAM");
@@ -518,6 +545,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
               <p>{t("chat.sidebarPoint3")}</p>
               <p>{t("chat.sidebarPoint4")}</p>
             </div>
+            <ChatRateLimitIndicator rateLimitInfo={rateLimitInfo} dailyLimitInfo={dailyLimitInfo} locale={locale} />
           </div>
         </aside>
       </section>

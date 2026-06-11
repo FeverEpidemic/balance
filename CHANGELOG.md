@@ -2,6 +2,28 @@
 
 ## [Unreleased] - 2026-06-11
 
+### Added - Indikator Kuota Rate Limit & Daily Chat Limit
+
+- **Daily limit AI Chat** (`lib/env.ts`, `lib/rate-limit.ts`, `app/api/ai/chat/route.ts`): Limit chat per hari default 20/hari (konfigurabel via `AI_CHAT_DAILY_LIMIT_MAX`). Dicek sebelum per-minute rate limit. Kalau habis, user dapat pesan "Kuota chat hari ini sudah habis."
+- **Indikator dua baris di sidebar** (`components/features/chat/chat-rate-limit-indicator.tsx`): Sekarang nampilin dua progress bar — kuota per menit (X-RateLimit) dan kuota harian (X-DailyLimit). Untuk daily limit, textnya "Reset besok" tanpa countdown.
+- **Header daily limit di tiap response** (`app/api/ai/chat/route.ts`, `components/features/chat/chat-page-content.tsx`): Server kirim `X-DailyLimit-Limit`, `X-DailyLimit-Remaining`, `X-DailyLimit-Reset` di setiap response chat. Client baca dan update state.
+- **Indikator kuota per menit di sidebar chat**: Menampilkan sisa pakai AI Chat (misal "15 dari 20") dengan progress bar tipis. Saat kuota habis, muncul countdown mundur "Reset 42dtk" yang update tiap detik.
+- **Client baca header rate limit**: Setiap response chat (termasuk 429) kini dibaca header `X-RateLimit-Limit`, `X-RateLimit-Remaining`, dan `X-RateLimit-Reset` untuk update indikator real-time.
+- **String kuota bilingual**: Label "Kuota AI", sisa pakai, status "Habis", dan format countdown dalam Bahasa Indonesia dan Inggris.
+
+## [Unreleased] - 2026-06-11
+
+### Changed - Insight AI Dashboard Kini Lebih Sigap
+
+## [Unreleased] - 2026-06-11
+
+### Changed - Insight AI Dashboard Kini Lebih Sigap
+
+- **Cache insight AI kini memakai stale-while-revalidate** (`lib/redis.ts`, `app/api/ai/insight/route.ts`): Redis menyimpan pasangan key fresh 45 menit dan stale 4 jam. Saat fresh habis tapi stale masih ada, dashboard langsung menerima insight lama sambil refresh AI berjalan di background.
+- **Miss cache total tidak lagi menunggu panggilan AI** (`app/api/ai/insight/route.ts`, `lib/ai/recap.ts`): Kunjungan pertama atau setelah Redis flush sekarang langsung mengembalikan insight deterministik berbasis rekap, lalu narasi AI dipanaskan di background untuk request berikutnya.
+- **Invalidasi insight cache saat transaksi berubah** (`lib/data/cache.ts`, `app/actions/transactions.ts`, `lib/ai/data.ts`): Mutasi transaksi manual maupun lewat AI kini ikut membersihkan cache insight semua anggota wallet terkait, sehingga refresh berikutnya mengambil konteks terbaru.
+- **Fetch client insight diringankan** (`components/features/dashboard/dashboard-ai-insight.tsx`): Request client tidak lagi memaksa `no-store`, sehingga browser boleh ikut membantu caching ringan tanpa mengubah UX kartu.
+
 ### Changed - AI Chat Budgeting Lebih Cerdas
 
 - **Prompt AI kini adaptif terhadap periode** (`lib/ai/prompts.ts`): Konteks untuk periode `day` otomatis jauh lebih ringkas, `week` jadi versi menengah, dan `month` tetap detail penuh. Saat compact mode aktif, detail periode makin dipangkas tanpa kehilangan angka inti.

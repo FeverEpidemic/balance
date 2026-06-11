@@ -76,8 +76,20 @@ export function getSettingsCacheKey(userId: string) {
   return `user:${userId}:settings`;
 }
 
+export function getAiInsightCachePattern(userId: string) {
+  return `ai:insight:${userId}:*`;
+}
+
 export async function invalidateSettingsCache(userId: string) {
   await redisCache.del(getSettingsCacheKey(userId));
+}
+
+export async function invalidateAiInsightCache(userIds: string[]) {
+  if (userIds.length === 0) {
+    return;
+  }
+
+  await redisCache.delByPatterns(userIds.map(getAiInsightCachePattern));
 }
 
 export async function invalidateDashboardCache(userIds?: string[]) {

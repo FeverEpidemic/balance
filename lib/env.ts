@@ -151,3 +151,11 @@ export function getDailySpendingCapAmount() {
 export function getAiChatTokenBudget() {
   return readPositiveIntegerEnv("AI_CHAT_TOKEN_BUDGET", DEFAULT_CHAT_TOKEN_BUDGET);
 }
+
+export function getAiChatDailyLimitEnabled() {
+  return readBooleanEnv("AI_CHAT_DAILY_LIMIT_ENABLED", true);
+}
+
+export function getAiChatDailyLimitMax() {
+  return readPositiveIntegerEnv("AI_CHAT_DAILY_LIMIT_MAX", 20);
+}

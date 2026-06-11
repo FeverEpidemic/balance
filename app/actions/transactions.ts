@@ -6,7 +6,7 @@ import {
   getBalanceAdjustmentKind,
   getBalanceAdjustmentValidationError
 } from "@/lib/balance-adjustments";
-import { invalidateWalletReadCaches } from "@/lib/data/cache";
+import { invalidateAiInsightCache, invalidateWalletReadCaches } from "@/lib/data/cache";
 import { consumeTransactionRateLimit } from "@/lib/rate-limit";
 import { checkFreeTransactionLimit, incrementTransactionCount } from "@/lib/transaction-limits";
 import {
@@ -146,6 +146,7 @@ export async function createTransaction(_prevState: ActionResult, formData: Form
     targets: ["overview", "transactions", "budgets"],
     dashboardUserIds
   });
+  await invalidateAiInsightCache(dashboardUserIds);
   await revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
@@ -216,6 +217,7 @@ export async function createBalanceAdjustment(_prevState: ActionResult, formData
     targets: ["overview", "transactions", "budgets"],
     dashboardUserIds
   });
+  await invalidateAiInsightCache(dashboardUserIds);
   await revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
@@ -281,6 +283,7 @@ export async function updateTransaction(_prevState: ActionResult, formData: Form
     targets: ["overview", "transactions", "budgets"],
     dashboardUserIds
   });
+  await invalidateAiInsightCache(dashboardUserIds);
   await revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
@@ -319,6 +322,7 @@ export async function deleteTransaction(_prevState: ActionResult, formData: Form
     targets: ["overview", "transactions", "budgets"],
     dashboardUserIds
   });
+  await invalidateAiInsightCache(dashboardUserIds);
   await revalidateWalletPaths(walletId, {
     includeDashboard: true,
     includeOverview: true,
