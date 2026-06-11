@@ -46,10 +46,16 @@ function createFakeClient(initialState: Record<string, string> = {}) {
       const pattern = options?.MATCH ?? "*";
       const regex = new RegExp(`^${pattern.replace(/[.+?^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*")}$`);
 
+      const matchingKeys: string[] = [];
+
       for (const key of store.keys()) {
         if (regex.test(key)) {
-          yield key;
+          matchingKeys.push(key);
         }
+      }
+
+      if (matchingKeys.length > 0) {
+        yield matchingKeys;
       }
     }
   };
@@ -97,7 +103,9 @@ describe("redis cache wrapper", () => {
       async expire() {
         throw new Error("redis down");
       },
-      async *scanIterator() {}
+      async *scanIterator(_options?: { MATCH: string }) {
+        yield [];
+      }
     }));
     const loader = vi.fn(async () => ({ ok: true }));
 

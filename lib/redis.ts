@@ -10,7 +10,7 @@ type CacheClient = {
   del(keys: string[]): Promise<unknown>;
   incr(key: string): Promise<number>;
   expire(key: string, seconds: number): Promise<unknown>;
-  scanIterator(options: { MATCH: string }): AsyncIterable<string>;
+  scanIterator(options: { MATCH: string }): AsyncIterable<string[]>;
 };
 type CacheClientFactory = () => Promise<CacheClient | null>;
 type RedisConnection = ReturnType<typeof createClient>;
@@ -147,7 +147,7 @@ async function connectRedisClient() {
   });
 
   await client.connect();
-  redisClient = client;
+  redisClient = client as RedisConnection;
   logRedisEvent("info", "connected", { url });
   return client;
 }
@@ -380,10 +380,12 @@ export function createRedisCache(getClient: CacheClientFactory = getRedisClient)
 
       try {
         for (const prefix of prefixes) {
-          for await (const key of client.scanIterator({
+          for await (const keys of client.scanIterator({
             MATCH: `${qualifyKey(prefix)}*`
           })) {
-            keysToDelete.add(key);
+            for (const key of keys) {
+              keysToDelete.add(key);
+            }
           }
         }
 
@@ -408,10 +410,12 @@ export function createRedisCache(getClient: CacheClientFactory = getRedisClient)
 
       try {
         for (const pattern of patterns) {
-          for await (const key of client.scanIterator({
+          for await (const keys of client.scanIterator({
             MATCH: qualifyKey(pattern)
           })) {
-            keysToDelete.add(key);
+            for (const key of keys) {
+              keysToDelete.add(key);
+            }
           }
         }
 

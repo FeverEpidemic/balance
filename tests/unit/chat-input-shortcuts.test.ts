@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { shouldSubmitChatFromKeydown } from "@/components/features/chat/chat-input";
+import { shouldSubmitChatFromKeydown } from "@/lib/chat-input-shortcuts";
 
 describe("shouldSubmitChatFromKeydown", () => {
   it("does not submit on plain Enter", () => {

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { MAX_CHAT_MESSAGE_LENGTH } from "@/lib/ai/guard-shared";
 import type { AppLocale } from "@/lib/i18n";
 import { getTranslator } from "@/lib/i18n";
+import { shouldSubmitChatFromKeydown } from "@/lib/chat-input-shortcuts";
 
 type ChatInputProps = {
   value: string;
@@ -14,10 +15,6 @@ type ChatInputProps = {
   loading?: boolean;
   locale: AppLocale;
 };
-
-export function shouldSubmitChatFromKeydown(event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey">) {
-  return event.key === "Enter" && (event.ctrlKey || event.metaKey);
-}
 
 export function ChatInput({ value, onChange, onSubmit, disabled = false, loading = false, locale }: ChatInputProps) {
   const ref = useRef<HTMLTextAreaElement | null>(null);

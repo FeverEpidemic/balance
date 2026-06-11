@@ -2,6 +2,19 @@
 
 ## [Unreleased] - 2026-06-11
 
+### Changed - Dependency Upgrades (Major)
+
+- **Next.js 16** (`^16.2.9`) — Partial prerendering matang, Turbopack improvements, server actions lebih stabil. Konvensi `middleware.ts` diganti `proxy.ts` (non-blocking deprecation).
+- **ESLint 10** (`^10.4.1`) — Flat config (`eslint.config.mjs`), `.eslintrc.json` dihapus.
+- **Tailwind CSS v4** (`^4.3.0`) — `tailwind.config.ts` dihapus, migrasi ke CSS-first config lewat `@import "tailwindcss"` + `@theme`. Build 3-5x lebih cepat.
+- **vitest 4** (`^4.1.8`) — Dukungan Vite 6, `expect` API stabil, fake timers built-in.
+- **redis 6** (`^6.0.0`) — Type safety lebih baik, `scanIterator` yields `string[]`.
+- **@supabase/ssr** (`^0.12.0`), **@supabase/supabase-js** (`^2.108.1`) — Auth helpers lebih stabil.
+- **React & React DOM** (`^19.2.7`) — Patch bump.
+- **@tailwindcss/postcss** (`^4.3.0`) — Plugin baru sebagai pengganti `tailwindcss` + `autoprefixer` di PostCSS.
+
+## [Unreleased] - 2026-06-11
+
 ### Added - Indikator Kuota Rate Limit & Daily Chat Limit
 
 - **Daily limit AI Chat** (`lib/env.ts`, `lib/rate-limit.ts`, `app/api/ai/chat/route.ts`): Limit chat per hari default 20/hari (konfigurabel via `AI_CHAT_DAILY_LIMIT_MAX`). Dicek sebelum per-minute rate limit. Kalau habis, user dapat pesan "Kuota chat hari ini sudah habis."
