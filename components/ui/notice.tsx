@@ -1,3 +1,4 @@
+import { Alert } from "@/components/ui/shadcn/alert";
 import type { ReactNode } from "react";
 
 export function Notice({ tone = "info", children }: { tone?: "info" | "error" | "success"; children: ReactNode }) {
@@ -7,5 +8,9 @@ export function Notice({ tone = "info", children }: { tone?: "info" | "error" | 
     success: "theme-success-pill"
   };
 
-  return <div className={`rounded-xl border px-4 py-3 text-sm leading-6 ${tones[tone]}`}>{children}</div>;
+  return (
+    <Alert className={`rounded-xl border px-4 py-3 text-sm leading-6 ${tones[tone]}`}>
+      {children}
+    </Alert>
+  );
 }

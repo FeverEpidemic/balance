@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
@@ -23,6 +24,15 @@
   --color-card: var(--card);
   --color-card-elevated: var(--card-elevated);
   --color-outline-variant: var(--outline-variant);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --color-surface-container-lowest: var(--surface-container-lowest);
   --color-surface-container-low: var(--surface-container-low);
   --font-display: var(--font-display), sans-serif;
@@ -79,6 +89,18 @@
   --skeleton-highlight: rgba(245, 244, 237, 0.98);
   --veil-top: rgba(251, 249, 243, 0.28);
   --veil-bottom: rgba(251, 249, 243, 0);
+
+  /* --- shadcn/ui alias tokens (read from Serene Capital) --- */
+  --primary-foreground: var(--button-primary-text);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--muted-foreground);
+  --destructive: var(--danger);
+  --destructive-foreground: #ffffff;
+  --popover: var(--card-elevated);
+  --popover-foreground: var(--foreground);
+  --input: var(--surface);
+  --ring: rgba(89, 95, 61, 0.30);
+  --radius: 0.5rem;
 }
 
 :root[data-theme="dark"] {
@@ -122,6 +144,18 @@
   --skeleton-highlight: rgba(72, 84, 69, 0.98);
   --veil-top: rgba(23, 28, 22, 0.35);
   --veil-bottom: rgba(23, 28, 22, 0);
+
+  /* --- shadcn/ui alias tokens (read from Serene Capital) --- */
+  --primary-foreground: var(--button-primary-text);
+  --secondary: var(--muted);
+  --secondary-foreground: var(--muted-foreground);
+  --destructive: var(--danger);
+  --destructive-foreground: #ffffff;
+  --popover: var(--card-elevated);
+  --popover-foreground: var(--foreground);
+  --input: var(--surface);
+  --ring: rgba(195, 202, 161, 0.30);
+  --radius: 0.5rem;
 }
 
 * {

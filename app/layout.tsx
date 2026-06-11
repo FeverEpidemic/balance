@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
 import { RouteTransition } from "@/components/ui/route-transition";
 import { ToastProvider } from "@/components/ui/toast-provider";
+import { Toaster } from "@/components/ui/shadcn/sonner";
 import { LOCALE_COOKIE_NAME, defaultLocale, resolveLocale } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 import { getThemeBootstrapScript, parseThemePreference, resolveAppliedTheme, THEME_COOKIE_NAME } from "@/lib/theme";
@@ -87,6 +88,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           <ServiceWorkerRegistration />
           {children}
         </ToastProvider>
+        <Toaster />
       </body>
     </html>
   );

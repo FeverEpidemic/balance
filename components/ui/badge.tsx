@@ -1,15 +1,23 @@
 import { cn } from "@/lib/utils";
+import { Badge as ShadcnBadge } from "@/components/ui/shadcn/badge";
 
-export function Badge({ children, tone = "default" }: { children: string; tone?: "default" | "success" | "danger" }) {
-  const tones = {
-    default: "theme-primary-pill",
-    success: "theme-success-pill",
-    danger: "theme-danger-pill"
-  };
+const toneMap = {
+  default: "theme-primary-pill",
+  success: "theme-success-pill",
+  danger: "theme-danger-pill"
+} as const;
 
+export function Badge({ children, tone = "default", className }: { children: string; className?: string; tone?: "default" | "success" | "danger" }) {
   return (
-    <span className={cn("inline-flex items-center rounded-full px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em]", tones[tone])}>
+    <ShadcnBadge
+      variant="outline"
+      className={cn(
+        "rounded-full border px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em] hover:bg-transparent",
+        toneMap[tone],
+        className
+      )}
+    >
       {children}
-    </span>
+    </ShadcnBadge>
   );
 }

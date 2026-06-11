@@ -1,8 +1,9 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useState } from "react";
 import { CATEGORY_COLOR_PALETTE } from "@/lib/categories";
 import { cn } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/shadcn/radio-group";
 
 export function ColorPalette({
   className,
@@ -17,26 +18,25 @@ export function ColorPalette({
   name: string;
   required?: boolean;
 }) {
-  const baseId = useId();
   const [selectedColor, setSelectedColor] = useState(defaultValue);
 
   return (
     <div className={cn("space-y-3", className)}>
-      <div className="flex flex-wrap gap-2">
-        {colors.map((color, index) => {
-          const optionId = `${baseId}-${index}`;
+      {/* Hidden input for form submission */}
+      <input type="hidden" name={name} value={selectedColor} />
+      <RadioGroup
+        value={selectedColor}
+        onValueChange={(value) => setSelectedColor(value)}
+        className="flex flex-wrap gap-2"
+        required={required}
+      >
+        {colors.map((color) => {
           const isSelected = color.toLowerCase() === selectedColor.toLowerCase();
 
           return (
-            <label key={color} htmlFor={optionId} className="cursor-pointer">
-              <input
-                id={optionId}
-                type="radio"
-                name={name}
+            <label key={color} className="cursor-pointer">
+              <RadioGroupItem
                 value={color}
-                checked={isSelected}
-                required={required}
-                onChange={(event) => setSelectedColor(event.target.value)}
                 className="sr-only"
               />
               <span
@@ -52,7 +52,7 @@ export function ColorPalette({
             </label>
           );
         })}
-      </div>
+      </RadioGroup>
       <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5 font-label text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
         <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: selectedColor }} />
         <span>{selectedColor}</span>

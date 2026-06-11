@@ -2,6 +2,10 @@
 
 ## [Unreleased] - 2026-06-11
 
+### Changed
+
+- **shadcn/ui migration** — 13 komponen inti diadopsi (Button, Dialog, Sheet, Select, Input, Label, Badge, Table, Alert, AlertDialog, RadioGroup, Collapsible, Sonner). Semua visual Serene Capital tetap identik; aksesibilitas meningkat. Tidak ada perubahan UI yang terlihat pengguna.
+
 ### Changed - Dependency Upgrades (Major)
 
 - **Next.js 16** (`^16.2.9`) — Partial prerendering matang, Turbopack improvements, server actions lebih stabil. Konvensi `middleware.ts` diganti `proxy.ts` (non-blocking deprecation).

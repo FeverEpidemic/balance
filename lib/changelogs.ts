@@ -13,6 +13,19 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.7.5",
+    date: "2026-06-11",
+    title: "Fundasi UI yang lebih kokoh dengan shadcn/ui",
+    description: "Komponen UI Balance kini dibangun di atas shadcn/ui — pustaka komponen yang aksesibel, konsisten, dan siap dikembangkan. Tampilan dan nuansa Serene Capital tetap terjaga persis seperti sebelumnya.",
+    features: [
+      { icon: "🧩", text: "13 komponen shadcn/ui diadopsi: Button, Dialog, Sheet, Select, Input, Label, Badge, Table, Alert, AlertDialog, RadioGroup, Collapsible, dan Sonner untuk toast." },
+      { icon: "🎨", text: "Semua visual Serene Capital (cream, sage, forest, rounded cards, soft shadows) tetap sama — migrasi transparan tanpa perubahan UI." },
+      { icon: "🌗", text: "Light mode dan dark mode tetap menjadi first-class citizens dengan token warna yang konsisten di kedua tema." },
+      { icon: "♿", text: "Komponen sekarang lebih aksesibel berkat Radix UI: keyboard navigation, focus trap, ARIA attributes bawaan." },
+      { icon: "🔧", text: "Tailwind CSS v4 + tailwindcss-animate untuk animasi mulus. Semua kelas utility tetap utuh tanpa perubahan." }
+    ]
+  },
+  {
     version: "1.7.4",
     date: "2026-06-11",
     title: "Daily chat limit & indikator kuota dua baris",

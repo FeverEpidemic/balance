@@ -1,7 +1,9 @@
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 import { getLocaleTag, resolveLocale, type AppLocale } from "@/lib/i18n";
 
-export function cn(...values: Array<string | false | null | undefined>) {
-  return values.filter(Boolean).join(" ");
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
 }
 
 function createCurrencyFormatter(locale: AppLocale) {

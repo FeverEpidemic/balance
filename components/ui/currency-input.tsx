@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn, formatCurrencyInputValue, sanitizeCurrencyInput } from "@/lib/utils";
+import { Input } from "@/components/ui/shadcn/input";
 
 type CurrencyInputProps = {
   className?: string;
@@ -46,7 +47,7 @@ export function CurrencyInput({ className, defaultValue, name, placeholder, requ
   }, [defaultValue]);
 
   return (
-    <input
+    <Input
       className={cn(className)}
       inputMode="numeric"
       name={name}

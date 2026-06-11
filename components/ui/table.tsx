@@ -1,25 +1,34 @@
 import { cn } from "@/lib/utils";
-import type { ComponentPropsWithoutRef, HTMLAttributes, TableHTMLAttributes, TdHTMLAttributes, ThHTMLAttributes } from "react";
+import {
+  Table as ShadcnTable,
+  TableHeader as ShadcnTableHeader,
+  TableBody as ShadcnTableBody,
+  TableRow as ShadcnTableRow,
+  TableHead as ShadcnTableHead,
+  TableCell as ShadcnTableCell,
+  TableCaption as ShadcnTableCaption,
+} from "@/components/ui/shadcn/table";
+import type { ComponentPropsWithoutRef, HTMLAttributes, TdHTMLAttributes, ThHTMLAttributes } from "react";
 
-export function Table({ className, ...props }: TableHTMLAttributes<HTMLTableElement>) {
-  return <table className={cn("w-full caption-bottom text-sm", className)} {...props} />;
+export function Table({ className, ...props }: HTMLAttributes<HTMLTableElement>) {
+  return <ShadcnTable className={cn(className)} {...props} />;
 }
 
 export function TableHeader({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={cn("[&_tr]:border-b [&_tr]:border-border", className)} {...props} />;
+  return <ShadcnTableHeader className={cn("[&_tr]:border-b [&_tr]:border-border", className)} {...props} />;
 }
 
 export function TableBody({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
-  return <tbody className={cn("[&_tr:last-child]:border-0", className)} {...props} />;
+  return <ShadcnTableBody className={cn("[&_tr:last-child]:border-0", className)} {...props} />;
 }
 
 export function TableRow({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {
-  return <tr className={cn("border-b border-border transition-colors", className)} {...props} />;
+  return <ShadcnTableRow className={cn("border-b border-border transition-colors", className)} {...props} />;
 }
 
 export function TableHead({ className, ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <th
+    <ShadcnTableHead
       className={cn(
         "h-12 px-4 text-left align-middle font-label text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground",
         className
@@ -30,9 +39,9 @@ export function TableHead({ className, ...props }: ThHTMLAttributes<HTMLTableCel
 }
 
 export function TableCell({ className, ...props }: TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td className={cn("px-4 py-4 align-middle", className)} {...props} />;
+  return <ShadcnTableCell className={cn("px-4 py-4 align-middle", className)} {...props} />;
 }
 
 export function TableCaption({ className, ...props }: ComponentPropsWithoutRef<"caption">) {
-  return <caption className={cn("mt-4 text-sm text-muted-foreground", className)} {...props} />;
+  return <ShadcnTableCaption className={cn("mt-4 text-sm text-muted-foreground", className)} {...props} />;
 }
