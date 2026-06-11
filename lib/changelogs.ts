@@ -13,6 +13,29 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.8.2",
+    date: "2026-06-12",
+    title: "Navigasi mobile lebih rapi dan fokus",
+    description: "Navigasi mobile kini membagi peran dengan jelas: bottom nav untuk tujuan utama, drawer untuk menu lanjutan, dan sidebar desktop tetap tidak ikut muncul di layar kecil.",
+    features: [
+      { icon: "📱", text: "Sidebar desktop sekarang hanya di-mount pada viewport desktop, jadi tidak ada lagi panel kiri yang nyasar ke mobile." },
+      { icon: "🧭", text: "Bottom navigation mobile fokus ke tujuan utama: Dashboard, Wallet, Transaksi, dan Chat AI." },
+      { icon: "📂", text: "Akses ke pengaturan dan menu sekunder dipindahkan ke drawer yang sekarang dibuka dari item Menu di bottom nav." },
+      { icon: "🦴", text: "Loading skeleton ikut diselaraskan agar bottom nav muncul konsisten saat halaman masih memuat." },
+    ]
+  },
+  {
+    version: "1.8.1",
+    date: "2026-06-12",
+    title: "Sidebar mobile yang lebih bersih",
+    description: "Navigasi mobile kini hanya punya satu sidebar — hamburger di kiri yang membuka overlay drawer penuh. Double navigasi mobile dihapus.",
+    features: [
+      { icon: "🍔", text: "Tombol menu hamburger ikon saja di pojok kiri — lebih minimal dan mengikuti standar mobile UX." },
+      { icon: "🔄", text: "Drawer overlay kini satu-satunya navigasi mobile: hilang total saat ditutup tanpa menyisakan ikon atau bilah." },
+      { icon: "✨", text: "Bottom navigation bar dihapus — tidak ada lagi dua navigasi bersaing di layar kecil." },
+    ]
+  },
+  {
     version: "1.8.0",
     date: "2026-06-12",
     title: "Sidebar fixed full-height dengan card sections",

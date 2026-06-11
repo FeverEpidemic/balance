@@ -4,6 +4,10 @@
 
 ### Changed
 
+- **Mobile nav lebih intentional** — Sidebar desktop collapsed tetap tidak lagi ikut ter-render di mobile. Bottom navigation kini memegang navigasi utama, sementara drawer dibuka dari item `Menu` di bottom nav agar tidak ada tombol hamburger terpisah yang bersaing. Loading skeleton ikut diselaraskan supaya state loading dan halaman utama tetap konsisten.
+
+- **Mobile sidebar cleanup** — Fixed sidebar kini hanya muncul di layar `lg`+ (`hidden lg:flex`). Bottom navigation bar (`glass-nav`) dihapus sepenuhnya. Tombol menu mobile dipindah ke kiri sebagai ikon hamburger saja (tanpa teks "Menu"). Padding bottom `pb-24` yang hanya diperlukan untuk bottom nav juga dihapus. Saat drawer ditutup, sidebar hilang total tanpa menyisakan ikon apapun.
+
 - **Sidebar fixed full-height left panel + card sections** — Sidebar desktop sekarang menempel di tepi kiri layar (fixed, full-height) dengan panel solid. Navigasi terbagi jadi dua section: "Navigasi Utama" dan "Aktif Wallet" dengan card-style links yang konsisten antara desktop dan mobile. Layout menggunakan flex dengan sidebar spacer — konten utama otomatis bergeser saat sidebar collapse/expand. Loading skeleton juga diselaraskan dengan layout baru.
 
 ### Added

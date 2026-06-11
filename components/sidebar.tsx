@@ -211,11 +211,11 @@ export function UnifiedSidebar({
     );
   }
 
-  // ── Fixed variant (desktop) ──────────────────────────────────────
+  // ── Fixed variant (desktop only) ─────────────────────────────────
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-30 flex flex-col border-r bg-card transition-[width] duration-200 ease-out",
+        "fixed inset-y-0 left-0 z-30 hidden flex-col border-r bg-card transition-[width] duration-200 ease-out lg:flex",
         "border-border shadow-float",
         collapsed ? "w-[72px]" : "w-[280px]"
       )}

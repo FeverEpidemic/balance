@@ -3,13 +3,17 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChangelogPopup } from "@/components/features/changelogs/changelog-popup";
-import { UnifiedSidebar, useSidebarState, SIDEBAR_STORAGE_KEY } from "@/components/sidebar";
+import { UnifiedSidebar, useSidebarState } from "@/components/sidebar";
 import { useLocale } from "@/components/providers/locale-provider";
 import { AppIcon } from "@/components/ui/app-icon";
 import { getTranslator, localizePath } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/actions/auth";
 import type { ReactNode } from "react";
+
+type MobileNavItem =
+  | { kind: "link"; href: string; label: string; icon: "dashboard" | "wallet" | "transactions" | "chat" }
+  | { kind: "action"; label: string; icon: "menu" };
 
 export function AppShell({
   children,
@@ -43,13 +47,22 @@ export function AppShell({
   const [sidebarCollapsed, setSidebarCollapsed] = useSidebarState();
   const [isDesktop, setIsDesktop] = useState(false);
 
-  // Sync desktop detection — avoids SSR hydration mismatch
+  // Keep desktop-only sidebar out of the mobile tree entirely.
   useEffect(() => {
-    setIsDesktop(window.innerWidth >= 1024);
-    const onResize = () => setIsDesktop(window.innerWidth >= 1024);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const syncDesktop = () => setIsDesktop(mediaQuery.matches);
+
+    syncDesktop();
+    mediaQuery.addEventListener("change", syncDesktop);
+
+    return () => mediaQuery.removeEventListener("change", syncDesktop);
   }, []);
+
+  useEffect(() => {
+    if (isDesktop) {
+      setMobileSidebarOpen(false);
+    }
+  }, [isDesktop]);
 
   // Sidebar width used by the flex layout
   const desktopSidebarWidth = isDesktop ? (sidebarCollapsed ? 72 : 280) : 0;
@@ -57,12 +70,15 @@ export function AppShell({
   const logoutButtonClassName = "rounded-full bg-primary-soft px-3 py-2 font-label text-xs text-primary-strong";
   const inactiveWalletPillClassName =
     "glass-panel border text-muted-foreground hover:border-primary/25 hover:bg-[color:var(--primary-soft)] hover:text-foreground";
-  const mobileNavItems = [
-    { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" as const },
-    { href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet" as const },
-    { href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions" as const },
-    { href: "/chat", label: t("common.aiAssistant"), icon: "chat" as const },
-    { href: "/settings", label: t("common.settings"), icon: "settings" as const }
+  const mobilePrimaryNavItems: Extract<MobileNavItem, { kind: "link" }>[] = [
+    { kind: "link", href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" },
+    { kind: "link", href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet" },
+    { kind: "link", href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions" },
+    { kind: "link", href: "/chat", label: t("common.aiAssistant"), icon: "chat" }
+  ];
+  const mobileNavItems: MobileNavItem[] = [
+    ...mobilePrimaryNavItems,
+    { kind: "action", label: t("common.menu"), icon: "menu" }
   ];
   const mobileWalletShortcuts = walletId
     ? [
@@ -77,31 +93,37 @@ export function AppShell({
   return (
     <div className="flex min-h-screen">
       {/* Desktop fixed sidebar — flex item on desktop, overlay on mobile */}
-      <div
-        className="hidden shrink-0 lg:block"
-        style={{ width: desktopSidebarWidth, transition: "width 200ms ease-out" }}
-        aria-hidden
-      />
+      {isDesktop ? (
+        <div
+          className="hidden shrink-0 lg:block"
+          style={{ width: desktopSidebarWidth, transition: "width 200ms ease-out" }}
+          aria-hidden
+        />
+      ) : null}
 
       {/* Actual sidebar (fixed positioned) */}
-      <UnifiedSidebar
-        currentPath={currentPath}
-        userName={userName}
-        walletId={walletId}
-        variant="fixed"
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
+      {isDesktop ? (
+        <UnifiedSidebar
+          currentPath={currentPath}
+          userName={userName}
+          walletId={walletId}
+          variant="fixed"
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
+      ) : null}
 
       {/* Mobile overlay sidebar */}
-      <UnifiedSidebar
-        currentPath={currentPath}
-        userName={userName}
-        walletId={walletId}
-        variant="overlay"
-        open={mobileSidebarOpen}
-        onClose={() => setMobileSidebarOpen(false)}
-      />
+      {!isDesktop ? (
+        <UnifiedSidebar
+          currentPath={currentPath}
+          userName={userName}
+          walletId={walletId}
+          variant="overlay"
+          open={mobileSidebarOpen}
+          onClose={() => setMobileSidebarOpen(false)}
+        />
+      ) : null}
 
       <div className="flex min-w-0 flex-1 flex-col">
         <ChangelogPopup />
@@ -111,16 +133,6 @@ export function AppShell({
             <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
               <p className="text-sm text-muted-foreground">{userName}</p>
               <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setMobileSidebarOpen(true)}
-                  className="glass-panel rounded-full px-3 py-2 font-label text-xs text-foreground"
-                >
-                  <span className="inline-flex items-center gap-2">
-                    <AppIcon name="menu" className="h-4 w-4" tone="muted" />
-                    <span>{t("common.menu")}</span>
-                  </span>
-                </button>
                 <form action={logout}>
                   <button className={logoutButtonClassName}>{t("common.logout")}</button>
                 </form>
@@ -181,22 +193,43 @@ export function AppShell({
           <div className="pb-24 lg:pb-0">{children}</div>
         </main>
 
-        <nav className="glass-nav fixed inset-x-4 bottom-4 z-50 rounded-2xl p-2 backdrop-blur lg:hidden">
+        <nav className="glass-nav fixed inset-x-4 bottom-4 z-40 rounded-2xl p-2 backdrop-blur lg:hidden">
           <div className="touch-scroll-x flex gap-2">
             {mobileNavItems.map((item) => (
-              <Link
-                key={item.href}
-                href={localizePath(locale, item.href)}
-                className={cn(
-                  "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
-                  isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "bg-transparent text-muted-foreground"
-                )}
-              >
-                <span className="flex flex-col items-center justify-center gap-1">
-                  <AppIcon name={item.icon} className="h-4 w-4" />
-                  <span>{item.label}</span>
-                </span>
-              </Link>
+              item.kind === "link" ? (
+                <Link
+                  key={item.href}
+                  href={localizePath(locale, item.href)}
+                  className={cn(
+                    "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
+                    isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "bg-transparent text-muted-foreground"
+                  )}
+                >
+                  <span className="flex flex-col items-center justify-center gap-1">
+                    <AppIcon name={item.icon} className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </span>
+                </Link>
+              ) : (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => setMobileSidebarOpen(true)}
+                  className={cn(
+                    "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
+                    mobilePrimaryNavItems.some((navItem) => isActivePath(currentPath, navItem.href))
+                      ? "bg-transparent text-muted-foreground"
+                      : "bg-primary text-[var(--button-primary-text)]"
+                  )}
+                  aria-label={item.label}
+                  aria-expanded={mobileSidebarOpen}
+                >
+                  <span className="flex flex-col items-center justify-center gap-1">
+                    <AppIcon name={item.icon} className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </span>
+                </button>
+              )
             ))}
           </div>
         </nav>
