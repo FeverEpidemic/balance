@@ -14,7 +14,7 @@ export function StatCard({
       <div className="flex min-h-full flex-col justify-between gap-4">
         <div>
           <p className="eyebrow">{label}</p>
-          <p className="metric mt-3 text-[1.9rem] leading-none sm:text-3xl">{formatCurrency(value)}</p>
+          <p className="metric mt-3 text-[1.55rem] leading-none sm:text-[1.9rem] md:text-3xl">{formatCurrency(value)}</p>
         </div>
         <p className="max-w-xs text-sm leading-6 text-muted-foreground">{detail}</p>
       </div>

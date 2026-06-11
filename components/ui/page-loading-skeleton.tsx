@@ -3,10 +3,6 @@ import { AppIcon } from "@/components/ui/app-icon";
 import { defaultLocale, getTranslator, type AppLocale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-type MobileNavSkeletonItem =
-  | { kind: "link"; href: string; label: string; icon: "dashboard" | "wallet" | "transactions" | "chat" }
-  | { kind: "action"; label: string; icon: "menu" };
-
 function isActivePath(currentPath: string, href: string) {
   if (href === "/dashboard") {
     return currentPath === "/dashboard" || currentPath === "/wallets";
@@ -141,15 +137,12 @@ function AppShellSkeleton({
     { href: walletId ? `/wallets/${walletId}/settlements` : "/dashboard", label: t("common.settlements"), icon: "settlements" as const },
     { href: walletId ? `/wallets/${walletId}/templates` : "/dashboard", label: t("common.templates"), icon: "templates" as const }
   ];
-  const mobilePrimaryNavItems: Extract<MobileNavSkeletonItem, { kind: "link" }>[] = [
-    { kind: "link", href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" },
-    { kind: "link", href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet" },
-    { kind: "link", href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions" },
-    { kind: "link", href: "/chat", label: t("common.aiAssistant"), icon: "chat" }
-  ];
-  const mobileNavItems: MobileNavSkeletonItem[] = [
-    ...mobilePrimaryNavItems,
-    { kind: "action", label: t("common.menu"), icon: "menu" }
+  const mobileNavItems = [
+    { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" as const },
+    { href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet" as const },
+    { href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions" as const },
+    { href: "/chat", label: t("common.aiAssistant"), icon: "chat" as const },
+    { href: "/settings", label: t("common.settings"), icon: "settings" as const }
   ];
   const shortcuts = walletId
     ? [
@@ -185,10 +178,14 @@ function AppShellSkeleton({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
+        <div className="glass-panel fixed left-4 top-4 z-40 flex h-11 w-11 items-center justify-center rounded-full shadow-float lg:hidden">
+          <AppIcon name="menu" className="h-5 w-5" />
+        </div>
+
         <main className="page-wrap section-gap">
           <header className="glass-panel mb-4 rounded-[1.25rem] px-4 py-4 backdrop-blur md:px-6">
             <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
-              <SkeletonBlock className="h-4 w-32" />
+              <SkeletonBlock className="h-4 w-32 ml-14" />
               <SkeletonBlock className="h-9 w-20 rounded-full" />
             </div>
             <p className="eyebrow">{title}</p>
@@ -243,16 +240,10 @@ function AppShellSkeleton({
           <div className="touch-scroll-x flex gap-2">
             {mobileNavItems.map((item) => (
               <div
-                key={item.kind === "link" ? item.href : item.label}
+                key={item.href}
                 className={cn(
                   "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em]",
-                  item.kind === "link"
-                    ? isActivePath(currentPath, item.href)
-                      ? "bg-primary text-[var(--button-primary-text)]"
-                      : "text-muted-foreground"
-                    : mobilePrimaryNavItems.some((navItem) => isActivePath(currentPath, navItem.href))
-                      ? "text-muted-foreground"
-                      : "bg-primary text-[var(--button-primary-text)]"
+                  isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "text-muted-foreground"
                 )}
               >
                 <span className="flex flex-col items-center justify-center gap-1">

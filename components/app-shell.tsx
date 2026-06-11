@@ -11,10 +11,6 @@ import { cn } from "@/lib/utils";
 import { logout } from "@/app/actions/auth";
 import type { ReactNode } from "react";
 
-type MobileNavItem =
-  | { kind: "link"; href: string; label: string; icon: "dashboard" | "wallet" | "transactions" | "chat" }
-  | { kind: "action"; label: string; icon: "menu" };
-
 export function AppShell({
   children,
   currentPath,
@@ -26,7 +22,8 @@ export function AppShell({
   memberCount,
   primaryWalletId,
   currentWalletId,
-  headerAction
+  headerAction,
+  subtitleClassName
 }: {
   children: ReactNode;
   currentPath: string;
@@ -39,6 +36,7 @@ export function AppShell({
   primaryWalletId: string | null;
   currentWalletId?: string | null;
   headerAction?: ReactNode;
+  subtitleClassName?: string;
 }) {
   const locale = useLocale();
   const t = getTranslator(locale);
@@ -70,15 +68,12 @@ export function AppShell({
   const logoutButtonClassName = "rounded-full bg-primary-soft px-3 py-2 font-label text-xs text-primary-strong";
   const inactiveWalletPillClassName =
     "glass-panel border text-muted-foreground hover:border-primary/25 hover:bg-[color:var(--primary-soft)] hover:text-foreground";
-  const mobilePrimaryNavItems: Extract<MobileNavItem, { kind: "link" }>[] = [
-    { kind: "link", href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" },
-    { kind: "link", href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet" },
-    { kind: "link", href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions" },
-    { kind: "link", href: "/chat", label: t("common.aiAssistant"), icon: "chat" }
-  ];
-  const mobileNavItems: MobileNavItem[] = [
-    ...mobilePrimaryNavItems,
-    { kind: "action", label: t("common.menu"), icon: "menu" }
+  const mobileNavItems = [
+    { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" as const },
+    { href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet" as const },
+    { href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions" as const },
+    { href: "/chat", label: t("common.aiAssistant"), icon: "chat" as const },
+    { href: "/settings", label: t("common.settings"), icon: "settings" as const }
   ];
   const mobileWalletShortcuts = walletId
     ? [
@@ -128,10 +123,25 @@ export function AppShell({
       <div className="flex min-w-0 flex-1 flex-col">
         <ChangelogPopup />
 
+        {!isDesktop ? (
+          <button
+            type="button"
+            onClick={() => setMobileSidebarOpen(true)}
+            className={cn(
+              "glass-panel fixed left-4 top-4 z-40 flex h-11 w-11 items-center justify-center rounded-full shadow-float transition hover:bg-muted hover:text-foreground",
+              mobileSidebarOpen ? "bg-primary text-[var(--button-primary-text)] hover:bg-primary-hover" : "text-muted-foreground"
+            )}
+            aria-label={t("common.menu")}
+            aria-expanded={mobileSidebarOpen}
+          >
+            <AppIcon name="menu" className="h-5 w-5" />
+          </button>
+        ) : null}
+
         <main className="page-wrap section-gap">
-          <header className="glass-panel mb-4 rounded-[1.25rem] px-4 py-4 backdrop-blur md:px-6">
+          <header className="glass-panel mb-4 rounded-[1.25rem] px-4 py-4 backdrop-blur md:px-6 lg:mt-0">
             <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
-              <p className="text-sm text-muted-foreground">{userName}</p>
+              <p className="pl-14 text-sm text-muted-foreground">{userName}</p>
               <div className="flex items-center gap-2">
                 <form action={logout}>
                   <button className={logoutButtonClassName}>{t("common.logout")}</button>
@@ -142,7 +152,7 @@ export function AppShell({
             <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
                 <div className="flex items-start justify-between gap-3">
-                  <h2 className="headline-lg">{subtitle}</h2>
+                  <h2 className={cn("headline-lg", subtitleClassName)}>{subtitle}</h2>
                   {headerAction ? <div className="shrink-0 md:hidden">{headerAction}</div> : null}
                 </div>
                 <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
@@ -196,40 +206,19 @@ export function AppShell({
         <nav className="glass-nav fixed inset-x-4 bottom-4 z-40 rounded-2xl p-2 backdrop-blur lg:hidden">
           <div className="touch-scroll-x flex gap-2">
             {mobileNavItems.map((item) => (
-              item.kind === "link" ? (
-                <Link
-                  key={item.href}
-                  href={localizePath(locale, item.href)}
-                  className={cn(
-                    "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
-                    isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "bg-transparent text-muted-foreground"
-                  )}
-                >
-                  <span className="flex flex-col items-center justify-center gap-1">
-                    <AppIcon name={item.icon} className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </span>
-                </Link>
-              ) : (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={() => setMobileSidebarOpen(true)}
-                  className={cn(
-                    "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
-                    mobilePrimaryNavItems.some((navItem) => isActivePath(currentPath, navItem.href))
-                      ? "bg-transparent text-muted-foreground"
-                      : "bg-primary text-[var(--button-primary-text)]"
-                  )}
-                  aria-label={item.label}
-                  aria-expanded={mobileSidebarOpen}
-                >
-                  <span className="flex flex-col items-center justify-center gap-1">
-                    <AppIcon name={item.icon} className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </span>
-                </button>
-              )
+              <Link
+                key={item.href}
+                href={localizePath(locale, item.href)}
+                className={cn(
+                  "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
+                  isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "bg-transparent text-muted-foreground"
+                )}
+              >
+                <span className="flex flex-col items-center justify-center gap-1">
+                  <AppIcon name={item.icon} className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </span>
+              </Link>
             ))}
           </div>
         </nav>

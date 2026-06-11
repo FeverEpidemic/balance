@@ -40,7 +40,7 @@ export function DashboardAiInsight({ locale }: { locale: AppLocale }) {
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="eyebrow text-primary-strong">{t("insight.cardEyebrow")}</p>
-          <h3 className="headline-md mt-2">{t("insight.cardTitle")}</h3>
+          <h3 className="mt-2 font-display text-lg font-medium text-foreground sm:text-xl">{t("insight.cardTitle")}</h3>
         </div>
         <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[color:var(--soft-border)] bg-card/80">
           <AppIcon name="chat" className="h-5 w-5" tone="primary" />

@@ -4,7 +4,9 @@
 
 ### Changed
 
-- **Mobile nav lebih intentional** — Sidebar desktop collapsed tetap tidak lagi ikut ter-render di mobile. Bottom navigation kini memegang navigasi utama, sementara drawer dibuka dari item `Menu` di bottom nav agar tidak ada tombol hamburger terpisah yang bersaing. Loading skeleton ikut diselaraskan supaya state loading dan halaman utama tetap konsisten.
+- **Tipografi Dashboard & Asisten AI lebih proporsional** — Judul hero Dashboard dan Chat/Asisten AI kini diperkecil agar lebih nyaman di mobile. Angka saldo utama, StatCard, kartu wallet, dan heading kosong/sidebar Asisten AI juga diturunkan satu tingkat supaya layar terasa lebih ringan.
+
+- **Mobile nav lebih intentional** — Sidebar desktop collapsed tetap tidak lagi ikut ter-render di mobile. Bottom navigation kembali fokus ke tujuan utama, sementara drawer sekarang dibuka dari tombol floating hamburger di kiri atas agar akses menu sekunder tetap cepat tanpa membebani bottom nav. Loading skeleton ikut diselaraskan supaya state loading dan halaman utama tetap konsisten.
 
 - **Mobile sidebar cleanup** — Fixed sidebar kini hanya muncul di layar `lg`+ (`hidden lg:flex`). Bottom navigation bar (`glass-nav`) dihapus sepenuhnya. Tombol menu mobile dipindah ke kiri sebagai ikon hamburger saja (tanpa teks "Menu"). Padding bottom `pb-24` yang hanya diperlukan untuk bottom nav juga dihapus. Saat drawer ditutup, sidebar hilang total tanpa menyisakan ikon apapun.
 

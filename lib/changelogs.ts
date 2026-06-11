@@ -13,14 +13,25 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.8.3",
+    date: "2026-06-12",
+    title: "Tipografi dashboard dan Asisten AI lebih tenang",
+    description: "Ukuran judul dan angka utama kini lebih proporsional, terutama di mobile, agar Dashboard dan Asisten AI terasa lebih ringan dibaca.",
+    features: [
+      { icon: "📏", text: "Subtitle hero Dashboard dan Asisten AI diperkecil agar tidak terasa terlalu dominan di mobile." },
+      { icon: "💰", text: "Angka saldo utama, StatCard, dan kartu wallet di Dashboard kini lebih seimbang tanpa kehilangan penekanan." },
+      { icon: "💬", text: "Heading area kosong, sidebar info, dan gelembung chat Asisten AI dirapikan supaya ritme baca lebih nyaman di desktop maupun mobile." },
+    ]
+  },
+  {
     version: "1.8.2",
     date: "2026-06-12",
     title: "Navigasi mobile lebih rapi dan fokus",
-    description: "Navigasi mobile kini membagi peran dengan jelas: bottom nav untuk tujuan utama, drawer untuk menu lanjutan, dan sidebar desktop tetap tidak ikut muncul di layar kecil.",
+    description: "Navigasi mobile kini membagi peran dengan jelas: bottom nav untuk tujuan utama, tombol floating kiri atas untuk membuka drawer, dan sidebar desktop tetap tidak ikut muncul di layar kecil.",
     features: [
       { icon: "📱", text: "Sidebar desktop sekarang hanya di-mount pada viewport desktop, jadi tidak ada lagi panel kiri yang nyasar ke mobile." },
-      { icon: "🧭", text: "Bottom navigation mobile fokus ke tujuan utama: Dashboard, Wallet, Transaksi, dan Chat AI." },
-      { icon: "📂", text: "Akses ke pengaturan dan menu sekunder dipindahkan ke drawer yang sekarang dibuka dari item Menu di bottom nav." },
+      { icon: "🧭", text: "Bottom navigation mobile kembali fokus ke tujuan utama: Dashboard, Wallet, Transaksi, Chat AI, dan Pengaturan." },
+      { icon: "🍔", text: "Drawer menu sekunder kini dibuka dari tombol floating hamburger di kiri atas, jadi cepat dijangkau tanpa mengganggu bottom nav." },
       { icon: "🦴", text: "Loading skeleton ikut diselaraskan agar bottom nav muncul konsisten saat halaman masih memuat." },
     ]
   },

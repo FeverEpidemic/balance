@@ -381,6 +381,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
       currentPath="/chat"
       title={t("chat.pageTitle")}
       subtitle={t("chat.pageSubtitle")}
+      subtitleClassName="text-[1.55rem] sm:text-[1.8rem] md:text-[1.95rem]"
       userName={shell.userName}
       walletCount={shell.walletCount}
       budgetCount={shell.budgetCount}
@@ -482,7 +483,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
                 <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-card shadow-serene">
                   <AppIcon name="chat" className="h-6 w-6" tone="primary" />
                 </span>
-                <h3 className="headline-md mt-4">{t("chat.emptyState")}</h3>
+                <h3 className="mt-4 font-display text-lg font-medium text-foreground sm:text-xl">{t("chat.emptyState")}</h3>
                 <p className="mt-2 max-w-xl text-sm text-muted-foreground">{t("chat.emptyDescription")}</p>
               </div>
             ) : (
@@ -538,7 +539,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
         <aside className="min-w-0 space-y-4">
           <div className="card">
             <p className="eyebrow">{t("chat.sidebarTitle")}</p>
-            <h3 className="headline-md mt-2">{t("chat.sidebarHeading")}</h3>
+            <h3 className="mt-2 font-display text-lg font-medium text-foreground sm:text-xl">{t("chat.sidebarHeading")}</h3>
             <div className="mt-5 space-y-3 text-sm text-muted-foreground">
               <p>{t("chat.sidebarPoint1")}</p>
               <p>{t("chat.sidebarPoint2")}</p>

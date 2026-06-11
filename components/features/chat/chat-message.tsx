@@ -60,7 +60,7 @@ export function ChatMessage({ role, content, isStreaming = false }: ChatMessageP
     <div className={cn("flex min-w-0", isUser ? "justify-end" : "justify-start")} style={{ animation: "page-enter 220ms ease-out" }}>
       <div
         className={cn(
-          "min-w-0 max-w-[92%] overflow-hidden rounded-[1.35rem] px-4 py-3 text-sm leading-7 shadow-serene sm:max-w-[88%] lg:max-w-[85%]",
+          "min-w-0 max-w-[92%] overflow-hidden rounded-[1.35rem] px-4 py-3 text-[0.95rem] leading-6 shadow-serene sm:max-w-[88%] lg:max-w-[85%]",
           isUser
             ? "bg-primary-soft text-primary-strong"
             : "border border-[color:var(--soft-border)] bg-card text-foreground",
