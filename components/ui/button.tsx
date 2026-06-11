@@ -36,7 +36,7 @@ export function Button({ children, className, href, onClick, variant = "primary"
   const sereneClass = sereneStyles[variant];
 
   const styles = cn(
-    "font-label text-sm font-medium leading-tight transition duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(89,95,61,0.16)] active:translate-y-px disabled:pointer-events-none disabled:opacity-60",
+    "font-label text-sm font-medium leading-tight transition duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(89,95,61,0.16)] active:translate-y-px disabled:pointer-events-none disabled:opacity-60 inline-flex items-center justify-center gap-2",
     size === "sm" ? "min-h-[2.75rem] px-3 py-2" : "min-h-[3.25rem] px-4 py-3",
     sereneClass,
     className

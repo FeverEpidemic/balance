@@ -151,7 +151,7 @@ export function AppShell({
             <p className="eyebrow">{title}</p>
             <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
               <div>
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center justify-between gap-3">
                   <h2 className={cn("headline-lg", subtitleClassName)}>{subtitle}</h2>
                   {headerAction ? <div className="shrink-0 md:hidden">{headerAction}</div> : null}
                 </div>
