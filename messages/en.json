@@ -118,7 +118,15 @@
     },
     "resetHistory": "Reset Chat History",
     "resetConfirm": "Are you sure you want to clear all chat history? This cannot be undone.",
-    "resetDone": "Chat history cleared."
+    "resetDone": "Chat history cleared.",
+    "aiTransactionPreview": "AI wants to record this transaction",
+    "confirmTransaction": "Yes, Record",
+    "cancelTransaction": "Cancel",
+    "confidenceHigh": "AI is confident",
+    "confidenceMedium": "AI needs confirmation",
+    "confidenceLow": "AI is unsure, better record manually",
+    "duplicateDetected": "A similar transaction was found within the last 5 minutes",
+    "dailyCapExceeded": "Today's spending has exceeded the daily limit"
   },
   "changelogs": {
     "title": "Changelogs",
@@ -836,7 +844,11 @@
     "apiKeyNotFound": "Key not found.",
     "duplicateEntry": "Data already exists. Cannot create a duplicate.",
     "referenceNotFound": "Related data not found. Please check your selection.",
-    "unexpectedError": "An unexpected error occurred. Please try again."
+    "unexpectedError": "An unexpected error occurred. Please try again.",
+    "transactionNeedsConfirmation": "Transaction needs confirmation",
+    "transactionConfidenceTooLow": "AI is unsure. Try recording manually.",
+    "transactionDuplicateDetected": "This transaction is similar to an existing one.",
+    "transactionDailyCapExceeded": "Daily spending limit exceeded."
   },
   "actionSuccess": {
     "budgetSaved": "Budget saved successfully.",

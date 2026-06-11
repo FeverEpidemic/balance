@@ -5,13 +5,21 @@ const {
   getBudgetStatusForUserMock,
   getCategoriesForWalletsMock,
   getFinancialRecapForUserMock,
-  getRecentTransactionsForUserMock
+  getRecentTransactionsForUserMock,
+  checkDuplicateTransactionMock,
+  checkDailySpendingCapMock,
+  resolveWalletNameMock,
+  computeTransactionConfidenceMock
 } = vi.hoisted(() => ({
   createTransactionViaAiMock: vi.fn(),
   getBudgetStatusForUserMock: vi.fn(),
   getCategoriesForWalletsMock: vi.fn(),
   getFinancialRecapForUserMock: vi.fn(),
-  getRecentTransactionsForUserMock: vi.fn()
+  getRecentTransactionsForUserMock: vi.fn(),
+  checkDuplicateTransactionMock: vi.fn(),
+  checkDailySpendingCapMock: vi.fn(),
+  resolveWalletNameMock: vi.fn(),
+  computeTransactionConfidenceMock: vi.fn()
 }));
 
 vi.mock("@/lib/ai/data", () => ({
@@ -20,6 +28,13 @@ vi.mock("@/lib/ai/data", () => ({
   getCategoriesForWallets: getCategoriesForWalletsMock,
   getFinancialRecapForUser: getFinancialRecapForUserMock,
   getRecentTransactionsForUser: getRecentTransactionsForUserMock
+}));
+
+vi.mock("@/lib/ai/confidence", () => ({
+  checkDuplicateTransaction: checkDuplicateTransactionMock,
+  checkDailySpendingCap: checkDailySpendingCapMock,
+  resolveWalletName: resolveWalletNameMock,
+  computeTransactionConfidence: computeTransactionConfidenceMock
 }));
 
 import { aiTools, executeAiToolCall } from "@/lib/ai/tools";
@@ -38,6 +53,17 @@ describe("aiTools", () => {
 describe("executeAiToolCall", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+
+    // Default mocks for confidence checks — allow transactions by default
+    resolveWalletNameMock.mockResolvedValue("Dompet Utama");
+    checkDuplicateTransactionMock.mockResolvedValue({ isDuplicate: false });
+    checkDailySpendingCapMock.mockResolvedValue({ exceeded: false, todayTotal: 0, threshold: 0 });
+    computeTransactionConfidenceMock.mockReturnValue({
+      score: 95,
+      tier: "high",
+      flags: [],
+      reasons: ["Yakin"]
+    });
   });
 
   it("routes getCategories to the data layer", async () => {

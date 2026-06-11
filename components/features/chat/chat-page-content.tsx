@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { CHAT_STORAGE_KEY, buildChatRequestMessages, clearChatHistory, sanitizeStoredChatSession, type ChatIntent, type UiChatMessage } from "@/lib/chat-session";
 import type { AppLocale } from "@/lib/i18n";
 import { getTranslator } from "@/lib/i18n";
+import { formatCurrency } from "@/lib/utils";
 
 type WalletOption = {
   id: string;
@@ -41,6 +42,18 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
   const [selectedWalletId, setSelectedWalletId] = useState<string>("");
   const [activeSuggestion, setActiveSuggestion] = useState<string | undefined>(undefined);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  type PendingTransaction = {
+    walletId: string;
+    kind: "income" | "expense";
+    amount: number;
+    categoryId?: string | null;
+    categoryName?: string | null;
+    note?: string | null;
+    happenedAt?: string | null;
+  };
+  const [pendingTransaction, setPendingTransaction] = useState<PendingTransaction | null>(null);
+  const [pendingConfidence, setPendingConfidence] = useState<number>(0);
 
   useEffect(() => {
     const raw = window.localStorage.getItem(CHAT_STORAGE_KEY);
@@ -178,7 +191,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
             continue;
           }
 
-          const payload = JSON.parse(line.slice(6)) as { type: "token" | "done" | "streamTimeout"; content?: string };
+          const payload = JSON.parse(line.slice(6)) as { type: string; content?: string; confidence?: number; preview?: unknown };
 
           if (payload.type === "token") {
             setMessages((current) =>
@@ -204,6 +217,15 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
                     }
                   : message
               )
+            );
+          }
+
+          if (payload.type === "transactionPreview") {
+            setPendingTransaction(payload.preview as PendingTransaction);
+            setPendingConfidence(payload.confidence ?? 0);
+            // Remove the streaming assistant message since we'll show a confirmation card instead
+            setMessages((current) =>
+              current.filter((message) => message.id !== assistantId)
             );
           }
 
@@ -239,6 +261,68 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
       );
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleConfirmTransaction() {
+    if (!pendingTransaction) return;
+
+    const preview = pendingTransaction;
+    setPendingTransaction(null);
+    setPendingConfidence(0);
+
+    try {
+      const response = await fetch("/api/ai/confirm-transaction", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          walletId: preview.walletId,
+          kind: preview.kind,
+          amount: preview.amount,
+          categoryId: preview.categoryId ?? null,
+          categoryName: preview.categoryName ?? null,
+          note: preview.note ?? null,
+          happenedAt: preview.happenedAt ?? null
+        })
+      });
+
+      const result = (await response.json()) as {
+        ok: boolean;
+        message: string;
+        transaction?: {
+          id: string;
+          walletId: string;
+          kind: string;
+          amount: number;
+          happenedAt: string;
+          categoryName: string;
+          note: string | null;
+        };
+      };
+
+      if (result.ok && result.transaction) {
+        const tx = result.transaction;
+        const confirmMessage: UiChatMessage = {
+          id: `${Date.now()}-confirm`,
+          role: "assistant",
+          content: `✅ Transaksi berhasil dicatat:\n- ${tx.kind === "income" ? "Pemasukan" : "Pengeluaran"}: ${formatCurrency(tx.amount)}\n- Kategori: ${tx.categoryName}\n- Tanggal: ${tx.happenedAt}`
+        };
+        setMessages((current) => [...current, confirmMessage]);
+      } else {
+        const errorMessage: UiChatMessage = {
+          id: `${Date.now()}-error`,
+          role: "assistant",
+          content: `⚠️ ${result.message || "Gagal mencatat transaksi."}`
+        };
+        setMessages((current) => [...current, errorMessage]);
+      }
+    } catch {
+      const errorMessage: UiChatMessage = {
+        id: `${Date.now()}-error`,
+        role: "assistant",
+        content: "⚠️ Gagal mencatat transaksi. Coba lagi."
+      };
+      setMessages((current) => [...current, errorMessage]);
     }
   }
 
@@ -381,9 +465,47 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
                 ))}
               </div>
             )}
+            {pendingTransaction && (
+              <div className="mt-4 rounded-[1.2rem] border border-[color:var(--soft-border)] bg-muted/60 p-4">
+                <p className="text-sm font-semibold">{t("chat.aiTransactionPreview")}</p>
+                <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                  <p>
+                    <span className="font-medium text-foreground">{t("common.wallet")}:</span>{" "}
+                    {wallets.find((w) => w.id === pendingTransaction.walletId)?.name ?? pendingTransaction.walletId}
+                  </p>
+                  <p>
+                    <span className="font-medium text-foreground">{t("transactions.type") ?? "Jenis"}:</span>{" "}
+                    {pendingTransaction.kind === "income" ? "Pemasukan" : "Pengeluaran"}
+                  </p>
+                  <p>
+                    <span className="font-medium text-foreground">{t("addTransaction.amount") ?? "Nominal"}:</span>{" "}
+                    {formatCurrency(pendingTransaction.amount)}
+                  </p>
+                  <p>
+                    <span className="font-medium text-foreground">{t("transactions.category") ?? "Kategori"}:</span>{" "}
+                    {pendingTransaction.categoryName ?? "—"}
+                  </p>
+                  <p>
+                    <span className="font-medium text-foreground">{t("transactions.date") ?? "Tanggal"}:</span>{" "}
+                    {pendingTransaction.happenedAt ?? new Date().toISOString().slice(0, 10)}
+                  </p>
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {t("chat.confidenceMedium")}: {pendingConfidence}%
+                </p>
+                <div className="flex gap-2 mt-3">
+                  <Button variant="primary" size="sm" onClick={handleConfirmTransaction}>
+                    {t("chat.confirmTransaction")}
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => { setPendingTransaction(null); setPendingConfidence(0); }}>
+                    {t("chat.cancelTransaction")}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
-          <ChatInput value={input} onChange={setInput} onSubmit={() => void handleSubmit()} disabled={isLoading} locale={locale} />
+          <ChatInput value={input} onChange={setInput} onSubmit={() => void handleSubmit()} disabled={isLoading} loading={isLoading} locale={locale} />
         </div>
 
         <aside className="min-w-0 space-y-4">

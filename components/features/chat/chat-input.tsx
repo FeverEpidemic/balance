@@ -11,6 +11,7 @@ type ChatInputProps = {
   onChange: (value: string) => void;
   onSubmit: () => void;
   disabled?: boolean;
+  loading?: boolean;
   locale: AppLocale;
 };
 
@@ -18,7 +19,7 @@ export function shouldSubmitChatFromKeydown(event: Pick<KeyboardEvent, "key" | "
   return event.key === "Enter" && (event.ctrlKey || event.metaKey);
 }
 
-export function ChatInput({ value, onChange, onSubmit, disabled = false, locale }: ChatInputProps) {
+export function ChatInput({ value, onChange, onSubmit, disabled = false, loading = false, locale }: ChatInputProps) {
   const ref = useRef<HTMLTextAreaElement | null>(null);
   const t = getTranslator(locale);
 
@@ -57,7 +58,14 @@ export function ChatInput({ value, onChange, onSubmit, disabled = false, locale 
           disabled={disabled || !value.trim()}
           className="w-full rounded-full px-5 sm:w-auto"
         >
-          {t("chat.send")}
+          {loading ? (
+            <>
+              <span className="chat-spin mr-2 inline-block h-4 w-4 rounded-full border-2 border-current border-t-transparent" />
+              {t("chat.send")}
+            </>
+          ) : (
+            t("chat.send")
+          )}
         </Button>
       </div>
     </div>

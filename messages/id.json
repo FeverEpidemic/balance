@@ -118,7 +118,15 @@
     },
     "resetHistory": "Reset Riwayat Chat",
     "resetConfirm": "Yakin ingin menghapus seluruh riwayat chat? Tindakan ini tidak bisa dibatalkan.",
-    "resetDone": "Riwayat chat berhasil dihapus."
+    "resetDone": "Riwayat chat berhasil dihapus.",
+    "aiTransactionPreview": "AI ingin mencatat transaksi ini",
+    "confirmTransaction": "Ya, Catat",
+    "cancelTransaction": "Batal",
+    "confidenceHigh": "AI cukup yakin",
+    "confidenceMedium": "AI perlu konfirmasi",
+    "confidenceLow": "AI kurang yakin, sebaiknya catat manual",
+    "duplicateDetected": "Transaksi serupa sudah tercatat dalam 5 menit terakhir",
+    "dailyCapExceeded": "Pengeluaran hari ini sudah melebihi batas harian"
   },
   "changelogs": {
     "title": "Changelog",
@@ -836,7 +844,11 @@
     "apiKeyNotFound": "Key tidak ditemukan.",
     "duplicateEntry": "Data sudah ada. Tidak dapat membuat duplikat.",
     "referenceNotFound": "Data terkait tidak ditemukan. Periksa kembali pilihan Anda.",
-    "unexpectedError": "Terjadi kesalahan tak terduga. Silakan coba lagi."
+    "unexpectedError": "Terjadi kesalahan tak terduga. Silakan coba lagi.",
+    "transactionNeedsConfirmation": "Transaksi perlu konfirmasi",
+    "transactionConfidenceTooLow": "AI kurang yakin. Coba catat manual.",
+    "transactionDuplicateDetected": "Transaksi ini mirip dengan yang sudah ada.",
+    "transactionDailyCapExceeded": "Batas pengeluaran harian terlampaui."
   },
   "actionSuccess": {
     "budgetSaved": "Budget berhasil disimpan.",

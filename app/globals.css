@@ -594,6 +594,52 @@ textarea {
   }
 }
 
+@keyframes chat-dot-bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  40% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
+@keyframes chat-message-complete {
+  0% {
+    box-shadow: inset 0 0 0 0 var(--success-border);
+    background-color: transparent;
+  }
+  30% {
+    box-shadow: inset 0 0 0 1px var(--success-border);
+    background-color: var(--success-soft);
+  }
+  100% {
+    box-shadow: inset 0 0 0 0 var(--success-border);
+    background-color: transparent;
+  }
+}
+
+@keyframes chat-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.chat-dot-bounce {
+  animation: chat-dot-bounce 1.2s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+.chat-message-complete {
+  animation: chat-message-complete 600ms ease-out forwards;
+}
+
+.chat-spin {
+  animation: chat-spin 600ms linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .page-enter,
   .wallet-card-enter,
@@ -603,7 +649,10 @@ textarea {
   .success-mark-core,
   .success-mark-ring,
   .route-transition-bar-active,
-  .route-transition-veil-active {
+  .route-transition-veil-active,
+  .chat-dot-bounce,
+  .chat-message-complete,
+  .chat-spin {
     animation: none !important;
   }
 
