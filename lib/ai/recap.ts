@@ -1,5 +1,5 @@
 import "server-only";
-import { getAiClient, getAiModel } from "@/lib/ai/client";
+import { createAiChatCompletion, getAiClient, getAiModel } from "@/lib/ai/client";
 import type { AiFinancialRecap } from "@/lib/ai/data";
 import { formatCurrency } from "@/lib/utils";
 
@@ -23,7 +23,7 @@ export async function generateRecapNarrative(recap: AiFinancialRecap) {
   }
 
   try {
-    const completion = await client.chat.completions.create({
+    const completion = await createAiChatCompletion(client, {
       model: getAiModel(),
       temperature: 0.4,
       messages: [
@@ -39,7 +39,7 @@ export async function generateRecapNarrative(recap: AiFinancialRecap) {
       ]
     });
 
-    const content = completion.choices[0]?.message?.content?.trim();
+    const content = (completion as { choices: Array<{ message?: { content?: string | null } }> }).choices[0]?.message?.content?.trim();
     return content || buildDeterministicInsight(recap);
   } catch {
     return buildDeterministicInsight(recap);

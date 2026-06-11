@@ -58,7 +58,8 @@
   },
   "ai": {
     "disabled": "Asisten AI sedang belum aktif.",
-    "rateLimited": "Permintaan AI sedang terlalu ramai. Coba lagi sebentar."
+    "rateLimited": "Permintaan AI sedang terlalu ramai. Coba lagi sebentar.",
+    "upstreamRateLimited": "Server AI eksternal sedang sibuk. Coba lagi sebentar ya."
   },
   "insight": {
     "cardTitle": "Sorotan keuangan bulan ini",
@@ -80,6 +81,8 @@
     "unavailable": "Asisten AI sedang belum aktif. Coba lagi setelah konfigurasi DeepSeek diaktifkan.",
     "prepareFailed": "Saya belum bisa menyiapkan jawaban AI sekarang. Coba lagi beberapa saat lagi ya.",
     "streamFailed": "Ada kendala sementara saat mengalirkan jawaban. Coba lagi sebentar lagi ya.",
+    "streamTimeout": "AI kehabisan waktu saat menyusun jawaban lengkap. Sebagian jawaban mungkin sudah ditampilkan di atas.",
+    "streamTruncated": "Jawaban AI terpotong karena batas waktu. Coba tanya ulang dengan pertanyaan yang lebih pendek.",
     "validationTooLong": "Pertanyaan maksimal 500 karakter supaya konteks tetap fokus dan aman diproses.",
     "validationUnsafe": "Pertanyaan ini terdeteksi mencoba keluar dari batas aman asisten. Tolong fokuskan ke kondisi keuanganmu.",
     "validationOffTopic": "Asisten ini khusus membantu analisis keuangan Balance. Coba tanya soal transaksi, anggaran, saldo, atau tabunganmu.",

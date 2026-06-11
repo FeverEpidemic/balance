@@ -58,7 +58,8 @@
   },
   "ai": {
     "disabled": "AI chat is currently unavailable.",
-    "rateLimited": "AI requests are busy right now. Please try again shortly."
+    "rateLimited": "AI requests are busy right now. Please try again shortly.",
+    "upstreamRateLimited": "External AI server is busy right now. Please try again shortly."
   },
   "insight": {
     "cardTitle": "This month's financial highlight",
@@ -80,6 +81,8 @@
     "unavailable": "AI chat is currently unavailable. Please try again after the DeepSeek configuration is enabled.",
     "prepareFailed": "I couldn't prepare the AI answer right now. Please try again in a moment.",
     "streamFailed": "A temporary issue happened while streaming the answer. Please try again in a moment.",
+    "streamTimeout": "AI ran out of time composing the full answer. Part of the answer may already be shown above.",
+    "streamTruncated": "AI answer was cut off due to time limit. Try asking again with a shorter question.",
     "validationTooLong": "Questions are limited to 500 characters so the context stays focused and safe to process.",
     "validationUnsafe": "This question looks like it is trying to bypass the assistant's safety boundaries. Please keep it focused on your finances.",
     "validationOffTopic": "This assistant only helps with Balance financial analysis. Try asking about your transactions, budgets, balances, or savings.",

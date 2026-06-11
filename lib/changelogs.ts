@@ -13,6 +13,19 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.6.7",
+    date: "2026-06-17",
+    title: "AI lebih tangguh: retry otomatis, fallback cerdas, dan validasi ketat",
+    description: "Asisten AI kini lebih andal menghadapi gangguan koneksi, limit server eksternal, dan timeout. Jawaban tetap muncul meski upstream sedang sibuk, dan pencatatan transaksi via AI tervalidasi lebih ketat.",
+    features: [
+      { icon: "🔄", text: "Panggilan AI otomatis retry hingga 3x dengan jeda bertahap saat upstream error atau timeout." },
+      { icon: "⏱️", text: "Setiap panggilan AI kini punya batas waktu: 30 detik untuk analisis, 60 detik untuk streaming jawaban." },
+      { icon: "🛡️", text: "Saat server AI eksternal sibuk (429), asisten tetap menjawab pakai data lokal tanpa menampilkan error mentah." },
+      { icon: "✂️", text: "Jika streaming jawaban terpotong karena timeout, teks yang sudah diterima tetap ditampilkan dengan indikator." },
+      { icon: "✅", text: "Pencatatan transaksi via AI kini divalidasi lebih awal: jumlah harus positif, jenis harus tepat, wallet wajib diisi." }
+    ]
+  },
+  {
     version: "1.6.6",
     date: "2026-06-14",
     title: "Peningkatan keamanan dan perlindungan data",

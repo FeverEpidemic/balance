@@ -88,19 +88,22 @@ export const aiTools: ChatCompletionTool[] = [
         properties: {
           walletId: {
             type: "string",
-            description: "Wallet tujuan transaksi. Wajib."
+            minLength: 1,
+            description: "Wallet tujuan transaksi. Wajib diisi, tidak boleh kosong."
           },
           kind: {
             type: "string",
-            enum: ["income", "expense"]
+            enum: ["income", "expense"],
+            description: "Jenis transaksi: income untuk pemasukan, expense untuk pengeluaran."
           },
           amount: {
             type: "number",
-            minimum: 1
+            minimum: 1,
+            description: "Nominal transaksi dalam Rupiah. Harus bilangan positif (> 0)."
           },
           categoryId: {
             type: "string",
-            description: "Opsional. Gunakan ID kategori jika sudah diketahui."
+            description: "Opsional. Gunakan ID kategori jika sudah diketahui dari getCategories."
           },
           categoryName: {
             type: "string",
@@ -112,7 +115,7 @@ export const aiTools: ChatCompletionTool[] = [
           },
           happenedAt: {
             type: "string",
-            description: "Opsional. Format YYYY-MM-DD. Jika kosong, pakai hari ini."
+            description: "Opsional. Tanggal transaksi dalam format YYYY-MM-DD. Jika kosong, pakai tanggal hari ini."
           }
         },
         required: ["walletId", "kind", "amount"]
@@ -155,18 +158,46 @@ export async function executeAiToolCall(userId: string, toolCall: ChatCompletion
         return JSON.stringify(
           await getCategoriesForWallets(userId, typeof args.walletId === "string" && args.walletId ? [args.walletId] : undefined)
         );
-      case "createTransaction":
+      case "createTransaction": {
+        const walletId = typeof args.walletId === "string" && args.walletId.trim() ? args.walletId.trim() : "";
+        const kind = args.kind === "income" || args.kind === "expense" ? args.kind : null;
+        const amount = Number(args.amount);
+
+        // Pre-validation: return structured errors so the AI can correct itself
+        const preValidationErrors: string[] = [];
+
+        if (!walletId) {
+          preValidationErrors.push("walletId wajib diisi (tidak boleh kosong).");
+        }
+
+        if (!kind) {
+          preValidationErrors.push(`kind harus 'income' atau 'expense', bukan '${String(args.kind ?? "")}'.`);
+        }
+
+        if (!Number.isFinite(amount) || amount <= 0) {
+          preValidationErrors.push(`amount harus bilangan positif (> 0), bukan ${String(args.amount ?? "")}.`);
+        }
+
+        if (preValidationErrors.length > 0) {
+          return JSON.stringify({
+            error: "VALIDATION_FAILED",
+            message: "Parameter transaksi tidak valid. Perbaiki input lalu panggil ulang createTransaction.",
+            details: preValidationErrors
+          });
+        }
+
         return JSON.stringify(
           await createTransactionViaAi(userId, {
-            walletId: String(args.walletId ?? ""),
-            kind: args.kind === "income" ? "income" : "expense",
-            amount: Number(args.amount),
-            categoryId: typeof args.categoryId === "string" ? args.categoryId : null,
-            categoryName: typeof args.categoryName === "string" ? args.categoryName : null,
-            note: typeof args.note === "string" ? args.note : null,
-            happenedAt: typeof args.happenedAt === "string" ? args.happenedAt : null
+            walletId,
+            kind: kind as "income" | "expense",
+            amount,
+            categoryId: typeof args.categoryId === "string" && args.categoryId.trim() ? args.categoryId.trim() : null,
+            categoryName: typeof args.categoryName === "string" && args.categoryName.trim() ? args.categoryName.trim() : null,
+            note: typeof args.note === "string" && args.note.trim() ? args.note.trim() : null,
+            happenedAt: typeof args.happenedAt === "string" && args.happenedAt.trim() ? args.happenedAt.trim() : null
           })
         );
+      }
       default:
         return JSON.stringify({ error: "UNKNOWN_TOOL" });
     }

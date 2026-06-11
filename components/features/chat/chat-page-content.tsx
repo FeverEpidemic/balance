@@ -128,6 +128,9 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
     setIsLoading(true);
 
     try {
+      const controller = new AbortController();
+      const fetchTimeoutId = setTimeout(() => controller.abort(), 90_000);
+
       const response = await fetch("/api/ai/chat", {
         method: "POST",
         headers: {
@@ -143,8 +146,11 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
           locale,
           walletId: selectedWalletId || undefined,
           period: effectivePeriod
-        })
+        }),
+        signal: controller.signal
       });
+
+      clearTimeout(fetchTimeoutId);
 
       if (!response.body) {
         throw new Error("EMPTY_STREAM");
@@ -172,7 +178,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
             continue;
           }
 
-          const payload = JSON.parse(line.slice(6)) as { type: "token" | "done"; content?: string };
+          const payload = JSON.parse(line.slice(6)) as { type: "token" | "done" | "streamTimeout"; content?: string };
 
           if (payload.type === "token") {
             setMessages((current) =>
@@ -181,6 +187,20 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
                   ? {
                       ...message,
                       content: `${message.content}${payload.content ?? ""}`
+                    }
+                  : message
+              )
+            );
+          }
+
+          if (payload.type === "streamTimeout") {
+            setMessages((current) =>
+              current.map((message) =>
+                message.id === assistantId
+                  ? {
+                      ...message,
+                      content: `${message.content}\n\n⚠️ ${t("chat.streamTimeout")}`,
+                      isStreaming: false
                     }
                   : message
               )
@@ -201,13 +221,17 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
           }
         }
       }
-    } catch {
+    } catch (error: unknown) {
+      const isAbortError = error instanceof DOMException && error.name === "AbortError";
+
       setMessages((current) =>
         current.map((message) =>
           message.id === assistantId
             ? {
                 ...message,
-                content: t("chat.errorState"),
+                content: message.content
+                  ? `${message.content}\n\n⚠️ ${t(isAbortError ? "chat.streamTimeout" : "chat.errorState")}`
+                  : t(isAbortError ? "chat.streamTimeout" : "chat.errorState"),
                 isStreaming: false
               }
             : message

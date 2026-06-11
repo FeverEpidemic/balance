@@ -2,6 +2,14 @@
 
 ## [Unreleased] - 2026-06-10
 
+### Added - AI Resilience & Upstream Handling
+
+- **Retry logic dengan exponential backoff:** Panggilan ke DeepSeek/OpenRouter kini dibungkus dengan `createAiChatCompletion()` yang otomatis retry hingga 2x (total 3 attempt) dengan backoff 1s/2s untuk error retryable (429, 5xx, network/timeout). Non-streaming call juga menaikkan temperature +0.1 per retry.
+- **Handling 429 upstream:** `RateLimitError` dari upstream diparse `Retry-After` header-nya; jika masih gagal setelah retry, AI fallback ke jawaban lokal berbasis data (bukan error mentah `prepareFailed`).
+- **Timeout eksplisit per request:** 30s untuk non-streaming, 60s untuk streaming via `AbortSignal.timeout()` — mencegah hanging request.
+- **Streaming timeout & partial response:** Server mengirim SSE event `streamTimeout` jika stream read melebihi 60s. Client menampilkan partial response yang sudah diterima bersama indikator timeout.
+- **Validasi output AI diperketat:** Tool `createTransaction` kini punya pre-validation di `executeAiToolCall` — `walletId` wajib non-empty, `amount` harus > 0, `kind` harus `income`/`expense`. Error terstruktur dikembalikan ke model supaya bisa koreksi diri di loop berikutnya.
+
 ### Changed - Security Hardening (7 Fixes)
 
 #### Perbaikan Keamanan

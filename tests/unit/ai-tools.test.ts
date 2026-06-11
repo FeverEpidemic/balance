@@ -110,4 +110,151 @@ describe("executeAiToolCall", () => {
       tool: "getCategories"
     });
   });
+
+  describe("createTransaction pre-validation", () => {
+    it("rejects empty walletId", async () => {
+      const result = await executeAiToolCall("user-1", {
+        id: "call-4",
+        type: "function",
+        function: {
+          name: "createTransaction",
+          arguments: JSON.stringify({
+            walletId: "",
+            kind: "expense",
+            amount: 15000
+          })
+        }
+      });
+
+      const parsed = JSON.parse(result);
+
+      expect(parsed.error).toBe("VALIDATION_FAILED");
+      expect(parsed.details).toEqual(
+        expect.arrayContaining([expect.stringContaining("walletId")])
+      );
+    });
+
+    it("rejects invalid kind", async () => {
+      const result = await executeAiToolCall("user-1", {
+        id: "call-5",
+        type: "function",
+        function: {
+          name: "createTransaction",
+          arguments: JSON.stringify({
+            walletId: "wallet-1",
+            kind: "transfer",
+            amount: 50000
+          })
+        }
+      });
+
+      const parsed = JSON.parse(result);
+
+      expect(parsed.error).toBe("VALIDATION_FAILED");
+      expect(parsed.details).toEqual(
+        expect.arrayContaining([expect.stringContaining("kind")])
+      );
+    });
+
+    it("rejects amount <= 0", async () => {
+      const result = await executeAiToolCall("user-1", {
+        id: "call-6",
+        type: "function",
+        function: {
+          name: "createTransaction",
+          arguments: JSON.stringify({
+            walletId: "wallet-1",
+            kind: "expense",
+            amount: 0
+          })
+        }
+      });
+
+      const parsed = JSON.parse(result);
+
+      expect(parsed.error).toBe("VALIDATION_FAILED");
+      expect(parsed.details).toEqual(
+        expect.arrayContaining([expect.stringContaining("amount")])
+      );
+    });
+
+    it("rejects negative amount", async () => {
+      const result = await executeAiToolCall("user-1", {
+        id: "call-7",
+        type: "function",
+        function: {
+          name: "createTransaction",
+          arguments: JSON.stringify({
+            walletId: "wallet-1",
+            kind: "expense",
+            amount: -5000
+          })
+        }
+      });
+
+      const parsed = JSON.parse(result);
+
+      expect(parsed.error).toBe("VALIDATION_FAILED");
+      expect(parsed.details).toEqual(
+        expect.arrayContaining([expect.stringContaining("amount")])
+      );
+    });
+
+    it("reports multiple validation errors at once", async () => {
+      const result = await executeAiToolCall("user-1", {
+        id: "call-8",
+        type: "function",
+        function: {
+          name: "createTransaction",
+          arguments: JSON.stringify({
+            walletId: "   ",
+            kind: "invalid",
+            amount: "not-a-number"
+          })
+        }
+      });
+
+      const parsed = JSON.parse(result);
+
+      expect(parsed.error).toBe("VALIDATION_FAILED");
+      expect(parsed.details.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it("passes valid params through to createTransactionViaAi", async () => {
+      createTransactionViaAiMock.mockResolvedValue({
+        ok: true,
+        message: "Transaksi berhasil disimpan."
+      });
+
+      const result = await executeAiToolCall("user-1", {
+        id: "call-9",
+        type: "function",
+        function: {
+          name: "createTransaction",
+          arguments: JSON.stringify({
+            walletId: "wallet-1",
+            kind: "income",
+            amount: 250000,
+            categoryId: "cat-1",
+            note: "Gaji",
+            happenedAt: "2026-06-15"
+          })
+        }
+      });
+
+      expect(createTransactionViaAiMock).toHaveBeenCalledWith("user-1", {
+        walletId: "wallet-1",
+        kind: "income",
+        amount: 250000,
+        categoryId: "cat-1",
+        categoryName: null,
+        note: "Gaji",
+        happenedAt: "2026-06-15"
+      });
+      expect(JSON.parse(result)).toEqual({
+        ok: true,
+        message: "Transaksi berhasil disimpan."
+      });
+    });
+  });
 });
