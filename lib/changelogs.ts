@@ -13,6 +13,17 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.8.4",
+    date: "2026-06-12",
+    title: "Tulisan mobile kini lebih kalem dan stabil",
+    description: "Kami merapikan elemen mobile yang masih tampak terlalu besar, terutama di Android, agar chip, tab, dropdown, dan metrik lebih nyaman dibaca.",
+    features: [
+      { icon: "📱", text: "Browser text autosize di mobile kini dikunci agar ukuran font mengikuti desain dan tidak membesar sendiri." },
+      { icon: "🏷️", text: "Chip rekap, tab periode, dan kontrol konteks Asisten AI diperkecil agar tidak terasa memenuhi layar." },
+      { icon: "💸", text: "Subtitle hero serta angka ringkasan Dashboard diturunkan lagi supaya proporsinya lebih tenang di layar kecil." },
+    ]
+  },
+  {
     version: "1.8.3",
     date: "2026-06-12",
     title: "Tipografi dashboard dan Asisten AI lebih tenang",

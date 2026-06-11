@@ -43,7 +43,7 @@ export function DashboardContent({
       currentPath="/dashboard"
       title={t("dashboard.title")}
       subtitle={t("dashboard.subtitle")}
-      subtitleClassName="text-[1.6rem] sm:text-[1.85rem] md:text-[2rem]"
+      subtitleClassName="text-[1.3rem] leading-tight sm:text-[1.6rem] md:text-[2rem]"
       userName={dashboard.shell.userName}
       walletCount={dashboard.shell.walletCount}
       budgetCount={dashboard.shell.budgetCount}
@@ -78,7 +78,7 @@ export function DashboardContent({
                 type="button"
                 onClick={() => setActiveTab(tab.key)}
                 className={cn(
-                  "whitespace-nowrap rounded-xl px-3 py-2 font-label text-xs font-semibold uppercase tracking-[0.12em] transition sm:px-4 sm:py-3 sm:text-sm sm:normal-case sm:tracking-[0.02em]",
+                  "whitespace-nowrap rounded-xl px-3 py-2 font-label text-[11px] font-semibold tracking-[0.04em] transition sm:px-4 sm:py-3 sm:text-sm sm:normal-case sm:tracking-[0.02em]",
                   isActive
                     ? "bg-primary text-[var(--button-primary-text)] shadow-serene hover:bg-primary-hover"
                     : "text-muted-foreground hover:bg-[color:color-mix(in_srgb,var(--muted)_88%,var(--surface-container-lowest)_12%)] hover:text-foreground"
@@ -98,20 +98,20 @@ export function DashboardContent({
             <div className="card">
               <p className="eyebrow">{t("dashboard.title")}</p>
               <h3 className="headline-md mt-2 text-foreground">{t("dashboard.totalBalanceLabel")}</h3>
-              <p className="metric mt-5 text-[1.75rem] text-foreground sm:text-3xl md:text-[2.3rem]">{formatCurrency(dashboard.totalBalance)}</p>
-              <p className="mt-3 max-w-xl text-sm text-muted-foreground">{t("dashboard.totalBalanceDetail")}</p>
+              <p className="metric mt-5 text-[1.45rem] text-foreground sm:text-[1.9rem] md:text-[2.3rem]">{formatCurrency(dashboard.totalBalance)}</p>
+              <p className="mt-3 max-w-xl text-[15px] leading-7 text-muted-foreground sm:text-sm">{t("dashboard.totalBalanceDetail")}</p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 <div className="subtle-panel">
                   <p className="text-sm text-muted-foreground">{t("dashboard.availableBalanceLabel")}</p>
-                  <p className="metric mt-2 text-lg sm:text-xl">{formatCurrency(dashboard.totalAvailableBalance)}</p>
+                  <p className="metric mt-2 text-[1rem] sm:text-xl">{formatCurrency(dashboard.totalAvailableBalance)}</p>
                 </div>
                 <div className="subtle-panel">
                   <p className="text-sm text-muted-foreground">{t("dashboard.savingBalanceLabel")}</p>
-                  <p className="metric mt-2 text-lg sm:text-xl">{formatCurrency(dashboard.totalSavingBalance)}</p>
+                  <p className="metric mt-2 text-[1rem] sm:text-xl">{formatCurrency(dashboard.totalSavingBalance)}</p>
                 </div>
                 <div className="subtle-panel sm:col-span-2 xl:col-span-1">
                   <p className="text-sm text-muted-foreground">{t("dashboard.outstandingSplitLabel")}</p>
-                  <p className="metric mt-2 text-lg sm:text-xl">{formatCurrency(dashboard.outstandingSplit)}</p>
+                  <p className="metric mt-2 text-[1rem] sm:text-xl">{formatCurrency(dashboard.outstandingSplit)}</p>
                 </div>
               </div>
             </div>

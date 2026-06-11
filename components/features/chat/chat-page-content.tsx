@@ -381,14 +381,14 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
       currentPath="/chat"
       title={t("chat.pageTitle")}
       subtitle={t("chat.pageSubtitle")}
-      subtitleClassName="text-[1.55rem] sm:text-[1.8rem] md:text-[1.95rem]"
+      subtitleClassName="text-[1.35rem] sm:text-[1.6rem] md:text-[1.9rem]"
       userName={shell.userName}
       walletCount={shell.walletCount}
       budgetCount={shell.budgetCount}
       memberCount={shell.memberCount}
       primaryWalletId={shell.primaryWalletId}
       headerAction={
-        <Button type="button" variant="soft" className="rounded-full" onClick={() => handleRecapSuggestion("month")}>
+        <Button type="button" variant="soft" className="rounded-full text-[13px] sm:text-sm" onClick={() => handleRecapSuggestion("month")}>
           {t("chat.quickStart")}
         </Button>
       }
@@ -422,7 +422,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
                   key={period}
                   type="button"
                   onClick={() => setSelectedPeriod(period)}
-                  className={`shrink-0 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition ${
+                  className={`shrink-0 rounded-full px-3 py-2 text-[11px] font-semibold tracking-[0.04em] transition sm:text-xs sm:uppercase sm:tracking-[0.12em] ${
                     selectedPeriod === period ? "bg-primary text-[var(--button-primary-text)]" : "bg-muted text-muted-foreground"
                   }`}
                 >
@@ -433,7 +433,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
 
             <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
               <div className="min-w-0">
-                <label className="mb-2 block font-label text-xs uppercase tracking-[0.12em] text-muted-foreground">{t("common.wallet")}</label>
+                <label className="mb-2 block font-label text-[11px] tracking-[0.08em] text-muted-foreground sm:text-xs sm:uppercase sm:tracking-[0.12em]">{t("common.wallet")}</label>
                 <select value={selectedWalletId} onChange={(event) => setSelectedWalletId(event.target.value)}>
                   <option value="">{t("chat.allWallets")}</option>
                   {wallets.map((wallet) => (
@@ -444,7 +444,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
                 </select>
               </div>
               <div className="min-w-0 rounded-[1rem] border border-[color:var(--soft-border)] bg-muted px-4 py-3">
-                <p className="font-label text-xs uppercase tracking-[0.12em] text-muted-foreground">{t("chat.infoTitle")}</p>
+                <p className="font-label text-[11px] tracking-[0.08em] text-muted-foreground sm:text-xs sm:uppercase sm:tracking-[0.12em]">{t("chat.infoTitle")}</p>
                 <p className="mt-2 text-sm text-foreground/80">{t("chat.infoDescription")}</p>
               </div>
             </div>
@@ -454,17 +454,17 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
             {messages.length > 0 && (
               <div className="flex items-center justify-end mb-3">
                 {showResetConfirm ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center justify-end gap-2">
                     <span className="text-xs text-muted-foreground">{t("chat.resetConfirm")}</span>
-                    <Button type="button" variant="primary" size="sm" onClick={handleReset}>
+                    <Button type="button" variant="primary" size="sm" className="text-[13px] sm:text-sm" onClick={handleReset}>
                       Ya, Hapus
                     </Button>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => setShowResetConfirm(false)}>
+                    <Button type="button" variant="ghost" size="sm" className="text-[13px] sm:text-sm" onClick={() => setShowResetConfirm(false)}>
                       {t("common.cancel")}
                     </Button>
                   </div>
                 ) : (
-                  <Button type="button" variant="ghost" size="sm" onClick={handleReset}>
+                  <Button type="button" variant="ghost" size="sm" className="text-[13px] sm:text-sm" onClick={handleReset}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"
                          className="stroke-current" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M4.5 7h15" />

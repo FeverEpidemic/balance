@@ -155,7 +155,7 @@ export function AppShell({
                   <h2 className={cn("headline-lg", subtitleClassName)}>{subtitle}</h2>
                   {headerAction ? <div className="shrink-0 md:hidden">{headerAction}</div> : null}
                 </div>
-                <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                <p className="mt-2 max-w-2xl text-[15px] leading-7 text-muted-foreground sm:text-sm">
                   {t("app.shellHeaderDescription")}
                 </p>
                 {mobileWalletShortcuts.length > 0 ? (

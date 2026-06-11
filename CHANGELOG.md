@@ -4,6 +4,8 @@
 
 ### Changed
 
+- **Kontrol mobile diperkecil lagi** — Mengunci `text-size-adjust` browser mobile dan menurunkan ukuran chip, tab, select context, subtitle hero, serta metrik Dashboard/Chat yang masih tampak terlalu besar di perangkat Android.
+
 - **Tipografi Dashboard & Asisten AI lebih proporsional** — Judul hero Dashboard dan Chat/Asisten AI kini diperkecil agar lebih nyaman di mobile. Angka saldo utama, StatCard, kartu wallet, dan heading kosong/sidebar Asisten AI juga diturunkan satu tingkat supaya layar terasa lebih ringan.
 
 - **Mobile nav lebih intentional** — Sidebar desktop collapsed tetap tidak lagi ikut ter-render di mobile. Bottom navigation kembali fokus ke tujuan utama, sementara drawer sekarang dibuka dari tombol floating hamburger di kiri atas agar akses menu sekunder tetap cepat tanpa membebani bottom nav. Loading skeleton ikut diselaraskan supaya state loading dan halaman utama tetap konsisten.

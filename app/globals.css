@@ -48,6 +48,11 @@
   --max-width-app: 1280px;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 :root {
   --background: #fbf9f3;
   --foreground: #1b1c18;
@@ -368,11 +373,11 @@ textarea {
   }
 
   .headline-lg {
-    @apply font-display text-2xl font-semibold tracking-[-0.02em] md:text-[2rem];
+    @apply font-display text-[1.55rem] font-semibold tracking-[-0.02em] sm:text-[1.75rem] md:text-[2rem];
   }
 
   .headline-md {
-    @apply font-display text-xl font-medium;
+    @apply font-display text-[1rem] font-medium sm:text-[1.1rem] md:text-xl;
   }
 
   .metric {

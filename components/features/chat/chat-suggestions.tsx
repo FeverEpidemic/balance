@@ -17,7 +17,7 @@ export function ChatSuggestions({ items, onSelect, activeKey }: ChatSuggestionsP
           type="button"
           onClick={() => onSelect(item.prompt)}
           className={cn(
-            "shrink-0 rounded-full border px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] transition",
+            "shrink-0 rounded-full border px-3 py-2 text-[11px] font-semibold tracking-[0.04em] transition sm:text-xs sm:uppercase sm:tracking-[0.12em]",
             activeKey === item.key
               ? "border-primary bg-primary-soft text-primary-strong"
               : "border-border bg-card text-muted-foreground hover:border-primary/30 hover:text-foreground"
