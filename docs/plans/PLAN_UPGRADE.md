@@ -182,7 +182,7 @@ Jika `date-fns` dipakai:
 ## Dampak Implementasi
 
 Area yang diperkirakan disentuh:
-- `PLAN_UPGRADE.md` sebagai referensi kerja
+- `docs/plans/PLAN_UPGRADE.md` sebagai referensi kerja
 - `app/globals.css` untuk token compatibility bila perlu
 - `tailwind.config.ts` bila perlu plugin animasi
 - `components/app-shell.tsx`

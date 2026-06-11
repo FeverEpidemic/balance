@@ -1,6 +1,6 @@
 # balance
 
-`balance` is a mobile-responsive Next.js MVP for household finance in Bahasa Indonesia. It follows the product scope in [PLAN.md](/d:/Project/balance/PLAN.md) and the visual direction in [DESIGN.md](/d:/Project/balance/DESIGN.md).
+`balance` is a mobile-responsive Next.js MVP for household finance in Bahasa Indonesia. It follows the product scope in [docs/plans/PLAN.md](docs/plans/PLAN.md) and the visual direction in [DESIGN.md](DESIGN.md).
 
 ## Included
 

@@ -188,8 +188,8 @@ author: FeverEpidemic
 
 ## 6. Evolusi Produk (Roadmap)
 
-Lihat `PLAN.md` untuk visi awal & scope MVP.
-Lihat `PLAN_UPGRADE.md` untuk rencana upgrade & backlog.
+Lihat `docs/plans/PLAN.md` untuk visi awal & scope MVP.
+Lihat `docs/plans/PLAN_UPGRADE.md` untuk rencana upgrade & backlog.
 
 Fitur potensial ke depan:
 - Integrasi bank (OCR / manual)

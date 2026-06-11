@@ -9,7 +9,7 @@ Guidance for AI coding agents working in this repository.
 Use these docs as source-of-truth context before broad changes:
 
 - `README.md` for setup, hosted/self-hosted Supabase notes, Docker usage, and operational details.
-- `PLAN.md` for product scope.
+- `docs/plans/PLAN.md` for product scope.
 - `DESIGN.md` for the "Serene Capital" visual direction, tokens, typography, and UI tone.
 - `CHANGELOG.md` for recent feature history.
 - `supabase/migrations/` for database shape and RLS behavior.

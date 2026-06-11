@@ -21,7 +21,7 @@ Baca dengan urutan ini untuk pemahaman maksimal:
 | 2 | `docs/DB_SCHEMA.md` | Semua tabel, relasi, RLS, data flow | 15 menit |
 | 3 | `docs/ENGINEERING.md` | Stack, routing, data layer, deployment | 15 menit |
 | 4 | `AGENTS.md` | Panduan coding, konvensi, testing | 5 menit |
-| 5 | `AGENT_HANDOFF.md` | Protokol handoff antar agent | 3 menit |
+| 5 | `docs/plans/AGENT_HANDOFF.md` | Protokol handoff antar agent | 3 menit |
 | 6 | `DESIGN.md` | Design system Serene Capital | 5 menit |
 | 7 | `docs/SERVER_ACTION_PATTERNS.md` | Pola server action & error handling | 5 menit |
 | 8 | `docs/TESTING_GUIDE.md` | Cara testing & pola umum | 5 menit |

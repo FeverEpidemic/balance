@@ -10,13 +10,13 @@ Dokumen ini merangkum percakapan, keputusan, implementasi, dan status repo agar 
 - Status git saat handoff ini dibuat: bersih
 
 Fokus percakapan dan pekerjaan:
-- Review dan rapikan `PLAN_UPGRADE.md` agar aman diimplementasikan pada repo ini.
+- Review dan rapikan `docs/plans/PLAN_UPGRADE.md` agar aman diimplementasikan pada repo ini.
 - Implementasikan fase awal plan upgrade transaksi.
 - Selaraskan environment lokal ke Node 20+ agar sesuai `package.json` dan menghindari warning Supabase/Next tooling.
 
 ## Apa yang Dibahas dan Diputuskan
 
-Awalnya `PLAN_UPGRADE.md` masih generik dan belum cukup grounded ke kondisi repo. Setelah beberapa putaran review, plan dikunci supaya:
+Awalnya `docs/plans/PLAN_UPGRADE.md` masih generik dan belum cukup grounded ke kondisi repo. Setelah beberapa putaran review, plan dikunci supaya:
 
 - Fokus utama adalah polish UX transaksi, bukan rewrite UI seluruh app.
 - Migrasi `shadcn/ui` dibatasi pada iterasi pertama untuk:
@@ -40,7 +40,7 @@ Awalnya `PLAN_UPGRADE.md` masih generik dan belum cukup grounded ke kondisi repo
 - Dataset history tidak boleh mengirim seluruh histori lintas bulan ke client pada iterasi pertama.
 - `date-fns` tidak wajib. Fase itu hanya dikerjakan jika benar-benar dibutuhkan.
 
-## Status Implementasi terhadap `PLAN_UPGRADE.md`
+## Status Implementasi terhadap `docs/plans/PLAN_UPGRADE.md`
 
 ### Sudah selesai
 
@@ -91,7 +91,7 @@ Awalnya `PLAN_UPGRADE.md` masih generik dan belum cukup grounded ke kondisi repo
 ## File dan Area yang Diubah
 
 ### Plan dan dokumentasi
-- `PLAN_UPGRADE.md`
+- `docs/plans/PLAN_UPGRADE.md`
 - `README.md`
 - `CHANGELOG.md`
 - `.nvmrc`
@@ -221,7 +221,7 @@ Opsi pekerjaan paling logis berikutnya:
 ## Rekomendasi Lanjutan
 
 Jika agent berikutnya melanjutkan:
-1. Baca `PLAN_UPGRADE.md` sebagai baseline keputusan.
+1. Baca `docs/plans/PLAN_UPGRADE.md` sebagai baseline keputusan.
 2. Cek commit `a685318` sebagai titik awal implementasi.
 3. Kalau lanjut ke fase berikutnya, jaga scope tetap sempit dan verifikasi minimal dengan:
    - `npm run typecheck`

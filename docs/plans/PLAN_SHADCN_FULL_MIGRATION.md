@@ -1,7 +1,7 @@
 # Rencana Migrasi Penuh ke `shadcn/ui`
 
 > **Status:** Draft — belum ada kode yang diubah.
-> **Dasar:** Analisis terhadap `components/ui/` (21 komponen), `PLAN_UPGRADE.md`, `app/globals.css`, `tailwind.config.ts`, `lib/utils.ts`, dan `package.json`.
+> **Dasar:** Analisis terhadap `components/ui/` (21 komponen), `docs/plans/PLAN_UPGRADE.md`, `app/globals.css`, `tailwind.config.ts`, `lib/utils.ts`, dan `package.json`.
 > **Prinsip:** 100% desain visual "Serene Capital" dipertahankan. shadcn hanya menjadi cangkang struktural baru.
 
 ---
