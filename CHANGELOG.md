@@ -2,8 +2,13 @@
 
 ## [Unreleased] - 2026-06-12
 
+### Changed
+
+- **Sidebar fixed full-height left panel + card sections** — Sidebar desktop sekarang menempel di tepi kiri layar (fixed, full-height) dengan panel solid. Navigasi terbagi jadi dua section: "Navigasi Utama" dan "Aktif Wallet" dengan card-style links yang konsisten antara desktop dan mobile. Layout menggunakan flex dengan sidebar spacer — konten utama otomatis bergeser saat sidebar collapse/expand. Loading skeleton juga diselaraskan dengan layout baru.
+
 ### Added
 
+- **Sidebar collapsible + unified mobile drawer** — Sidebar desktop sekarang bisa diciutkan jadi icons-only (lebar 72px) via tombol toggle. State collapse disimpan di localStorage. Di mobile, sidebar berubah jadi overlay drawer menggantikan Sheet sebelumnya, dengan navigasi penuh + shortcut wallet + tombol logout.
 - **Dashboard tab-based** — Dashboard kini dibagi menjadi 3 tab horizontal (Ringkasan, Dompet, Aktivitas). Konten terkelompok sehingga pengguna langsung melihat napas keuangan tanpa perlu scroll panjang.
 - **Ringkasan finansial Dashboard** — Kolom kanan ringkasan finansial sekarang menampilkan **Pemasukan bulan ini** (`monthIncome`) sebagai pengganti duplikasi `availableBalance` dan `savingBalance` yang sudah ada di kolom kiri. Data pemasukan hanya mencakup transaksi income bulan berjalan.
 - **Form buat wallet lebih rapi** — Form pembuatan wallet kini disembunyikan di balik tombol "Buat wallet baru" untuk pengguna yang sudah punya wallet. Pengguna baru (0 wallet) tetap melihat form langsung terbuka. Form bisa ditutup kembali dengan tombol "Batal".

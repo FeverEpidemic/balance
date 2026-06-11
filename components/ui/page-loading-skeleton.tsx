@@ -155,26 +155,30 @@ function AppShellSkeleton({
     : [];
 
   return (
-    <div className="page-wrap section-gap">
-      <div className="app-grid">
-        <aside className="card hidden h-fit lg:block">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <p className="eyebrow">balance</p>
-              <SkeletonBlock className="mt-4 h-6 w-full max-w-[13rem]" />
-              <SkeletonBlock className="mt-2 h-6 w-full max-w-[12rem]" />
-              <SkeletonBlock className="mt-4 h-4 w-24" />
-            </div>
-            <SkeletonBlock className="h-9 w-20 rounded-full" />
-          </div>
-          <nav className="mt-8 space-y-2">
-            {navItems.map((item) => (
-              <AppNavLink key={item.href} currentPath={currentPath} href={item.href} icon={item.icon} label={item.label} />
-            ))}
-          </nav>
-        </aside>
+    <div className="flex min-h-screen">
+      {/* Sidebar spacer for desktop */}
+      <div className="hidden w-[280px] shrink-0 lg:block" aria-hidden />
 
-        <main className="min-w-0">
+      {/* Sidebar skeleton */}
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[280px] flex-col border-r border-border bg-card shadow-float lg:flex">
+        <div className="flex items-start justify-between gap-2 px-4 pt-5">
+          <div className="min-w-0 flex-1">
+            <p className="eyebrow">balance</p>
+            <SkeletonBlock className="mt-4 h-6 w-full max-w-[13rem]" />
+            <SkeletonBlock className="mt-2 h-6 w-full max-w-[12rem]" />
+            <SkeletonBlock className="mt-4 h-4 w-24" />
+          </div>
+          <SkeletonBlock className="h-9 w-20 rounded-full" />
+        </div>
+        <nav className="mt-8 flex-1 space-y-2 overflow-y-auto px-4 pb-4">
+          {navItems.map((item) => (
+            <AppNavLink key={item.href} currentPath={currentPath} href={item.href} icon={item.icon} label={item.label} />
+          ))}
+        </nav>
+      </aside>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <main className="page-wrap section-gap">
           <header className="glass-panel mb-4 rounded-[1.25rem] px-4 py-4 backdrop-blur md:px-6">
             <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
               <SkeletonBlock className="h-4 w-24" />
@@ -227,26 +231,26 @@ function AppShellSkeleton({
 
           <div className="pb-24 lg:pb-0">{children}</div>
         </main>
-      </div>
 
-      <nav className="glass-nav fixed inset-x-4 bottom-4 z-50 rounded-2xl p-2 backdrop-blur lg:hidden">
-        <div className="touch-scroll-x flex gap-2">
-          {mobileNavItems.map((item) => (
-            <div
-              key={item.href}
-              className={cn(
-                "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em]",
-                isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "text-muted-foreground"
-              )}
-            >
-              <span className="flex flex-col items-center justify-center gap-1">
-                <AppIcon name={item.icon} className="h-4 w-4" />
-                <span>{item.label}</span>
-              </span>
-            </div>
-          ))}
-        </div>
-      </nav>
+        <nav className="glass-nav fixed inset-x-4 bottom-4 z-50 rounded-2xl p-2 backdrop-blur lg:hidden">
+          <div className="touch-scroll-x flex gap-2">
+            {mobileNavItems.map((item) => (
+              <div
+                key={item.href}
+                className={cn(
+                  "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em]",
+                  isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "text-muted-foreground"
+                )}
+              >
+                <span className="flex flex-col items-center justify-center gap-1">
+                  <AppIcon name={item.icon} className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </span>
+              </div>
+            ))}
+          </div>
+        </nav>
+      </div>
     </div>
   );
 }

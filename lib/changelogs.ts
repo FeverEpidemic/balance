@@ -13,6 +13,32 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.8.0",
+    date: "2026-06-12",
+    title: "Sidebar fixed full-height dengan card sections",
+    description: "Sidebar desktop kini full-height, fixed di kiri layar dengan panel solid. Navigasi dibagi jadi 'Navigasi Utama' dan 'Aktif Wallet' dengan card-style links yang konsisten antara desktop dan mobile.",
+    features: [
+      { icon: "🖥️", text: "Sidebar desktop fixed full-height di kiri — seamless, modern, panel solid bg-card dengan border-right." },
+      { icon: "📂", text: "Navigasi terbagi jadi dua section: Navigasi Utama (semua menu) dan Aktif Wallet (shortcuts wallet dengan card-style links)." },
+      { icon: "📱", text: "Desktop dan mobile kini pakai komponen UnifiedSidebar yang sama — styling card sections identik." },
+      { icon: "🔄", text: "Layout flex dengan sidebar spacer — konten bergeser otomatis saat sidebar collapsed/expanded tanpa inline style hydration mismatch." },
+      { icon: "🦴", text: "Loading skeleton diselaraskan dengan layout fixed sidebar baru." }
+    ]
+  },
+  {
+    version: "1.7.9",
+    date: "2026-06-12",
+    title: "Sidebar collapsible + unified mobile drawer",
+    description: "Sidebar desktop bisa diciutkan jadi icons-only (72px) dengan tombol toggle — state tersimpan di localStorage. Di mobile, navigasi digantikan overlay drawer yang seragam dengan sidebar desktop, termasuk shortcut wallet dan logout.",
+    features: [
+      { icon: "↔️", text: "Sidebar desktop collapsible: expanded (280px) ↔ collapsed (72px, icons only) dengan transisi halus." },
+      { icon: "💾", text: "State collapse persisten via localStorage — tidak reset saat refresh." },
+      { icon: "📱", text: "Mobile unified drawer: overlay full-height dari kiri menggantikan Sheet, dengan navigasi utama + shortcut wallet + logout." },
+      { icon: "🔍", text: "Tooltip label saat hover di mode icons-only agar navigasi tetap jelas." },
+      { icon: "🧹", text: "Sheet/shacdn drawer dihapus — kode lebih bersih dan konsisten di semua layar." }
+    ]
+  },
+  {
     version: "1.7.8",
     date: "2026-06-12",
     title: "Dashboard tab-based: Ringkasan, Dompet, Aktivitas",

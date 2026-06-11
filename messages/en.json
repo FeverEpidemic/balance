@@ -9,7 +9,9 @@
     "navigationTitle": "Browse wallet areas and main pages",
     "navigationDescription": "Use this drawer to jump to more detailed wallet destinations without disturbing the main bottom navigation.",
     "navigationMain": "Main",
-    "navigationActiveWallet": "Active wallet"
+    "navigationActiveWallet": "Active wallet",
+    "sidebarCollapse": "Collapse sidebar",
+    "sidebarExpand": "Expand sidebar"
   },
   "common": {
     "user": "User",

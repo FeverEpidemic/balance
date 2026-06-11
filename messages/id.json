@@ -9,7 +9,9 @@
     "navigationTitle": "Jelajahi wallet dan halaman utama",
     "navigationDescription": "Pakai drawer ini untuk pindah ke tujuan wallet yang lebih lengkap tanpa mengganggu bottom navigation utama.",
     "navigationMain": "Utama",
-    "navigationActiveWallet": "Wallet aktif"
+    "navigationActiveWallet": "Wallet aktif",
+    "sidebarCollapse": "Ciutkan sidebar",
+    "sidebarExpand": "Perluas sidebar"
   },
   "common": {
     "user": "Pengguna",

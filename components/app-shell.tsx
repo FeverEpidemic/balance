@@ -1,22 +1,15 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ChangelogPopup } from "@/components/features/changelogs/changelog-popup";
+import { UnifiedSidebar, useSidebarState, SIDEBAR_STORAGE_KEY } from "@/components/sidebar";
 import { useLocale } from "@/components/providers/locale-provider";
 import { AppIcon } from "@/components/ui/app-icon";
 import { getTranslator, localizePath } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { logout } from "@/app/actions/auth";
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import type { ReactNode } from "react";
-
-function isActivePath(currentPath: string, href: string) {
-  if (href === "/dashboard") {
-    return currentPath === "/dashboard" || currentPath === "/wallets";
-  }
-
-  return currentPath === href || currentPath.startsWith(`${href}/`);
-}
 
 export function AppShell({
   children,
@@ -46,28 +39,24 @@ export function AppShell({
   const locale = useLocale();
   const t = getTranslator(locale);
   const walletId = currentWalletId ?? primaryWalletId;
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useSidebarState();
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  // Sync desktop detection — avoids SSR hydration mismatch
+  useEffect(() => {
+    setIsDesktop(window.innerWidth >= 1024);
+    const onResize = () => setIsDesktop(window.innerWidth >= 1024);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  // Sidebar width used by the flex layout
+  const desktopSidebarWidth = isDesktop ? (sidebarCollapsed ? 72 : 280) : 0;
+
   const logoutButtonClassName = "rounded-full bg-primary-soft px-3 py-2 font-label text-xs text-primary-strong";
-  const mobileUtilityButtonClassName = "glass-panel rounded-full px-3 py-2 font-label text-xs text-foreground";
-  const activeWalletLinkClassName = "bg-primary text-[var(--button-primary-text)] shadow-serene hover:bg-primary-hover";
-  const inactiveWalletLinkClassName =
-    "bg-muted text-foreground hover:bg-[color:color-mix(in_srgb,var(--muted)_82%,var(--surface-container-lowest)_18%)] hover:text-foreground";
   const inactiveWalletPillClassName =
     "glass-panel border text-muted-foreground hover:border-primary/25 hover:bg-[color:var(--primary-soft)] hover:text-foreground";
-  const navItems = [
-    { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" as const },
-    { href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet" as const },
-    { href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions" as const },
-    { href: walletId ? `/wallets/${walletId}/savings` : "/dashboard", label: t("common.savings"), icon: "savings" as const },
-    { href: walletId ? `/wallets/${walletId}/budgets` : "/dashboard", label: t("common.budgets"), icon: "budgets" as const },
-    { href: walletId ? `/wallets/${walletId}/categories` : "/dashboard", label: t("common.categories"), icon: "category" as const },
-    { href: walletId ? `/wallets/${walletId}/reports` : "/dashboard", label: t("common.reports"), icon: "reports" as const },
-    { href: walletId ? `/wallets/${walletId}/members` : "/dashboard", label: t("common.members"), icon: "members" as const },
-    { href: walletId ? `/wallets/${walletId}/settlements` : "/dashboard", label: t("common.settlements"), icon: "settlements" as const },
-    { href: walletId ? `/wallets/${walletId}/templates` : "/dashboard", label: t("common.templates"), icon: "templates" as const },
-    { href: "/chat", label: t("common.aiAssistant"), icon: "chat" as const },
-    { href: "/changelogs", label: t("common.changelogs"), icon: "changelog" as const },
-    { href: "/settings", label: t("common.settings"), icon: "settings" as const }
-  ];
   const mobileNavItems = [
     { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" as const },
     { href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet" as const },
@@ -81,110 +70,57 @@ export function AppShell({
         { href: `/wallets/${walletId}/transactions`, label: t("common.transactions"), icon: "transactions" as const },
         { href: `/wallets/${walletId}/savings`, label: t("common.savings"), icon: "savings" as const },
         { href: `/wallets/${walletId}/budgets`, label: t("common.budgets"), icon: "budgets" as const },
-        { href: `/wallets/${walletId}/reports`, label: t("common.reports"), icon: "reports" as const }
+        { href: `/wallets/${walletId}/reports`, label: t("common.reports"), icon: "reports" as const },
       ]
     : [];
 
   return (
-    <div className="page-wrap section-gap">
-      <ChangelogPopup />
-      <div className="app-grid">
-        <aside className="card hidden h-fit lg:block">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="eyebrow">balance</p>
-              <h1 className="headline-md mt-2">{t("app.shellHeroTitle")}</h1>
-              <p className="mt-3 text-sm text-muted-foreground">{userName}</p>
-            </div>
-            <form action={logout}>
-              <button className={logoutButtonClassName}>{t("common.logout")}</button>
-            </form>
-          </div>
-          <nav className="mt-8 space-y-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition",
-                  isActivePath(currentPath, item.href) ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:bg-muted"
-                )}
-              >
-                <AppIcon name={item.icon} className="h-4 w-4" tone={isActivePath(currentPath, item.href) ? "primary" : "muted"} />
-                <span>{item.label}</span>
-              </Link>
-            ))}
-          </nav>
-        </aside>
+    <div className="flex min-h-screen">
+      {/* Desktop fixed sidebar — flex item on desktop, overlay on mobile */}
+      <div
+        className="hidden shrink-0 lg:block"
+        style={{ width: desktopSidebarWidth, transition: "width 200ms ease-out" }}
+        aria-hidden
+      />
 
-        <main className="min-w-0">
+      {/* Actual sidebar (fixed positioned) */}
+      <UnifiedSidebar
+        currentPath={currentPath}
+        userName={userName}
+        walletId={walletId}
+        variant="fixed"
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
+
+      {/* Mobile overlay sidebar */}
+      <UnifiedSidebar
+        currentPath={currentPath}
+        userName={userName}
+        walletId={walletId}
+        variant="overlay"
+        open={mobileSidebarOpen}
+        onClose={() => setMobileSidebarOpen(false)}
+      />
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <ChangelogPopup />
+
+        <main className="page-wrap section-gap">
           <header className="glass-panel mb-4 rounded-[1.25rem] px-4 py-4 backdrop-blur md:px-6">
             <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
               <p className="text-sm text-muted-foreground">{userName}</p>
               <div className="flex items-center gap-2">
-                <Sheet>
-                  <SheetTrigger asChild>
-                    <button type="button" className={mobileUtilityButtonClassName}>
-                      <span className="inline-flex items-center gap-2">
-                        <AppIcon name="menu" className="h-4 w-4" tone="muted" />
-                        <span>{t("common.menu")}</span>
-                      </span>
-                    </button>
-                  </SheetTrigger>
-                  <SheetContent>
-                    <SheetHeader>
-                      <p className="eyebrow">{t("app.navigationEyebrow")}</p>
-                      <SheetTitle>{t("app.navigationTitle")}</SheetTitle>
-                      <SheetDescription>{t("app.navigationDescription")}</SheetDescription>
-                    </SheetHeader>
-                    <div className="mt-6 space-y-6 overflow-y-auto pb-4">
-                      <div>
-                        <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{t("app.navigationMain")}</p>
-                        <nav className="mt-3 space-y-2">
-                          {mobileNavItems.map((item) => (
-                            <SheetClose key={item.href} asChild>
-                              <Link
-                                href={localizePath(locale, item.href)}
-                                className={cn(
-                                  "flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition",
-                                  isActivePath(currentPath, item.href)
-                                    ? "bg-muted font-medium text-foreground"
-                                    : "text-muted-foreground hover:bg-muted"
-                                )}
-                              >
-                                <AppIcon name={item.icon} className="h-4 w-4" tone={isActivePath(currentPath, item.href) ? "primary" : "muted"} />
-                                <span>{item.label}</span>
-                              </Link>
-                            </SheetClose>
-                          ))}
-                        </nav>
-                      </div>
-                      {mobileWalletShortcuts.length > 0 ? (
-                        <div>
-                          <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{t("app.navigationActiveWallet")}</p>
-                          <nav className="mt-3 space-y-2">
-                            {mobileWalletShortcuts.map((item) => (
-                              <SheetClose key={item.href} asChild>
-                                <Link
-                                  href={localizePath(locale, item.href)}
-                                  className={cn(
-                                    "flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition",
-                                    isActivePath(currentPath, item.href)
-                                      ? activeWalletLinkClassName
-                                      : inactiveWalletLinkClassName
-                                  )}
-                                >
-                                  <AppIcon name={item.icon} className="h-4 w-4" />
-                                  <span>{item.label}</span>
-                                </Link>
-                              </SheetClose>
-                            ))}
-                          </nav>
-                        </div>
-                      ) : null}
-                    </div>
-                  </SheetContent>
-                </Sheet>
+                <button
+                  type="button"
+                  onClick={() => setMobileSidebarOpen(true)}
+                  className="glass-panel rounded-full px-3 py-2 font-label text-xs text-foreground"
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <AppIcon name="menu" className="h-4 w-4" tone="muted" />
+                    <span>{t("common.menu")}</span>
+                  </span>
+                </button>
                 <form action={logout}>
                   <button className={logoutButtonClassName}>{t("common.logout")}</button>
                 </form>
@@ -244,27 +180,34 @@ export function AppShell({
 
           <div className="pb-24 lg:pb-0">{children}</div>
         </main>
-      </div>
 
-      <nav className="glass-nav fixed inset-x-4 bottom-4 z-50 rounded-2xl p-2 backdrop-blur lg:hidden">
-        <div className="touch-scroll-x flex gap-2">
-          {mobileNavItems.map((item) => (
+        <nav className="glass-nav fixed inset-x-4 bottom-4 z-50 rounded-2xl p-2 backdrop-blur lg:hidden">
+          <div className="touch-scroll-x flex gap-2">
+            {mobileNavItems.map((item) => (
               <Link
                 key={item.href}
                 href={localizePath(locale, item.href)}
                 className={cn(
-                "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
-                isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "bg-transparent text-muted-foreground"
-              )}
-            >
-              <span className="flex flex-col items-center justify-center gap-1">
-                <AppIcon name={item.icon} className="h-4 w-4" />
-                <span>{item.label}</span>
-              </span>
-            </Link>
-          ))}
-        </div>
-      </nav>
+                  "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
+                  isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "bg-transparent text-muted-foreground"
+                )}
+              >
+                <span className="flex flex-col items-center justify-center gap-1">
+                  <AppIcon name={item.icon} className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </nav>
+      </div>
     </div>
   );
+}
+
+function isActivePath(currentPath: string, href: string) {
+  if (href === "/dashboard") {
+    return currentPath === "/dashboard" || currentPath === "/wallets";
+  }
+  return currentPath === href || currentPath.startsWith(`${href}/`);
 }
