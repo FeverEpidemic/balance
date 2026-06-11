@@ -13,6 +13,19 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.7.1",
+    date: "2026-06-11",
+    title: "AI chat lebih hemat konteks dan lebih sigap",
+    description: "Asisten AI sekarang lebih pintar mengelola budget token: prompt disesuaikan dengan periode, riwayat lama dipilih berdasarkan relevansi, dan tool berhenti lebih cepat jika konteks sudah terlalu besar.",
+    features: [
+      { icon: "🪶", text: "Prompt AI untuk rekap harian kini jauh lebih ringkas, mingguan jadi versi menengah, dan bulanan tetap detail." },
+      { icon: "🧠", text: "Saat konteks kepanjangan, server memprioritaskan pesan lama yang paling relevan dan membuang sisanya lebih dulu." },
+      { icon: "📏", text: "Perkiraan token kini lebih realistis karena menghitung framing chat dan overhead tool, bukan hanya panjang teks mentah." },
+      { icon: "🚦", text: "Request yang jelas tidak akan muat dalam budget token kini dihentikan lebih awal agar respons tetap cepat dan hemat biaya." },
+      { icon: "🧰", text: "Jika hasil tool sudah terlalu besar, AI berhenti memanggil tool tambahan dan langsung menyusun jawaban dari konteks yang ada." }
+    ]
+  },
+  {
     version: "1.7.0",
     date: "2026-06-11",
     title: "Navigasi & UX lebih sederhana",

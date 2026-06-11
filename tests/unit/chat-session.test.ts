@@ -12,7 +12,7 @@ describe("buildChatRequestMessages", () => {
       intent: "recap"
     });
 
-    expect(messages).toEqual([{ role: "user", content: "Tolong rekap hari ini" }]);
+    expect(messages).toEqual([{ role: "user", content: "Tolong rekap hari ini", score: 1000 }]);
   });
 
   it("keeps recent conversation for normal chat", () => {
@@ -23,8 +23,8 @@ describe("buildChatRequestMessages", () => {
     });
 
     expect(messages).toEqual([
-      { role: "assistant", content: "Jawaban lama" },
-      { role: "user", content: "Analisis lagi" }
+      { role: "assistant", content: "Jawaban lama", score: 100 },
+      { role: "user", content: "Analisis lagi", score: 101 }
     ]);
   });
 });
@@ -39,7 +39,7 @@ describe("buildWindowedChatMessages", () => {
       userMessage: { id: "u2", role: "user", content: "Rekap hari ini" },
       intent: "recap"
     });
-    expect(result).toEqual([{ role: "user", content: "Rekap hari ini" }]);
+    expect(result).toEqual([{ role: "user", content: "Rekap hari ini", score: 1000 }]);
   });
 
   it("always includes last exchanges for chat intent", () => {
@@ -57,7 +57,7 @@ describe("buildWindowedChatMessages", () => {
     });
 
     // Last user message should always be present
-    expect(result[result.length - 1]).toEqual({ role: "user", content: "Latest question about food" });
+    expect(result[result.length - 1]).toEqual({ role: "user", content: "Latest question about food", score: expect.any(Number) });
     // Should include recent messages
     expect(result.length).toBeGreaterThanOrEqual(CHAT_WINDOW_RECENT * 2);
   });
@@ -69,7 +69,7 @@ describe("buildWindowedChatMessages", () => {
       userMessage: { id: "u1", role: "user", content: "Hello" },
       intent: "chat"
     });
-    expect(result).toEqual([{ role: "user", content: "Hello" }]);
+    expect(result).toEqual([{ role: "user", content: "Hello", score: 100 }]);
   });
 
   it("prefers relevant older exchanges over irrelevant ones via relevance scoring", () => {
@@ -107,6 +107,7 @@ describe("buildWindowedChatMessages", () => {
     expect(resultContents).toContain("food");
     // Weather should NOT appear (it's in older exchanges but scored lower than food)
     expect(resultContents).not.toContain("weather");
+    expect(result.some((message) => message.content.includes("food") && (message.score ?? 0) > 0)).toBe(true);
   });
 });
 

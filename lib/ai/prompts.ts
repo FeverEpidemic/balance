@@ -5,6 +5,24 @@ import type { RekapPeriod } from "@/lib/chat-auth";
 import { formatCurrency } from "@/lib/utils";
 import { isShortPeriod } from "@/lib/ai/token-budget";
 
+export type PromptDetailTier = "minimal" | "medium" | "full";
+
+export function resolvePromptDetailTier(period: RekapPeriod, compact = false): PromptDetailTier {
+  if (compact) {
+    return period === "month" ? "medium" : "minimal";
+  }
+
+  if (period === "day") {
+    return "minimal";
+  }
+
+  if (period === "week") {
+    return "medium";
+  }
+
+  return "full";
+}
+
 export function buildAiSystemPrompt(input: {
   recap: AiFinancialRecap;
   wallets: AiWalletOption[];
@@ -13,23 +31,38 @@ export function buildAiSystemPrompt(input: {
   categoryFocus: AiCategoryFocus | null;
   compact?: boolean;
 }) {
-  const walletList = input.wallets.map((wallet) => `- ${wallet.name} (${wallet.kind})`).join("\n") || "- Tidak ada wallet";
+  const detailTier = resolvePromptDetailTier(input.period, input.compact);
+  const walletListLimit = detailTier === "minimal" ? 4 : detailTier === "medium" ? 8 : input.wallets.length;
+  const walletListEntries = input.wallets.slice(0, walletListLimit).map((wallet) => `- ${wallet.name} (${wallet.kind})`);
 
-  const topN = input.compact ? 3 : 5;
+  if (input.wallets.length > walletListLimit) {
+    walletListEntries.push(`- ${input.wallets.length - walletListLimit} wallet lain tetap bisa diakses user`);
+  }
+
+  const walletList = walletListEntries.join("\n") || "- Tidak ada wallet";
+
+  const topN = detailTier === "minimal" ? 2 : detailTier === "medium" ? 3 : 5;
   const categories =
     input.recap.topExpenseCategories
       .slice(0, topN)
       .map((item) => `- ${item.categoryName}: ${formatCurrency(item.total)}`)
       .join("\n") || "- Belum ada kategori pengeluaran dominan";
 
-  const perWallet = input.compact
-    ? `- ${input.recap.perWallet.length} wallet aktif, total net ${formatCurrency(input.recap.net)}`
-    : input.recap.perWallet
-        .map(
-          (item) =>
-            `- ${item.walletName}: pemasukan ${formatCurrency(item.totalIncome)}, pengeluaran ${formatCurrency(item.totalExpense)}, net ${formatCurrency(item.net)}, ${item.transactionCount} transaksi`
-        )
-        .join("\n") || "- Belum ada aktivitas wallet";
+  const perWallet =
+    detailTier === "minimal"
+      ? `- ${input.recap.perWallet.length} wallet aktif, total net ${formatCurrency(input.recap.net)}`
+      : input.recap.perWallet
+          .slice(0, detailTier === "medium" ? 2 : input.recap.perWallet.length)
+          .map(
+            (item) =>
+              `- ${item.walletName}: pemasukan ${formatCurrency(item.totalIncome)}, pengeluaran ${formatCurrency(item.totalExpense)}, net ${formatCurrency(item.net)}, ${item.transactionCount} transaksi`
+          )
+          .join("\n") || "- Belum ada aktivitas wallet";
+
+  const perWalletSuffix =
+    detailTier === "medium" && input.recap.perWallet.length > 2
+      ? `\n- ${input.recap.perWallet.length - 2} wallet lain disingkat untuk hemat konteks`
+      : "";
 
   const categoryFocusSummary = input.categoryFocus
     ? (() => {
@@ -39,8 +72,9 @@ export function buildAiSystemPrompt(input: {
         lines.push(`- Jumlah transaksi kategori ini: ${input.categoryFocus.transactionCount}`);
         lines.push(`- Muncul di wallet: ${input.categoryFocus.walletNames.join(", ") || "Belum ada wallet aktif"}`);
 
-        if (!input.compact || input.wallets.length <= 2) {
-          lines.push(`- Catatan transaksi terbaru: ${input.categoryFocus.recentNotes.join(" | ") || "Tidak ada catatan"}`);
+        if (detailTier !== "minimal" && input.categoryFocus.recentNotes.length > 0) {
+          const noteLimit = detailTier === "medium" ? 2 : input.categoryFocus.recentNotes.length;
+          lines.push(`- Catatan transaksi terbaru: ${input.categoryFocus.recentNotes.slice(0, noteLimit).join(" | ")}`);
         }
 
         lines.push(`- Status anggaran bulan ini: ${
@@ -49,7 +83,7 @@ export function buildAiSystemPrompt(input: {
             : "Tidak ada anggaran aktif untuk kategori ini"
         }`);
 
-        if (!input.compact || !isShortPeriod(input.period)) {
+        if (detailTier !== "minimal" && (!input.compact || !isShortPeriod(input.period))) {
           lines.push(`- Perbandingan dengan periode sebelumnya: ${
             input.categoryFocus.previousPeriod
               ? `sebelumnya ${formatCurrency(input.categoryFocus.previousPeriod.totalExpense)} dari ${input.categoryFocus.previousPeriod.transactionCount} transaksi, selisih ${formatCurrency(input.categoryFocus.previousPeriod.deltaAmount)}${input.categoryFocus.previousPeriod.deltaPercent !== null ? ` (${input.categoryFocus.previousPeriod.deltaPercent}%)` : ""}`
@@ -96,7 +130,7 @@ Kategori pengeluaran teratas:
 ${categories}
 
 Ringkasan per wallet:
-${perWallet}
+${perWallet}${perWalletSuffix}
 
 Fokus kategori dari pertanyaan user:
 ${categoryFocusSummary}

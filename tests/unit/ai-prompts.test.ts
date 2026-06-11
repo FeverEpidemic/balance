@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildAiSystemPrompt, buildCompactFinancialContext } from "@/lib/ai/prompts";
 import type { AiFinancialRecap } from "@/lib/ai/data";
+import { estimateTokenCount } from "@/lib/ai/token-budget";
 
 function createRecap(overrides: Partial<AiFinancialRecap> = {}): AiFinancialRecap {
   return {
@@ -62,7 +63,7 @@ describe("buildAiSystemPrompt compact mode", () => {
         { id: "w2", name: "Dompet B", kind: "personal" },
         { id: "w3", name: "Dompet C", kind: "personal" }
       ],
-      period: "month",
+      period: "day",
       latestUserMessage: "Analisis pengeluaran",
       categoryFocus: null,
       compact: true
@@ -75,7 +76,7 @@ describe("buildAiSystemPrompt compact mode", () => {
     expect(prompt).not.toContain("Dompet B: pemasukan");
   });
 
-  it("limits topExpenseCategories to 3 in compact mode", () => {
+  it("limits topExpenseCategories to 3 in compact month mode", () => {
     const categories = [
       { categoryId: "c1", categoryName: "Makan", total: 500000 },
       { categoryId: "c2", categoryName: "Transport", total: 300000 },
@@ -139,7 +140,7 @@ describe("buildAiSystemPrompt compact mode", () => {
     expect(prompt).not.toContain("Perbandingan dengan periode sebelumnya");
   });
 
-  it("omits recentNotes when more than 2 wallets in compact mode", () => {
+  it("omits recentNotes in minimal period tier", () => {
     const categoryFocus = {
       categoryId: "c1",
       categoryName: "Makan",
@@ -158,13 +159,47 @@ describe("buildAiSystemPrompt compact mode", () => {
         { id: "w2", name: "Dompet B", kind: "personal" },
         { id: "w3", name: "Dompet C", kind: "personal" }
       ],
-      period: "month",
+      period: "day",
       latestUserMessage: "Analisis",
       categoryFocus,
       compact: true
     });
 
     expect(prompt).not.toContain("Catatan transaksi terbaru");
+  });
+
+  it("uses shorter prompts for day than week or month", () => {
+    const input = {
+      recap: createRecap({
+        topExpenseCategories: [
+          { categoryId: "c1", categoryName: "Makan", total: 500000 },
+          { categoryId: "c2", categoryName: "Transport", total: 300000 },
+          { categoryId: "c3", categoryName: "Belanja", total: 200000 }
+        ],
+        perWallet: [
+          { walletId: "w1", walletName: "Dompet A", totalIncome: 1000000, totalExpense: 500000, net: 500000, transactionCount: 5 },
+          { walletId: "w2", walletName: "Dompet B", totalIncome: 800000, totalExpense: 300000, net: 500000, transactionCount: 4 },
+          { walletId: "w3", walletName: "Dompet C", totalIncome: 700000, totalExpense: 200000, net: 500000, transactionCount: 3 }
+        ]
+      }),
+      wallets: [
+        { id: "w1", name: "Dompet A", kind: "personal" as const },
+        { id: "w2", name: "Dompet B", kind: "personal" as const },
+        { id: "w3", name: "Dompet C", kind: "shared" as const }
+      ],
+      latestUserMessage: "Analisis pengeluaran saya",
+      categoryFocus: null
+    };
+
+    const dayPrompt = buildAiSystemPrompt({ ...input, period: "day" });
+    const weekPrompt = buildAiSystemPrompt({ ...input, period: "week" });
+    const monthPrompt = buildAiSystemPrompt({ ...input, period: "month" });
+
+    expect(estimateTokenCount(dayPrompt)).toBeLessThan(estimateTokenCount(weekPrompt));
+    expect(estimateTokenCount(weekPrompt)).toBeLessThan(estimateTokenCount(monthPrompt));
+    expect(dayPrompt).not.toContain("Dompet A: pemasukan");
+    expect(weekPrompt).toContain("Dompet A: pemasukan");
+    expect(monthPrompt).toContain("Dompet C: pemasukan");
   });
 });
 

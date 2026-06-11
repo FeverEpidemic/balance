@@ -2,6 +2,15 @@
 
 ## [Unreleased] - 2026-06-11
 
+### Changed - AI Chat Budgeting Lebih Cerdas
+
+- **Prompt AI kini adaptif terhadap periode** (`lib/ai/prompts.ts`): Konteks untuk periode `day` otomatis jauh lebih ringkas, `week` jadi versi menengah, dan `month` tetap detail penuh. Saat compact mode aktif, detail periode makin dipangkas tanpa kehilangan angka inti.
+- **Estimasi token lebih realistis** (`lib/ai/token-budget.ts`): Heuristic baru kini memperhitungkan kata, angka, tanda baca, framing per message, dan overhead definisi tool sehingga pre-flight budgeting lebih mendekati payload DeepSeek/OpenAI-compatible yang sebenarnya.
+- **Trim riwayat chat server-side kini mempertimbangkan relevance score** (`lib/chat-session.ts`, `app/api/ai/chat/route.ts`): Client mengirim skor relevance ringan untuk tiap message terpilih, lalu server membuang konteks lama yang paling rendah nilainya lebih dulu saat token budget mepet.
+- **Pre-flight guard sebelum ambil data AI** (`lib/ai/chat-budget.ts`, `app/api/ai/chat/route.ts`): Jika bahkan jalur compact paling minimal pun jelas tidak akan muat dalam budget token, request dihentikan lebih awal dengan respons ramah, sehingga menghindari fetch data dan panggilan AI yang sia-sia.
+- **Batas ukuran hasil tool selama tool loop** (`lib/ai/chat-budget.ts`, `app/api/ai/chat/route.ts`): Saat total output tool sudah memakan porsi besar budget, route berhenti memanggil tool tambahan dan langsung lanjut ke jawaban akhir dengan konteks yang sudah ada.
+- **Test coverage budgeting AI diperluas** (`tests/unit/{ai-chat-budget,ai-prompts,ai-token-budget,chat-session}.test.ts`): Menambah pengujian untuk compression berbasis periode, trimming relevance-aware, pre-flight guard, serialization aman ke model, dan tool-result budget guard.
+
 ### Changed - Simplifikasi Navigasi & UX
 
 - **Transaksi & Histori digabung** (`app/[locale]/(app)/wallets/[walletId]/transactions/page.tsx`): Halaman transaksi kini punya toggle "Input Cepat" | "Riwayat Lengkap" — tidak perlu pindah halaman untuk melihat histori penuh. Route `/transactions/history` otomatis redirect ke `/transactions?view=history`.

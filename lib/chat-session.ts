@@ -19,6 +19,7 @@ export type StoredChatSession = {
 export type OutgoingChatMessage = {
   role: "user" | "assistant";
   content: string;
+  score?: number;
 };
 
 export const CHAT_STORAGE_KEY = "balance-ai-chat:v1";
@@ -51,7 +52,7 @@ export function buildWindowedChatMessages(input: {
   intent: ChatIntent;
 }): OutgoingChatMessage[] {
   if (input.intent === "recap") {
-    return [{ role: input.userMessage.role, content: input.userMessage.content }] satisfies OutgoingChatMessage[];
+    return [{ role: input.userMessage.role, content: input.userMessage.content, score: 1_000 }] satisfies OutgoingChatMessage[];
   }
 
   const allMessages = [...input.history, input.userMessage];
@@ -67,9 +68,10 @@ export function buildWindowedChatMessages(input: {
 
   // If no older messages, just return recent ones capped at MAX
   if (olderMessages.length === 0) {
-    return recentMessages.slice(-MAX_CHAT_MESSAGES).map((m) => ({
+    return recentMessages.slice(-MAX_CHAT_MESSAGES).map((m, index) => ({
       role: m.role,
-      content: m.content
+      content: m.content,
+      score: 100 + index
     })) satisfies OutgoingChatMessage[];
   }
 
@@ -90,10 +92,19 @@ export function buildWindowedChatMessages(input: {
 
   // Combine: picked older + recent, cap at MAX
   const combined = [...pickedOlder, ...recentMessages];
-  return combined.slice(-MAX_CHAT_MESSAGES).map((m) => ({
-    role: m.role,
-    content: m.content
-  })) satisfies OutgoingChatMessage[];
+  const capped = combined.slice(-MAX_CHAT_MESSAGES);
+  const recentSet = new Set(recentMessages.map((message) => message.id));
+
+  return capped.map((message, index) => {
+    const fromRecent = recentSet.has(message.id);
+    const olderExchange = olderExchanges.find((exchange) => exchange.messages.some((entry) => entry.id === message.id));
+
+    return {
+      role: message.role,
+      content: message.content,
+      score: fromRecent ? 100 + index : olderExchange?.score ?? 0
+    };
+  }) satisfies OutgoingChatMessage[];
 }
 
 /** Split text into normalized lowercase word tokens for overlap scoring. */

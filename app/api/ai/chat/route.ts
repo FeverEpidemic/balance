@@ -3,21 +3,27 @@ import type { ChatCompletionMessageToolCall } from "openai/resources/chat/comple
 import { validateChatMessage } from "@/lib/ai/guard";
 import { createAiChatCompletion, getAiClient, getAiModel, isAiChatAvailable, AiUpstreamRateLimitedError } from "@/lib/ai/client";
 import { shouldReturnDirectAiReply } from "@/lib/ai/chat-response";
+import {
+  buildBudgetedConversation,
+  exceedsPreflightCompactBudget,
+  shouldStopToolCallsForBudget,
+  toOpenAiMessages
+} from "@/lib/ai/chat-budget";
 import { getAiWalletOptions, getCategoryFocusForUser, getFinancialRecapForUser } from "@/lib/ai/data";
 import { buildFallbackFinanceAnswer, isLowSignalAiReply } from "@/lib/ai/fallback-response";
-import { buildChatMessages, buildAiSystemPrompt } from "@/lib/ai/prompts";
+import { buildAiSystemPrompt } from "@/lib/ai/prompts";
 import { buildDirectRecapMessage } from "@/lib/ai/recap-message";
 import { aiTools, executeAiToolCall } from "@/lib/ai/tools";
 import { requireUser } from "@/lib/auth";
 import { type RekapPeriod } from "@/lib/chat-auth";
 import { LOCALE_COOKIE_NAME, getTranslator, resolveLocale } from "@/lib/i18n";
 import { applyRateLimitHeaders, consumeAiChatRateLimit } from "@/lib/rate-limit";
-import { budgetConversationMessages, estimateConversationTokens, isShortPeriod } from "@/lib/ai/token-budget";
+import { budgetConversationMessages, estimateConversationTokens } from "@/lib/ai/token-budget";
 import { getAiChatTokenBudget } from "@/lib/env";
 
 type ChatRequestBody = {
   intent?: "chat" | "recap";
-  messages?: Array<{ role: "user" | "assistant"; content: string }>;
+  messages?: Array<{ role: "user" | "assistant"; content: string; score?: number }>;
   walletId?: string;
   period?: RekapPeriod;
   locale?: string;
@@ -26,8 +32,9 @@ type ChatRequestBody = {
 type ConversationMessage = {
   role: "system" | "user" | "assistant" | "tool";
   content: string;
-  tool_calls?: ChatCompletionMessageToolCall[];
+  tool_calls?: unknown;
   tool_call_id?: string;
+  relevanceScore?: number;
 };
 
 function createSseResponse(stream: ReadableStream, init?: ResponseInit) {
@@ -106,6 +113,12 @@ export async function POST(request: Request) {
 
   try {
     const latestUserMessage = userMessages[userMessages.length - 1]?.content ?? "";
+    const tokenBudget = getAiChatTokenBudget();
+
+    if (exceedsPreflightCompactBudget({ messages: recentMessages, tokenBudget })) {
+      return applyRateLimitHeaders(createFriendlyFallbackStream(t("chat.validationTooLong"), { status: 400 }), aiRateLimit);
+    }
+
     const [wallets, recap, categoryFocus] = await Promise.all([
       getAiWalletOptions(user.id),
       getFinancialRecapForUser(user.id, period, walletId),
@@ -116,29 +129,22 @@ export async function POST(request: Request) {
       return applyRateLimitHeaders(createFriendlyFallbackStream(buildDirectRecapMessage(recap)), aiRateLimit);
     }
 
-    const tokenBudget = getAiChatTokenBudget();
+    const fullSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus });
+    const compactSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus, compact: true });
+    const initialBudgetedConversation = buildBudgetedConversation({
+      systemPrompt: fullSystemPrompt,
+      compactSystemPrompt,
+      messages: recentMessages,
+      tokenBudget
+    });
 
-    // ── Budget check: initial messages ──────────────────────────────
-    let effectiveSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus });
-    let initialMessages = buildChatMessages(effectiveSystemPrompt, recentMessages);
-
-    let initialTokens = estimateConversationTokens(initialMessages as unknown as Parameters<typeof estimateConversationTokens>[0]);
-
-    if (initialTokens > tokenBudget) {
-      console.warn(`[AI] token budget exceeded (${initialTokens} > ${tokenBudget}), switching to compact system prompt`);
-      effectiveSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus, compact: true });
-      initialMessages = buildChatMessages(effectiveSystemPrompt, recentMessages);
-      initialTokens = estimateConversationTokens(initialMessages as unknown as Parameters<typeof estimateConversationTokens>[0]);
+    if (initialBudgetedConversation.usedCompactPrompt) {
+      console.warn(`[AI] token budget exceeded, switching to compact system prompt (${initialBudgetedConversation.estimatedTokens}/${tokenBudget})`);
     }
 
-    if (initialTokens > tokenBudget) {
-      console.warn(`[AI] still over budget after compact prompt (${initialTokens} > ${tokenBudget}), trimming messages`);
-      initialMessages = budgetConversationMessages(
-        initialMessages as unknown as Parameters<typeof budgetConversationMessages>[0],
-        tokenBudget
-      ) as unknown as typeof initialMessages;
+    if (initialBudgetedConversation.wasTrimmed) {
+      console.warn(`[AI] conversation still large after compact prompt, trimming low-relevance history (${initialBudgetedConversation.estimatedTokens}/${tokenBudget})`);
     }
-    // ── End budget check ───────────────────────────────────────────
 
     const client = getAiClient();
 
@@ -146,9 +152,10 @@ export async function POST(request: Request) {
       throw new Error("AI_CLIENT_UNAVAILABLE");
     }
 
-    const conversationMessages: ConversationMessage[] = [...initialMessages] as unknown as ConversationMessage[];
+    const conversationMessages: ConversationMessage[] = [...initialBudgetedConversation.conversationMessages];
     let finalAssistantContent = "";
     let shouldStreamFinalReply = true;
+    let stopToolLoopForBudget = false;
 
     // Tool-call loop with retry/fallback on upstream failures
     try {
@@ -156,8 +163,7 @@ export async function POST(request: Request) {
         const completion = await createAiChatCompletion(client, {
           model: getAiModel(),
           temperature: 0.4,
-          // @ts-ignore - ConversationMessage vs ChatCompletionMessageParam discriminated union
-          messages: conversationMessages,
+          messages: toOpenAiMessages(conversationMessages),
           tools: aiTools,
           tool_choice: "auto",
           stream: false
@@ -203,6 +209,15 @@ export async function POST(request: Request) {
             tool_call_id: toolCall.id,
             content: result
           });
+
+          if (shouldStopToolCallsForBudget({ messages: conversationMessages, tokenBudget })) {
+            stopToolLoopForBudget = true;
+            break;
+          }
+        }
+
+        if (stopToolLoopForBudget) {
+          break;
         }
       }
     } catch (toolLoopError: unknown) {
@@ -279,15 +294,16 @@ export async function POST(request: Request) {
 
     // ── Final budget check before streaming ─────────────────────────
     {
-      const finalTokens = estimateConversationTokens(conversationMessages as unknown as Parameters<typeof estimateConversationTokens>[0]);
+      const finalTokens = estimateConversationTokens(conversationMessages, {
+        includeToolDefinitions: true
+      });
       if (finalTokens > tokenBudget) {
         console.warn(`[AI] final conversation over budget (${finalTokens} > ${tokenBudget}), trimming before streaming`);
-        const trimmed = budgetConversationMessages(
-          conversationMessages as unknown as Parameters<typeof budgetConversationMessages>[0],
-          tokenBudget
-        );
+        const trimmed = budgetConversationMessages(conversationMessages, tokenBudget, {
+          includeToolDefinitions: true
+        });
         conversationMessages.length = 0;
-        conversationMessages.push(...trimmed as unknown as ConversationMessage[]);
+        conversationMessages.push(...trimmed);
       }
     }
     // ── End final budget check ─────────────────────────────────────
@@ -297,8 +313,7 @@ export async function POST(request: Request) {
       const stream = await createAiChatCompletion(client, {
         model: getAiModel(),
         temperature: 0.5,
-        // @ts-expect-error - ConversationMessage vs ChatCompletionMessageParam discriminated union
-        messages: conversationMessages,
+        messages: toOpenAiMessages(conversationMessages),
         stream: true
       });
 
