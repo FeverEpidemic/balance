@@ -174,6 +174,26 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
         ) : null
       }
     >
+      {/* View toggle */}
+      <div className="mb-4">
+        <div className="glass-panel inline-flex gap-1 rounded-2xl p-1.5">
+          <Button
+            href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}`}
+            variant="soft"
+            className="rounded-xl px-4 py-2 font-label text-xs font-semibold uppercase tracking-[0.12em] shadow-none"
+          >
+            {t("transactions.quickInputTab")}
+          </Button>
+          <Button
+            href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}&view=history`}
+            variant="ghost"
+            className="rounded-xl px-4 py-2 font-label text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground"
+          >
+            {t("transactions.fullHistoryTab")}
+          </Button>
+        </div>
+      </div>
+
       <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
         <div className="card">
           <p className="eyebrow">{t("transactions.quickInputEyebrow")}</p>
@@ -245,7 +265,7 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
               <h3 className="headline-md">{t("transactions.recentTitle")}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{t("transactions.recentDescription")}</p>
             </div>
-            <Button href={`/wallets/${data.walletId}/transactions/history?month=${data.selectedMonth}`} variant="ghost" className="w-full sm:w-auto">
+            <Button href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}&view=history`} variant="ghost" className="w-full sm:w-auto">
               {t("transactions.viewFullHistory")}
             </Button>
           </div>
@@ -278,7 +298,7 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
           </div>
           {data.transactions.length > 0 ? (
             <div className="mt-6 flex justify-start">
-              <Button href={`/wallets/${data.walletId}/transactions/history?month=${data.selectedMonth}`} variant="soft" className="w-full sm:w-auto">
+              <Button href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}&view=history`} variant="soft" className="w-full sm:w-auto">
                 {t("transactions.openHistory")}
               </Button>
             </div>

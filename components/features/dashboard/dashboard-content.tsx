@@ -7,14 +7,25 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/ui/stat-card";
+import { SubmitButton } from "@/components/ui/submit-button";
+import { ToastFeedback } from "@/components/ui/toast-feedback";
+import { createWallet } from "@/app/actions/wallets";
 import type { DashboardData } from "@/lib/data";
 import { getTranslator, type AppLocale } from "@/lib/i18n";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
 import type { CSSProperties } from "react";
 
-export function DashboardContent({ dashboard, locale }: { dashboard: DashboardData; locale: AppLocale }) {
+export function DashboardContent({
+  dashboard,
+  locale,
+  feedback
+}: {
+  dashboard: DashboardData;
+  locale: AppLocale;
+  feedback?: { error?: string; message?: string };
+}) {
   const t = getTranslator(locale);
-  const transactionsHref = dashboard.shell.primaryWalletId ? `/wallets/${dashboard.shell.primaryWalletId}/transactions` : "/wallets";
+  const transactionsHref = dashboard.shell.primaryWalletId ? `/wallets/${dashboard.shell.primaryWalletId}/transactions` : "/dashboard";
   const hasDailyExpenses = dashboard.dailyExpenses.some((item) => item.amount > 0);
 
   return (
@@ -42,6 +53,52 @@ export function DashboardContent({ dashboard, locale }: { dashboard: DashboardDa
       }
     >
       <DashboardOnboardingCard onboarding={dashboard.onboarding} />
+
+      <ToastFeedback error={feedback?.error} message={feedback?.message} />
+      <section className="glass-panel mb-4 grid gap-4 rounded-2xl p-4 xl:grid-cols-[1fr_360px]">
+        <div>
+          <p className="headline-md">{t("wallets.heroTitle")}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{t("wallets.heroDescription")}</p>
+        </div>
+        <form action={createWallet} className="grid gap-3 rounded-2xl bg-muted p-4">
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="block">
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("wallets.nameLabel")}</span>
+              <input name="name" placeholder={t("wallets.namePlaceholder")} required />
+            </label>
+            <label className="block">
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("wallets.kindLabel")}</span>
+              <select name="kind" defaultValue="personal">
+                <option value="personal">{t("wallets.kindPersonal")}</option>
+                <option value="shared">{t("wallets.kindShared")}</option>
+              </select>
+            </label>
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="block">
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("wallets.setupPresetLabel")}</span>
+              <select name="setup_preset" defaultValue="standard">
+                <option value="minimal">{t("wallets.setupMinimal")}</option>
+                <option value="standard">{t("wallets.setupStandard")}</option>
+                <option value="family">{t("wallets.setupFamily")}</option>
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("wallets.budgetPresetLabel")}</span>
+              <select name="budget_preset" defaultValue="balanced">
+                <option value="none">{t("wallets.budgetPresetNone")}</option>
+                <option value="light">{t("wallets.budgetPresetLight")}</option>
+                <option value="balanced">{t("wallets.budgetPresetBalanced")}</option>
+                <option value="ambitious">{t("wallets.budgetPresetAmbitious")}</option>
+              </select>
+            </label>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t("wallets.presetDescription")}
+          </p>
+          <SubmitButton pendingText={t("wallets.createPending")}>{t("wallets.createButton")}</SubmitButton>
+        </form>
+      </section>
 
       <section id="ringkasan-finansial" className="grid gap-4 scroll-mt-28 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.75fr)]">
         <div className="card">
@@ -93,9 +150,6 @@ export function DashboardContent({ dashboard, locale }: { dashboard: DashboardDa
               <p className="eyebrow">{t("dashboard.activeWalletEyebrow")}</p>
               <h3 className="headline-md mt-2">{t("dashboard.activeWalletTitle")}</h3>
             </div>
-            <Button href="/wallets" variant="ghost">
-              {t("common.viewAll")}
-            </Button>
           </div>
           <div className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(17rem,1fr))] gap-4">
             {dashboard.wallets.length === 0 ? (

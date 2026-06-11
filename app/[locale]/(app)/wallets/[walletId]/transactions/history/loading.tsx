@@ -4,5 +4,5 @@ import { translate } from "@/lib/i18n";
 
 export default async function TransactionHistoryLoading() {
   const locale = await getActionLocale();
-  return <DetailPageLoadingSkeleton currentPath="/wallets/loading-wallet/transactions/history" title={translate(locale, "transactions.historyTitle")} locale={locale} />;
+  return <DetailPageLoadingSkeleton currentPath="/wallets/loading-wallet/transactions" title={translate(locale, "transactions.historyTitle")} locale={locale} />;
 }

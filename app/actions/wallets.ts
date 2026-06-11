@@ -58,7 +58,7 @@ export async function createWallet(formData: FormData) {
   const locale = await getActionLocale();
 
   if (!profile) {
-    return await redirectWithMessage("/wallets", "error", translate(locale, "actionErrors.profileNotSynced"));
+    return await redirectWithMessage("/dashboard", "error", translate(locale, "actionErrors.profileNotSynced"));
   }
 
   const { data: wallet, error: walletError } = await supabase
@@ -74,7 +74,7 @@ export async function createWallet(formData: FormData) {
     .single();
 
   if (walletError || !wallet) {
-    return await redirectWithMessage("/wallets", "error", translate(locale, "actionErrors.walletCreateFailed"));
+    return await redirectWithMessage("/dashboard", "error", translate(locale, "actionErrors.walletCreateFailed"));
   }
 
   const { error: memberError } = await supabase.from("wallet_members").insert({
@@ -86,7 +86,7 @@ export async function createWallet(formData: FormData) {
   });
 
   if (memberError) {
-    return await redirectWithMessage("/wallets", "error", translate(locale, "actionErrors.unexpectedError"));
+    return await redirectWithMessage("/dashboard", "error", translate(locale, "actionErrors.unexpectedError"));
   }
 
   const starterCategories = getStarterCategories();
@@ -106,7 +106,7 @@ export async function createWallet(formData: FormData) {
     .select("id, name, kind");
 
   if (categoryError || !createdCategories) {
-    return await redirectWithMessage("/wallets", "error", translate(locale, "actionErrors.defaultCategoriesCreateFailed"));
+    return await redirectWithMessage("/dashboard", "error", translate(locale, "actionErrors.defaultCategoriesCreateFailed"));
   }
 
   const categoryMap = new Map(
@@ -146,7 +146,7 @@ export async function createWallet(formData: FormData) {
     const { error: templateError } = await supabase.from("transaction_templates").insert(templateRows);
 
     if (templateError) {
-      return await redirectWithMessage("/wallets", "error", translate(locale, "actionErrors.unexpectedError"));
+      return await redirectWithMessage("/dashboard", "error", translate(locale, "actionErrors.unexpectedError"));
     }
   }
 
@@ -168,13 +168,13 @@ export async function createWallet(formData: FormData) {
     const { error: budgetError } = await supabase.from("budgets").insert(budgetRows);
 
     if (budgetError) {
-      return await redirectWithMessage("/wallets", "error", translate(locale, "actionErrors.unexpectedError"));
+      return await redirectWithMessage("/dashboard", "error", translate(locale, "actionErrors.unexpectedError"));
     }
   }
 
   await invalidateDashboardCache([user.id]);
   revalidatePath(localizePath(locale, "/dashboard"));
-  revalidatePath(localizePath(locale, "/wallets"));
+  
   redirect(localizePath(locale, `/wallets/${wallet.id}`));
 }
 
@@ -183,7 +183,7 @@ export async function createWalletInvitation(formData: FormData) {
   const role = String(formData.get("role") ?? "viewer").trim() as "editor" | "viewer";
   const redirectPath = membersPath(walletId);
   const { supabase, user } = await requireUser();
-  const localizedWalletsPath = await getLocalizedPath("/wallets");
+  const localizedWalletsPath = await getLocalizedPath("/dashboard");
   const localizedRedirectPath = await getLocalizedPath(redirectPath);
   const locale = await getActionLocale();
 
@@ -260,7 +260,7 @@ export async function acceptWalletInvitation(formData: FormData) {
   const { user } = await requireUser();
   const admin = createAdminClient();
   const invitePath = await getLocalizedPath(`/invite/${token}`);
-  const walletsPath = await getLocalizedPath("/wallets");
+  const walletsPath = await getLocalizedPath("/dashboard");
   const locale = await getActionLocale();
 
   if (!token) {
@@ -346,7 +346,7 @@ export async function acceptWalletInvitation(formData: FormData) {
   const dashboardUserIds = await getWalletMemberUserIds(admin, acceptedWalletId);
   await invalidateDashboardCache(dashboardUserIds);
   revalidatePath(localizePath(locale, "/dashboard"));
-  revalidatePath(localizePath(locale, "/wallets"));
+  
   revalidatePath(await getLocalizedPath(membersPath(acceptedWalletId)));
   redirect(withMessage(await getLocalizedPath(`/wallets/${acceptedWalletId}`), "message", translate(locale, "actionSuccess.walletInvitationAccepted")));
 }

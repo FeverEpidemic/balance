@@ -227,7 +227,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
   const locale = useLocale();
   const t = getTranslator(locale);
   const localeTag = getLocaleTag(locale);
-  const active = `/wallets/${data.walletId}/transactions/history`;
+  const active = `/wallets/${data.walletId}/transactions`;
   const canMutate = data.currentUserRole === "owner" || data.currentUserRole === "editor";
   const [sorting, setSorting] = useState<SortingState>([{ id: "happenedAt", desc: true }]);
   const [search, setSearch] = useState("");
@@ -371,6 +371,26 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
       primaryWalletId={data.shell.primaryWalletId}
       currentWalletId={data.walletId}
     >
+      {/* View toggle */}
+      <div className="mb-4">
+        <div className="glass-panel inline-flex gap-1 rounded-2xl p-1.5">
+          <Button
+            href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}`}
+            variant="ghost"
+            className="rounded-xl px-4 py-2 font-label text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground"
+          >
+            {t("transactions.quickInputTab")}
+          </Button>
+          <Button
+            href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}&view=history`}
+            variant="soft"
+            className="rounded-xl px-4 py-2 font-label text-xs font-semibold uppercase tracking-[0.12em] shadow-none"
+          >
+            {t("transactions.fullHistoryTab")}
+          </Button>
+        </div>
+      </div>
+
       <section className="grid gap-4">
         <div className="card">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
@@ -396,7 +416,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
               <Button variant="soft" className="w-full sm:w-auto">
                 {t("common.apply")}
               </Button>
-              <Button href={`/wallets/${data.walletId}/transactions/history`} variant="ghost" className="w-full sm:w-auto">
+              <Button href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}&view=history`} variant="ghost" className="w-full sm:w-auto">
                 {t("common.reset")}
               </Button>
             </form>
