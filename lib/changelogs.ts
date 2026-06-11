@@ -13,6 +13,32 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.6.9",
+    date: "2026-06-19",
+    title: "AI chat lebih hemat token & riwayat percakapan lebih pintar",
+    description: "AI chat sekarang mengelola budget token dengan lebih cerdas: mengecilkan konteks saat diperlukan, memilih riwayat percakapan yang relevan, dan mengompres hasil tool supaya percakapan tetap cepat dan hemat biaya.",
+    features: [
+      { icon: "📐", text: "Budget token otomatis: AI mengecek dan mengecilkan konteks sebelum mengirim ke model." },
+      { icon: "📝", text: "System prompt ringkas: saat budget token terbatas, ringkasan wallet dan kategori dirampingkan secara otomatis." },
+      { icon: "🧠", text: "Riwayat pintar: percakapan lama yang paling relevan dengan pertanyaanmu tetap disertakan, sisanya dihemat." },
+      { icon: "🗜️", text: "Hasil tool dikompres: data rekap dan transaksi dari tool dikirim lebih ringkas tanpa kehilangan informasi penting." },
+      { icon: "⚙️", text: "Budget token bisa diatur lewat environment variable AI_CHAT_TOKEN_BUDGET." }
+    ]
+  },
+  {
+    version: "1.6.8",
+    date: "2026-06-18",
+    title: "Pencatatan transaksi AI yang lebih aman dengan verifikasi kepercayaan",
+    description: "AI sekarang menilai tingkat kepercayaan sebelum mencatat transaksi. Jika kurang yakin, kamu bisa lihat preview dulu dan konfirmasi sebelum transaksi benar-benar tersimpan. Sistem juga mendeteksi duplikat transaksi dan batas pengeluaran harian.",
+    features: [
+      { icon: "🎯", text: "AI menilai tingkat kepercayaan transaksi: nominal, kategori, wallet, dan niat dari teks kamu." },
+      { icon: "🛡️", text: "Transaksi duplikat dalam 5 menit terakhir otomatis terdeteksi dan dicegah." },
+      { icon: "💬", text: "Konfirmasi interaktif: preview transaksi muncul di chat, kamu bisa setujui atau batalkan." },
+      { icon: "📋", text: "Tombol 'Ya, Catat' dan 'Batal' untuk transaksi yang perlu konfirmasi — tidak perlu ngetik ulang." },
+      { icon: "🔁", text: "Tool confirmTransaction baru untuk AI menyelesaikan transaksi yang butuh persetujuan." }
+    ]
+  },
+  {
     version: "1.6.7",
     date: "2026-06-17",
     title: "AI lebih tangguh: retry otomatis, fallback cerdas, dan validasi ketat",

@@ -12,6 +12,8 @@ import { requireUser } from "@/lib/auth";
 import { type RekapPeriod } from "@/lib/chat-auth";
 import { LOCALE_COOKIE_NAME, getTranslator, resolveLocale } from "@/lib/i18n";
 import { applyRateLimitHeaders, consumeAiChatRateLimit } from "@/lib/rate-limit";
+import { budgetConversationMessages, estimateConversationTokens, isShortPeriod } from "@/lib/ai/token-budget";
+import { getAiChatTokenBudget } from "@/lib/env";
 
 type ChatRequestBody = {
   intent?: "chat" | "recap";
@@ -114,14 +116,36 @@ export async function POST(request: Request) {
       return applyRateLimitHeaders(createFriendlyFallbackStream(buildDirectRecapMessage(recap)), aiRateLimit);
     }
 
-    const systemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus });
+    const tokenBudget = getAiChatTokenBudget();
+
+    // ── Budget check: initial messages ──────────────────────────────
+    let effectiveSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus });
+    let initialMessages = buildChatMessages(effectiveSystemPrompt, recentMessages);
+
+    let initialTokens = estimateConversationTokens(initialMessages as unknown as Parameters<typeof estimateConversationTokens>[0]);
+
+    if (initialTokens > tokenBudget) {
+      console.warn(`[AI] token budget exceeded (${initialTokens} > ${tokenBudget}), switching to compact system prompt`);
+      effectiveSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus, compact: true });
+      initialMessages = buildChatMessages(effectiveSystemPrompt, recentMessages);
+      initialTokens = estimateConversationTokens(initialMessages as unknown as Parameters<typeof estimateConversationTokens>[0]);
+    }
+
+    if (initialTokens > tokenBudget) {
+      console.warn(`[AI] still over budget after compact prompt (${initialTokens} > ${tokenBudget}), trimming messages`);
+      initialMessages = budgetConversationMessages(
+        initialMessages as unknown as Parameters<typeof budgetConversationMessages>[0],
+        tokenBudget
+      ) as unknown as typeof initialMessages;
+    }
+    // ── End budget check ───────────────────────────────────────────
+
     const client = getAiClient();
 
     if (!client) {
       throw new Error("AI_CLIENT_UNAVAILABLE");
     }
 
-    const initialMessages = buildChatMessages(systemPrompt, recentMessages);
     const conversationMessages: ConversationMessage[] = [...initialMessages] as unknown as ConversationMessage[];
     let finalAssistantContent = "";
     let shouldStreamFinalReply = true;
@@ -173,7 +197,7 @@ export async function POST(request: Request) {
         });
 
         for (const toolCall of assistantMessage.tool_calls) {
-          const result = await executeAiToolCall(user.id, toolCall);
+          const result = await executeAiToolCall(user.id, toolCall, { userMessage: latestUserMessage });
           conversationMessages.push({
             role: "tool",
             tool_call_id: toolCall.id,
@@ -195,6 +219,56 @@ export async function POST(request: Request) {
       );
     }
 
+    // After tool loop: check for NEEDS_CONFIRMATION and emit SSE directly
+    const needsConfirmationResult = (() => {
+      const toolResults = conversationMessages.filter((msg) => msg.role === "tool");
+      for (const toolResult of toolResults) {
+        try {
+          const parsed = JSON.parse(toolResult.content) as Record<string, unknown>;
+          if (parsed.code === "NEEDS_CONFIRMATION") {
+            return parsed as {
+              code: string;
+              confidence: { score: number; tier: string; reasons: string[]; flags: string[] };
+              preview: {
+                walletId: string;
+                kind: string;
+                amount: number;
+                categoryId?: string | null;
+                categoryName?: string | null;
+                note?: string | null;
+                happenedAt?: string | null;
+              };
+            };
+          }
+        } catch {
+          // skip unparseable results
+        }
+      }
+      return null;
+    })();
+
+    if (needsConfirmationResult) {
+      return applyRateLimitHeaders(
+        createSseResponse(
+          new ReadableStream({
+            start(controller) {
+              const encoder = new TextEncoder();
+              controller.enqueue(
+                emitSse(encoder, {
+                  type: "transactionPreview",
+                  confidence: needsConfirmationResult.confidence.score,
+                  preview: needsConfirmationResult.preview
+                })
+              );
+              controller.enqueue(emitSse(encoder, { type: "done" }));
+              controller.close();
+            }
+          })
+        ),
+        aiRateLimit
+      );
+    }
+
     if (!shouldStreamFinalReply && finalAssistantContent) {
       const responseText = isLowSignalAiReply(finalAssistantContent)
         ? buildFallbackFinanceAnswer(latestUserMessage, recap, categoryFocus)
@@ -202,6 +276,21 @@ export async function POST(request: Request) {
 
       return applyRateLimitHeaders(createFriendlyFallbackStream(responseText), aiRateLimit);
     }
+
+    // ── Final budget check before streaming ─────────────────────────
+    {
+      const finalTokens = estimateConversationTokens(conversationMessages as unknown as Parameters<typeof estimateConversationTokens>[0]);
+      if (finalTokens > tokenBudget) {
+        console.warn(`[AI] final conversation over budget (${finalTokens} > ${tokenBudget}), trimming before streaming`);
+        const trimmed = budgetConversationMessages(
+          conversationMessages as unknown as Parameters<typeof budgetConversationMessages>[0],
+          tokenBudget
+        );
+        conversationMessages.length = 0;
+        conversationMessages.push(...trimmed as unknown as ConversationMessage[]);
+      }
+    }
+    // ── End final budget check ─────────────────────────────────────
 
     // Streaming final reply — with retry wrapper and read timeout
     try {

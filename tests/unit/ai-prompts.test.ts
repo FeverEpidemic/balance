@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildAiSystemPrompt } from "@/lib/ai/prompts";
+import { buildAiSystemPrompt, buildCompactFinancialContext } from "@/lib/ai/prompts";
 import type { AiFinancialRecap } from "@/lib/ai/data";
 
 function createRecap(overrides: Partial<AiFinancialRecap> = {}): AiFinancialRecap {
@@ -44,5 +44,138 @@ describe("buildAiSystemPrompt", () => {
     expect(prompt).toContain("createTransaction");
     expect(prompt).toContain("Jika user belum menyebut wallet");
     expect(prompt).toContain("Setelah createTransaction berhasil");
+  });
+});
+
+describe("buildAiSystemPrompt compact mode", () => {
+  it("collapses perWallet into a single summary line", () => {
+    const prompt = buildAiSystemPrompt({
+      recap: createRecap({
+        perWallet: [
+          { walletId: "w1", walletName: "Dompet A", totalIncome: 1000000, totalExpense: 500000, net: 500000, transactionCount: 5 },
+          { walletId: "w2", walletName: "Dompet B", totalIncome: 2000000, totalExpense: 300000, net: 1700000, transactionCount: 3 },
+          { walletId: "w3", walletName: "Dompet C", totalIncome: 0, totalExpense: 200000, net: -200000, transactionCount: 2 }
+        ]
+      }),
+      wallets: [
+        { id: "w1", name: "Dompet A", kind: "personal" },
+        { id: "w2", name: "Dompet B", kind: "personal" },
+        { id: "w3", name: "Dompet C", kind: "personal" }
+      ],
+      period: "month",
+      latestUserMessage: "Analisis pengeluaran",
+      categoryFocus: null,
+      compact: true
+    });
+
+    // Should have single summary line with wallet count
+    expect(prompt).toContain("3 wallet aktif");
+    // Should NOT have per-wallet breakdown lines
+    expect(prompt).not.toContain("Dompet A: pemasukan");
+    expect(prompt).not.toContain("Dompet B: pemasukan");
+  });
+
+  it("limits topExpenseCategories to 3 in compact mode", () => {
+    const categories = [
+      { categoryId: "c1", categoryName: "Makan", total: 500000 },
+      { categoryId: "c2", categoryName: "Transport", total: 300000 },
+      { categoryId: "c3", categoryName: "Hiburan", total: 200000 },
+      { categoryId: "c4", categoryName: "Belanja", total: 150000 },
+      { categoryId: "c5", categoryName: "Kesehatan", total: 100000 }
+    ];
+
+    const promptCompact = buildAiSystemPrompt({
+      recap: createRecap({ topExpenseCategories: categories }),
+      wallets: [{ id: "w1", name: "Dompet", kind: "personal" }],
+      period: "month",
+      latestUserMessage: "Rekap",
+      categoryFocus: null,
+      compact: true
+    });
+
+    const promptFull = buildAiSystemPrompt({
+      recap: createRecap({ topExpenseCategories: categories }),
+      wallets: [{ id: "w1", name: "Dompet", kind: "personal" }],
+      period: "month",
+      latestUserMessage: "Rekap",
+      categoryFocus: null
+    });
+
+    expect(promptCompact).toContain("Makan");
+    expect(promptCompact).toContain("Transport");
+    expect(promptCompact).toContain("Hiburan");
+    expect(promptCompact).not.toContain("Belanja");
+    // Full mode should have all 5
+    expect(promptFull).toContain("Belanja");
+  });
+
+  it("omits previousPeriod comparison when period is day in compact mode", () => {
+    const categoryFocus = {
+      categoryId: "c1",
+      categoryName: "Makan",
+      totalExpense: 50000,
+      transactionCount: 2,
+      walletNames: ["Dompet"],
+      recentNotes: ["Makan siang"],
+      budget: null,
+      previousPeriod: {
+        range: { start: "2026-06-09T00:00:00.000Z", end: "2026-06-09T23:59:59.999Z" },
+        totalExpense: 45000,
+        transactionCount: 1,
+        deltaAmount: 5000,
+        deltaPercent: 11
+      }
+    };
+
+    const prompt = buildAiSystemPrompt({
+      recap: createRecap(),
+      wallets: [{ id: "w1", name: "Dompet", kind: "personal" }],
+      period: "day",
+      latestUserMessage: "Berapa makan hari ini?",
+      categoryFocus,
+      compact: true
+    });
+
+    expect(prompt).not.toContain("Perbandingan dengan periode sebelumnya");
+  });
+
+  it("omits recentNotes when more than 2 wallets in compact mode", () => {
+    const categoryFocus = {
+      categoryId: "c1",
+      categoryName: "Makan",
+      totalExpense: 50000,
+      transactionCount: 2,
+      walletNames: ["Dompet A", "Dompet B", "Dompet C"],
+      recentNotes: ["Makan siang", "Kopi"],
+      budget: null,
+      previousPeriod: null
+    };
+
+    const prompt = buildAiSystemPrompt({
+      recap: createRecap(),
+      wallets: [
+        { id: "w1", name: "Dompet A", kind: "personal" },
+        { id: "w2", name: "Dompet B", kind: "personal" },
+        { id: "w3", name: "Dompet C", kind: "personal" }
+      ],
+      period: "month",
+      latestUserMessage: "Analisis",
+      categoryFocus,
+      compact: true
+    });
+
+    expect(prompt).not.toContain("Catatan transaksi terbaru");
+  });
+});
+
+describe("buildCompactFinancialContext", () => {
+  it("returns a one-paragraph financial summary", () => {
+    const recap = createRecap();
+    const context = buildCompactFinancialContext({ recap, period: "month" });
+    expect(context).toContain("Rekap month");
+    expect(context).toContain("pemasukan");
+    expect(context).toContain("pengeluaran");
+    expect(context).toContain("net");
+    expect(context.length).toBeLessThan(300); // Should be compact
   });
 });

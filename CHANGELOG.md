@@ -2,6 +2,29 @@
 
 ## [Unreleased] - 2026-06-10
 
+### Added - Smart Token Budgeting & History Windowing
+
+- **Token budget estimation** (`lib/ai/token-budget.ts`): Conservative heuristic-based token counter (chars ÷ 3.5) for mixed Indonesian/English text. Computes total token consumption of conversation messages before sending to the AI model.
+- **Pre-flight budget check**: Before every AI call, the chat route estimates token usage. If over budget, it first switches the system prompt to compact mode, then trims older messages as a last resort. Logs a warning so operators can tune `AI_CHAT_TOKEN_BUDGET`.
+- **Configurable token budget**: New env var `AI_CHAT_TOKEN_BUDGET` (default `8192`) controls the maximum tokens allowed per AI call.
+- **Compact system prompt mode** (`buildAiSystemPrompt`): When token budget is tight, per-wallet breakdown collapses to a single summary, top categories limit to 3, and less-critical details (previous period comparison for "day", recent notes when >2 wallets) are omitted.
+- **Tool result compression** (`executeAiToolCall`): Financial recap results now strip range fields, limit perWallet to top 3, and limit categories to top 3. Transaction lists limit to 5 items and drop `id`/`walletId` fields.
+- **Sliding-window chat history** (`buildWindowedChatMessages`): Always includes the last 5 exchanges, then picks the 3 most relevant older exchanges by keyword overlap with the current message. Capped at 24 total messages.
+
+### Changed
+
+- `buildChatRequestMessages` now delegates to the new `buildWindowedChatMessages` for smarter history selection.
+
+### Added - Confidence-based Transaction Recording & Duplicate Prevention
+
+- **Confidence scoring engine** (`lib/ai/confidence.ts`): AI now evaluates transaction confidence before inserting — checks amount cross-validation, category resolution, wallet mention, intent clarity, and date clarity. Returns `high` (auto-save), `medium` (needs confirmation), or `low` (rejected) tiers.
+- **User confirmation card**: When AI confidence is medium, users see an inline confirmation card in chat with transaction details and "Ya, Catat" / "Batal" buttons before the transaction is saved.
+- **Duplicate transaction detection**: Automatically detects if an identical transaction (same wallet, kind, amount ±10%) was created within the last 5 minutes and prevents duplicate entries.
+- **Daily spending cap** (opt-in): New environment variables `DAILY_SPENDING_CAP_ENABLED` and `DAILY_SPENDING_CAP_AMOUNT`. When enabled, AI blocks new expenses that would exceed the daily limit.
+- **`confirmTransaction` AI tool**: New tool allows the AI to finalize transactions that were flagged for confirmation after user approval.
+- **`/api/ai/confirm-transaction` endpoint**: REST endpoint for the confirmation card to save pre-validated transactions bypassing the confidence engine.
+- **System prompt updates**: AI now knows how to handle `NEEDS_CONFIRMATION`, `CONFIDENCE_TOO_LOW`, `DUPLICATE_DETECTED`, and `DAILY_SPENDING_CAP_EXCEEDED` responses.
+
 ### Added - AI Resilience & Upstream Handling
 
 - **Retry logic dengan exponential backoff:** Panggilan ke DeepSeek/OpenRouter kini dibungkus dengan `createAiChatCompletion()` yang otomatis retry hingga 2x (total 3 attempt) dengan backoff 1s/2s untuk error retryable (429, 5xx, network/timeout). Non-streaming call juga menaikkan temperature +0.1 per retry.

@@ -1,3 +1,5 @@
+import { DEFAULT_CHAT_TOKEN_BUDGET } from "@/lib/ai/token-budget";
+
 function readEnv(name: string) {
   const value = process.env[name];
 
@@ -136,4 +138,16 @@ export function getDeepseekBaseUrl() {
 
 export function getDeepseekApiKey() {
   return process.env.DEEPSEEK_API_KEY?.trim() || null;
+}
+
+export function getDailySpendingCapEnabled() {
+  return readBooleanEnv("DAILY_SPENDING_CAP_ENABLED", false);
+}
+
+export function getDailySpendingCapAmount() {
+  return readPositiveIntegerEnv("DAILY_SPENDING_CAP_AMOUNT", 5_000_000);
+}
+
+export function getAiChatTokenBudget() {
+  return readPositiveIntegerEnv("AI_CHAT_TOKEN_BUDGET", DEFAULT_CHAT_TOKEN_BUDGET);
 }

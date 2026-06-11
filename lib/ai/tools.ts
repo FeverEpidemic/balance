@@ -1,6 +1,8 @@
 import "server-only";
 import type { ChatCompletionMessageToolCall, ChatCompletionTool } from "openai/resources/chat/completions";
 import { createTransactionViaAi, getBudgetStatusForUser, getCategoriesForWallets, getFinancialRecapForUser, getRecentTransactionsForUser } from "@/lib/ai/data";
+import { checkDailySpendingCap, checkDuplicateTransaction, computeTransactionConfidence, resolveWalletName } from "@/lib/ai/confidence";
+import type { AiCreateTransactionParams } from "@/lib/ai/data";
 import type { RekapPeriod } from "@/lib/chat-auth";
 
 export const aiTools: ChatCompletionTool[] = [
@@ -121,6 +123,51 @@ export const aiTools: ChatCompletionTool[] = [
         required: ["walletId", "kind", "amount"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "confirmTransaction",
+      description:
+        "Konfirmasi pencatatan transaksi yang sebelumnya perlu verifikasi karena detailnya kurang jelas. Hanya panggil setelah createTransaction mengembalikan NEEDS_CONFIRMATION dan user sudah melihat preview serta memberikan konfirmasi eksplisit.",
+      parameters: {
+        type: "object",
+        properties: {
+          walletId: {
+            type: "string",
+            minLength: 1,
+            description: "Wallet tujuan transaksi."
+          },
+          kind: {
+            type: "string",
+            enum: ["income", "expense"],
+            description: "Jenis transaksi: income untuk pemasukan, expense untuk pengeluaran."
+          },
+          amount: {
+            type: "number",
+            minimum: 1,
+            description: "Nominal transaksi dalam Rupiah."
+          },
+          categoryId: {
+            type: "string",
+            description: "Opsional. ID kategori."
+          },
+          categoryName: {
+            type: "string",
+            description: "Opsional. Nama kategori sebagai fallback."
+          },
+          note: {
+            type: "string",
+            description: "Opsional. Catatan transaksi singkat."
+          },
+          happenedAt: {
+            type: "string",
+            description: "Opsional. Tanggal transaksi dalam format YYYY-MM-DD."
+          }
+        },
+        required: ["walletId", "kind", "amount"]
+      }
+    }
   }
 ];
 
@@ -132,7 +179,52 @@ function parseArguments(rawArguments: string) {
   }
 }
 
-export async function executeAiToolCall(userId: string, toolCall: ChatCompletionMessageToolCall) {
+function compressToolResult(rawJson: string, toolName: string): string {
+  try {
+    const parsed = JSON.parse(rawJson);
+    // Don't compress error payloads
+    if (parsed.error || parsed.ok === false) return rawJson;
+
+    switch (toolName) {
+      case "getFinancialRecap": {
+        const recap = parsed as Record<string, unknown>;
+        // Strip range fields
+        delete recap.range;
+        // Limit perWallet to busiest 3
+        if (Array.isArray(recap.perWallet) && recap.perWallet.length > 3) {
+          recap.perWallet = (recap.perWallet as Array<{ transactionCount: number }>)
+            .sort((a, b) => b.transactionCount - a.transactionCount)
+            .slice(0, 3);
+        }
+        // Limit topExpenseCategories to top 3
+        if (Array.isArray(recap.topExpenseCategories) && recap.topExpenseCategories.length > 3) {
+          recap.topExpenseCategories = (recap.topExpenseCategories as Array<{ total: number }>)
+            .sort((a, b) => b.total - a.total)
+            .slice(0, 3);
+        }
+        return JSON.stringify(recap);
+      }
+      case "getTransactions": {
+        const arr = parsed as Array<Record<string, unknown>>;
+        const trimmed = arr.slice(0, 5).map((item) => {
+          const { id, walletId, ...rest } = item;
+          return rest;
+        });
+        return JSON.stringify(trimmed);
+      }
+      default:
+        return rawJson;
+    }
+  } catch {
+    return rawJson;
+  }
+}
+
+export async function executeAiToolCall(
+  userId: string,
+  toolCall: ChatCompletionMessageToolCall,
+  context?: { userMessage?: string }
+) {
   if (toolCall.type !== "function") {
     return JSON.stringify({ error: "UNSUPPORTED_TOOL_CALL" });
   }
@@ -141,16 +233,22 @@ export async function executeAiToolCall(userId: string, toolCall: ChatCompletion
   try {
     switch (toolCall.function.name) {
       case "getFinancialRecap":
-        return JSON.stringify(
-          await getFinancialRecapForUser(
-            userId,
-            ((args.period as RekapPeriod | undefined) ?? "month"),
-            (args.walletId as string | undefined) ?? null
-          )
+        return compressToolResult(
+          JSON.stringify(
+            await getFinancialRecapForUser(
+              userId,
+              ((args.period as RekapPeriod | undefined) ?? "month"),
+              (args.walletId as string | undefined) ?? null
+            )
+          ),
+          "getFinancialRecap"
         );
       case "getTransactions":
-        return JSON.stringify(
-          await getRecentTransactionsForUser(userId, (args.walletId as string | undefined) ?? null, Number(args.limit) || 8)
+        return compressToolResult(
+          JSON.stringify(
+            await getRecentTransactionsForUser(userId, (args.walletId as string | undefined) ?? null, Number(args.limit) || 8)
+          ),
+          "getTransactions"
         );
       case "getBudgetStatus":
         return JSON.stringify(await getBudgetStatusForUser(userId, String(args.walletId ?? "")));
@@ -186,11 +284,108 @@ export async function executeAiToolCall(userId: string, toolCall: ChatCompletion
           });
         }
 
+        const validKind = kind as "income" | "expense";
+        const params: AiCreateTransactionParams = {
+          walletId,
+          kind: validKind,
+          amount,
+          categoryId: typeof args.categoryId === "string" && args.categoryId.trim() ? args.categoryId.trim() : null,
+          categoryName: typeof args.categoryName === "string" && args.categoryName.trim() ? args.categoryName.trim() : null,
+          note: typeof args.note === "string" && args.note.trim() ? args.note.trim() : null,
+          happenedAt: typeof args.happenedAt === "string" && args.happenedAt.trim() ? args.happenedAt.trim() : null
+        };
+
+        // Confidence check phase — run in parallel
+        const userMessage = context?.userMessage ?? "";
+        const [walletName, duplicateCheck, dailyCapCheck] = await Promise.all([
+          resolveWalletName(walletId),
+          checkDuplicateTransaction(userId, walletId, validKind, amount),
+          checkDailySpendingCap(userId, walletId, amount)
+        ]);
+
+        const confidence = computeTransactionConfidence(params, userMessage, walletName);
+
+        // Check blocking conditions first
+        if (duplicateCheck.isDuplicate) {
+          return JSON.stringify({
+            ok: false,
+            code: "DUPLICATE_DETECTED",
+            message: "Transaksi serupa sudah tercatat dalam 5 menit terakhir.",
+            confidence: { score: confidence.score, tier: "low", reasons: confidence.reasons, flags: confidence.flags },
+            preview: params,
+            suggestion: "Silakan catat manual atau tunggu beberapa saat."
+          });
+        }
+
+        if (dailyCapCheck.exceeded) {
+          return JSON.stringify({
+            ok: false,
+            code: "DAILY_SPENDING_CAP_EXCEEDED",
+            message: `Pengeluaran hari ini (${dailyCapCheck.todayTotal}) ditambah transaksi ini (${amount}) melebihi batas harian (${dailyCapCheck.threshold}).`,
+            confidence: { score: confidence.score, tier: "low", reasons: confidence.reasons, flags: confidence.flags },
+            preview: params,
+            suggestion: "Silakan catat manual atau kurangi nominalnya."
+          });
+        }
+
+        if (confidence.tier === "low") {
+          return JSON.stringify({
+            ok: false,
+            code: "CONFIDENCE_TOO_LOW",
+            message: "AI kurang yakin dengan detail transaksi.",
+            confidence: { score: confidence.score, tier: "low", reasons: confidence.reasons, flags: confidence.flags },
+            preview: params,
+            suggestion: "Silakan catat manual."
+          });
+        }
+
+        if (confidence.tier === "medium") {
+          return JSON.stringify({
+            ok: false,
+            code: "NEEDS_CONFIRMATION",
+            message: "AI perlu konfirmasi sebelum mencatat.",
+            confidence: { score: confidence.score, tier: "medium", reasons: confidence.reasons, flags: confidence.flags },
+            preview: params
+          });
+        }
+
+        // Tier "high" — proceed with insertion
+        return JSON.stringify(
+          await createTransactionViaAi(userId, params)
+        );
+      }
+      case "confirmTransaction": {
+        const confWalletId = typeof args.walletId === "string" && args.walletId.trim() ? args.walletId.trim() : "";
+        const confKind = args.kind === "income" || args.kind === "expense" ? args.kind : null;
+        const confAmount = Number(args.amount);
+
+        const confPreValidationErrors: string[] = [];
+
+        if (!confWalletId) {
+          confPreValidationErrors.push("walletId wajib diisi.");
+        }
+
+        if (!confKind) {
+          confPreValidationErrors.push("kind harus 'income' atau 'expense'.");
+        }
+
+        if (!Number.isFinite(confAmount) || confAmount <= 0) {
+          confPreValidationErrors.push("amount harus positif.");
+        }
+
+        if (confPreValidationErrors.length > 0) {
+          return JSON.stringify({
+            error: "VALIDATION_FAILED",
+            message: "Parameter konfirmasi transaksi tidak valid.",
+            details: confPreValidationErrors
+          });
+        }
+
         return JSON.stringify(
           await createTransactionViaAi(userId, {
-            walletId,
-            kind: kind as "income" | "expense",
-            amount,
+            walletId: confWalletId,
+            kind: confKind as "income" | "expense",
+            amount: confAmount,
             categoryId: typeof args.categoryId === "string" && args.categoryId.trim() ? args.categoryId.trim() : null,
             categoryName: typeof args.categoryName === "string" && args.categoryName.trim() ? args.categoryName.trim() : null,
             note: typeof args.note === "string" && args.note.trim() ? args.note.trim() : null,
