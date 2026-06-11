@@ -8,7 +8,6 @@ import {
 } from "@/lib/balance-adjustments";
 import { invalidateAiInsightCache, invalidateWalletReadCaches } from "@/lib/data/cache";
 import { consumeTransactionRateLimit } from "@/lib/rate-limit";
-import { checkFreeTransactionLimit, incrementTransactionCount } from "@/lib/transaction-limits";
 import {
   errorResult,
   getActionLocale,
@@ -107,16 +106,6 @@ export async function createTransaction(_prevState: ActionResult, formData: Form
     return errorResult(t("actionErrors.transactionAmountInvalid"));
   }
 
-  const transactionLimit = await checkFreeTransactionLimit(user.id);
-
-  if (!transactionLimit.allowed) {
-    return errorResult(
-      t("actionErrors.freeTierTransactionLimitReached", {
-        maxTransactions: transactionLimit.maxMonthlyTransactions
-      })
-    );
-  }
-
   const rateLimit = await consumeTransactionRateLimit(user.id);
 
   if (!rateLimit.allowed) {
@@ -138,8 +127,6 @@ export async function createTransaction(_prevState: ActionResult, formData: Form
   if (error) {
     return errorResult(mapTransactionError(error, t("actionStatus.linkedSavingTransaction"), t));
   }
-
-  await incrementTransactionCount(user.id);
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
   await invalidateWalletReadCaches(walletId, {
@@ -171,16 +158,6 @@ export async function createBalanceAdjustment(_prevState: ActionResult, formData
     return errorResult(validationError);
   }
 
-  const transactionLimit = await checkFreeTransactionLimit(user.id);
-
-  if (!transactionLimit.allowed) {
-    return errorResult(
-      t("actionErrors.freeTierTransactionLimitReached", {
-        maxTransactions: transactionLimit.maxMonthlyTransactions
-      })
-    );
-  }
-
   const rateLimit = await consumeTransactionRateLimit(user.id);
 
   if (!rateLimit.allowed) {
@@ -209,8 +186,6 @@ export async function createBalanceAdjustment(_prevState: ActionResult, formData
   if (error) {
     return errorResult(safeDbError(error, "actionErrors.unexpectedError", t));
   }
-
-  await incrementTransactionCount(user.id);
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
   await invalidateWalletReadCaches(walletId, {

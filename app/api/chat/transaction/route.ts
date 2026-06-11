@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyApiKey } from "@/lib/chat-auth";
 import { applyRateLimitHeaders, consumeChatApiRateLimit, consumeTransactionRateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { checkFreeTransactionLimit, incrementTransactionCount } from "@/lib/transaction-limits";
 import { invalidateWalletReadCaches } from "@/lib/data/cache";
 import { dateStringToISO, isValidDateString } from "@/lib/utils";
 
@@ -64,15 +63,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "viewer_cannot_write" }, { status: 403 });
   }
 
-  // Enforce free-tier transaction limit and rate limit
-  const txLimit = await checkFreeTransactionLimit(auth.userId);
-  if (!txLimit.allowed) {
-    return NextResponse.json(
-      { error: "free_tier_limit_reached", max: txLimit.maxMonthlyTransactions },
-      { status: 402 }
-    );
-  }
-
+  // Enforce rate limit for transaction writes
   const txRateLimit = await consumeTransactionRateLimit(auth.userId);
   if (!txRateLimit.allowed) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 });
@@ -97,9 +88,6 @@ export async function POST(request: NextRequest) {
   if (insertError || !transaction) {
     return NextResponse.json({ error: "insert_failed" }, { status: 500 });
   }
-
-  // Increment free-tier transaction count
-  await incrementTransactionCount(auth.userId);
 
   // Invalidate caches and revalidate paths
   const { data: memberIds } = await admin
