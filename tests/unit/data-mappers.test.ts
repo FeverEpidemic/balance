@@ -158,6 +158,7 @@ describe("data mappers", () => {
     expect(dashboard.totalAvailableBalance).toBe(460000);
     expect(dashboard.totalSavingBalance).toBe(350000);
     expect(dashboard.totalExpenseThisMonth).toBe(1550000);
+    expect(dashboard.totalIncomeThisMonth).toBe(2150000);
     expect(dashboard.outstandingSplit).toBe(200000);
     expect(dashboard.wallets).toHaveLength(2);
     expect(dashboard.recentTransactions[2]).toMatchObject({

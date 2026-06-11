@@ -246,6 +246,7 @@ export type DashboardData = {
   totalSavingBalance: number;
   totalBalance: number;
   totalExpenseThisMonth: number;
+  totalIncomeThisMonth: number;
   outstandingSplit: number;
   wallets: WalletSummary[];
   recentTransactions: DashboardRecentTransaction[];

@@ -30,10 +30,12 @@ function getTickIndexes(length: number) {
 
 export function DashboardDailyExpenseChart({
   dailyExpenses,
-  locale
+  locale,
+  compact = false
 }: {
   dailyExpenses: DailyExpenseItem[];
   locale: AppLocale;
+  compact?: boolean;
 }) {
   const t = getTranslator(locale);
   const maxAmount = Math.max(...dailyExpenses.map((item) => item.amount), 0);
@@ -119,22 +121,24 @@ export function DashboardDailyExpenseChart({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div className="subtle-panel">
-          <p className="text-sm text-muted-foreground">{t("dashboard.dailyExpensePeakLabel")}</p>
-          <p className="metric mt-2 text-lg">
-            {peakExpense ? formatCurrency(peakExpense.amount, locale) : formatCurrency(0, locale)}
-          </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {peakExpense ? t("dashboard.dailyExpenseDayLabel", { day: peakExpense.day }) : "-"}
-          </p>
+      {!compact && (
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="subtle-panel">
+            <p className="text-sm text-muted-foreground">{t("dashboard.dailyExpensePeakLabel")}</p>
+            <p className="metric mt-2 text-lg">
+              {peakExpense ? formatCurrency(peakExpense.amount, locale) : formatCurrency(0, locale)}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {peakExpense ? t("dashboard.dailyExpenseDayLabel", { day: peakExpense.day }) : "-"}
+            </p>
+          </div>
+          <div className="subtle-panel">
+            <p className="text-sm text-muted-foreground">{t("dashboard.dailyExpenseActiveDaysLabel")}</p>
+            <p className="metric mt-2 text-lg">{t("dashboard.dailyExpenseActiveDaysValue", { count: activeDays })}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t("dashboard.dailyExpenseChartHint")}</p>
+          </div>
         </div>
-        <div className="subtle-panel">
-          <p className="text-sm text-muted-foreground">{t("dashboard.dailyExpenseActiveDaysLabel")}</p>
-          <p className="metric mt-2 text-lg">{t("dashboard.dailyExpenseActiveDaysValue", { count: activeDays })}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{t("dashboard.dailyExpenseChartHint")}</p>
-        </div>
-      </div>
+      )}
     </>
   );
 }

@@ -269,6 +269,9 @@
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Your financial overview",
+    "tabRingkasan": "Overview",
+    "tabDompet": "Wallets",
+    "tabAktivitas": "Activity",
     "addTransaction": "Add transaction",
     "availableBalanceLabel": "Available balance",
     "availableBalanceDetail": "Balance across all wallets that is still ready to use outside savings.",
@@ -278,6 +281,8 @@
     "totalBalanceDetail": "Combined available balance and savings across all wallets.",
     "monthExpenseLabel": "This month's spending",
     "monthExpenseDetail": "Spending across all wallets in the current month.",
+    "monthIncomeLabel": "This month's income",
+    "monthIncomeDetail": "Income across all wallets recorded in the current month.",
     "dailyExpenseEyebrow": "Daily expenses",
     "dailyExpenseTitle": "Daily expense breakdown this month",
     "dailyExpenseDayLabel": "Day {day}",

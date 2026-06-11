@@ -620,6 +620,7 @@ export function createDashboardData(args: {
     totalSavingBalance: walletSummaries.reduce((total, wallet) => total + wallet.savingBalance, 0),
     totalBalance: walletSummaries.reduce((total, wallet) => total + wallet.totalBalance, 0),
     totalExpenseThisMonth: currentMonthTransactions.filter((row) => row.kind === "expense").reduce((total, row) => total + row.amount, 0),
+    totalIncomeThisMonth: currentMonthTransactions.filter((row) => row.kind === "income").reduce((total, row) => total + row.amount, 0),
     outstandingSplit: splits.reduce((total, row) => total + Math.max(row.owed_amount - row.paid_amount, 0), 0),
     wallets: walletSummaries,
     recentTransactions: buildRecentTransactions(recentTransactions, categories, wallets, locale),

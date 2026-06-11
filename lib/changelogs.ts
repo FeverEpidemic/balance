@@ -13,6 +13,39 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.7.8",
+    date: "2026-06-12",
+    title: "Dashboard tab-based: Ringkasan, Dompet, Aktivitas",
+    description: "Dashboard kini menggunakan 3 tab horizontal agar pengguna tidak perlu scroll panjang. Setiap tab menampilkan informasi yang relevan: ringkasan keuangan, dompet & kategori, atau aktivitas transaksi.",
+    features: [
+      { icon: "📑", text: "Tab Ringkasan: total saldo (big number), pengeluaran & pemasukan bulan ini, AI Insight, dan sparkline chart." },
+      { icon: "👛", text: "Tab Dompet: wallet cards dengan budget progress, form buat wallet baru (collapsible), dan breakdown kategori pengeluaran." },
+      { icon: "📋", text: "Tab Aktivitas: transaksi terbaru dan daily expense chart — semua histori tanpa gangguan." }
+    ]
+  },
+  {
+    version: "1.7.7",
+    date: "2026-06-12",
+    title: "Form buat wallet tidak lagi selalu terbuka",
+    description: "Form pembuatan wallet di Dashboard sekarang disembunyikan di balik tombol bagi pengguna yang sudah punya wallet. Dashboard jadi lebih bersih tanpa pengulangan form yang tidak perlu.",
+    features: [
+      { icon: "🧹", text: "Pengguna dengan minimal 1 wallet melihat tombol 'Buat wallet baru' — form hanya muncul saat diklik." },
+      { icon: "👶", text: "Pengguna baru (0 wallet) tetap langsung melihat form terbuka seperti sebelumnya." },
+      { icon: "🔙", text: "Form yang sudah dibuka bisa ditutup kembali dengan tombol 'Batal'." }
+    ]
+  },
+  {
+    version: "1.7.6",
+    date: "2026-06-12",
+    title: "Ringkasan finansial lebih informatif dengan pemasukan bulan ini",
+    description: "Kolom ringkasan finansial di Dashboard sekarang menampilkan pemasukan bulan ini, menggantikan metrik saldo yang sudah terlihat di kolom utama. Informasi jadi lebih lengkap tanpa pengulangan.",
+    features: [
+      { icon: "📈", text: "StatCard baru 'Pemasukan bulan ini' menampilkan total income seluruh wallet di bulan berjalan." },
+      { icon: "🧹", text: "Dua StatCard duplikat (Saldo Tersedia & Saldo Tabungan) dihapus — metrik ini sudah ada di kolom kiri ringkasan." },
+      { icon: "🌐", text: "Label dan detail pemasukan bulan ini tersedia dalam Bahasa Indonesia dan Inggris." }
+    ]
+  },
+  {
     version: "1.7.5",
     date: "2026-06-11",
     title: "Fundasi UI yang lebih kokoh dengan shadcn/ui",

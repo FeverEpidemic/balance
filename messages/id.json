@@ -269,6 +269,9 @@
   "dashboard": {
     "title": "Dashboard",
     "subtitle": "Ringkasan finansial kamu",
+    "tabRingkasan": "Ringkasan",
+    "tabDompet": "Dompet",
+    "tabAktivitas": "Aktivitas",
     "addTransaction": "Tambah transaksi",
     "availableBalanceLabel": "Saldo tersedia",
     "availableBalanceDetail": "Saldo semua wallet yang masih siap dipakai di luar tabungan.",
@@ -278,6 +281,8 @@
     "totalBalanceDetail": "Gabungan saldo siap pakai dan tabungan di semua wallet.",
     "monthExpenseLabel": "Pengeluaran bulan ini",
     "monthExpenseDetail": "Pengeluaran seluruh wallet pada bulan berjalan.",
+    "monthIncomeLabel": "Pemasukan bulan ini",
+    "monthIncomeDetail": "Total pemasukan yang sudah tercatat di bulan berjalan.",
     "dailyExpenseEyebrow": "Pengeluaran harian",
     "dailyExpenseTitle": "Rincian pengeluaran per hari bulan ini",
     "dailyExpenseDayLabel": "Hari ke-{day}",

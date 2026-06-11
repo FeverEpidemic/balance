@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased] - 2026-06-12
+
+### Added
+
+- **Dashboard tab-based** — Dashboard kini dibagi menjadi 3 tab horizontal (Ringkasan, Dompet, Aktivitas). Konten terkelompok sehingga pengguna langsung melihat napas keuangan tanpa perlu scroll panjang.
+- **Ringkasan finansial Dashboard** — Kolom kanan ringkasan finansial sekarang menampilkan **Pemasukan bulan ini** (`monthIncome`) sebagai pengganti duplikasi `availableBalance` dan `savingBalance` yang sudah ada di kolom kiri. Data pemasukan hanya mencakup transaksi income bulan berjalan.
+- **Form buat wallet lebih rapi** — Form pembuatan wallet kini disembunyikan di balik tombol "Buat wallet baru" untuk pengguna yang sudah punya wallet. Pengguna baru (0 wallet) tetap melihat form langsung terbuka. Form bisa ditutup kembali dengan tombol "Batal".
+
 ## [Unreleased] - 2026-06-11
 
 ### Changed
