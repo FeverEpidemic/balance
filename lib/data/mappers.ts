@@ -9,6 +9,7 @@ import type {
   BudgetProgressItem,
   BudgetRow,
   BudgetsPageData,
+  CategoriesPageData,
   CategoryRow,
   DailyExpenseItem,
   DashboardOnboarding,
@@ -748,6 +749,23 @@ export function createBudgetsPageData(args: {
       month: selectedMonth
     })
   } satisfies BudgetsPageData;
+}
+
+export function createCategoriesPageData(args: {
+  shell: ShellData;
+  wallet: WalletRow;
+  memberships: WalletMemberRow[];
+  categories: CategoryRow[];
+}) {
+  const { shell, wallet, memberships, categories } = args;
+
+  return {
+    shell,
+    walletId: wallet.id,
+    walletName: wallet.name,
+    currentUserRole: getCurrentUserRole(memberships, wallet.id),
+    categories: categories.filter((category) => category.wallet_id === wallet.id)
+  } satisfies CategoriesPageData;
 }
 
 export function createRecurringTransactionsPageData(args: {

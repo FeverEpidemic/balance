@@ -6,6 +6,7 @@ import {
   buildMonthlyReport,
   buildWalletSummaries,
   createBudgetsPageData,
+  createCategoriesPageData,
   createDashboardData,
   createRecurringTransactionsPageData,
   createSavingsPageData,
@@ -15,8 +16,10 @@ import {
 } from "@/lib/data/mappers";
 import {
   BUDGETS_CACHE_TTL_SECONDS,
+  CATEGORIES_CACHE_TTL_SECONDS,
   DASHBOARD_CACHE_TTL_SECONDS,
   getBudgetsCacheKey,
+  getCategoriesCacheKey,
   getDashboardCacheKey,
   getRecurringCacheKey,
   getSavingsCacheKey,
@@ -329,6 +332,35 @@ export const getBudgetsPageData = cache(async (userId: string, walletId: string,
       budgets,
       transactions,
       selectedMonth
+    });
+  });
+});
+
+export const getCategoriesPageData = cache(async (userId: string, walletId: string, locale: AppLocale = defaultLocale) => {
+  return redisCache.getOrSet(getCategoriesCacheKey(userId, walletId, locale), CATEGORIES_CACHE_TTL_SECONDS, async () => {
+    const { memberships, walletIds } = await getMembershipContext(userId);
+
+    if (!walletIds.includes(walletId)) {
+      return null;
+    }
+
+    const [shell, wallets, categories] = await Promise.all([
+      getShellData(userId),
+      queryWallets([walletId]),
+      queryCategories([walletId])
+    ]);
+
+    const wallet = wallets[0];
+
+    if (!wallet) {
+      return null;
+    }
+
+    return createCategoriesPageData({
+      shell,
+      wallet,
+      memberships,
+      categories
     });
   });
 });

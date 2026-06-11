@@ -132,6 +132,13 @@ export function AppIcon({
           <path d="M19 19.5v-7" />
         </StrokeIcon>
       );
+    case "category":
+      return (
+        <StrokeIcon className={className} tone={tone}>
+          <path d="M5.5 7.5h6l7 7-5 5-7-7v-5a1 1 0 0 1 1-1Z" />
+          <path d="M9 10h.01" />
+        </StrokeIcon>
+      );
     case "reports":
       return (
         <StrokeIcon className={className} tone={tone}>

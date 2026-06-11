@@ -8,7 +8,7 @@ import { defaultLocale, getTranslator, LOCALE_COOKIE_NAME, localizePath, resolve
 import { requireUser } from "@/lib/auth";
 
 export type MessageType = "error" | "message";
-export type WalletSection = "transactions" | "budgets" | "members" | "settlements" | "templates" | "reports" | "recurring" | "savings";
+export type WalletSection = "transactions" | "budgets" | "categories" | "members" | "settlements" | "templates" | "reports" | "recurring" | "savings";
 
 export async function getActionLocale(): Promise<AppLocale> {
   try {

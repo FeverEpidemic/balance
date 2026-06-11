@@ -1,6 +1,24 @@
 # Changelog
 
+## [Unreleased] - 2026-06-11
+
+### Changed - Simplifikasi Navigasi & UX
+
+- **Transaksi & Histori digabung** (`app/[locale]/(app)/wallets/[walletId]/transactions/page.tsx`): Halaman transaksi kini punya toggle "Input Cepat" | "Riwayat Lengkap" — tidak perlu pindah halaman untuk melihat histori penuh. Route `/transactions/history` otomatis redirect ke `/transactions?view=history`.
+- **Daftar Wallet masuk Dashboard** (`app/[locale]/(app)/dashboard/page.tsx`): Form buat wallet baru dan kartu wallet kini ada di Dashboard. Halaman `/wallets` redirect ke `/dashboard`. Navigasi "Wallet" di sidebar/bottom nav sekarang langsung ke wallet utama.
+- **Wallet Tabs disederhanakan** (`components/wallet-tabs.tsx`): Tab Members, Settlements, Templates, dan Recurring dikelompokkan dalam dropdown "Pengaturan". Tab utama kini: Overview, Transaksi, Tabungan, Anggaran, Laporan, Pengaturan.
+- **Bottom nav mobile 5 item** (`components/app-shell.tsx`): Dashboard, Wallet, Transaksi, Chat AI, Pengaturan — lebih ringkas untuk layar kecil. Reports dan Changelogs tetap ada di sidebar desktop dan drawer mobile.
+
 ## [Unreleased] - 2026-06-10
+
+### Added - Kelola Kategori Sendiri
+
+- **Halaman kategori wallet baru** (`app/[locale]/(app)/wallets/[walletId]/categories/page.tsx`, `components/features/categories/categories-page-content.tsx`): User owner/editor sekarang bisa membuka halaman khusus untuk melihat semua kategori transaksi per wallet, lengkap dengan badge jenis dan penanda kategori sistem.
+- **Server actions kategori** (`app/actions/categories.ts`): Tambah `createCategory`, `updateCategory`, dan `deleteCategory` dengan validasi nama/jenis/warna, pengecekan duplikat per wallet, proteksi kategori sistem, invalidasi cache granular, dan revalidasi halaman terkait.
+- **Color palette picker Serene Capital** (`components/ui/color-palette.tsx`, `lib/categories.ts`): Form tambah/edit kategori kini memakai pilihan warna hex yang konsisten dengan tone sage, forest, dan warm neutrals aplikasi.
+- **Navigasi dan i18n kategori** (`components/{app-shell,ui/page-loading-skeleton,ui/app-icon}.tsx`, `messages/{id,en}.json`): Sidebar, mobile navigation, shortcut wallet aktif, ikon, dan copy bilingual kini mencakup tujuan baru `Kategori`.
+- **Cache dan data loader kategori** (`lib/data/{cache,index,mappers,types}.ts`): Tambah cache key/target untuk halaman kategori dan page data mapper khusus agar perubahan kategori ikut menyegarkan transaksi, anggaran, recurring, template, dan ringkasan wallet.
+- **Test coverage tambahan** (`tests/unit/{categories,data-mappers,redis-cache}.test.ts`): Tambah pengujian helper kategori, mapper page data kategori, dan key/pattern cache baru.
 
 ### Added - Smart Token Budgeting & History Windowing
 

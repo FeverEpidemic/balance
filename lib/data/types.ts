@@ -413,3 +413,11 @@ export type BudgetsPageData = {
   categories: CategoryRow[];
   budgets: BudgetProgressItem[];
 };
+
+export type CategoriesPageData = {
+  shell: ShellData;
+  walletId: string;
+  walletName: string;
+  currentUserRole: WalletRole;
+  categories: CategoryRow[];
+};

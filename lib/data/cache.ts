@@ -6,11 +6,12 @@ export const DASHBOARD_CACHE_TTL_SECONDS = 60;
 export const WALLET_OVERVIEW_CACHE_TTL_SECONDS = 90;
 export const TRANSACTIONS_CACHE_TTL_SECONDS = 90;
 export const BUDGETS_CACHE_TTL_SECONDS = 120;
+export const CATEGORIES_CACHE_TTL_SECONDS = 120;
 export const RECURRING_CACHE_TTL_SECONDS = 90;
 export const SAVINGS_CACHE_TTL_SECONDS = 90;
 export const SETTINGS_CACHE_TTL_SECONDS = 60;
 
-export type WalletReadCacheTarget = "overview" | "transactions" | "budgets" | "recurring" | "savings";
+export type WalletReadCacheTarget = "overview" | "transactions" | "budgets" | "categories" | "recurring" | "savings";
 
 function withLocaleSuffix(key: string, locale: AppLocale) {
   return locale === defaultLocale ? key : `${key}:${locale}`;
@@ -36,6 +37,10 @@ export function getBudgetsCacheKey(userId: string, walletId: string, month: stri
   return `wallet:${walletId}:user:${userId}:budgets:${month}`;
 }
 
+export function getCategoriesCacheKey(userId: string, walletId: string, locale: AppLocale = "id") {
+  return withLocaleSuffix(`wallet:${walletId}:user:${userId}:categories`, locale);
+}
+
 export function getRecurringCacheKey(userId: string, walletId: string, locale: AppLocale = "id") {
   return withLocaleSuffix(`wallet:${walletId}:user:${userId}:recurring`, locale);
 }
@@ -55,6 +60,8 @@ export function getWalletReadCachePatterns(walletId: string, targets: WalletRead
             return `wallet:${walletId}:user:*:transactions:*`;
           case "budgets":
             return `wallet:${walletId}:user:*:budgets:*`;
+          case "categories":
+            return `wallet:${walletId}:user:*:categories*`;
           case "recurring":
             return `wallet:${walletId}:user:*:recurring*`;
           case "savings":

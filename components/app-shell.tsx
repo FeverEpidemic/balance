@@ -11,8 +11,8 @@ import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTi
 import type { ReactNode } from "react";
 
 function isActivePath(currentPath: string, href: string) {
-  if (href === "/wallets") {
-    return currentPath === "/wallets" || currentPath.startsWith("/wallets/");
+  if (href === "/dashboard") {
+    return currentPath === "/dashboard" || currentPath === "/wallets";
   }
 
   return currentPath === href || currentPath.startsWith(`${href}/`);
@@ -55,25 +55,24 @@ export function AppShell({
     "glass-panel border text-muted-foreground hover:border-primary/25 hover:bg-[color:var(--primary-soft)] hover:text-foreground";
   const navItems = [
     { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" as const },
-    { href: "/wallets", label: t("common.wallet"), icon: "wallet" as const },
-    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: t("common.transactions"), icon: "transactions" as const },
-    { href: walletId ? `/wallets/${walletId}/savings` : "/wallets", label: t("common.savings"), icon: "savings" as const },
-    { href: walletId ? `/wallets/${walletId}/budgets` : "/wallets", label: t("common.budgets"), icon: "budgets" as const },
-    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: t("common.reports"), icon: "reports" as const },
-    { href: walletId ? `/wallets/${walletId}/members` : "/wallets", label: t("common.members"), icon: "members" as const },
-    { href: walletId ? `/wallets/${walletId}/settlements` : "/wallets", label: t("common.settlements"), icon: "settlements" as const },
-    { href: walletId ? `/wallets/${walletId}/templates` : "/wallets", label: t("common.templates"), icon: "templates" as const },
+    { href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet" as const },
+    { href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions" as const },
+    { href: walletId ? `/wallets/${walletId}/savings` : "/dashboard", label: t("common.savings"), icon: "savings" as const },
+    { href: walletId ? `/wallets/${walletId}/budgets` : "/dashboard", label: t("common.budgets"), icon: "budgets" as const },
+    { href: walletId ? `/wallets/${walletId}/categories` : "/dashboard", label: t("common.categories"), icon: "category" as const },
+    { href: walletId ? `/wallets/${walletId}/reports` : "/dashboard", label: t("common.reports"), icon: "reports" as const },
+    { href: walletId ? `/wallets/${walletId}/members` : "/dashboard", label: t("common.members"), icon: "members" as const },
+    { href: walletId ? `/wallets/${walletId}/settlements` : "/dashboard", label: t("common.settlements"), icon: "settlements" as const },
+    { href: walletId ? `/wallets/${walletId}/templates` : "/dashboard", label: t("common.templates"), icon: "templates" as const },
     { href: "/chat", label: t("common.aiAssistant"), icon: "chat" as const },
     { href: "/changelogs", label: t("common.changelogs"), icon: "changelog" as const },
     { href: "/settings", label: t("common.settings"), icon: "settings" as const }
   ];
   const mobileNavItems = [
     { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" as const },
-    { href: "/wallets", label: t("common.wallet"), icon: "wallet" as const },
-    { href: walletId ? `/wallets/${walletId}/transactions` : "/wallets", label: t("common.transactions"), icon: "transactions" as const },
-    { href: walletId ? `/wallets/${walletId}/reports` : "/wallets", label: t("common.reports"), icon: "reports" as const },
+    { href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet" as const },
+    { href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions" as const },
     { href: "/chat", label: t("common.aiAssistant"), icon: "chat" as const },
-    { href: "/changelogs", label: t("common.changelogs"), icon: "changelog" as const },
     { href: "/settings", label: t("common.settings"), icon: "settings" as const }
   ];
   const mobileWalletShortcuts = walletId
@@ -81,12 +80,8 @@ export function AppShell({
         { href: `/wallets/${walletId}`, label: t("common.overview"), icon: "overview" as const },
         { href: `/wallets/${walletId}/transactions`, label: t("common.transactions"), icon: "transactions" as const },
         { href: `/wallets/${walletId}/savings`, label: t("common.savings"), icon: "savings" as const },
-        { href: `/wallets/${walletId}/recurring`, label: t("common.automatic"), icon: "automatic" as const },
         { href: `/wallets/${walletId}/budgets`, label: t("common.budgets"), icon: "budgets" as const },
-        { href: `/wallets/${walletId}/reports`, label: t("common.reports"), icon: "reports" as const },
-        { href: `/wallets/${walletId}/members`, label: t("common.members"), icon: "members" as const },
-        { href: `/wallets/${walletId}/settlements`, label: t("common.settlements"), icon: "settlements" as const },
-        { href: `/wallets/${walletId}/templates`, label: t("common.templates"), icon: "templates" as const }
+        { href: `/wallets/${walletId}/reports`, label: t("common.reports"), icon: "reports" as const }
       ]
     : [];
 

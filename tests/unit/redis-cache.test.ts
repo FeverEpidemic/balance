@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createRedisCache, getRedisMetricsSnapshot, redisCache, resetRedisMetrics } from "@/lib/redis";
 import {
   getBudgetsCacheKey,
+  getCategoriesCacheKey,
   getDashboardCacheKey,
   getRecurringCacheKey,
   getSavingsCacheKey,
@@ -196,6 +197,8 @@ describe("cache key scoping", () => {
     expect(getTransactionsCacheKey("u1", "w1", "2026-05")).toBe("wallet:w1:user:u1:transactions:2026-05");
     expect(getTransactionsCacheKey("u1", "w1", "2026-05", "en")).toBe("wallet:w1:user:u1:transactions:2026-05:en");
     expect(getBudgetsCacheKey("u1", "w1", "2026-05")).toBe("wallet:w1:user:u1:budgets:2026-05");
+    expect(getCategoriesCacheKey("u1", "w1")).toBe("wallet:w1:user:u1:categories");
+    expect(getCategoriesCacheKey("u1", "w1", "en")).toBe("wallet:w1:user:u1:categories:en");
     expect(getRecurringCacheKey("u1", "w1")).toBe("wallet:w1:user:u1:recurring");
     expect(getRecurringCacheKey("u1", "w1", "en")).toBe("wallet:w1:user:u1:recurring:en");
     expect(getSavingsCacheKey("u1", "w1")).toBe("wallet:w1:user:u1:savings");
@@ -203,10 +206,11 @@ describe("cache key scoping", () => {
   });
 
   it("builds wallet cache patterns per target", () => {
-    expect(getWalletReadCachePatterns("w1", ["overview", "transactions", "budgets", "recurring", "savings"])).toEqual([
+    expect(getWalletReadCachePatterns("w1", ["overview", "transactions", "budgets", "categories", "recurring", "savings"])).toEqual([
       "wallet:w1:user:*:overview*",
       "wallet:w1:user:*:transactions:*",
       "wallet:w1:user:*:budgets:*",
+      "wallet:w1:user:*:categories*",
       "wallet:w1:user:*:recurring*",
       "wallet:w1:user:*:savings*"
     ]);

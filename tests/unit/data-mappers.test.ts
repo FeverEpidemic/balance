@@ -6,6 +6,7 @@ import {
   buildWalletSummaries,
   createRecurringTransactionsPageData,
   createBudgetsPageData,
+  createCategoriesPageData,
   createDashboardData,
   createSavingsPageData,
   createTransactionsPageData
@@ -466,6 +467,19 @@ describe("data mappers", () => {
       ratio: 40
     });
     expect(pageData.budgets[1].usageLabel).toContain("80%");
+  });
+
+  it("creates categories page data for the active wallet only", () => {
+    const pageData = createCategoriesPageData({
+      shell,
+      wallet: wallets[0],
+      memberships,
+      categories
+    });
+
+    expect(pageData.currentUserRole).toBe("owner");
+    expect(pageData.categories.every((category) => category.wallet_id === "w1")).toBe(true);
+    expect(pageData.categories.some((category) => category.id === "c4")).toBe(false);
   });
 
   it("builds monthly report buckets for the latest months", () => {

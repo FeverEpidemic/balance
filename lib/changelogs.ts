@@ -13,6 +13,32 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.7.0",
+    date: "2026-06-11",
+    title: "Navigasi & UX lebih sederhana",
+    description: "Kami menyederhanakan navigasi aplikasi agar lebih mudah digunakan: transaksi dan histori digabung dalam satu halaman dengan toggle, daftar wallet pindah ke Dashboard, tab wallet dikelompokkan, dan bottom nav mobile kini hanya 5 item utama.",
+    features: [
+      { icon: "🔀", text: "Halaman Transaksi kini punya toggle Input Cepat | Riwayat Lengkap — tidak perlu pindah halaman lagi." },
+      { icon: "📊", text: "Daftar dan buat wallet baru langsung dari Dashboard — satu tempat untuk semua ringkasan keuangan." },
+      { icon: "📂", text: "Tab wallet dikelompokkan: Members, Settlements, Templates, dan Recurring masuk dropdown Pengaturan." },
+      { icon: "📱", text: "Bottom nav mobile lebih ringkas: Dashboard, Wallet, Transaksi, Chat AI, Pengaturan." },
+      { icon: "🧭", text: "Navigasi Wallet di sidebar dan bottom nav kini langsung menuju wallet utama kamu." }
+    ]
+  },
+  {
+    version: "1.6.10",
+    date: "2026-06-11",
+    title: "Kelola kategori sendiri",
+    description: "Sekarang tiap wallet bisa menambah, mengubah, dan menghapus kategori transaksi sendiri tanpa meninggalkan aplikasi. Kategori sistem tetap aman dan ditandai jelas agar flow tabungan serta penyesuaian saldo tidak ikut rusak.",
+    features: [
+      { icon: "🏷️", text: "Halaman Kategori baru untuk melihat semua kategori pemasukan dan pengeluaran dalam satu tempat." },
+      { icon: "🎨", text: "Buat atau edit kategori dengan pilihan warna Serene Capital yang konsisten di seluruh wallet." },
+      { icon: "🛡️", text: "Kategori sistem diberi badge khusus dan tetap read-only agar fitur tabungan dan penyesuaian saldo tetap aman." },
+      { icon: "🧾", text: "Menghapus kategori tidak menghapus transaksi lama; kategori lama pada transaksi akan dikosongkan otomatis." },
+      { icon: "🔄", text: "Perubahan kategori langsung menyegarkan halaman transaksi, anggaran, template, recurring, dan ringkasan wallet terkait." }
+    ]
+  },
+  {
     version: "1.6.9",
     date: "2026-06-19",
     title: "AI chat lebih hemat token & riwayat percakapan lebih pintar",
