@@ -27,8 +27,12 @@ const label = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "Balance",
-  description: "Balance",
+  title: {
+    default: "Balance — Personal Finance Tracker",
+    template: "%s — Balance",
+  },
+  description:
+    "A calm, modern finance tracker to manage your income, expenses, and financial wellness — in rupiah.",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
@@ -44,7 +48,21 @@ export const metadata: Metadata = {
       { url: "/icon-512.png", sizes: "512x512", type: "image/png" }
     ],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }]
-  }
+  },
+  openGraph: {
+    title: "Balance",
+    description:
+      "A calm, modern finance tracker to manage your income, expenses, and financial wellness — in rupiah.",
+    siteName: "Balance",
+    locale: "id_ID",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Balance",
+    description:
+      "A calm, modern finance tracker to manage your income, expenses, and financial wellness — in rupiah.",
+  },
 };
 
 export const viewport: Viewport = {
