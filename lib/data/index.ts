@@ -86,7 +86,9 @@ export const getShellData = cache(async (userId: string) => {
     themePreference: profiles[0]?.theme_preference ?? "system",
     onboardingState: profiles[0]?.onboarding_state ?? "active",
     onboardingDismissedAt: profiles[0]?.onboarding_dismissed_at ?? null,
-    onboardingCompletedAt: profiles[0]?.onboarding_completed_at ?? null
+    onboardingCompletedAt: profiles[0]?.onboarding_completed_at ?? null,
+    timezone: profiles[0]?.timezone ?? null,
+    defaultCurrency: profiles[0]?.default_currency ?? "IDR"
   };
 });
 
@@ -417,7 +419,9 @@ export const getSettingsData = cache(async (userId: string): Promise<SettingsDat
       shell,
       apiKeys,
       preferredLocale: shell.preferredLocale ?? defaultLocale,
-      themePreference: shell.themePreference ?? "system"
+      themePreference: shell.themePreference ?? "system",
+      timezone: shell.timezone ?? null,
+      defaultCurrency: shell.defaultCurrency ?? "IDR"
     };
   });
 });

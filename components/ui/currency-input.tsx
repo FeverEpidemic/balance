@@ -10,24 +10,25 @@ type CurrencyInputProps = {
   name: string;
   placeholder?: string;
   required?: boolean;
+  currency?: string;
 };
 
-function toInitialDisplayValue(value?: number | string | null) {
+function toInitialDisplayValue(value?: number | string | null, currency?: string) {
   if (value === null || value === undefined || value === "") {
     return "";
   }
 
   const digits = sanitizeCurrencyInput(String(value));
-  return digits ? formatCurrencyInputValue(digits) : "";
+  return digits ? formatCurrencyInputValue(digits, "id", currency) : "";
 }
 
-export function CurrencyInput({ className, defaultValue, name, placeholder, required }: CurrencyInputProps) {
-  const [value, setValue] = useState(() => toInitialDisplayValue(defaultValue));
+export function CurrencyInput({ className, defaultValue, name, placeholder, required, currency }: CurrencyInputProps) {
+  const [value, setValue] = useState(() => toInitialDisplayValue(defaultValue, currency));
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setValue(toInitialDisplayValue(defaultValue));
-  }, [defaultValue]);
+    setValue(toInitialDisplayValue(defaultValue, currency));
+  }, [defaultValue, currency]);
 
   useEffect(() => {
     const input = inputRef.current;
@@ -37,14 +38,14 @@ export function CurrencyInput({ className, defaultValue, name, placeholder, requ
     }
 
     const handleReset = () => {
-      setValue(toInitialDisplayValue(defaultValue));
+      setValue(toInitialDisplayValue(defaultValue, currency));
     };
 
     input.form.addEventListener("reset", handleReset);
     return () => {
       input.form?.removeEventListener("reset", handleReset);
     };
-  }, [defaultValue]);
+  }, [defaultValue, currency]);
 
   return (
     <Input
@@ -54,7 +55,7 @@ export function CurrencyInput({ className, defaultValue, name, placeholder, requ
       ref={inputRef}
       onChange={(event) => {
         const digits = sanitizeCurrencyInput(event.target.value);
-        setValue(digits ? formatCurrencyInputValue(digits) : "");
+        setValue(digits ? formatCurrencyInputValue(digits, "id", currency) : "");
       }}
       placeholder={placeholder}
       required={required}

@@ -32,11 +32,11 @@ export function getCurrentMonthKey() {
   return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
-export function describeBudgetUsage(used: number, limit: number) {
+export function describeBudgetUsage(used: number, limit: number, currency: string = "IDR") {
   if (limit <= 0) {
     return "Belum ada limit";
   }
 
   const percentage = Math.round((used / limit) * 100);
-  return `${formatCurrency(used)} dari ${formatCurrency(limit)} (${percentage}%)`;
+  return `${formatCurrency(used, "id", currency)} dari ${formatCurrency(limit, "id", currency)} (${percentage}%)`;
 }

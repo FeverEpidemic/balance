@@ -178,7 +178,8 @@ export function buildWalletSummaries(args: {
         savingBalance: balances.savingBalance,
         totalBalance: balances.totalBalance,
         spentThisMonth: monthExpenses,
-        budgetThisMonth: monthBudget
+        budgetThisMonth: monthBudget,
+        currency: wallet.currency
       } satisfies WalletSummary;
     })
     .sort((left, right) => left.name.localeCompare(right.name, getLocaleTag(locale)));
@@ -191,12 +192,14 @@ export function buildRecentTransactions(
   locale: AppLocale = defaultLocale
 ) {
   const walletNameById = new Map(wallets.map((wallet) => [wallet.id, wallet.name]));
+  const walletCurrencyById = new Map(wallets.map((wallet) => [wallet.id, wallet.currency]));
   const categoryById = new Map(categories.map((category) => [category.id, category]));
 
   return transactions.map((transaction) => ({
     id: transaction.id,
     walletId: transaction.wallet_id,
     walletName: walletNameById.get(transaction.wallet_id) ?? translate(locale, "common.wallet"),
+    walletCurrency: walletCurrencyById.get(transaction.wallet_id) ?? "IDR",
     category: transaction.category_id
       ? categoryById.get(transaction.category_id)?.name ?? translate(locale, "common.noCategory")
       : translate(locale, "common.noCategory"),
@@ -541,8 +544,9 @@ export function buildBudgetProgressItems(args: {
   categories: CategoryRow[];
   month: string;
   locale?: AppLocale;
+  currency?: string;
 }) {
-  const { budgets, transactions, categories, month } = args;
+  const { budgets, transactions, categories, month, currency = "IDR" } = args;
   const categoryById = new Map(categories.map((category) => [category.id, category]));
 
   return budgets
@@ -560,7 +564,7 @@ export function buildBudgetProgressItems(args: {
         amount: budget.amount,
         used,
         ratio: budget.amount > 0 ? Math.min((used / budget.amount) * 100, 100) : 0,
-        usageLabel: describeBudgetUsage(used, budget.amount)
+        usageLabel: describeBudgetUsage(used, budget.amount, currency)
       } satisfies BudgetProgressItem;
     });
 }
@@ -747,7 +751,8 @@ export function createBudgetsPageData(args: {
       budgets,
       transactions: walletTransactions,
       categories: expenseCategories,
-      month: selectedMonth
+      month: selectedMonth,
+      currency: wallet.currency
     })
   } satisfies BudgetsPageData;
 }

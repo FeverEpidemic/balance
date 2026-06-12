@@ -16,6 +16,7 @@ import { deleteTransaction, updateTransaction } from "@/app/actions/transactions
 import { AppShell } from "@/components/app-shell";
 import { ExportExcelButton } from "@/components/features/transactions/export-excel-button";
 import { useLocale } from "@/components/providers/locale-provider";
+import { useTimezone } from "@/components/providers/timezone-provider";
 import { ActionForm } from "@/components/ui/action-form";
 import { AppIcon, CategoryIcon } from "@/components/ui/app-icon";
 import { Badge } from "@/components/ui/badge";
@@ -30,7 +31,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import type { TransactionHistoryPageData, TransactionListItem } from "@/lib/data";
 import { getLocaleTag, getTranslator } from "@/lib/i18n";
 import { TRANSACTION_HISTORY_PAGE_SIZE, clampTransactionHistoryPageIndex } from "@/lib/transaction-history-pagination";
-import { formatCurrency, formatShortDate, formatTimeOfDay, toDateInputValue } from "@/lib/utils";
+import { formatCurrency, formatShortDate, formatTimeOfDay, getCurrentTimeString, toDateInputValue, toTimeInputValue } from "@/lib/utils";
 
 function matchesTransactionSearch(transaction: TransactionListItem, search: string, localeTag: string, t: ReturnType<typeof getTranslator>) {
   if (!search) {
@@ -78,6 +79,7 @@ function TransactionEditDialog({
   t: ReturnType<typeof getTranslator>;
 }) {
   const [open, setOpen] = useState(false);
+  const timezone = useTimezone();
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -132,6 +134,10 @@ function TransactionEditDialog({
             <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.dateLabel")}</span>
             <input name="happened_at" type="date" defaultValue={toDateInputValue(transaction.happenedAt)} required />
           </label>
+          <label className="block">
+            <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.timeLabel")}</span>
+            <input name="happened_at_time" type="time" defaultValue={toTimeInputValue(transaction.happenedAt, timezone)} />
+          </label>
           <SubmitButton pendingText={t("transactions.savePending")} variant="soft">
             {t("transactions.saveChanges")}
           </SubmitButton>
@@ -185,6 +191,8 @@ function HistoryMobileCard({
   walletId: string;
   t: ReturnType<typeof getTranslator>;
 }) {
+  const locale = useLocale();
+  const timezone = useTimezone();
   return (
     <div className="list-card">
       <div className="flex items-start gap-3">
@@ -208,7 +216,7 @@ function HistoryMobileCard({
               <p className={`metric ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
                 {formatCurrency(transaction.kind === "expense" ? -transaction.amount : transaction.amount)}
               </p>
-              <p className="mt-1 text-sm text-muted-foreground">{formatShortDate(transaction.happenedAt)}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{formatShortDate(transaction.happenedAt, locale, timezone)} • {formatTimeOfDay(transaction.happenedAt, locale, timezone) || "00:00"}</p>
             </div>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -225,6 +233,7 @@ function HistoryMobileCard({
 
 export function TransactionHistoryPageContent({ data }: { data: TransactionHistoryPageData }) {
   const locale = useLocale();
+  const timezone = useTimezone();
   const t = getTranslator(locale);
   const localeTag = getLocaleTag(locale);
   const active = `/wallets/${data.walletId}/transactions`;
@@ -244,8 +253,8 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
       header: t("transactions.historyTableDate"),
       cell: ({ row }) => (
         <div>
-          <p className="font-medium">{formatShortDate(row.original.happenedAt)}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{formatTimeOfDay(row.original.happenedAt, locale) || "00:00"}</p>
+          <p className="font-medium">{formatShortDate(row.original.happenedAt, locale, timezone)}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{formatTimeOfDay(row.original.happenedAt, locale, timezone) || "00:00"}</p>
         </div>
       )
     },

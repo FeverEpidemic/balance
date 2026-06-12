@@ -3,6 +3,7 @@
 import { createBalanceAdjustment, createTransaction, deleteTransaction, updateTransaction } from "@/app/actions/transactions";
 import { AppShell } from "@/components/app-shell";
 import { useLocale } from "@/components/providers/locale-provider";
+import { useTimezone } from "@/components/providers/timezone-provider";
 import { AppIcon, CategoryIcon } from "@/components/ui/app-icon";
 import { ActionForm } from "@/components/ui/action-form";
 import { Badge } from "@/components/ui/badge";
@@ -15,7 +16,7 @@ import { InlineEditPanel } from "@/components/ui/inline-edit-panel";
 import { SubmitButton } from "@/components/ui/submit-button";
 import type { TransactionsPageData } from "@/lib/data";
 import { getTranslator } from "@/lib/i18n";
-import { formatCurrency, formatShortDate, getTodayDateString, toDateInputValue } from "@/lib/utils";
+import { formatCurrency, formatShortDate, formatTimeOfDay, getCurrentTimeString, getTodayDateString, toDateInputValue, toTimeInputValue } from "@/lib/utils";
 
 type TransactionItemProps = {
   canMutate: boolean;
@@ -26,6 +27,8 @@ type TransactionItemProps = {
 };
 
 function TransactionItem({ canMutate, categories, transaction, walletId, t }: TransactionItemProps) {
+  const locale = useLocale();
+  const timezone = useTimezone();
   const canEditTransaction = canMutate && !transaction.isSavingLinked;
   const meta = [transaction.categoryName, transaction.splitLabel].filter(Boolean).join(" / ");
 
@@ -59,7 +62,7 @@ function TransactionItem({ canMutate, categories, transaction, walletId, t }: Tr
             <p className={`metric text-lg ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
               {formatCurrency(transaction.kind === "expense" ? -transaction.amount : transaction.amount)}
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">{formatShortDate(transaction.happenedAt)}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{formatShortDate(transaction.happenedAt, locale, timezone)} • {formatTimeOfDay(transaction.happenedAt, locale, timezone) || "00:00"}</p>
           </div>
           {canEditTransaction ? (
             <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em] text-primary-strong lg:hidden">
@@ -116,6 +119,10 @@ function TransactionItem({ canMutate, categories, transaction, walletId, t }: Tr
                 <label className="block">
                   <span className="mb-2 block font-label text-xs text-muted-foreground">{t("transactions.dateLabel")}</span>
                   <input name="happened_at" type="date" defaultValue={toDateInputValue(transaction.happenedAt)} required />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block font-label text-xs text-muted-foreground">{t("transactions.timeLabel")}</span>
+                  <input name="happened_at_time" type="time" defaultValue={toTimeInputValue(transaction.happenedAt, timezone)} />
                 </label>
                 <div className="flex min-w-0 flex-col gap-2 md:col-span-2 sm:flex-row sm:flex-wrap">
                   <SubmitButton className="w-full sm:w-auto" pendingText={t("transactions.savePending")} variant="soft">
@@ -223,6 +230,10 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
               <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.dateLabel")}</span>
               <input name="happened_at" type="date" defaultValue={getTodayDateString()} required />
             </label>
+            <label className="block">
+              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.timeLabel")}</span>
+              <input name="happened_at_time" type="time" defaultValue={getCurrentTimeString()} />
+            </label>
             <SubmitButton pendingText={t("transactions.quickInputSavePending")}>{t("transactions.quickInputSave")}</SubmitButton>
           </ActionForm>
 
@@ -251,6 +262,10 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
                 <label className="block">
                   <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.balanceAdjustmentDateLabel")}</span>
                   <input name="happened_at" type="date" defaultValue={getTodayDateString()} required />
+                </label>
+                <label className="block">
+                  <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.balanceAdjustmentTimeLabel")}</span>
+                  <input name="happened_at_time" type="time" defaultValue={getCurrentTimeString()} />
                 </label>
                 <SubmitButton pendingText={t("transactions.balanceAdjustmentSavePending")}>{t("transactions.balanceAdjustmentSave")}</SubmitButton>
               </ActionForm>

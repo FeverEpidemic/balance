@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/shadcn/sonner";
 import { LOCALE_COOKIE_NAME, defaultLocale, resolveLocale } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 import { getThemeBootstrapScript, parseThemePreference, resolveAppliedTheme, THEME_COOKIE_NAME } from "@/lib/theme";
+import { DEFAULT_TIMEZONE, resolveTimezone, TZ_COOKIE_NAME } from "@/lib/timezone";
 import "./globals.css";
 
 const display = Hanken_Grotesk({
@@ -85,9 +86,20 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   } = await supabase.auth.getUser();
 
   if (user) {
-    const { data: profile } = await supabase.from("profiles").select("theme_preference").eq("id", user.id).maybeSingle();
+    const { data: profile } = await supabase.from("profiles").select("theme_preference, timezone").eq("id", user.id).maybeSingle();
     themePreference = parseThemePreference(profile?.theme_preference);
+    if (profile?.timezone) {
+      // Profile override takes highest priority — set in cookie so SSR picks it up
+      cookieStore.set(TZ_COOKIE_NAME, profile.timezone, {
+        path: "/",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 365
+      });
+    }
   }
+
+  // Resolve timezone: profile > cookie > default
+  const cookieTimezone = resolveTimezone(cookieStore.get(TZ_COOKIE_NAME)?.value ?? null);
 
   const appliedTheme = resolveAppliedTheme(themePreference);
 
@@ -97,6 +109,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       suppressHydrationWarning
       data-theme={appliedTheme}
       data-theme-preference={themePreference}
+      data-tz={cookieTimezone}
       style={{ colorScheme: appliedTheme }}
     >
       <body className={`${display.variable} ${body.variable} ${label.variable}`}>

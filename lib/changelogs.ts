@@ -13,6 +13,31 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.8.9",
+    date: "2026-06-13",
+    title: "Multi-mata uang (multi-currency)",
+    description: "Wallet kini memiliki mata uang sendiri. Pengaturan default currency di halaman Settings, pemilih mata uang saat pembuatan wallet baru, dan semua angka di dashboard/wallets/savings mengikuti mata uang masing-masing wallet.",
+    features: [
+      { icon: "💰", text: "Wallet memiliki field currency sendiri (default IDR) — tiap wallet bisa pakai mata uang berbeda." },
+      { icon: "⚙️", text: "Halaman Settings kini punya pemilih default currency untuk wallet baru." },
+      { icon: "➕", text: "Form pembuatan wallet baru dilengkapi dropdown mata uang." },
+      { icon: "🏷️", text: "Semua angka di Dashboard, halaman Wallet, dan Tabungan menampilkan format mata uang yang sesuai." },
+      { icon: "🌐", text: "Mendukung 15 mata uang: IDR, USD, SGD, MYR, EUR, GBP, JPY, AUD, CNY, SAR, INR, PHP, THB, KRW, BND." },
+    ]
+  },
+  {
+    version: "1.8.8",
+    date: "2026-06-12",
+    title: "Input jam pada transaksi & tabungan",
+    description: "Semua form transaksi, penyesuaian saldo, dan entry tabungan kini punya field jam. Waktu default mengikuti jam sekarang dan ditampilkan di semua daftar transaksi, history, dan export Excel.",
+    features: [
+      { icon: "🕐", text: "Field jam terpisah di quick input, edit transaksi, penyesuaian saldo, history edit, dan form tabungan." },
+      { icon: "⏰", text: "Waktu default otomatis mengikuti jam saat ini — tidak perlu isi manual." },
+      { icon: "📊", text: "Jam tampil di kartu daftar transaksi, history table, mobile card, riwayat tabungan, dan export Excel." },
+      { icon: "🌏", text: "Timezone auto-detect dari browser (WIB/WITA/WIT). Display konsisten antara server dan client via cookie." },
+    ]
+  },
+  {
     version: "1.8.7",
     date: "2026-06-12",
     title: "OG Image card untuk link preview",

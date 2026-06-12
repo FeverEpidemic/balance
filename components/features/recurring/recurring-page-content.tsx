@@ -9,6 +9,7 @@ import {
 } from "@/app/actions/recurring-transactions";
 import { AppShell } from "@/components/app-shell";
 import { useLocale } from "@/components/providers/locale-provider";
+import { useTimezone } from "@/components/providers/timezone-provider";
 import { ActionForm } from "@/components/ui/action-form";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
@@ -46,6 +47,8 @@ function RecurringItem({
   walletId: string;
   t: ReturnType<typeof getTranslator>;
 }) {
+  const locale = useLocale();
+  const timezone = useTimezone();
   return (
     <div className="rounded-xl bg-muted p-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
@@ -58,8 +61,8 @@ function RecurringItem({
             {transaction.categoryName} - {transaction.frequencyLabel}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {t("recurring.startsAt", { date: formatShortDate(transaction.startDate) })}
-            {transaction.endDate ? t("recurring.untilDate", { date: formatShortDate(transaction.endDate) }) : ""}
+            {t("recurring.startsAt", { date: formatShortDate(transaction.startDate, locale, timezone) })}
+            {transaction.endDate ? t("recurring.untilDate", { date: formatShortDate(transaction.endDate, locale, timezone) }) : ""}
           </p>
         </div>
         <div className="text-right">
@@ -70,7 +73,7 @@ function RecurringItem({
         </div>
       </div>
       {transaction.lastGeneratedAt ? (
-        <p className="mt-3 text-sm text-muted-foreground">{t("recurring.lastGenerated", { date: formatShortDate(transaction.lastGeneratedAt) })}</p>
+        <p className="mt-3 text-sm text-muted-foreground">{t("recurring.lastGenerated", { date: formatShortDate(transaction.lastGeneratedAt, locale, timezone) })}</p>
       ) : null}
       {canManage ? (
         <>

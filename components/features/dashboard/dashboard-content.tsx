@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/ui/stat-card";
 import { ToastFeedback } from "@/components/ui/toast-feedback";
 
+import { useTimezone } from "@/components/providers/timezone-provider";
 import type { DashboardData } from "@/lib/data";
 import { getTranslator, type AppLocale } from "@/lib/i18n";
 import { cn, formatCurrency, formatShortDate } from "@/lib/utils";
@@ -28,6 +29,7 @@ export function DashboardContent({
   feedback?: { error?: string; message?: string };
 }) {
   const t = getTranslator(locale);
+  const timezone = useTimezone();
   const transactionsHref = dashboard.shell.primaryWalletId ? `/wallets/${dashboard.shell.primaryWalletId}/transactions` : "/dashboard";
   const hasDailyExpenses = dashboard.dailyExpenses.some((item) => item.amount > 0);
 
@@ -198,17 +200,17 @@ export function DashboardContent({
 
                       <div className="mt-5 rounded-[1.25rem] border border-[color:var(--soft-border)] bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(245,244,237,0.92))] p-4 text-foreground transition duration-200 ease-out group-hover:border-[color:rgba(89,95,61,0.16)] group-hover:bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(245,244,237,0.98))] dark:bg-[linear-gradient(180deg,rgba(42,51,41,0.96),rgba(32,39,31,0.98))]">
                         <p className="font-label text-xs font-semibold uppercase tracking-[0.16em] text-primary-strong">{t("dashboard.totalBalanceLabel")}</p>
-                        <p className="metric mt-2 text-[1.55rem] leading-none text-foreground sm:text-[1.9rem] md:text-3xl">{formatCurrency(wallet.totalBalance)}</p>
+                        <p className="metric mt-2 text-[1.55rem] leading-none text-foreground sm:text-[1.9rem] md:text-3xl">{formatCurrency(wallet.totalBalance, "id", wallet.currency)}</p>
                       </div>
 
                       <div className="mt-5 grid gap-3 sm:grid-cols-2">
                         <div className="subtle-panel">
                           <p className="text-sm text-muted-foreground">{t("dashboard.availableBalanceLabel")}</p>
-                          <p className="metric mt-2 text-base sm:text-lg">{formatCurrency(wallet.availableBalance)}</p>
+                          <p className="metric mt-2 text-base sm:text-lg">{formatCurrency(wallet.availableBalance, "id", wallet.currency)}</p>
                         </div>
                         <div className="subtle-panel">
                           <p className="text-sm text-muted-foreground">{t("dashboard.savingBalanceLabel")}</p>
-                          <p className="metric mt-2 text-base sm:text-lg">{formatCurrency(wallet.savingBalance)}</p>
+                          <p className="metric mt-2 text-base sm:text-lg">{formatCurrency(wallet.savingBalance, "id", wallet.currency)}</p>
                         </div>
                       </div>
 
@@ -220,7 +222,7 @@ export function DashboardContent({
                         <div className="mt-4 flex items-end justify-between gap-3">
                           <div>
                             <p className="text-sm text-muted-foreground">{t("common.budgets")}</p>
-                            <p className="metric mt-1 text-base">{formatCurrency(wallet.budgetThisMonth)}</p>
+                            <p className="metric mt-1 text-base">{formatCurrency(wallet.budgetThisMonth, "id", wallet.currency)}</p>
                           </div>
                           <span className={`text-right text-sm ${budgetTone}`}>
                             {wallet.budgetThisMonth > 0
@@ -317,9 +319,9 @@ export function DashboardContent({
                         </div>
                         <div className="text-left md:text-right">
                           <p className={`metric text-lg ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
-                            {formatCurrency(transaction.kind === "expense" ? -transaction.amount : transaction.amount)}
+                            {formatCurrency(transaction.kind === "expense" ? -transaction.amount : transaction.amount, "id", transaction.walletCurrency)}
                           </p>
-                          <p className="mt-1 text-sm text-muted-foreground">{formatShortDate(transaction.date)}</p>
+                          <p className="mt-1 text-sm text-muted-foreground">{formatShortDate(transaction.date, locale, timezone)}</p>
                         </div>
                       </div>
                     </div>

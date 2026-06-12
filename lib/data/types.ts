@@ -19,6 +19,8 @@ export type ProfileRow = {
   onboarding_state: OnboardingState;
   onboarding_dismissed_at: string | null;
   onboarding_completed_at: string | null;
+  timezone: string | null;
+  default_currency: string;
 };
 
 export type WalletRow = {
@@ -26,6 +28,7 @@ export type WalletRow = {
   name: string;
   kind: WalletKind;
   owner_user_id: string;
+  currency: string;
 };
 
 export type WalletMemberRow = {
@@ -167,6 +170,8 @@ export type SettingsData = {
   apiKeys: SettingsApiKeyItem[];
   preferredLocale: AppLocale;
   themePreference: ThemePreference;
+  timezone: string | null;
+  defaultCurrency: string;
 };
 
 export type ShellData = {
@@ -180,6 +185,8 @@ export type ShellData = {
   onboardingState?: OnboardingState;
   onboardingDismissedAt?: string | null;
   onboardingCompletedAt?: string | null;
+  timezone?: string | null;
+  defaultCurrency?: string;
 };
 
 export type DashboardOnboardingStep = {
@@ -210,6 +217,7 @@ export type WalletSummary = {
   totalBalance: number;
   spentThisMonth: number;
   budgetThisMonth: number;
+  currency: string;
 };
 
 export type DashboardRecentTransaction = {
@@ -223,6 +231,7 @@ export type DashboardRecentTransaction = {
   amount: number;
   date: string;
   splitLabel: string;
+  walletCurrency: string;
 };
 
 export type DashboardCategorySpend = {

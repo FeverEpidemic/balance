@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useLocale } from "@/components/providers/locale-provider";
+import { useTimezone } from "@/components/providers/timezone-provider";
 import { AppIcon } from "@/components/ui/app-icon";
 import { Button } from "@/components/ui/button";
 import type { TransactionListItem } from "@/lib/data";
 import { getTranslator } from "@/lib/i18n";
-import { formatShortDate, toFileSafeSegment } from "@/lib/utils";
+import { formatShortDate, formatTimeOfDay, toFileSafeSegment } from "@/lib/utils";
 
 function sanitizeCell(value: string | number): string | number {
   if (typeof value === "number") return value;
@@ -27,6 +28,7 @@ export function ExportExcelButton({
   selectedMonth: string;
 }) {
   const locale = useLocale();
+  const timezone = useTimezone();
   const t = getTranslator(locale);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -41,7 +43,7 @@ export function ExportExcelButton({
       const XLSX = await import("xlsx");
       const rows = transactions.map((transaction) => {
         const raw = {
-          [t("transactions.historyTableDate")]: formatShortDate(transaction.happenedAt, locale),
+          [t("transactions.historyTableDate")]: `${formatShortDate(transaction.happenedAt, locale, timezone)} ${formatTimeOfDay(transaction.happenedAt, locale, timezone) || "00:00"}`,
           [t("transactions.historyTableDescription")]: transaction.title,
           [t("transactions.historyTableCategory")]: transaction.categoryName,
           [t("transactions.historyTableKind")]:

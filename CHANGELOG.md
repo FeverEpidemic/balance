@@ -4,6 +4,12 @@
 
 ### Added
 
+- **Multi-mata uang (multi-currency)** — Wallet kini memiliki mata uang sendiri (default IDR). Pengaturan default currency bisa diubah di halaman Settings dan diterapkan ke wallet baru. Wallet yang sudah ada tetap menggunakan mata uang yang ditetapkan saat pembuatan. Form pembuatan wallet baru dilengkapi pemilih mata uang.
+
+- **Input jam pada transaksi & tabungan** — Semua form transaksi, penyesuaian saldo, dan entry tabungan kini punya field jam terpisah dari tanggal. Waktu default mengikuti jam sekarang. Jam ditampilkan di semua daftar transaksi, history table, mobile card, entry tabungan, dan export Excel.
+
+- **Timezone otomatis auto-detect** — Timezone user terdeteksi otomatis dari browser (Intl API) dan disimpan ke cookie untuk konsistensi SSR. Display waktu dan tanggal di semua komponen menggunakan timezone user secara eksplisit. Mendukung WIB (Asia/Jakarta), WITA (Asia/Makassar), WIT (Asia/Jayapura), dan timezone IANA lainnya. Fallback ke Asia/Jakarta.
+  
 - **Multi-turn chat lebih kontekstual** — Tiap pesan user kini otomatis disisipkan pengingat peran AI (system prompt reinforcement) sehingga asisten tetap fokus sebagai asisten keuangan di percakapan panjang. Ditambah klasifikasi intent otomatis (insight/record/edit/general) di client untuk membantu routing yang lebih tepat.
   
 - **Running summary finansial** — Ringkasan kompak data keuangan dari tiap percakapan disimpan dan dikirim ulang di turn berikutnya, sehingga AI tetap kontekstual tanpa perlu mengulang seluruh history. Ringkasan diperbarui otomatis setelah setiap respons AI.

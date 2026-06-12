@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function ensureProfileForUser(user: User) {
   const supabase = await createClient();
-  const { data: existingProfile } = await supabase.from("profiles").select("id").eq("id", user.id).maybeSingle();
+  const { data: existingProfile } = await supabase.from("profiles").select("id, default_currency").eq("id", user.id).maybeSingle();
 
   if (existingProfile) {
     return existingProfile;
@@ -25,7 +25,7 @@ export async function ensureProfileForUser(user: User) {
     default_currency: "IDR"
   };
 
-  const { data, error } = await admin.from("profiles").upsert(payload, { onConflict: "id" }).select("id").maybeSingle();
+  const { data, error } = await admin.from("profiles").upsert(payload, { onConflict: "id" }).select("id, default_currency").maybeSingle();
 
   if (error) {
     throw error;

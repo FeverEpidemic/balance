@@ -3,7 +3,7 @@ import { verifyApiKey } from "@/lib/chat-auth";
 import { applyRateLimitHeaders, consumeChatApiRateLimit, consumeTransactionRateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { invalidateWalletReadCaches } from "@/lib/data/cache";
-import { dateStringToISO, isValidDateString } from "@/lib/utils";
+import { combineDateAndTime, dateStringToISO, isValidDateString } from "@/lib/utils";
 
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
@@ -39,8 +39,15 @@ export async function POST(request: NextRequest) {
 
   const categoryId = typeof body.category_id === "string" ? body.category_id : null;
   const note = typeof body.note === "string" && body.note.length > 0 ? body.note : null;
-  const happenedAt = typeof body.happened_at === "string" && isValidDateString(body.happened_at) ? body.happened_at : new Date().toISOString().slice(0, 10);
-  const happenedAtISO = dateStringToISO(happenedAt);
+  const rawHappenedAt = typeof body.happened_at === "string" && body.happened_at.length > 0 ? body.happened_at.trim() : "";
+  const happenedAtDate = rawHappenedAt ? rawHappenedAt.slice(0, 10) : new Date().toISOString().slice(0, 10);
+  const happenedAtTime = rawHappenedAt.length > 10 ? rawHappenedAt.slice(11, 16) : null;
+
+  if (!isValidDateString(happenedAtDate)) {
+    return NextResponse.json({ error: "invalid_happened_at" }, { status: 400 });
+  }
+
+  const happenedAtISO = dateStringToISO(combineDateAndTime(happenedAtDate, happenedAtTime));
 
   const admin = createAdminClient();
   if (!admin) {

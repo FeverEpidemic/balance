@@ -118,7 +118,7 @@ export const aiTools: ChatCompletionTool[] = [
           },
           happenedAt: {
             type: "string",
-            description: "Opsional. Tanggal transaksi dalam format YYYY-MM-DD. Jika kosong, pakai tanggal hari ini."
+            description: "Opsional. Tanggal transaksi dalam format YYYY-MM-DD atau YYYY-MM-DD HH:mm. Jika kosong, pakai tanggal hari ini dengan jam sekarang."
           }
         },
         required: ["walletId", "kind", "amount"]
@@ -163,7 +163,7 @@ export const aiTools: ChatCompletionTool[] = [
           },
           happenedAt: {
             type: "string",
-            description: "Opsional. Tanggal transaksi dalam format YYYY-MM-DD."
+            description: "Opsional. Tanggal transaksi dalam format YYYY-MM-DD atau YYYY-MM-DD HH:mm."
           }
         },
         required: ["walletId", "kind", "amount"]

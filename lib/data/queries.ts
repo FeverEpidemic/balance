@@ -39,7 +39,7 @@ export async function queryWallets(walletIds: string[]) {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("wallets").select("id, name, kind, owner_user_id").in("id", walletIds);
+  const { data, error } = await supabase.from("wallets").select("id, name, kind, owner_user_id, currency").in("id", walletIds);
 
   if (error) {
     throw error;
@@ -71,7 +71,7 @@ export async function queryProfiles(userIds: string[]) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, email, preferred_locale, theme_preference, onboarding_state, onboarding_dismissed_at, onboarding_completed_at")
+    .select("id, full_name, email, preferred_locale, theme_preference, onboarding_state, onboarding_dismissed_at, onboarding_completed_at, timezone, default_currency")
     .in("id", userIds);
 
   if (error) {

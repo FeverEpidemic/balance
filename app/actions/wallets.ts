@@ -21,6 +21,7 @@ function readWalletForm(formData: FormData) {
   return {
     name: getTrimmedValue(formData, "name"),
     kind: (getStringValue(formData, "kind") || "personal") as "personal" | "shared",
+    currency: getStringValue(formData, "currency") || "IDR",
     setupPreset: (getStringValue(formData, "setup_preset") || "standard") as WalletSetupPreset,
     budgetPreset: (getStringValue(formData, "budget_preset") || "balanced") as BudgetPreset
   };
@@ -52,7 +53,7 @@ function isWalletCapacityError(message: string) {
 }
 
 export async function createWallet(formData: FormData) {
-  const { name, kind, setupPreset, budgetPreset } = readWalletForm(formData);
+  const { name, kind, currency: formCurrency, setupPreset, budgetPreset } = readWalletForm(formData);
   const { supabase, user } = await requireUser();
   const profile = await ensureProfileForUser(user);
   const locale = await getActionLocale();
@@ -61,16 +62,19 @@ export async function createWallet(formData: FormData) {
     return await redirectWithMessage("/dashboard", "error", translate(locale, "actionErrors.profileNotSynced"));
   }
 
+  const currency = formCurrency || profile.default_currency || "IDR";
+
   const { data: wallet, error: walletError } = await supabase
     .from("wallets")
     .insert({
       name,
       kind,
+      currency,
       owner_user_id: user.id,
       created_by: user.id,
       updated_by: user.id
     })
-    .select("id, name, kind, owner_user_id")
+    .select("id, name, kind, owner_user_id, currency")
     .single();
 
   if (walletError || !wallet) {

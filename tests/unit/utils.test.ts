@@ -71,6 +71,21 @@ describe("currency input utilities", () => {
     expect(formatShortDate("2026-05-29", "en")).toBe("May 29, 2026");
   });
 
+  it("formats multi-currency values with correct symbol and pattern", () => {
+    expect(formatCurrency(1250000, "id", "IDR")).toBe("Rp 1.250.000");
+    expect(formatCurrency(1250000, "en", "USD")).toBe("$1,250,000");
+    expect(formatCurrency(1250000, "en", "SGD")).toBe("SGD 1,250,000");
+    expect(formatCurrency(1250000, "en", "EUR")).toBe("€1,250,000");
+    expect(formatCurrency(1250000, "en", "GBP")).toBe("£1,250,000");
+    expect(formatCurrency(1250000, "en", "JPY")).toBe("¥1,250,000");
+  });
+
+  it("formats currency input values with different currencies", () => {
+    expect(formatCurrencyInputValue("1250000", "id", "IDR")).toBe("Rp 1.250.000");
+    expect(formatCurrencyInputValue("1250000", "en", "USD")).toBe("$1,250,000");
+    expect(formatCurrencyInputValue("1250000", "en", "EUR")).toBe("€1,250,000");
+  });
+
   it("returns safe fallbacks for invalid date display values", () => {
     expect(formatShortDate("bukan-tanggal")).toBe("-");
     expect(formatShortDate("")).toBe("-");

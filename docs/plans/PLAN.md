@@ -114,7 +114,7 @@ Deployment:
 
 ## Assumptions
 
-- MVP excludes bank import, payment gateway integration, automatic recurring transactions, multi-currency, advanced split rules, and full audit log.
+- MVP excludes bank import, payment gateway integration, automatic recurring transactions, advanced split rules, and full audit log.
 - Supabase is fully self-hosted on the VPS.
 - SMTP credentials, VPS domain, TLS setup, and production secrets are provided via environment variables.
 - Initial backup target is local or attached VPS storage. Object storage backup can be added later.

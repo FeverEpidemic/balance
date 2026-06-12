@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
-import { updateLocalePreference, updateThemePreference } from "@/app/actions/theme";
+import { updateLocalePreference, updateThemePreference, updateTimezonePreference, updateDefaultCurrency } from "@/app/actions/theme";
 import { ActionForm } from "@/components/ui/action-form";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { createApiKey, revokeApiKey, deleteApiKey } from "@/app/actions/api-keys";
@@ -131,6 +131,94 @@ export function SettingsPageContent({ settings, locale }: { settings: SettingsDa
               );
             })}
           </div>
+        </section>
+
+        <section className="card">
+          <h3 className="headline-sm">{t("settings.timezoneTitle")}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">{t("settings.timezoneDescription")}</p>
+          <ActionForm action={updateTimezonePreference} className="mt-4">
+            {({ pending }) => (
+              <>
+                <select
+                  name="timezone"
+                  defaultValue={settings.timezone ?? "auto"}
+                  className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground"
+                  disabled={pending}
+                >
+                  <option value="auto">{t("settings.timezoneAutoLabel")}</option>
+                  <option value="Asia/Jakarta">WIB — Asia/Jakarta (UTC+7)</option>
+                  <option value="Asia/Makassar">WITA — Asia/Makassar (UTC+8)</option>
+                  <option value="Asia/Jayapura">WIT — Asia/Jayapura (UTC+9)</option>
+                  <option disabled>──────────</option>
+                  <option value="Asia/Singapore">Asia/Singapore (UTC+8)</option>
+                  <option value="Asia/Bangkok">Asia/Bangkok (UTC+7)</option>
+                  <option value="Asia/Kuala_Lumpur">Asia/Kuala_Lumpur (UTC+8)</option>
+                  <option value="Asia/Tokyo">Asia/Tokyo (UTC+9)</option>
+                  <option value="Asia/Seoul">Asia/Seoul (UTC+9)</option>
+                  <option value="Asia/Shanghai">Asia/Shanghai (UTC+8)</option>
+                  <option value="Asia/Taipei">Asia/Taipei (UTC+8)</option>
+                  <option value="Asia/Hong_Kong">Asia/Hong_Kong (UTC+8)</option>
+                  <option value="Asia/Dubai">Asia/Dubai (UTC+4)</option>
+                  <option value="Asia/Riyadh">Asia/Riyadh (UTC+3)</option>
+                  <option value="Europe/London">Europe/London (UTC+0/+1)</option>
+                  <option value="Europe/Amsterdam">Europe/Amsterdam (UTC+1/+2)</option>
+                  <option value="America/New_York">America/New_York (UTC-5/-4)</option>
+                  <option value="America/Chicago">America/Chicago (UTC-6/-5)</option>
+                  <option value="America/Denver">America/Denver (UTC-7/-6)</option>
+                  <option value="America/Los_Angeles">America/Los_Angeles (UTC-8/-7)</option>
+                  <option value="Australia/Sydney">Australia/Sydney (UTC+10/+11)</option>
+                  <option value="Pacific/Auckland">Pacific/Auckland (UTC+12/+13)</option>
+                </select>
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className="mt-3 rounded-full bg-primary px-6 py-2.5 font-label text-xs font-semibold uppercase tracking-[0.12em] text-[var(--button-primary-text)] transition hover:bg-primary-hover disabled:opacity-50"
+                >
+                  {pending ? t("transactions.savePending") : t("common.save")}
+                </button>
+              </>
+            )}
+          </ActionForm>
+        </section>
+
+        <section className="card">
+          <h3 className="headline-sm">{t("settings.currencyTitle")}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">{t("settings.currencyDescription")}</p>
+          <ActionForm action={updateDefaultCurrency} className="mt-4">
+            {({ pending }) => (
+              <>
+                <select
+                  name="default_currency"
+                  defaultValue={settings.defaultCurrency}
+                  className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground"
+                  disabled={pending}
+                >
+                  <option value="IDR">IDR — Indonesian Rupiah</option>
+                  <option value="USD">USD — US Dollar</option>
+                  <option value="SGD">SGD — Singapore Dollar</option>
+                  <option value="MYR">MYR — Malaysian Ringgit</option>
+                  <option value="EUR">EUR — Euro</option>
+                  <option value="GBP">GBP — British Pound</option>
+                  <option value="JPY">JPY — Japanese Yen</option>
+                  <option value="AUD">AUD — Australian Dollar</option>
+                  <option value="CNY">CNY — Chinese Yuan</option>
+                  <option value="SAR">SAR — Saudi Riyal</option>
+                  <option value="INR">INR — Indian Rupee</option>
+                  <option value="PHP">PHP — Philippine Peso</option>
+                  <option value="THB">THB — Thai Baht</option>
+                  <option value="KRW">KRW — South Korean Won</option>
+                  <option value="BND">BND — Brunei Dollar</option>
+                </select>
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className="mt-3 rounded-full bg-primary px-6 py-2.5 font-label text-xs font-semibold uppercase tracking-[0.12em] text-[var(--button-primary-text)] transition hover:bg-primary-hover disabled:opacity-50"
+                >
+                  {pending ? t("transactions.savePending") : t("common.save")}
+                </button>
+              </>
+            )}
+          </ActionForm>
         </section>
 
         <section className="card">

@@ -7,7 +7,7 @@ import type { BudgetRow, CategoryRow, TransactionKind, TransactionRow, WalletRow
 import { consumeTransactionRateLimit } from "@/lib/rate-limit";
 import { checkFreeTransactionLimit, incrementTransactionCount } from "@/lib/transaction-limits";
 import { createClient } from "@/lib/supabase/server";
-import { dateStringToISO, getTodayDateString, isValidDateString } from "@/lib/utils";
+import { combineDateAndTime, dateStringToISO, getTodayDateString, isValidDateString } from "@/lib/utils";
 import { getActionTranslator, getWalletMemberUserIds, revalidateWalletPaths } from "@/app/actions/_shared";
 
 export type AiWalletOption = {
@@ -387,15 +387,19 @@ export async function createTransactionViaAi(userId: string, params: AiCreateTra
     };
   }
 
-  const happenedAt = (params.happenedAt ?? "").trim() || getTodayDateString();
+  const rawHappenedAt = (params.happenedAt ?? "").trim();
+  const happenedAtDate = rawHappenedAt ? rawHappenedAt.slice(0, 10) : getTodayDateString();
+  const happenedAtTime = rawHappenedAt.length > 10 ? rawHappenedAt.slice(11, 16) : null;
 
-  if (!isValidDateString(happenedAt)) {
+  if (!isValidDateString(happenedAtDate)) {
     return {
       ok: false,
       code: "TRANSACTION_DATE_INVALID",
       message: t("actionErrors.transactionDateInvalid")
     };
   }
+
+  const happenedAt = combineDateAndTime(happenedAtDate, happenedAtTime);
 
   const transactionLimit = await checkFreeTransactionLimit(userId);
 

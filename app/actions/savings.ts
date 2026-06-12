@@ -2,9 +2,10 @@
 
 import { requireUser } from "@/lib/auth";
 import { invalidateWalletReadCaches } from "@/lib/data/cache";
-import { dateStringToISO, isValidDateString } from "@/lib/utils";
+import { combineDateAndTime, dateStringToISO, isValidDateString } from "@/lib/utils";
 import {
   errorResult,
+  getActionTimezone,
   getActionTranslator,
   getWalletMemberUserIds,
   getNullableText,
@@ -198,6 +199,7 @@ async function createSavingEntry(formData: FormData, entryType: "deposit" | "wit
   const savingId = getStringValue(formData, "saving_id");
   const amount = getNumericValue(formData, "amount");
   const happenedAt = getStringValue(formData, "happened_at");
+  const happenedAtTime = getStringValue(formData, "happened_at_time");
   const note = getNullableText(formData, "note");
   const memberUserId = getTrimmedValue(formData, "member_user_id") || null;
   const { supabase } = await requireUser();
@@ -227,12 +229,13 @@ async function createSavingEntry(formData: FormData, entryType: "deposit" | "wit
     }
   }
 
+  const timezone = await getActionTimezone();
   const { error } = await supabase.rpc("create_saving_entry_with_transaction", {
     target_wallet_id: walletId,
     target_saving_id: savingId,
     target_entry_type: entryType,
     target_amount: amount,
-    target_happened_at: dateStringToISO(happenedAt),
+    target_happened_at: dateStringToISO(combineDateAndTime(happenedAt, happenedAtTime || null, timezone)),
     target_note: note,
     target_member_user_id: entryType === "deposit" ? memberUserId : null
   });

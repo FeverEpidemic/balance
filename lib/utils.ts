@@ -1,15 +1,16 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { getLocaleTag, resolveLocale, type AppLocale } from "@/lib/i18n";
+import { DEFAULT_TIMEZONE, fromUTCISO, nowInTimezone, toUTCISO } from "@/lib/timezone";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-function createCurrencyFormatter(locale: AppLocale) {
+function createCurrencyFormatter(locale: AppLocale, currency: string = "IDR") {
   return new Intl.NumberFormat(getLocaleTag(locale), {
     style: "currency",
-    currency: "IDR",
+    currency,
     maximumFractionDigits: 0
   });
 }
@@ -23,25 +24,25 @@ function parseDateValue(value: string) {
   return Number.isNaN(date.getTime()) ? null : date;
 }
 
-export function formatCurrency(value: number, locale: AppLocale = "id") {
-  return createCurrencyFormatter(resolveLocale(locale)).format(value);
+export function formatCurrency(value: number, locale: AppLocale = "id", currency: string = "IDR") {
+  return createCurrencyFormatter(resolveLocale(locale), currency).format(value);
 }
 
 export function sanitizeCurrencyInput(value: string) {
   return value.replace(/[^\d]/g, "");
 }
 
-export function formatCurrencyInputValue(value: string | number, locale: AppLocale = "id") {
+export function formatCurrencyInputValue(value: string | number, locale: AppLocale = "id", currency: string = "IDR") {
   const digits = typeof value === "number" ? String(Math.trunc(value)) : sanitizeCurrencyInput(value);
 
   if (!digits) {
     return "";
   }
 
-  return createCurrencyFormatter(resolveLocale(locale)).format(Number(digits));
+  return createCurrencyFormatter(resolveLocale(locale), currency).format(Number(digits));
 }
 
-export function formatShortDate(value: string, locale: AppLocale = "id") {
+export function formatShortDate(value: string, locale: AppLocale = "id", timezone: string = DEFAULT_TIMEZONE) {
   const date = parseDateValue(value);
 
   if (!date) {
@@ -51,43 +52,38 @@ export function formatShortDate(value: string, locale: AppLocale = "id") {
   return new Intl.DateTimeFormat(getLocaleTag(resolveLocale(locale)), {
     day: "2-digit",
     month: "short",
-    year: "numeric"
+    year: "numeric",
+    timeZone: timezone
   }).format(date);
 }
 
-export function formatDateTime(value: string, locale: AppLocale = "id", options?: Intl.DateTimeFormatOptions) {
+export function formatDateTime(value: string, locale: AppLocale = "id", options?: Intl.DateTimeFormatOptions, timezone: string = DEFAULT_TIMEZONE) {
   const date = parseDateValue(value);
 
   if (!date) {
     return "";
   }
 
-  return new Intl.DateTimeFormat(getLocaleTag(resolveLocale(locale)), options).format(date);
+  return new Intl.DateTimeFormat(getLocaleTag(resolveLocale(locale)), {
+    timeZone: timezone,
+    ...options
+  }).format(date);
 }
 
-export function formatTimeOfDay(value: string, locale: AppLocale = "id") {
+export function formatTimeOfDay(value: string, locale: AppLocale = "id", timezone: string = DEFAULT_TIMEZONE) {
   return formatDateTime(value, locale, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false
-  });
+  }, timezone);
 }
 
-export function getTodayDateString(): string {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+export function getTodayDateString(timezone: string = DEFAULT_TIMEZONE): string {
+  return nowInTimezone(timezone).date;
 }
 
-export function toDateInputValue(dateString: string): string {
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return getTodayDateString();
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+export function toDateInputValue(dateString: string, timezone: string = DEFAULT_TIMEZONE): string {
+  return fromUTCISO(dateString || null, timezone).date;
 }
 
 export function isValidDateString(value: string): boolean {
@@ -96,6 +92,18 @@ export function isValidDateString(value: string): boolean {
   if (isNaN(date.getTime())) return false;
   const [year, month, day] = value.split("-").map(Number);
   return date.getFullYear() === year && date.getMonth() + 1 === month && date.getDate() === day;
+}
+
+export function getCurrentTimeString(timezone: string = DEFAULT_TIMEZONE): string {
+  return nowInTimezone(timezone).time;
+}
+
+export function toTimeInputValue(dateString: string, timezone: string = DEFAULT_TIMEZONE): string {
+  return fromUTCISO(dateString || null, timezone).time;
+}
+
+export function combineDateAndTime(dateStr: string, timeStr: string | null, timezone: string = DEFAULT_TIMEZONE): string {
+  return toUTCISO(dateStr, timeStr, timezone);
 }
 
 export function dateStringToISO(value: string): string {

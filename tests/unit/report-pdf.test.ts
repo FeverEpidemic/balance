@@ -41,7 +41,8 @@ const bundle: WalletBundle = {
     savingBalance: 0,
     totalBalance: 8000000,
     spentThisMonth: 1000000,
-    budgetThisMonth: 0
+    budgetThisMonth: 0,
+    currency: "IDR"
   }
 };
 

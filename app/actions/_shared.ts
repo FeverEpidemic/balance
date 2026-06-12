@@ -6,6 +6,7 @@ export * from "@/app/actions/action-result";
 import { parseNumberInput } from "@/lib/finance";
 import { defaultLocale, getTranslator, LOCALE_COOKIE_NAME, localizePath, resolveLocale, type AppLocale } from "@/lib/i18n";
 import { requireUser } from "@/lib/auth";
+import { DEFAULT_TIMEZONE, resolveTimezone, TZ_COOKIE_NAME } from "@/lib/timezone";
 
 export type MessageType = "error" | "message";
 export type WalletSection = "transactions" | "budgets" | "categories" | "members" | "settlements" | "templates" | "reports" | "recurring" | "savings";
@@ -16,6 +17,16 @@ export async function getActionLocale(): Promise<AppLocale> {
     return resolveLocale(cookieStore.get(LOCALE_COOKIE_NAME)?.value ?? defaultLocale);
   } catch {
     return defaultLocale;
+  }
+}
+
+/** Baca timezone dari cookie untuk konsistensi SSR di server actions. */
+export async function getActionTimezone(): Promise<string> {
+  try {
+    const cookieStore = await cookies();
+    return resolveTimezone(cookieStore.get(TZ_COOKIE_NAME)?.value ?? null);
+  } catch {
+    return DEFAULT_TIMEZONE;
   }
 }
 

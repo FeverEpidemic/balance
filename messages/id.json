@@ -245,7 +245,16 @@
     "localeUpdated": "Bahasa aplikasi berhasil diperbarui.",
     "themeUpdated": "Tema aplikasi berhasil diperbarui.",
     "invalidLocale": "Pilihan bahasa tidak valid.",
-    "invalidTheme": "Pilihan tema tidak valid."
+    "invalidTheme": "Pilihan tema tidak valid.",
+    "timezoneTitle": "Zona Waktu",
+    "timezoneDescription": "Setel zona waktu manual jika ingin mencatat transaksi di waktu daerah lain. Default otomatis mengikuti deteksi peramban (browser).",
+    "timezoneAutoLabel": "Otomatis (deteksi peramban)",
+    "timezoneAutoDescription": "Ikuti zona waktu perangkat Anda saat ini.",
+    "timezoneUpdated": "Zona waktu berhasil diperbarui.",
+    "currencyTitle": "Mata uang",
+    "currencyDescription": "Pilih mata uang default untuk wallet baru. Tiap wallet bisa diubah mata uangnya sendiri nanti.",
+    "currencyUpdated": "Mata uang default berhasil diperbarui.",
+    "invalidCurrency": "Mata uang tidak valid."
   },
   "offline": {
     "eyebrow": "Mode offline",
@@ -354,6 +363,7 @@
     "noteLabel": "Catatan",
     "notePlaceholder": "Opsional",
     "dateLabel": "Tanggal transaksi",
+    "timeLabel": "Jam",
     "savePending": "Menyimpan...",
     "saveChanges": "Simpan perubahan",
     "adjustmentCategoryManaged": "Kategori penyesuaian saldo dikelola otomatis oleh sistem mengikuti arah pemasukan atau pengeluaran.",
@@ -417,6 +427,7 @@
     "balanceAdjustmentReasonLabel": "Alasan penyesuaian",
     "balanceAdjustmentReasonPlaceholder": "Contoh: saldo awal dompet fisik, koreksi kas, selisih pencatatan",
     "balanceAdjustmentDateLabel": "Tanggal penyesuaian",
+    "balanceAdjustmentTimeLabel": "Jam",
     "balanceAdjustmentSavePending": "Menyimpan penyesuaian...",
     "balanceAdjustmentSave": "Simpan penyesuaian saldo",
     "recentEyebrow": "Riwayat",
@@ -576,7 +587,8 @@
     "roleOwner": "Pemilik",
     "roleEditor": "Editor",
     "roleViewer": "Lihat saja",
-    "roleSummary": "{count} anggota dengan peran {role}."
+    "roleSummary": "{count} anggota dengan peran {role}.",
+    "currencyLabel": "Mata uang"
   },
   "budgets": {
     "pageTitle": "Anggaran",

@@ -245,7 +245,16 @@
     "localeUpdated": "App language updated successfully.",
     "themeUpdated": "App theme updated successfully.",
     "invalidLocale": "Invalid language selection.",
-    "invalidTheme": "Invalid theme selection."
+    "invalidTheme": "Invalid theme selection.",
+    "timezoneTitle": "Timezone",
+    "timezoneDescription": "Set a manual timezone to record transactions in a different region. Default follows browser auto-detection.",
+    "timezoneAutoLabel": "Auto (browser detect)",
+    "timezoneAutoDescription": "Follow your device's current timezone.",
+    "timezoneUpdated": "Timezone updated successfully.",
+    "currencyTitle": "Default Currency",
+    "currencyDescription": "Choose the default currency for new wallets. Each wallet can be changed to its own currency later.",
+    "currencyUpdated": "Default currency updated successfully.",
+    "invalidCurrency": "Invalid currency."
   },
   "offline": {
     "eyebrow": "Offline mode",
@@ -354,6 +363,7 @@
     "noteLabel": "Note",
     "notePlaceholder": "Optional",
     "dateLabel": "Transaction date",
+    "timeLabel": "Time",
     "savePending": "Saving...",
     "saveChanges": "Save changes",
     "adjustmentCategoryManaged": "The balance adjustment category is managed automatically by the system based on whether the entry is income or expense.",
@@ -417,6 +427,7 @@
     "balanceAdjustmentReasonLabel": "Adjustment reason",
     "balanceAdjustmentReasonPlaceholder": "Example: physical wallet starting balance, cash correction, recording discrepancy",
     "balanceAdjustmentDateLabel": "Adjustment date",
+    "balanceAdjustmentTimeLabel": "Time",
     "balanceAdjustmentSavePending": "Saving adjustment...",
     "balanceAdjustmentSave": "Save balance adjustment",
     "recentEyebrow": "History",
@@ -576,7 +587,8 @@
     "roleOwner": "Owner",
     "roleEditor": "Editor",
     "roleViewer": "Viewer",
-    "roleSummary": "{count} members with the {role} role."
+    "roleSummary": "{count} members with the {role} role.",
+    "currencyLabel": "Currency"
   },
   "budgets": {
     "pageTitle": "Budgets",

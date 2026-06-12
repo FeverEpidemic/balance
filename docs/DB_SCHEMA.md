@@ -91,6 +91,7 @@ user_api_keys (terikat ke auth.users, bukan profiles)
 | id | uuid PK | gen_random_uuid() |
 | name | text | Nama dompet |
 | kind | wallet_kind | personal / shared |
+| currency | text | NOT NULL DEFAULT 'IDR' |
 | owner_user_id | uuid FK → profiles | Pemilik |
 | is_archived | boolean DEFAULT false | |
 | created_by / updated_by | uuid? FK → profiles | Audit trail |

@@ -11,6 +11,7 @@ import { consumeTransactionRateLimit } from "@/lib/rate-limit";
 import {
   errorResult,
   getActionLocale,
+  getActionTimezone,
   getActionTranslator,
   getWalletMemberUserIds,
   getNullableText,
@@ -22,7 +23,7 @@ import {
   successResult,
   type ActionResult
 } from "@/app/actions/_shared";
-import { dateStringToISO, isValidDateString } from "@/lib/utils";
+import { combineDateAndTime, dateStringToISO, isValidDateString } from "@/lib/utils";
 
 function readTransactionForm(formData: FormData) {
   return {
@@ -32,7 +33,8 @@ function readTransactionForm(formData: FormData) {
     categoryId: getStringValue(formData, "category_id"),
     note: getNullableText(formData, "note"),
     amount: getNumericValue(formData, "amount"),
-    happenedAt: getStringValue(formData, "happened_at")
+    happenedAt: getStringValue(formData, "happened_at"),
+    happenedAtTime: getStringValue(formData, "happened_at_time")
   };
 }
 
@@ -42,7 +44,8 @@ function readBalanceAdjustmentForm(formData: FormData) {
     direction: getStringValue(formData, "direction") as "increase" | "decrease",
     amount: getNumericValue(formData, "amount"),
     note: getTrimmedValue(formData, "note"),
-    happenedAt: getStringValue(formData, "happened_at")
+    happenedAt: getStringValue(formData, "happened_at"),
+    happenedAtTime: getStringValue(formData, "happened_at_time")
   };
 }
 
@@ -94,7 +97,7 @@ async function ensureBalanceAdjustmentCategory(
 }
 
 export async function createTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
-  const { walletId, kind, categoryId, note, amount, happenedAt } = readTransactionForm(formData);
+  const { walletId, kind, categoryId, note, amount, happenedAt, happenedAtTime } = readTransactionForm(formData);
   const { supabase, user } = await requireUser();
   const t = await getActionTranslator();
 
@@ -112,13 +115,16 @@ export async function createTransaction(_prevState: ActionResult, formData: Form
     return errorResult(t("actionErrors.transactionRateLimited"));
   }
 
+  const timezone = await getActionTimezone();
+  const happenedAtISO = dateStringToISO(combineDateAndTime(happenedAt, happenedAtTime || null, timezone));
+
   const { error } = await supabase.from("transactions").insert({
     wallet_id: walletId,
     category_id: categoryId || null,
     kind,
     amount,
     note,
-    happened_at: dateStringToISO(happenedAt),
+    happened_at: happenedAtISO,
     source: "manual",
     created_by: user.id,
     updated_by: user.id
@@ -143,7 +149,7 @@ export async function createTransaction(_prevState: ActionResult, formData: Form
 }
 
 export async function createBalanceAdjustment(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
-  const { walletId, direction, amount, note, happenedAt } = readBalanceAdjustmentForm(formData);
+  const { walletId, direction, amount, note, happenedAt, happenedAtTime } = readBalanceAdjustmentForm(formData);
   const { supabase, user } = await requireUser();
   const locale = await getActionLocale();
   const t = await getActionTranslator();
@@ -171,13 +177,14 @@ export async function createBalanceAdjustment(_prevState: ActionResult, formData
     return errorResult(t("actionErrors.balanceAdjustmentCategoryUnavailable"));
   }
 
+  const timezone = await getActionTimezone();
   const { error } = await supabase.from("transactions").insert({
     wallet_id: walletId,
     category_id: categoryId,
     kind,
     amount,
     note,
-    happened_at: dateStringToISO(happenedAt),
+    happened_at: dateStringToISO(combineDateAndTime(happenedAt, happenedAtTime || null, timezone)),
     source: BALANCE_ADJUSTMENT_SOURCE,
     created_by: user.id,
     updated_by: user.id
@@ -202,7 +209,7 @@ export async function createBalanceAdjustment(_prevState: ActionResult, formData
 }
 
 export async function updateTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
-  const { walletId, transactionId, kind, categoryId, note, amount, happenedAt } = readTransactionForm(formData);
+  const { walletId, transactionId, kind, categoryId, note, amount, happenedAt, happenedAtTime } = readTransactionForm(formData);
   const { supabase, user } = await requireUser();
   const t = await getActionTranslator();
 
@@ -236,6 +243,9 @@ export async function updateTransaction(_prevState: ActionResult, formData: Form
     return errorResult(t("actionErrors.balanceAdjustmentCategoryUnavailable"));
   }
 
+  const timezone = await getActionTimezone();
+  const happenedAtISO = dateStringToISO(combineDateAndTime(happenedAt, happenedAtTime || null, timezone));
+
   const { error } = await supabase
     .from("transactions")
     .update({
@@ -243,7 +253,7 @@ export async function updateTransaction(_prevState: ActionResult, formData: Form
       category_id: nextCategoryId,
       amount,
       note,
-      happened_at: dateStringToISO(happenedAt),
+      happened_at: happenedAtISO,
       updated_by: user.id
     })
     .eq("id", transactionId)

@@ -1,7 +1,10 @@
+import { cookies } from "next/headers";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { LocaleProvider } from "@/components/providers/locale-provider";
+import { TimezoneProvider } from "@/components/providers/timezone-provider";
 import { defaultLocale, getTranslator, isLocale, locales, localizePath, type AppLocale } from "@/lib/i18n";
+import { resolveTimezone, TZ_COOKIE_NAME } from "@/lib/timezone";
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -37,5 +40,13 @@ export default async function LocaleLayout({
   const { locale: localeParam } = await params;
   const locale = isLocale(localeParam) ? localeParam : defaultLocale;
 
-  return <LocaleProvider locale={locale}>{children}</LocaleProvider>;
+  // Baca timezone dari cookie buat SSR consistency
+  const cookieStore = await cookies();
+  const timezone = resolveTimezone(cookieStore.get(TZ_COOKIE_NAME)?.value ?? null);
+
+  return (
+    <LocaleProvider locale={locale}>
+      <TimezoneProvider initialTimezone={timezone}>{children}</TimezoneProvider>
+    </LocaleProvider>
+  );
 }
