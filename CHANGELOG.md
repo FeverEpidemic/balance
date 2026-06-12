@@ -4,7 +4,13 @@
 
 ### Added
 
+- **Multi-turn chat lebih kontekstual** — Tiap pesan user kini otomatis disisipkan pengingat peran AI (system prompt reinforcement) sehingga asisten tetap fokus sebagai asisten keuangan di percakapan panjang. Ditambah klasifikasi intent otomatis (insight/record/edit/general) di client untuk membantu routing yang lebih tepat.
+  
+- **Running summary finansial** — Ringkasan kompak data keuangan dari tiap percakapan disimpan dan dikirim ulang di turn berikutnya, sehingga AI tetap kontekstual tanpa perlu mengulang seluruh history. Ringkasan diperbarui otomatis setelah setiap respons AI.
+
 - **AI Chat kini bisa mengelola anggaran** — Asisten AI dapat membuat, mengubah, dan menghapus anggaran bulanan per kategori lewat percakapan alami. Cukup minta "set budget makan 500rb" atau "naikin budget transport jadi 1 juta".
+
+- **OG Image card untuk link preview** — Balance kini punya kartu Open Graph 1200×630px yang tampil saat link dibagikan ke Telegram, WhatsApp, Twitter, atau Discord. Desain warm minimalist: krem #fbf9f3, headline sage #595f3d, dan kurva pertumbuhan di sisi kanan.
 
 ### Changed
 

@@ -2,6 +2,79 @@ import type { RekapPeriod } from "@/lib/chat-auth";
 
 export type ChatIntent = "chat" | "recap";
 
+/**
+ * Action classification for user messages.
+ * - insight: user wants financial analysis, recap, trends
+ * - record: user wants to record a transaction
+ * - edit: user wants to edit/change existing data
+ * - general: catch-all for other conversation
+ */
+export type ChatAction = "insight" | "record" | "edit" | "general";
+
+/**
+ * Classifies a user message into a ChatAction using heuristic keyword matching.
+ * Run on the client before sending to the API.
+ */
+export function classifyChatAction(message: string): ChatAction {
+  const normalized = message.toLocaleLowerCase("id-ID").trim();
+
+  // Record transaction patterns
+  const recordPatterns = [
+    /(^|\s)(catat|tambah|simpan|buat|input|record|add|new)(\s|$)/i,
+    /(^|\s)(beli|bayar|keluar|jual|terima|dapat|transfer|tarik|setor|gaji)(\s|$)/i,
+    /(^|\s)(pengeluaran|pemasukan|transaksi)\s+(baru|)/i,
+    /(rp|rupiah|ribu|juta|rb)\s/,
+    /^\s*(beli|bayar|jual|transfer)\s/i,
+    /transaksi\s+(makan|transport|belanja|hiburan|tagihan|bensin|listrik|air|pulsa|kuota)/i,
+  ];
+  for (const pattern of recordPatterns) {
+    if (pattern.test(normalized)) {
+      return "record";
+    }
+  }
+
+  // Edit/change patterns
+  const editPatterns = [
+    /(^|\s)(ubah|edit|ganti|update|hapus|delete|koreksi|perbaiki|change)(\s|$)/i,
+    /(^|\s)(rubah|betulin)(\s|$)/i,
+    /salah\s+(catat|input|tulis)/i,
+    /ganti\s+(nominal|kategori|tanggal|wallet)/i,
+  ];
+  for (const pattern of editPatterns) {
+    if (pattern.test(normalized)) {
+      return "edit";
+    }
+  }
+
+  // Insight/analysis patterns
+  const insightPatterns = [
+    /(^|\s)(rekap|ringkasan|summary|analisa|analisis|analys)(\s|$)/i,
+    /(^|\s)(berapa|berapa banyak|seberapa|bagaimana|kenapa|mengapa|apa\s+penyebab)(\s|$)/i,
+    /(^|\s)(perbandingan|bandingkan|trend|pola|pattern|insight|wawasan)(\s|$)/i,
+    /(^|\s)(grafik|chart|diagram|visual)(\s|$)/i,
+    /(^|\s)(bulan|minggu|hari)\s+(ini|lalu|kemarin|depan|sebelumnya)/i,
+    /total\s+(pengeluaran|pemasukan|belanja)/i,
+    /paling\s+(besar|kecil|banyak|sering)/i,
+    /(^|\s)(habis|boros|irit|hemat|overbudget|over\s*budget|anggaran)(\s|$)/i,
+    /\?\s*$/,
+    /(^|\s)(tunjukkin|lihat|cek|check|lihat|show)(\s|$)/i,
+  ];
+  for (const pattern of insightPatterns) {
+    if (pattern.test(normalized)) {
+      return "insight";
+    }
+  }
+
+  return "general";
+}
+
+/**
+ * Reinforcement prefix added to user messages to remind the AI of its role
+ * in multi-turn conversations.
+ */
+export const REINFORCEMENT_PREFIX =
+  "[Sistem: Kamu adalah asisten keuangan pribadi Balance. Jawab dalam Bahasa Indonesia yang ramah dan ringkas, fokus pada analisis finansial pengguna.]\n\n";
+
 export type UiChatMessage = {
   id: string;
   role: "user" | "assistant";
@@ -14,6 +87,8 @@ export type StoredChatSession = {
   selectedPeriod: RekapPeriod;
   selectedWalletId: string;
   activeSuggestion?: string;
+  /** Compact financial summary of what was discussed in previous turns. */
+  runningSummary?: string;
 };
 
 export type OutgoingChatMessage = {
@@ -30,12 +105,20 @@ export const CHAT_WINDOW_RECENT = 5;
 /** Maximum older exchanges picked by keyword relevance. */
 export const CHAT_WINDOW_RELEVANT = 3;
 
+/**
+ * Prepares chat messages for the AI API, adding a role-reinforcement prefix
+ * to each user message so the AI maintains its identity across multi-turn chats.
+ */
 export function buildChatRequestMessages(input: {
   history: UiChatMessage[];
   userMessage: UiChatMessage;
   intent: ChatIntent;
-}) {
-  return buildWindowedChatMessages(input);
+}): OutgoingChatMessage[] {
+  const reinforcedUserMessage: UiChatMessage = {
+    ...input.userMessage,
+    content: `${REINFORCEMENT_PREFIX}${input.userMessage.content}`
+  };
+  return buildWindowedChatMessages({ ...input, userMessage: reinforcedUserMessage });
 }
 
 /**
@@ -177,6 +260,7 @@ export function sanitizeStoredChatSession(value: unknown): StoredChatSession | n
     messages,
     selectedPeriod,
     selectedWalletId,
-    activeSuggestion
+    activeSuggestion,
+    runningSummary: typeof candidate.runningSummary === "string" ? candidate.runningSummary : undefined
   };
 }

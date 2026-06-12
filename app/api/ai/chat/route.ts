@@ -16,6 +16,7 @@ import { buildDirectRecapMessage } from "@/lib/ai/recap-message";
 import { aiTools, executeAiToolCall } from "@/lib/ai/tools";
 import { requireUser } from "@/lib/auth";
 import { type RekapPeriod } from "@/lib/chat-auth";
+import { formatCurrency } from "@/lib/utils";
 import { LOCALE_COOKIE_NAME, getTranslator, resolveLocale } from "@/lib/i18n";
 import { applyDailyLimitHeaders, applyRateLimitHeaders, consumeAiChatDailyLimit, consumeAiChatRateLimit, type RateLimitResult } from "@/lib/rate-limit";
 import { budgetConversationMessages, estimateConversationTokens } from "@/lib/ai/token-budget";
@@ -23,6 +24,8 @@ import { getAiChatTokenBudget } from "@/lib/env";
 
 type ChatRequestBody = {
   intent?: "chat" | "recap";
+  action?: string;
+  runningSummary?: string;
   messages?: Array<{ role: "user" | "assistant"; content: string; score?: number }>;
   walletId?: string;
   period?: RekapPeriod;
@@ -53,12 +56,15 @@ function emitSse(encoder: TextEncoder, payload: unknown) {
   return encoder.encode(`data: ${JSON.stringify(payload)}\n\n`);
 }
 
-function createFriendlyFallbackStream(message: string, init?: ResponseInit) {
+function createFriendlyFallbackStream(message: string, init?: ResponseInit, runningSummary?: string) {
   return createSseResponse(
     new ReadableStream({
       start(controller) {
         const encoder = new TextEncoder();
         controller.enqueue(emitSse(encoder, { type: "token", content: message }));
+        if (runningSummary) {
+          controller.enqueue(emitSse(encoder, { type: "runningSummary", content: runningSummary }));
+        }
         controller.enqueue(emitSse(encoder, { type: "done" }));
         controller.close();
       }
@@ -70,6 +76,26 @@ function createFriendlyFallbackStream(message: string, init?: ResponseInit) {
 const TOOL_LOOP_MAX_ITERATIONS = 3;
 const STREAM_READ_TIMEOUT_MS = 60_000;
 
+/**
+ * Builds a compact running summary of the current financial context.
+ * This gets stored on the client and included in subsequent turn's system prompt.
+ */
+function buildRunningSummary(recap: {
+  period: RekapPeriod;
+  walletLabel: string;
+  totalIncome: number;
+  totalExpense: number;
+  net: number;
+  transactionCount: number;
+  topExpenseCategories: Array<{ categoryId: string | null; categoryName: string; total: number }>;
+}, action: string): string {
+  const top = recap.topExpenseCategories.slice(0, 3);
+  const topSummary = top.length > 0
+    ? `Pengeluaran teratas: ${top.map((c) => `${c.categoryName} ${formatCurrency(c.total)}`).join(", ")}.`
+    : "Belum ada transaksi.";
+  return `Periode ${recap.period} — ${recap.walletLabel}: pemasukan ${formatCurrency(recap.totalIncome)}, pengeluaran ${formatCurrency(recap.totalExpense)}, net ${formatCurrency(recap.net)}, ${recap.transactionCount} transaksi. ${topSummary} Aksi terakhir: ${action}.`;
+}
+
 export async function POST(request: Request) {
   const { user } = await requireUser();
   const cookieStore = await cookies();
@@ -79,6 +105,8 @@ export async function POST(request: Request) {
   const period = body.period ?? "month";
   const walletId = body.walletId ?? null;
   const intent = body.intent ?? "chat";
+  const action = body.action ?? "general";
+  const runningSummary = body.runningSummary ?? "";
   const recentMessages = (body.messages ?? []).filter((message) => message.content.trim().length > 0).slice(-12);
   const userMessages = recentMessages.filter((message) => message.role === "user");
 
@@ -132,11 +160,12 @@ export async function POST(request: Request) {
     ]);
 
     if (intent === "recap") {
-      return applyDailyLimitHeaders(applyRateLimitHeaders(createFriendlyFallbackStream(buildDirectRecapMessage(recap)), aiRateLimit), aiDailyLimit);
+      const recapSummary = buildRunningSummary(recap, "rekap");
+      return applyDailyLimitHeaders(applyRateLimitHeaders(createFriendlyFallbackStream(buildDirectRecapMessage(recap), undefined, recapSummary), aiRateLimit), aiDailyLimit);
     }
 
-    const fullSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus });
-    const compactSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus, compact: true });
+    const fullSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus, runningSummary: runningSummary || undefined });
+    const compactSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus, compact: true, runningSummary: runningSummary || undefined });
     const initialBudgetedConversation = buildBudgetedConversation({
       systemPrompt: fullSystemPrompt,
       compactSystemPrompt,
@@ -234,8 +263,9 @@ export async function POST(request: Request) {
         console.warn("[AI] tool-loop upstream failed, using local fallback");
       }
 
+      const fallbackSummary = buildRunningSummary(recap, "analisis");
       return applyDailyLimitHeaders(applyRateLimitHeaders(
-        createFriendlyFallbackStream(buildFallbackFinanceAnswer(latestUserMessage, recap, categoryFocus)),
+        createFriendlyFallbackStream(buildFallbackFinanceAnswer(latestUserMessage, recap, categoryFocus), undefined, fallbackSummary),
         aiRateLimit
       ), aiDailyLimit);
     }
@@ -269,6 +299,7 @@ export async function POST(request: Request) {
     })();
 
     if (needsConfirmationResult) {
+      const confirmSummary = buildRunningSummary(recap, `konfirmasi transaksi: ${formatCurrency(needsConfirmationResult.preview.amount)} (${needsConfirmationResult.preview.kind})`);
       return applyDailyLimitHeaders(applyRateLimitHeaders(
         createSseResponse(
           new ReadableStream({
@@ -281,6 +312,9 @@ export async function POST(request: Request) {
                   preview: needsConfirmationResult.preview
                 })
               );
+              if (confirmSummary) {
+                controller.enqueue(emitSse(encoder, { type: "runningSummary", content: confirmSummary }));
+              }
               controller.enqueue(emitSse(encoder, { type: "done" }));
               controller.close();
             }
@@ -294,8 +328,9 @@ export async function POST(request: Request) {
       const responseText = isLowSignalAiReply(finalAssistantContent)
         ? buildFallbackFinanceAnswer(latestUserMessage, recap, categoryFocus)
         : finalAssistantContent;
+      const directSummary = buildRunningSummary(recap, action);
 
-      return applyDailyLimitHeaders(applyRateLimitHeaders(createFriendlyFallbackStream(responseText), aiRateLimit), aiDailyLimit);
+      return applyDailyLimitHeaders(applyRateLimitHeaders(createFriendlyFallbackStream(responseText, undefined, directSummary), aiRateLimit), aiDailyLimit);
     }
 
     // ── Final budget check before streaming ─────────────────────────
@@ -358,6 +393,10 @@ export async function POST(request: Request) {
 
               if (!streamTimedOut) {
                 clearTimeout(streamTimeoutId);
+                const streamSummary = buildRunningSummary(recap, action);
+                if (streamSummary) {
+                  controller.enqueue(emitSse(encoder, { type: "runningSummary", content: streamSummary }));
+                }
                 controller.enqueue(emitSse(encoder, { type: "done" }));
                 controller.close();
               }
@@ -388,8 +427,9 @@ export async function POST(request: Request) {
         console.warn("[AI] stream creation upstream failed, using local fallback");
       }
 
+      const streamCreateSummary = buildRunningSummary(recap, action);
       return applyDailyLimitHeaders(applyRateLimitHeaders(
-        createFriendlyFallbackStream(buildFallbackFinanceAnswer(latestUserMessage, recap, categoryFocus)),
+        createFriendlyFallbackStream(buildFallbackFinanceAnswer(latestUserMessage, recap, categoryFocus), undefined, streamCreateSummary),
         aiRateLimit
       ), aiDailyLimit);
     }

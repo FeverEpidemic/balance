@@ -8,7 +8,7 @@ import { ChatRateLimitIndicator, type RateLimitInfo } from "@/components/feature
 import { ChatSuggestions } from "@/components/features/chat/chat-suggestions";
 import { AppIcon } from "@/components/ui/app-icon";
 import { Button } from "@/components/ui/button";
-import { CHAT_STORAGE_KEY, buildChatRequestMessages, clearChatHistory, sanitizeStoredChatSession, type ChatIntent, type UiChatMessage } from "@/lib/chat-session";
+import { CHAT_STORAGE_KEY, buildChatRequestMessages, clearChatHistory, sanitizeStoredChatSession, classifyChatAction, type ChatIntent, type ChatAction, type UiChatMessage } from "@/lib/chat-session";
 import type { AppLocale } from "@/lib/i18n";
 import { getTranslator } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/utils";
@@ -57,6 +57,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
   const [pendingConfidence, setPendingConfidence] = useState<number>(0);
   const [rateLimitInfo, setRateLimitInfo] = useState<RateLimitInfo | null>(null);
   const [dailyLimitInfo, setDailyLimitInfo] = useState<RateLimitInfo | null>(null);
+  const [runningSummary, setRunningSummary] = useState<string>("");
 
   useEffect(() => {
     const raw = window.localStorage.getItem(CHAT_STORAGE_KEY);
@@ -79,6 +80,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
       setSelectedPeriod(stored.selectedPeriod);
       setSelectedWalletId(stored.selectedWalletId);
       setActiveSuggestion(stored.activeSuggestion);
+      setRunningSummary(stored.runningSummary ?? "");
     } catch {
       window.localStorage.removeItem(CHAT_STORAGE_KEY);
     } finally {
@@ -97,10 +99,11 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
         messages,
         selectedPeriod,
         selectedWalletId,
-        activeSuggestion
+        activeSuggestion,
+        runningSummary
       })
     );
-  }, [activeSuggestion, hasHydratedSession, messages, selectedPeriod, selectedWalletId]);
+  }, [activeSuggestion, hasHydratedSession, messages, selectedPeriod, selectedWalletId, runningSummary]);
 
   const suggestions = useMemo(
     () => [
@@ -123,6 +126,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
 
     const effectivePeriod = options?.period ?? selectedPeriod;
     const intent = options?.intent ?? "chat";
+    const action: ChatAction = classifyChatAction(prompt);
     const userMessage: UiChatMessage = {
       id: `${Date.now()}-user`,
       role: "user",
@@ -154,6 +158,8 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
         },
         body: JSON.stringify({
           intent,
+          action,
+          runningSummary: runningSummary || undefined,
           messages: buildChatRequestMessages({
             history: messages,
             userMessage,
@@ -268,6 +274,10 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
               )
             );
           }
+
+          if (payload.type === "runningSummary" && typeof payload.content === "string") {
+            setRunningSummary(payload.content);
+          }
         }
       }
     } catch (error: unknown) {
@@ -365,6 +375,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
     setActiveSuggestion(undefined);
     setInput("");
     setShowResetConfirm(false);
+    setRunningSummary("");
   }
 
   function handleRecapSuggestion(period: (typeof periods)[number]) {

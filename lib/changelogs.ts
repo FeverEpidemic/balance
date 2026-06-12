@@ -13,6 +13,28 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.8.7",
+    date: "2026-06-12",
+    title: "OG Image card untuk link preview",
+    description: "Balance kini punya kartu Open Graph 1200×630px yang tampil saat link dibagikan ke Telegram, WhatsApp, Twitter, atau Discord. Desain warm minimalist: krem, sage, dan kurva pertumbuhan.",
+    features: [
+      { icon: "🖼️", text: "OG image 1200×630px otomatis — tampil sebagai link preview di Telegram, WhatsApp, Twitter, dan Discord." },
+      { icon: "🎨", text: "Desain warm minimalist: krem #fbf9f3, headline sage #595f3d, lengkap dengan kurva pertumbuhan." },
+      { icon: "⚡", text: "Font Hanken Grotesk + Inter dari Google Fonts, di-render real-time via @vercel/og." },
+    ]
+  },
+  {
+    version: "1.8.6",
+    date: "2026-06-12",
+    title: "Multi-turn chat lebih kontekstual",
+    description: "Asisten AI kini lebih terjaga perannya di percakapan panjang, percakapan tetap kontekstual dengan ringkasan finansial tiap turn, dan intent pesan kamu otomatis terdeteksi.",
+    features: [
+      { icon: "🧠", text: "System prompt reinforcement: tiap pesan user disisipkan pengingat peran AI agar tidak melenceng di percakapan panjang." },
+      { icon: "📋", text: "Running summary finansial: ringkasan data keuangan dari tiap percakapan disimpan dan dikirim di turn berikutnya — AI tetap kontekstual." },
+      { icon: "🎯", text: "Klasifikasi intent otomatis: insight, catat transaksi, edit, atau general chat — dikenali di client sebelum dikirim ke AI." },
+    ]
+  },
+  {
     version: "1.8.5",
     date: "2026-06-12",
     title: "AI Chat bisa mengelola anggaran",

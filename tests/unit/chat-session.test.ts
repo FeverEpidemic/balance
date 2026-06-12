@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildChatRequestMessages, buildWindowedChatMessages, sanitizeStoredChatSession, CHAT_WINDOW_RECENT } from "@/lib/chat-session";
+import { buildChatRequestMessages, buildWindowedChatMessages, sanitizeStoredChatSession, CHAT_WINDOW_RECENT, REINFORCEMENT_PREFIX } from "@/lib/chat-session";
 
 describe("buildChatRequestMessages", () => {
   it("resets history for direct recap requests", () => {
@@ -12,7 +12,7 @@ describe("buildChatRequestMessages", () => {
       intent: "recap"
     });
 
-    expect(messages).toEqual([{ role: "user", content: "Tolong rekap hari ini", score: 1000 }]);
+    expect(messages).toEqual([{ role: "user", content: `${REINFORCEMENT_PREFIX}Tolong rekap hari ini`, score: 1000 }]);
   });
 
   it("keeps recent conversation for normal chat", () => {
@@ -24,8 +24,11 @@ describe("buildChatRequestMessages", () => {
 
     expect(messages).toEqual([
       { role: "assistant", content: "Jawaban lama", score: 100 },
-      { role: "user", content: "Analisis lagi", score: 101 }
+      { role: "user", content: `${REINFORCEMENT_PREFIX}Analisis lagi`, score: 101 }
     ]);
+
+    // The stored history should NOT have the prefix (only the API-bound messages get it)
+    expect(messages[1].content).toBe(`${REINFORCEMENT_PREFIX}Analisis lagi`);
   });
 });
 
