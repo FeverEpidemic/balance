@@ -35,7 +35,13 @@ export function getSupabaseServerKey() {
 }
 
 export function getSiteUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? process.env.APP_SITE_URL ?? "http://localhost:3000";
+  const value = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.APP_SITE_URL;
+
+  if (!value) {
+    throw new Error("Missing required environment variable: NEXT_PUBLIC_SITE_URL or APP_SITE_URL");
+  }
+
+  return value;
 }
 
 export function getRedisUrl() {

@@ -6,6 +6,7 @@ import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-regis
 import { RouteTransition } from "@/components/ui/route-transition";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { Toaster } from "@/components/ui/shadcn/sonner";
+import { getSiteUrl } from "@/lib/env";
 import { LOCALE_COOKIE_NAME, defaultLocale, resolveLocale } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 import { getThemeBootstrapScript, parseThemePreference, resolveAppliedTheme, THEME_COOKIE_NAME } from "@/lib/theme";
@@ -27,7 +28,10 @@ const label = Geist({
   variable: "--font-label"
 });
 
+const siteUrl = new URL(getSiteUrl());
+
 export const metadata: Metadata = {
+  metadataBase: siteUrl,
   title: {
     default: "Balance — Personal Finance Tracker",
     template: "%s — Balance",
@@ -57,12 +61,14 @@ export const metadata: Metadata = {
     siteName: "Balance",
     locale: "id_ID",
     type: "website",
+    images: [{ url: "/opengraph-image", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Balance",
     description:
       "A calm, modern finance tracker to manage your income, expenses, and financial wellness — in rupiah.",
+    images: ["/opengraph-image"],
   },
 };
 
