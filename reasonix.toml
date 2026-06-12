@@ -52,7 +52,7 @@ enabled = true   # language server tools; servers launch lazily when used
 # Rules are "Tool" or "Tool(specifier)"; e.g. Bash(go test:*), Edit(src/**).
 mode  = "ask"
 # deny = ["Bash(rm -rf*)", "Bash(git push*)"]   # hard-blocked in every mode
-allow = ["Bash(cd /media/ilham827/Ilham/Project/Balance/balance && git branch --show-current)", "Bash(cd /media/ilham827/Ilham/Project/Balance/balance && git diff --stat origin/main...HEAD 2>/dev/null || git diff --stat HEAD~10...HEAD)"]
+allow = ["Bash(cd /media/ilham827/Ilham/Project/Balance/balance && git branch --show-current)", "Bash(cd /media/ilham827/Ilham/Project/Balance/balance && git diff --stat origin/main...HEAD 2>/dev/null || git diff --stat HEAD~10...HEAD)", "Edit", "Bash(ls app/opengraph-image.tsx 2>/dev/null || echo \"NOT FOUND\")", "Bash(ls app/layout.tsx 2>/dev/null || echo \"NOT FOUND\")", "Bash(cat /home/ilham827/balance-tmp/package.json | grep -E '\"@vercel/og\"|next\"' 2>/dev/null || echo \"checking path\")", "task"]
 # ask = ["Edit(src/**)"]   # force a prompt even if otherwise allowed
 
 [sandbox]
