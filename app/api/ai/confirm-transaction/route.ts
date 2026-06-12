@@ -1,7 +1,6 @@
 import { requireUser } from "@/lib/auth";
 import { createTransactionViaAi } from "@/lib/ai/data";
 import type { AiCreateTransactionParams } from "@/lib/ai/data";
-import { applyRateLimitHeaders, consumeTransactionRateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
@@ -26,15 +25,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const rateLimit = await consumeTransactionRateLimit(user.id);
-
-    if (!rateLimit.allowed) {
-      return applyRateLimitHeaders(
-        Response.json({ ok: false, message: "Terlalu banyak percobaan. Coba lagi sebentar." }, { status: 429 }),
-        rateLimit
-      );
-    }
-
     const params: AiCreateTransactionParams = {
       walletId,
       kind,
@@ -49,10 +39,7 @@ export async function POST(request: Request) {
 
     const status = result.ok ? 200 : 400;
 
-    return applyRateLimitHeaders(
-      Response.json(result, { status }),
-      rateLimit
-    );
+    return Response.json(result, { status });
   } catch (error: unknown) {
     console.warn("[confirm-transaction] Error:", (error as Error)?.message ?? error);
     return Response.json(

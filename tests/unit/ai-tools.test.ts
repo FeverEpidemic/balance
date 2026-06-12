@@ -6,20 +6,28 @@ const {
   getCategoriesForWalletsMock,
   getFinancialRecapForUserMock,
   getRecentTransactionsForUserMock,
+  resolveWalletIdByNameMock,
   checkDuplicateTransactionMock,
   checkDailySpendingCapMock,
   resolveWalletNameMock,
-  computeTransactionConfidenceMock
+  computeTransactionConfidenceMock,
+  createBudgetViaAiMock,
+  updateBudgetViaAiMock,
+  deleteBudgetViaAiMock
 } = vi.hoisted(() => ({
   createTransactionViaAiMock: vi.fn(),
   getBudgetStatusForUserMock: vi.fn(),
   getCategoriesForWalletsMock: vi.fn(),
   getFinancialRecapForUserMock: vi.fn(),
   getRecentTransactionsForUserMock: vi.fn(),
+  resolveWalletIdByNameMock: vi.fn((_userId: string, walletId: string) => Promise.resolve(walletId)),
   checkDuplicateTransactionMock: vi.fn(),
   checkDailySpendingCapMock: vi.fn(),
   resolveWalletNameMock: vi.fn(),
-  computeTransactionConfidenceMock: vi.fn()
+  computeTransactionConfidenceMock: vi.fn(),
+  createBudgetViaAiMock: vi.fn(),
+  updateBudgetViaAiMock: vi.fn(),
+  deleteBudgetViaAiMock: vi.fn()
 }));
 
 vi.mock("@/lib/ai/data", () => ({
@@ -27,7 +35,11 @@ vi.mock("@/lib/ai/data", () => ({
   getBudgetStatusForUser: getBudgetStatusForUserMock,
   getCategoriesForWallets: getCategoriesForWalletsMock,
   getFinancialRecapForUser: getFinancialRecapForUserMock,
-  getRecentTransactionsForUser: getRecentTransactionsForUserMock
+  getRecentTransactionsForUser: getRecentTransactionsForUserMock,
+  resolveWalletIdByName: resolveWalletIdByNameMock,
+  createBudgetViaAi: createBudgetViaAiMock,
+  updateBudgetViaAi: updateBudgetViaAiMock,
+  deleteBudgetViaAi: deleteBudgetViaAiMock
 }));
 
 vi.mock("@/lib/ai/confidence", () => ({
@@ -40,13 +52,16 @@ vi.mock("@/lib/ai/confidence", () => ({
 import { aiTools, executeAiToolCall } from "@/lib/ai/tools";
 
 describe("aiTools", () => {
-  it("registers category lookup and create transaction tools", () => {
+  it("registers all tools", () => {
     const toolNames = aiTools
       .filter((tool): tool is (typeof aiTools)[number] & { type: "function"; function: { name: string } } => tool.type === "function")
       .map((tool) => tool.function.name);
 
     expect(toolNames).toContain("getCategories");
     expect(toolNames).toContain("createTransaction");
+    expect(toolNames).toContain("createBudget");
+    expect(toolNames).toContain("updateBudget");
+    expect(toolNames).toContain("deleteBudget");
   });
 });
 
@@ -281,6 +296,240 @@ describe("executeAiToolCall", () => {
         ok: true,
         message: "Transaksi berhasil disimpan."
       });
+    });
+  });
+
+  describe("budget tools", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("routes createBudget to the data layer with valid params", async () => {
+      createBudgetViaAiMock.mockResolvedValue({
+        ok: true,
+        message: "Anggaran berhasil dibuat.",
+        budget: { id: "budget-1", walletId: "wallet-1", categoryId: "cat-1", amount: 500000 }
+      });
+
+      const result = await executeAiToolCall("user-1", {
+        id: "call-budget-1",
+        type: "function",
+        function: {
+          name: "createBudget",
+          arguments: JSON.stringify({
+            walletId: "wallet-1",
+            categoryId: "cat-1",
+            monthStart: "2026-07",
+            amount: 500000
+          })
+        }
+      });
+
+      expect(createBudgetViaAiMock).toHaveBeenCalledWith("user-1", {
+        walletId: "wallet-1",
+        categoryId: "cat-1",
+        monthStart: "2026-07",
+        amount: 500000
+      });
+      expect(JSON.parse(result)).toEqual({
+        ok: true,
+        message: "Anggaran berhasil dibuat.",
+        budget: { id: "budget-1", walletId: "wallet-1", categoryId: "cat-1", amount: 500000 }
+      });
+    });
+
+    it("rejects createBudget with empty walletId", async () => {
+      const result = await executeAiToolCall("user-1", {
+        id: "call-budget-2",
+        type: "function",
+        function: {
+          name: "createBudget",
+          arguments: JSON.stringify({
+            walletId: "",
+            categoryId: "cat-1",
+            monthStart: "2026-07",
+            amount: 500000
+          })
+        }
+      });
+
+      const parsed = JSON.parse(result);
+      expect(parsed.error).toBe("VALIDATION_FAILED");
+      expect(parsed.details).toEqual(
+        expect.arrayContaining([expect.stringContaining("walletId")])
+      );
+    });
+
+    it("rejects createBudget with empty categoryId", async () => {
+      const result = await executeAiToolCall("user-1", {
+        id: "call-budget-3",
+        type: "function",
+        function: {
+          name: "createBudget",
+          arguments: JSON.stringify({
+            walletId: "wallet-1",
+            categoryId: "",
+            monthStart: "2026-07",
+            amount: 500000
+          })
+        }
+      });
+
+      const parsed = JSON.parse(result);
+      expect(parsed.error).toBe("VALIDATION_FAILED");
+      expect(parsed.details).toEqual(
+        expect.arrayContaining([expect.stringContaining("categoryId")])
+      );
+    });
+
+    it("rejects createBudget with amount <= 0", async () => {
+      const result = await executeAiToolCall("user-1", {
+        id: "call-budget-4",
+        type: "function",
+        function: {
+          name: "createBudget",
+          arguments: JSON.stringify({
+            walletId: "wallet-1",
+            categoryId: "cat-1",
+            monthStart: "2026-07",
+            amount: 0
+          })
+        }
+      });
+
+      const parsed = JSON.parse(result);
+      expect(parsed.error).toBe("VALIDATION_FAILED");
+      expect(parsed.details).toEqual(
+        expect.arrayContaining([expect.stringContaining("amount")])
+      );
+    });
+
+    it("uses current month when monthStart is not provided for createBudget", async () => {
+      createBudgetViaAiMock.mockResolvedValue({
+        ok: true,
+        message: "Anggaran berhasil dibuat."
+      });
+
+      await executeAiToolCall("user-1", {
+        id: "call-budget-5",
+        type: "function",
+        function: {
+          name: "createBudget",
+          arguments: JSON.stringify({
+            walletId: "wallet-1",
+            categoryId: "cat-1",
+            monthStart: "",
+            amount: 300000
+          })
+        }
+      });
+
+      const callArgs = createBudgetViaAiMock.mock.calls[0][1];
+      expect(callArgs.walletId).toBe("wallet-1");
+      expect(callArgs.categoryId).toBe("cat-1");
+      expect(callArgs.monthStart).toMatch(/^\d{4}-\d{2}$/);
+      expect(callArgs.amount).toBe(300000);
+    });
+
+    it("routes updateBudget to the data layer with valid params", async () => {
+      updateBudgetViaAiMock.mockResolvedValue({
+        ok: true,
+        message: "Anggaran berhasil diperbarui.",
+        budget: { id: "budget-1", walletId: "wallet-1", amount: 750000 }
+      });
+
+      const result = await executeAiToolCall("user-1", {
+        id: "call-budget-6",
+        type: "function",
+        function: {
+          name: "updateBudget",
+          arguments: JSON.stringify({
+            walletId: "wallet-1",
+            budgetId: "budget-1",
+            amount: 750000
+          })
+        }
+      });
+
+      expect(updateBudgetViaAiMock).toHaveBeenCalledWith("user-1", {
+        walletId: "wallet-1",
+        budgetId: "budget-1",
+        amount: 750000
+      });
+      expect(JSON.parse(result)).toEqual({
+        ok: true,
+        message: "Anggaran berhasil diperbarui.",
+        budget: { id: "budget-1", walletId: "wallet-1", amount: 750000 }
+      });
+    });
+
+    it("rejects updateBudget with empty budgetId", async () => {
+      const result = await executeAiToolCall("user-1", {
+        id: "call-budget-7",
+        type: "function",
+        function: {
+          name: "updateBudget",
+          arguments: JSON.stringify({
+            walletId: "wallet-1",
+            budgetId: "",
+            amount: 500000
+          })
+        }
+      });
+
+      const parsed = JSON.parse(result);
+      expect(parsed.error).toBe("VALIDATION_FAILED");
+      expect(parsed.details).toEqual(
+        expect.arrayContaining([expect.stringContaining("budgetId")])
+      );
+    });
+
+    it("routes deleteBudget to the data layer with valid params", async () => {
+      deleteBudgetViaAiMock.mockResolvedValue({
+        ok: true,
+        message: "Anggaran berhasil dihapus."
+      });
+
+      const result = await executeAiToolCall("user-1", {
+        id: "call-budget-8",
+        type: "function",
+        function: {
+          name: "deleteBudget",
+          arguments: JSON.stringify({
+            walletId: "wallet-1",
+            budgetId: "budget-1"
+          })
+        }
+      });
+
+      expect(deleteBudgetViaAiMock).toHaveBeenCalledWith("user-1", {
+        walletId: "wallet-1",
+        budgetId: "budget-1"
+      });
+      expect(JSON.parse(result)).toEqual({
+        ok: true,
+        message: "Anggaran berhasil dihapus."
+      });
+    });
+
+    it("rejects deleteBudget with empty walletId", async () => {
+      const result = await executeAiToolCall("user-1", {
+        id: "call-budget-9",
+        type: "function",
+        function: {
+          name: "deleteBudget",
+          arguments: JSON.stringify({
+            walletId: "",
+            budgetId: "budget-1"
+          })
+        }
+      });
+
+      const parsed = JSON.parse(result);
+      expect(parsed.error).toBe("VALIDATION_FAILED");
+      expect(parsed.details).toEqual(
+        expect.arrayContaining([expect.stringContaining("walletId")])
+      );
     });
   });
 });

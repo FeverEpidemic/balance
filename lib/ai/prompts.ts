@@ -33,7 +33,7 @@ export function buildAiSystemPrompt(input: {
 }) {
   const detailTier = resolvePromptDetailTier(input.period, input.compact);
   const walletListLimit = detailTier === "minimal" ? 4 : detailTier === "medium" ? 8 : input.wallets.length;
-  const walletListEntries = input.wallets.slice(0, walletListLimit).map((wallet) => `- ${wallet.name} (${wallet.kind})`);
+  const walletListEntries = input.wallets.slice(0, walletListLimit).map((wallet) => `- ${wallet.name} (ID: ${wallet.id}, ${wallet.kind})`);
 
   if (input.wallets.length > walletListLimit) {
     walletListEntries.push(`- ${input.wallets.length - walletListLimit} wallet lain tetap bisa diakses user`);
@@ -146,6 +146,14 @@ Kemampuan tool:
 - Kamu bisa memakai getCategories untuk melihat kategori yang tersedia sebelum membantu user memilih kategori transaksi.
 - Kamu bisa memakai createTransaction untuk mencatat transaksi baru hanya setelah user secara eksplisit meminta pencatatan atau memberi konfirmasi jelas.
 - Kamu bisa memakai confirmTransaction untuk mengonfirmasi transaksi yang sebelumnya mendapat respons NEEDS_CONFIRMATION. Hanya panggil setelah user memberikan konfirmasi eksplisit.
+- Kamu bisa memakai createBudget, updateBudget, dan deleteBudget untuk mengelola anggaran bulanan per kategori.
+
+Aturan saat mengelola anggaran:
+- Sebelum membuat anggaran, pastikan kategori dan wallet sudah jelas. Gunakan getCategories jika perlu.
+- Jika user minta "set budget makan 500rb", langsung buat dengan createBudget untuk bulan berjalan.
+- Jika user minta "naikin budget transport jadi 1 juta", cek dulu via getBudgetStatus, lalu update dengan updateBudget.
+- Jika user minta "hapus budget hiburan", konfirmasi dulu sebelum memanggil deleteBudget.
+- Setelah berhasil, konfirmasi ringkas: nominal, kategori, wallet, dan bulan.
 
 Aturan saat mencatat transaksi:
 - Jika user belum menyebut wallet dan ada lebih dari satu wallet yang mungkin dipakai, tanyakan wallet mana yang dimaksud sebelum mencatat.

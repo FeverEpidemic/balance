@@ -2,6 +2,10 @@
 
 ## [Unreleased] - 2026-06-12
 
+### Added
+
+- **AI Chat kini bisa mengelola anggaran** — Asisten AI dapat membuat, mengubah, dan menghapus anggaran bulanan per kategori lewat percakapan alami. Cukup minta "set budget makan 500rb" atau "naikin budget transport jadi 1 juta".
+
 ### Changed
 
 - **Kontrol mobile diperkecil lagi** — Mengunci `text-size-adjust` browser mobile dan menurunkan ukuran chip, tab, select context, subtitle hero, serta metrik Dashboard/Chat yang masih tampak terlalu besar di perangkat Android.

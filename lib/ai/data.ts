@@ -37,6 +37,7 @@ export type AiBudgetStatus = {
   totalSpent: number;
   usagePercent: number;
   categories: Array<{
+    budgetId: string;
     categoryId: string;
     categoryName: string;
     budget: number;
@@ -135,6 +136,40 @@ function assertAccessibleWallet(walletIds: string[], walletId: string | null | u
   if (walletId && !walletIds.includes(walletId)) {
     throw new Error("WALLET_ACCESS_DENIED");
   }
+}
+
+/**
+ * UUID v4 regex pattern for checking if a string is a valid UUID.
+ */
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Resolve a wallet ID that may be a UUID or a human-readable name.
+ * If the input is already a valid UUID, return it as-is.
+ * Otherwise, try to match it against the user's accessible wallets by name (case-insensitive, normalized).
+ * Returns the matched UUID, or the original input if no match is found.
+ */
+export async function resolveWalletIdByName(userId: string, walletId: string): Promise<string> {
+  if (UUID_PATTERN.test(walletId)) {
+    return walletId;
+  }
+
+  const { wallets } = await getAccessibleWallets(userId);
+  const normalizedInput = normalizeForMatch(walletId);
+
+  // Try exact match first, then partial match
+  const exactMatch = wallets.find((w) => normalizeForMatch(w.name) === normalizedInput);
+  if (exactMatch) {
+    return exactMatch.id;
+  }
+
+  // Fall back to partial match
+  const partialMatch = wallets.find((w) => {
+    const normalizedName = normalizeForMatch(w.name);
+    return normalizedName.includes(normalizedInput) || normalizedInput.includes(normalizedName);
+  });
+
+  return partialMatch?.id ?? walletId;
 }
 
 function buildCategoryMap(categories: CategoryRow[]) {
@@ -625,6 +660,7 @@ function buildBudgetCategories(budgets: BudgetRow[], categories: CategoryRow[], 
       const usagePercent = budget.amount > 0 ? Math.round((spent / budget.amount) * 100) : 0;
 
       return {
+        budgetId: budget.id,
         categoryId: budget.category_id,
         categoryName,
         budget: budget.amount,
@@ -661,5 +697,290 @@ export async function getBudgetStatusForUser(userId: string, walletId: string): 
     totalSpent,
     usagePercent: totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0,
     categories: categoriesWithUsage
+  };
+}
+
+export type AiBudgetMutationParams = {
+  walletId: string;
+  categoryId: string;
+  monthStart: string;
+  amount: number;
+};
+
+export type AiBudgetUpdateParams = {
+  walletId: string;
+  budgetId: string;
+  amount: number;
+};
+
+export type AiBudgetDeleteParams = {
+  walletId: string;
+  budgetId: string;
+};
+
+export type AiBudgetMutationResult = {
+  ok: boolean;
+  code?: string;
+  message: string;
+  budget?: {
+    id: string;
+    walletId: string;
+    walletName: string;
+    categoryId: string;
+    categoryName: string;
+    monthStart: string;
+    amount: number;
+  };
+};
+
+export async function createBudgetViaAi(
+  userId: string,
+  params: AiBudgetMutationParams
+): Promise<AiBudgetMutationResult> {
+  const { memberships, walletIds, wallets } = await getAccessibleWallets(userId);
+  const t = await getActionTranslator();
+  assertAccessibleWallet(walletIds, params.walletId);
+
+  const membership = memberships.find((item) => item.wallet_id === params.walletId);
+
+  if (!membership || membership.role === "viewer") {
+    return {
+      ok: false,
+      code: "BUDGET_WRITE_DENIED",
+      message: t("actionErrors.budgetWriteForbidden")
+    };
+  }
+
+  if (!Number.isFinite(params.amount) || params.amount <= 0) {
+    return {
+      ok: false,
+      code: "BUDGET_AMOUNT_INVALID",
+      message: t("actionErrors.budgetAmountInvalid")
+    };
+  }
+
+  const walletMap = buildWalletMap(wallets);
+  const categories = await getCategoriesForWallets(userId, [params.walletId]);
+  const resolvedCategory = categories.find((c) => c.id === params.categoryId) ?? null;
+
+  if (!resolvedCategory) {
+    return {
+      ok: false,
+      code: "BUDGET_CATEGORY_NOT_FOUND",
+      message: t("actionErrors.budgetCategoryNotFound")
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("budgets")
+    .upsert(
+      {
+        wallet_id: params.walletId,
+        category_id: params.categoryId,
+        month_start: `${params.monthStart}-01`,
+        amount: params.amount,
+        created_by: userId,
+        updated_by: userId
+      },
+      {
+        onConflict: "wallet_id,category_id,month_start"
+      }
+    )
+    .select("id, wallet_id, category_id, month_start, amount")
+    .single();
+
+  if (error || !data) {
+    return {
+      ok: false,
+      code: "BUDGET_UPSERT_FAILED",
+      message: t("actionErrors.unexpectedError")
+    };
+  }
+
+  const dashboardUserIds = await getWalletMemberUserIds(supabase, params.walletId);
+  await invalidateWalletReadCaches(params.walletId, {
+    targets: ["overview", "budgets"],
+    dashboardUserIds
+  });
+  await invalidateAiInsightCache(dashboardUserIds);
+  await revalidateWalletPaths(params.walletId, {
+    includeDashboard: true,
+    includeOverview: true,
+    sections: ["budgets"]
+  });
+
+  return {
+    ok: true,
+    message: t("actionSuccess.budgetCreatedViaAi"),
+    budget: {
+      id: data.id,
+      walletId: data.wallet_id,
+      walletName: walletMap.get(data.wallet_id)?.name ?? "Wallet",
+      categoryId: data.category_id,
+      categoryName: resolvedCategory.name,
+      monthStart: data.month_start,
+      amount: data.amount
+    }
+  };
+}
+
+export async function updateBudgetViaAi(
+  userId: string,
+  params: AiBudgetUpdateParams
+): Promise<AiBudgetMutationResult> {
+  const { memberships, walletIds, wallets } = await getAccessibleWallets(userId);
+  const t = await getActionTranslator();
+  assertAccessibleWallet(walletIds, params.walletId);
+
+  const membership = memberships.find((item) => item.wallet_id === params.walletId);
+
+  if (!membership || membership.role === "viewer") {
+    return {
+      ok: false,
+      code: "BUDGET_WRITE_DENIED",
+      message: t("actionErrors.budgetWriteForbidden")
+    };
+  }
+
+  if (!Number.isFinite(params.amount) || params.amount <= 0) {
+    return {
+      ok: false,
+      code: "BUDGET_AMOUNT_INVALID",
+      message: t("actionErrors.budgetAmountInvalid")
+    };
+  }
+
+  const walletMap = buildWalletMap(wallets);
+  const supabase = await createClient();
+
+  const { data: existing } = await supabase
+    .from("budgets")
+    .select("id, wallet_id, category_id, month_start, amount")
+    .eq("id", params.budgetId)
+    .eq("wallet_id", params.walletId)
+    .single();
+
+  if (!existing) {
+    return {
+      ok: false,
+      code: "BUDGET_NOT_FOUND",
+      message: t("actionErrors.budgetNotFound")
+    };
+  }
+
+  const categories = await getCategoriesForWallets(userId, [params.walletId]);
+  const resolvedCategory = categories.find((c) => c.id === existing.category_id) ?? null;
+
+  const { data, error } = await supabase
+    .from("budgets")
+    .update({
+      amount: params.amount,
+      updated_by: userId
+    })
+    .eq("id", params.budgetId)
+    .eq("wallet_id", params.walletId)
+    .select("id, wallet_id, category_id, month_start, amount")
+    .single();
+
+  if (error || !data) {
+    return {
+      ok: false,
+      code: "BUDGET_UPDATE_FAILED",
+      message: t("actionErrors.unexpectedError")
+    };
+  }
+
+  const dashboardUserIds = await getWalletMemberUserIds(supabase, params.walletId);
+  await invalidateWalletReadCaches(params.walletId, {
+    targets: ["overview", "budgets"],
+    dashboardUserIds
+  });
+  await invalidateAiInsightCache(dashboardUserIds);
+  await revalidateWalletPaths(params.walletId, {
+    includeDashboard: true,
+    includeOverview: true,
+    sections: ["budgets"]
+  });
+
+  return {
+    ok: true,
+    message: t("actionSuccess.budgetUpdatedViaAi"),
+    budget: {
+      id: data.id,
+      walletId: data.wallet_id,
+      walletName: walletMap.get(data.wallet_id)?.name ?? "Wallet",
+      categoryId: data.category_id,
+      categoryName: resolvedCategory?.name ?? "Tanpa kategori",
+      monthStart: data.month_start,
+      amount: data.amount
+    }
+  };
+}
+
+export async function deleteBudgetViaAi(
+  userId: string,
+  params: AiBudgetDeleteParams
+): Promise<AiBudgetMutationResult> {
+  const { memberships, walletIds } = await getAccessibleWallets(userId);
+  const t = await getActionTranslator();
+  assertAccessibleWallet(walletIds, params.walletId);
+
+  const membership = memberships.find((item) => item.wallet_id === params.walletId);
+
+  if (!membership || membership.role === "viewer") {
+    return {
+      ok: false,
+      code: "BUDGET_WRITE_DENIED",
+      message: t("actionErrors.budgetWriteForbidden")
+    };
+  }
+
+  const supabase = await createClient();
+
+  const { data: existing } = await supabase
+    .from("budgets")
+    .select("id")
+    .eq("id", params.budgetId)
+    .eq("wallet_id", params.walletId)
+    .single();
+
+  if (!existing) {
+    return {
+      ok: false,
+      code: "BUDGET_NOT_FOUND",
+      message: t("actionErrors.budgetNotFound")
+    };
+  }
+
+  const { error } = await supabase
+    .from("budgets")
+    .delete()
+    .eq("id", params.budgetId)
+    .eq("wallet_id", params.walletId);
+
+  if (error) {
+    return {
+      ok: false,
+      code: "BUDGET_DELETE_FAILED",
+      message: t("actionErrors.unexpectedError")
+    };
+  }
+
+  const dashboardUserIds = await getWalletMemberUserIds(supabase, params.walletId);
+  await invalidateWalletReadCaches(params.walletId, {
+    targets: ["overview", "budgets"],
+    dashboardUserIds
+  });
+  await invalidateAiInsightCache(dashboardUserIds);
+  await revalidateWalletPaths(params.walletId, {
+    includeDashboard: true,
+    includeOverview: true,
+    sections: ["budgets"]
+  });
+
+  return {
+    ok: true,
+    message: t("actionSuccess.budgetDeletedViaAi")
   };
 }

@@ -13,6 +13,18 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.8.5",
+    date: "2026-06-12",
+    title: "AI Chat bisa mengelola anggaran",
+    description: "Sekarang kamu bisa membuat, mengubah, dan menghapus anggaran langsung dari percakapan dengan Asisten AI Balance — cukup bilang \"set budget makan 500rb\" atau \"naikin budget transport jadi 1 juta\".",
+    features: [
+      { icon: "💰", text: "Buat anggaran baru per kategori: cukup sebut nominal, kategori, dan wallet — AI akan membuatkannya dengan createBudget." },
+      { icon: "📈", text: "Ubah anggaran yang sudah ada: minta \"naikin budget transport 1 juta\", AI cek dulu via getBudgetStatus lalu update." },
+      { icon: "🗑️", text: "Hapus anggaran: AI akan konfirmasi dulu sebelum menghapus, jadi tidak ada yang kehapus tanpa sengaja." },
+      { icon: "🧠", text: "AI otomatis pakai bulan berjalan jika kamu tidak menyebut bulan, dan bisa cek kategori via getCategories." }
+    ]
+  },
+  {
     version: "1.8.4",
     date: "2026-06-12",
     title: "Tulisan mobile kini lebih kalem dan stabil",

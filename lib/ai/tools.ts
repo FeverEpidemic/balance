@@ -1,9 +1,10 @@
 import "server-only";
 import type { ChatCompletionMessageToolCall, ChatCompletionTool } from "openai/resources/chat/completions";
-import { createTransactionViaAi, getBudgetStatusForUser, getCategoriesForWallets, getFinancialRecapForUser, getRecentTransactionsForUser } from "@/lib/ai/data";
+import { createTransactionViaAi, getBudgetStatusForUser, getCategoriesForWallets, getFinancialRecapForUser, getRecentTransactionsForUser, resolveWalletIdByName, createBudgetViaAi, updateBudgetViaAi, deleteBudgetViaAi } from "@/lib/ai/data";
 import { checkDailySpendingCap, checkDuplicateTransaction, computeTransactionConfidence, resolveWalletName } from "@/lib/ai/confidence";
 import type { AiCreateTransactionParams } from "@/lib/ai/data";
 import type { RekapPeriod } from "@/lib/chat-auth";
+import { getCurrentMonthKey } from "@/lib/finance";
 
 export const aiTools: ChatCompletionTool[] = [
   {
@@ -168,6 +169,87 @@ export const aiTools: ChatCompletionTool[] = [
         required: ["walletId", "kind", "amount"]
       }
     }
+  },
+  {
+    type: "function",
+    function: {
+      name: "createBudget",
+      description: "Buat anggaran bulanan baru untuk kategori di wallet tertentu.",
+      parameters: {
+        type: "object",
+        properties: {
+          walletId: {
+            type: "string",
+            minLength: 1,
+            description: "Wallet tujuan budget. Wajib diisi, tidak boleh kosong."
+          },
+          categoryId: {
+            type: "string",
+            description: "ID kategori dari getCategories. Wajib diisi."
+          },
+          monthStart: {
+            type: "string",
+            pattern: "^\\d{4}-\\d{2}$",
+            description: "Bulan dimulainya budget dalam format YYYY-MM. Jika user tidak menyebut, gunakan bulan berjalan."
+          },
+          amount: {
+            type: "number",
+            minimum: 1,
+            description: "Nominal budget dalam Rupiah. Harus bilangan positif (> 0)."
+          }
+        },
+        required: ["walletId", "categoryId", "monthStart", "amount"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "updateBudget",
+      description: "Ubah nominal anggaran yang sudah ada.",
+      parameters: {
+        type: "object",
+        properties: {
+          walletId: {
+            type: "string",
+            minLength: 1,
+            description: "Wallet tempat budget berada. Wajib diisi."
+          },
+          budgetId: {
+            type: "string",
+            description: "ID budget dari getBudgetStatus. Wajib diisi."
+          },
+          amount: {
+            type: "number",
+            minimum: 1,
+            description: "Nominal budget baru dalam Rupiah. Harus bilangan positif (> 0)."
+          }
+        },
+        required: ["walletId", "budgetId", "amount"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "deleteBudget",
+      description: "Hapus anggaran yang sudah ada. Konfirmasi dulu ke user sebelum menghapus.",
+      parameters: {
+        type: "object",
+        properties: {
+          walletId: {
+            type: "string",
+            minLength: 1,
+            description: "Wallet tempat budget berada. Wajib diisi."
+          },
+          budgetId: {
+            type: "string",
+            description: "ID budget dari getBudgetStatus. Wajib diisi."
+          }
+        },
+        required: ["walletId", "budgetId"]
+      }
+    }
   }
 ];
 
@@ -285,8 +367,12 @@ export async function executeAiToolCall(
         }
 
         const validKind = kind as "income" | "expense";
+
+        // Resolve wallet name to UUID if the AI passed a name instead of an ID
+        const resolvedWalletId = await resolveWalletIdByName(userId, walletId);
+
         const params: AiCreateTransactionParams = {
-          walletId,
+          walletId: resolvedWalletId,
           kind: validKind,
           amount,
           categoryId: typeof args.categoryId === "string" && args.categoryId.trim() ? args.categoryId.trim() : null,
@@ -298,9 +384,9 @@ export async function executeAiToolCall(
         // Confidence check phase — run in parallel
         const userMessage = context?.userMessage ?? "";
         const [walletName, duplicateCheck, dailyCapCheck] = await Promise.all([
-          resolveWalletName(walletId),
-          checkDuplicateTransaction(userId, walletId, validKind, amount),
-          checkDailySpendingCap(userId, walletId, amount)
+          resolveWalletName(resolvedWalletId),
+          checkDuplicateTransaction(userId, resolvedWalletId, validKind, amount),
+          checkDailySpendingCap(userId, resolvedWalletId, amount)
         ]);
 
         const confidence = computeTransactionConfidence(params, userMessage, walletName);
@@ -381,15 +467,119 @@ export async function executeAiToolCall(
           });
         }
 
+        // Resolve wallet name to UUID if the AI passed a name instead of an ID
+        const resolvedConfWalletId = await resolveWalletIdByName(userId, confWalletId);
+
         return JSON.stringify(
           await createTransactionViaAi(userId, {
-            walletId: confWalletId,
+            walletId: resolvedConfWalletId,
             kind: confKind as "income" | "expense",
             amount: confAmount,
             categoryId: typeof args.categoryId === "string" && args.categoryId.trim() ? args.categoryId.trim() : null,
             categoryName: typeof args.categoryName === "string" && args.categoryName.trim() ? args.categoryName.trim() : null,
             note: typeof args.note === "string" && args.note.trim() ? args.note.trim() : null,
             happenedAt: typeof args.happenedAt === "string" && args.happenedAt.trim() ? args.happenedAt.trim() : null
+          })
+        );
+      }
+      case "createBudget": {
+        const cbWalletId = typeof args.walletId === "string" && args.walletId.trim() ? args.walletId.trim() : "";
+        const cbCategoryId = typeof args.categoryId === "string" && args.categoryId.trim() ? args.categoryId.trim() : "";
+        const cbMonthStart = typeof args.monthStart === "string" && args.monthStart.trim() ? args.monthStart.trim() : getCurrentMonthKey();
+        const cbAmount = Number(args.amount);
+
+        const cbErrors: string[] = [];
+
+        if (!cbWalletId) {
+          cbErrors.push("walletId wajib diisi.");
+        }
+
+        if (!cbCategoryId) {
+          cbErrors.push("categoryId wajib diisi.");
+        }
+
+        if (!Number.isFinite(cbAmount) || cbAmount <= 0) {
+          cbErrors.push("amount harus positif (> 0).");
+        }
+
+        if (cbErrors.length > 0) {
+          return JSON.stringify({
+            error: "VALIDATION_FAILED",
+            message: "Parameter budget tidak valid.",
+            details: cbErrors
+          });
+        }
+
+        return JSON.stringify(
+          await createBudgetViaAi(userId, {
+            walletId: cbWalletId,
+            categoryId: cbCategoryId,
+            monthStart: cbMonthStart,
+            amount: cbAmount
+          })
+        );
+      }
+      case "updateBudget": {
+        const ubWalletId = typeof args.walletId === "string" && args.walletId.trim() ? args.walletId.trim() : "";
+        const ubBudgetId = typeof args.budgetId === "string" && args.budgetId.trim() ? args.budgetId.trim() : "";
+        const ubAmount = Number(args.amount);
+
+        const ubErrors: string[] = [];
+
+        if (!ubWalletId) {
+          ubErrors.push("walletId wajib diisi.");
+        }
+
+        if (!ubBudgetId) {
+          ubErrors.push("budgetId wajib diisi.");
+        }
+
+        if (!Number.isFinite(ubAmount) || ubAmount <= 0) {
+          ubErrors.push("amount harus positif (> 0).");
+        }
+
+        if (ubErrors.length > 0) {
+          return JSON.stringify({
+            error: "VALIDATION_FAILED",
+            message: "Parameter update budget tidak valid.",
+            details: ubErrors
+          });
+        }
+
+        return JSON.stringify(
+          await updateBudgetViaAi(userId, {
+            walletId: ubWalletId,
+            budgetId: ubBudgetId,
+            amount: ubAmount
+          })
+        );
+      }
+      case "deleteBudget": {
+        const dbWalletId = typeof args.walletId === "string" && args.walletId.trim() ? args.walletId.trim() : "";
+        const dbBudgetId = typeof args.budgetId === "string" && args.budgetId.trim() ? args.budgetId.trim() : "";
+
+        const dbErrors: string[] = [];
+
+        if (!dbWalletId) {
+          dbErrors.push("walletId wajib diisi.");
+        }
+
+        if (!dbBudgetId) {
+          dbErrors.push("budgetId wajib diisi.");
+        }
+
+        if (dbErrors.length > 0) {
+          return JSON.stringify({
+            error: "VALIDATION_FAILED",
+            message: "Parameter delete budget tidak valid.",
+            details: dbErrors
+          });
+        }
+
+        return JSON.stringify(
+          await deleteBudgetViaAi(userId, {
+            walletId: dbWalletId,
+            budgetId: dbBudgetId
           })
         );
       }
