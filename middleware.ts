@@ -50,7 +50,7 @@ export async function middleware(request: NextRequest) {
     });
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = localizePath(detectedLocale, "/");
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.redirect(redirectUrl, 301);
   }
 
   if (!pathnameLocale && !pathname.startsWith("/api/") && !pathname.startsWith("/auth/")) {
@@ -61,7 +61,7 @@ export async function middleware(request: NextRequest) {
     });
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = localizePath(detectedLocale, pathname);
-    return NextResponse.redirect(redirectUrl);
+    return NextResponse.redirect(redirectUrl, 301);
   }
 
   let response = NextResponse.next({

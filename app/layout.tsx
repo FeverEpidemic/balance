@@ -55,13 +55,22 @@ export const metadata: Metadata = {
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }]
   },
   openGraph: {
-    title: "Balance",
+    url: "https://mybalance.my.id",
+    title: "Balance | Keuangan yang lebih tenang",
     description:
-      "A calm, modern finance tracker to manage your income, expenses, and financial wellness — in rupiah.",
+      "Aplikasi keuangan rumah tangga yang tenang, ringan, dan mobile responsive.",
     siteName: "Balance",
     locale: "id_ID",
     type: "website",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630 }],
+    images: [
+      {
+        url: "/opengraph-image",
+        width: 1200,
+        height: 630,
+        type: "image/png",
+        alt: "Balance — Keuangan yang lebih tenang"
+      }
+    ],
   },
   twitter: {
     card: "summary_large_image",

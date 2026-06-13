@@ -15,6 +15,8 @@
 
 ### Changed
 
+- **OG metadata diperjelas & redirect locale publik jadi permanen** — Metadata `openGraph` kini memakai URL produksi (`https://mybalance.my.id`), judul/deskripsi Bahasa Indonesia yang lebih sesuai brand, dan detail image lengkap (`type`, `alt`). Redirect canonical publik di middleware (root `/` dan path tanpa locale) sekarang menggunakan status `301` agar crawler memahami hirarki URL permanen. Redirect berbasis auth/sesi tetap `307` (temporary).
+
 - **Kartu transaksi dibuat lebih ringkas dan konsisten** — Daftar transaksi terbaru di dashboard, daftar transaksi di halaman transaksi, dan Riwayat Lengkap kini punya density yang lebih ringan. Ikon kategori diperkecil, metadata diringkas jadi satu baris utama, badge status hanya muncul saat penting, dan area aksi edit/hapus tidak lagi membuat kartu terasa gemuk.
 - **Landing header dipoles agar lebih premium** — Header publik kini memakai panel glass yang lebih rapi dan mengambang, hirarki brand/navigation lebih jelas, CTA login/daftar lebih seimbang, dan drawer mobile lebih terstruktur tanpa mengubah isi menu.
 - **Pricing & Premium repositioning** — Free AI chat quota lowered to 5/day. Premium at Rp29.000/bulan with unlimited AI, 12-month report history, and PDF export. Landing page redesigned with 2-card pricing comparison and hero emphasizing AI chat-to-transaction flow.
