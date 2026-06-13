@@ -17,6 +17,7 @@
     "user": "User",
     "active": "Active",
     "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
     "theme": "Theme",
     "save": "Save",
     "delete": "Delete",
@@ -728,6 +729,8 @@
     "badgeLanguage": "Bahasa Indonesia",
     "badgeWallets": "Personal & shared wallets",
     "badgeFeatures": "Budgets, split bills, savings",
+    "badgeDarkMode": "Dark mode",
+    "badgeAiAssistant": "AI Assistant",
     "card1Label": "Concise",
     "card1Description": "The main view stays focused on what matters, so it does not feel mentally crowded.",
     "card2Label": "Flexible",
@@ -796,7 +799,16 @@
     "ctaTitle": "If you want a calmer relationship with money, start here first.",
     "ctaDescription": "Open an account, create your first wallet, and start recording only what you need. It does not have to be perfect immediately as long as your money becomes clearer day by day.",
     "ctaRegister": "Sign up free",
-    "ctaLogin": "Open the app"
+    "ctaLogin": "Open the app",
+    "faqTitle": "Frequently Asked Questions",
+    "faq1Question": "Is my data safe?",
+    "faq1Answer": "Yes, your data is safe. We use Supabase for authentication and database with Row-Level Security (RLS) access controls. Only you and the wallet members you invite can see your financial data. We do not sell your data to any third parties.",
+    "faq2Question": "Can I use it with my partner?",
+    "faq2Answer": "Yes. You can create a shared wallet and invite your partner, family, or housemates as members. Each member can have a different role — editor to record transactions, or viewer to see only.",
+    "faq3Question": "Is there a cost?",
+    "faq3Answer": "Balance has a Free plan that you can use indefinitely at no cost. There is also a Premium plan at Rp29,000/month (or Rp250,000/year) that unlocks additional features like unlimited AI Chat, 12-month reports, and PDF export. All core features remain free.",
+    "faq4Question": "Can I access it from my phone?",
+    "faq4Answer": "Yes. Balance is designed to be responsive on both desktop and mobile. You can also install Balance as a PWA (Progressive Web App) directly from your phone's browser. Please note that Balance does not currently support full offline mode — an internet connection is still required to access your data."
   },
   "privacy": {
     "title": "Privacy Policy",
@@ -805,31 +817,90 @@
     "sections": {
       "dataWeCollect": {
         "heading": "Data We Collect",
-        "body": "We collect your name and email through Supabase Auth, along with the data you enter into the app such as wallets, transactions, budgets, savings, and your theme and language preferences."
+        "body": "We collect your name and email through Supabase Auth, along with the financial data you enter into the app such as wallets, transactions, budgets, savings, and your theme and language preferences. When using the AI Chat feature, we also collect the questions you submit, relevant wallet context, and conversation history to process answers."
       },
       "howWeUse": {
         "heading": "How We Use Data",
-        "body": "We use your data to authenticate your account, operate app features, display your financial records, support shared wallets when you use them, and save preferences such as theme and language."
+        "body": "We use your data to authenticate your account, operate app features, display your financial records, support shared wallets when you use them, and save preferences such as theme and language. AI chat data is used to generate answers to your questions and is not used to train AI models outside of Balance's context."
       },
       "dataStorage": {
         "heading": "Data Storage",
-        "body": "Your data is stored in Supabase as the cloud service for authentication and the app database. We use app access controls and database policies to limit access to data according to feature needs."
+        "body": "Your data is stored in Supabase as the cloud service for authentication and the app database. We use app access controls and database policies (Row-Level Security) to limit access to data according to feature needs and wallet member roles."
       },
       "thirdParty": {
         "heading": "Third-Party Services",
-        "body": "Balance uses Supabase for magic-link authentication and database storage. We do not currently use third-party analytics or tracking services to monitor your usage behavior."
+        "body": "Balance uses Supabase for authentication, database, and session storage. For the AI Chat feature, we use OpenAI as the language model (LLM) provider — your questions and relevant financial context are sent to OpenAI for processing and are not retained by OpenAI for their own purposes. We do not currently use third-party analytics or tracking services to monitor your usage behavior."
       },
       "cookies": {
         "heading": "Cookies",
         "body": "This app uses Supabase cookies to keep your sign-in session active and the balance-locale cookie to remember your language preference. We do not use third-party analytics or advertising cookies."
       },
+      "aiProcessing": {
+        "heading": "AI Processing",
+        "body": "The AI Assistant feature processes your questions together with relevant financial data to generate answers. Questions and context are sent to OpenAI for processing. AI output can be inaccurate and should be reviewed by you before being used as a basis for financial decisions. Chat history is stored in your account to maintain conversation context and can be deleted at any time through the reset chat history feature."
+      },
+      "sharedWallets": {
+        "heading": "Shared Wallets",
+        "body": "If you create or join a shared wallet, the financial data in that wallet can be seen by other members according to their role (owner, editor, or viewer). Each member is responsible for the data they enter. The wallet owner can manage membership and remove members at any time."
+      },
+      "pwa": {
+        "heading": "PWA Access",
+        "body": "Balance can be installed as a Progressive Web App (PWA) on mobile devices for quick access from the home screen. The PWA stores some local cache data to speed up loading, but Balance does not currently work fully offline — an internet connection is still required to access and save your financial data."
+      },
       "userRights": {
         "heading": "Your Rights",
-        "body": "You can request access to the data stored about your account or ask for your data to be deleted. For sign-in, we only send the magic-link email required for authentication."
+        "body": "You can request access to the data stored about your account, update your profile data at any time through the settings page, or request deletion of your data and account. For sign-in, we only send the magic-link email required for authentication. AI chat data can be deleted through the reset chat history feature available on the AI Assistant page."
       },
       "contact": {
         "heading": "Contact",
-        "body": "If you have questions about this privacy policy or want to request data deletion, please contact us through the support email that will be added to this page."
+        "body": "If you have questions about this privacy policy, want to access your data, or request deletion of your data and account, please contact us through the support email that will be added to this page."
+      }
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: {date}",
+    "intro": "By using Balance, you agree to the following terms of service. Please read them carefully before using this application.",
+    "sections": {
+      "acceptance": {
+        "heading": "Acceptance of Terms",
+        "body": "By creating an account or using Balance, you confirm that you have read, understood, and agree to be bound by these terms of service. If you do not agree with any part of these terms, please do not use Balance."
+      },
+      "eligibility": {
+        "heading": "Eligibility",
+        "body": "You must be at least 17 years old or have parental/guardian consent to use Balance. By registering, you warrant that the information you provide is true and accurate."
+      },
+      "accountResponsibility": {
+        "heading": "Account Responsibility",
+        "body": "You are fully responsible for the security of your account, including keeping your password confidential and not sharing your login credentials with others. Balance is not liable for any loss arising from unauthorized access to your account."
+      },
+      "acceptableUse": {
+        "heading": "Acceptable Use",
+        "body": "Balance is a household financial tracking and management tool. You agree to use this application in compliance with applicable laws and not to misuse it for illegal activities, fraud, or money laundering."
+      },
+      "sharedWalletCollaboration": {
+        "heading": "Shared Wallet Collaboration",
+        "body": "Shared wallets allow multiple members to access and manage the same financial data. You are responsible for the actions of the members you invite. The wallet owner has the right to manage membership and remove members. Balance is not responsible for disputes between wallet members."
+      },
+      "aiAssistantDisclaimer": {
+        "heading": "AI Assistant and Limitations",
+        "body": "Balance's AI Assistant is an artificial intelligence feature designed to help read and analyze your financial data. AI-generated results are for informational purposes only and may contain inaccuracies. Balance is not a provider of financial, accounting, legal, or investment advice. All financial decisions remain solely your responsibility."
+      },
+      "pricingAndPlans": {
+        "heading": "Pricing and Plans",
+        "body": "Balance offers Free and Premium plans. The Free plan can be used at no cost with limited features. The Premium plan is paid and provides access to additional features such as unlimited AI Chat, 12-month reports, and PDF export. Pricing, features, and plan terms are subject to change at any time with prior notice. Premium assignment and payment mechanics are still evolving."
+      },
+      "availability": {
+        "heading": "Availability and Warranty",
+        "body": "Balance is provided on an 'as-is' basis without warranty that the service will be uninterrupted, error-free, or secure from technical disruptions. We make no express or implied warranties regarding the fitness, accuracy, or reliability of the application for any purpose. To the extent permitted by law, Balance is not liable for any direct, indirect, incidental, or consequential damages arising from the use or inability to use this application."
+      },
+      "changes": {
+        "heading": "Changes to Terms",
+        "body": "We may update these terms of service at any time. Changes will be announced through the application or website. By continuing to use Balance after changes take effect, you agree to the updated terms."
+      },
+      "contact": {
+        "heading": "Contact",
+        "body": "If you have questions, suggestions, or complaints regarding these terms of service, please contact us through the support email that will be added to this page."
       }
     }
   },

@@ -35,6 +35,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     { title: t("landing.useCase1Title"), description: t("landing.useCase1Description") },
     { title: t("landing.useCase2Title"), description: t("landing.useCase2Description") }
   ];
+  const faqs = [
+    { question: t("landing.faq1Question"), answer: t("landing.faq1Answer") },
+    { question: t("landing.faq2Question"), answer: t("landing.faq2Answer") },
+    { question: t("landing.faq3Question"), answer: t("landing.faq3Answer") },
+    { question: t("landing.faq4Question"), answer: t("landing.faq4Answer") }
+  ];
 
   return (
     <>
@@ -52,11 +58,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <Button href="/login" variant="ghost">{t("landing.loginButton")}</Button>
           </div>
           <InstallPrompt />
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Badge>{t("landing.badgeLanguage")}</Badge>
-            <Badge>{t("landing.badgeWallets")}</Badge>
-            <Badge>{t("landing.badgeFeatures")}</Badge>
-          </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             <div className="card-muted p-4">
               <p className="font-label text-xs uppercase tracking-[0.14em] text-muted-foreground">{t("landing.card1Label")}</p>
@@ -80,6 +81,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <div className="max-w-2xl">
           <p className="eyebrow">{t("landing.featuresEyebrow")}</p>
           <h2 className="headline-lg mt-3">{t("landing.featuresTitle")}</h2>
+        </div>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Badge>{t("landing.badgeWallets")}</Badge>
+          <Badge>{t("landing.badgeFeatures")}</Badge>
+          <Badge>{t("landing.badgeDarkMode")}</Badge>
+          <Badge>{t("landing.badgeAiAssistant")}</Badge>
         </div>
         <div className="mt-8 grid gap-4 lg:grid-cols-2">
           {featureCards.map((feature) => (
@@ -161,6 +168,20 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </section>
 
       <section className="section-gap">
+        <div className="max-w-2xl">
+          <h2 className="headline-lg">{t("landing.faqTitle")}</h2>
+        </div>
+        <div className="mt-6 space-y-3">
+          {faqs.map((faq) => (
+            <details key={faq.question} className="card group cursor-pointer">
+              <summary className="headline-md list-none px-6 py-4">{faq.question}</summary>
+              <p className="px-6 pb-4 text-sm leading-7 text-muted-foreground">{faq.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section className="section-gap">
         <div className="overflow-hidden rounded-[2rem] bg-primary px-6 py-8 text-white shadow-float md:px-10 md:py-10">
           <div className="max-w-3xl">
             <p className="eyebrow text-white/70">{t("landing.ctaEyebrow")}</p>
@@ -175,12 +196,20 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       </section>
 
       <footer className="mt-8 border-t border-border pt-8 text-center">
-        <Link
-          href={localizePath(locale, "/privacy")}
-          className="text-sm text-muted-foreground transition hover:text-foreground"
-        >
-          {t("common.privacy")}
-        </Link>
+        <div className="flex items-center justify-center gap-6">
+          <Link
+            href={localizePath(locale, "/privacy")}
+            className="text-sm text-muted-foreground transition hover:text-foreground"
+          >
+            {t("common.privacy")}
+          </Link>
+          <Link
+            href={localizePath(locale, "/terms")}
+            className="text-sm text-muted-foreground transition hover:text-foreground"
+          >
+            {t("common.terms")}
+          </Link>
+        </div>
       </footer>
     </main>
     </>

@@ -5,14 +5,14 @@
 ### Added
 
 - **Free Trial 7 Hari** — Setiap akun baru otomatis mendapat akses Premium selama 7 hari. Status trial ditampilkan di Settings. Setelah trial habis, akun kembali ke Free secara otomatis.
+- **Landing FAQ, badge repositioning & legal pages** — Landing page now has a FAQ accordion section before the CTA. Hero badges moved to above the features grid, with two new badges (Dark mode, AI Assistant). Footer links to both Privacy Policy and Terms of Service.
+- **Kebijakan Privasi diperbarui** — Privacy policy expanded with dedicated sections on AI processing (OpenAI), shared wallet data visibility, PWA behavior, and cookies. All existing sections refreshed to reflect current app behavior.
+- **Halaman Ketentuan Layanan** — New public Terms of Service page at /[locale]/terms with 10 sections covering eligibility, acceptable use, AI disclaimer, pricing, and more. Follows the same layout as the privacy page.
+- **Landing hero mockup interaktif** — Hero visual kanan kini berupa mockup jendela browser yang auto-slide melalui 3 tampilan kode: dashboard ringan, daftar transaksi, dan dashboard mode gelap. Transisi halus dengan pause saat hover dan dukungan reduced-motion.
 
 ### Changed
 
 - **Pricing & Premium repositioning** — Free AI chat quota lowered to 5/day. Premium at Rp29.000/bulan with unlimited AI, 12-month report history, and PDF export. Landing page redesigned with 2-card pricing comparison and hero emphasizing AI chat-to-transaction flow.
-
-### Added
-
-- **Landing hero mockup interaktif** — Hero visual kanan kini berupa mockup jendela browser yang auto-slide melalui 3 tampilan kode: dashboard ringan, daftar transaksi, dan dashboard mode gelap. Transisi halus dengan pause saat hover dan dukungan reduced-motion.
 
 ## [1.10.0] - 2026-06-17
 

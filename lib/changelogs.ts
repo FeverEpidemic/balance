@@ -13,6 +13,18 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.13.0",
+    date: "2026-06-24",
+    title: "FAQ Landing, Badge Baru & Halaman Legal",
+    description: "Landing page kini punya FAQ dan tata letak badge yang lebih rapi. Kebijakan Privasi diperbarui dan Ketentuan Layanan ditambahkan sebagai halaman publik baru.",
+    features: [
+      { icon: "❓", text: "FAQ di landing page: pertanyaan umum seputar keamanan data, wallet bersama, biaya, dan akses mobile." },
+      { icon: "🏷️", text: "Badge fitur dipindahkan ke atas grid fitur, dengan badge baru Dark mode dan AI Assistant." },
+      { icon: "📜", text: "Kebijakan Privasi diperbarui mencakup AI chat, shared wallet, PWA, dan pemrosesan OpenAI." },
+      { icon: "⚖️", text: "Halaman Ketentuan Layanan baru tersedia di /terms dan ditautkan dari footer landing." },
+    ]
+  },
+  {
     version: "1.12.0",
     date: "2026-06-20",
     title: "Free Trial 7 Hari",

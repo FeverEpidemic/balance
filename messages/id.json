@@ -17,6 +17,7 @@
     "user": "Pengguna",
     "active": "Aktif",
     "privacy": "Kebijakan Privasi",
+    "terms": "Ketentuan Layanan",
     "theme": "Tema",
     "save": "Simpan",
     "delete": "Hapus",
@@ -728,6 +729,8 @@
     "badgeLanguage": "Bahasa Indonesia",
     "badgeWallets": "Wallet pribadi & bersama",
     "badgeFeatures": "Anggaran, split bill, tabungan",
+    "badgeDarkMode": "Dark mode",
+    "badgeAiAssistant": "AI Assistant",
     "card1Label": "Ringkas",
     "card1Description": "Tampilan utamanya fokus ke hal yang penting, jadi tidak bikin penuh kepala.",
     "card2Label": "Fleksibel",
@@ -796,7 +799,16 @@
     "ctaTitle": "Kalau kamu ingin hubungan yang lebih tenang sama uang, mulai dari sini dulu.",
     "ctaDescription": "Buka akun, bikin wallet pertama, lalu mulai catat seperlunya. Tidak harus langsung sempurna, yang penting kamu bisa lihat uangmu dengan lebih jelas dari hari ke hari.",
     "ctaRegister": "Daftar gratis",
-    "ctaLogin": "Masuk ke aplikasi"
+    "ctaLogin": "Masuk ke aplikasi",
+    "faqTitle": "Pertanyaan Umum",
+    "faq1Question": "Apakah data saya aman?",
+    "faq1Answer": "Ya, data Anda aman. Kami menggunakan Supabase untuk autentikasi dan database dengan kontrol akses berbasis Row-Level Security (RLS). Hanya Anda dan anggota wallet yang Anda undang yang bisa melihat data keuangan Anda. Kami tidak menjual data Anda ke pihak ketiga mana pun.",
+    "faq2Question": "Bisa dipakai bareng pasangan?",
+    "faq2Answer": "Bisa. Anda bisa membuat wallet bersama dan mengundang pasangan, keluarga, atau teman serumah sebagai anggota. Tiap anggota bisa punya peran yang berbeda — editor untuk mencatat transaksi, atau viewer untuk melihat saja.",
+    "faq3Question": "Ada biayanya?",
+    "faq3Answer": "Balance punya paket Free yang bisa dipakai gratis tanpa batas waktu. Ada juga paket Premium sebesar Rp29.000/bulan (atau Rp250.000/tahun) yang membuka fitur tambahan seperti AI Chat tanpa batas, laporan 12 bulan, dan ekspor PDF. Semua fitur dasar tetap gratis.",
+    "faq4Question": "Bisa akses dari HP?",
+    "faq4Answer": "Bisa. Balance dirancang responsive untuk desktop dan mobile. Anda juga bisa memasang Balance sebagai aplikasi PWA (Progressive Web App) langsung dari browser HP Anda. Perlu diingat bahwa Balance saat ini belum mendukung mode offline penuh — koneksi internet tetap diperlukan untuk mengakses data."
   },
   "privacy": {
     "title": "Kebijakan Privasi",
@@ -805,31 +817,90 @@
     "sections": {
       "dataWeCollect": {
         "heading": "Data yang Kami Kumpulkan",
-        "body": "Kami mengumpulkan nama dan email Anda melalui Supabase Auth, serta data yang Anda masukkan ke aplikasi seperti wallet, transaksi, anggaran, tabungan, dan preferensi tema serta bahasa."
+        "body": "Kami mengumpulkan nama dan email Anda melalui Supabase Auth, serta data keuangan yang Anda masukkan ke aplikasi seperti wallet, transaksi, anggaran, tabungan, dan preferensi tema serta bahasa. Saat menggunakan fitur AI Chat, kami juga mengumpulkan pertanyaan yang Anda kirim, konteks wallet yang relevan, dan riwayat percakapan untuk memproses jawaban."
       },
       "howWeUse": {
         "heading": "Cara Kami Menggunakan Data",
-        "body": "Data digunakan untuk mengautentikasi akun Anda, menjalankan fitur aplikasi, menampilkan catatan keuangan Anda, mengelola wallet bersama bila Anda memakainya, serta menyimpan preferensi seperti tema dan bahasa."
+        "body": "Data digunakan untuk mengautentikasi akun Anda, menjalankan fitur aplikasi, menampilkan catatan keuangan Anda, mengelola wallet bersama bila Anda memakainya, serta menyimpan preferensi seperti tema dan bahasa. Data chat AI digunakan untuk menghasilkan jawaban sesuai pertanyaan Anda dan tidak digunakan untuk melatih model AI di luar konteks Balance."
       },
       "dataStorage": {
         "heading": "Penyimpanan Data",
-        "body": "Data Anda disimpan di Supabase sebagai layanan cloud untuk autentikasi dan database aplikasi. Kami menggunakan kontrol akses aplikasi dan kebijakan database untuk membatasi akses ke data sesuai kebutuhan fitur."
+        "body": "Data Anda disimpan di Supabase sebagai layanan cloud untuk autentikasi dan database aplikasi. Kami menggunakan kontrol akses aplikasi dan kebijakan database (Row-Level Security) untuk membatasi akses ke data sesuai kebutuhan fitur dan peran anggota wallet."
       },
       "thirdParty": {
         "heading": "Layanan Pihak Ketiga",
-        "body": "Balance menggunakan Supabase untuk autentikasi magic link dan penyimpanan database. Saat ini kami tidak menggunakan layanan analytics atau tracking pihak ketiga untuk melacak perilaku penggunaan Anda."
+        "body": "Balance menggunakan Supabase untuk autentikasi, database, dan penyimpanan sesi. Untuk fitur AI Chat, kami menggunakan OpenAI sebagai penyedia model bahasa (LLM) — pertanyaan dan konteks keuangan yang relevan dikirim ke OpenAI untuk diproses dan tidak disimpan oleh OpenAI untuk keperluan mereka sendiri. Saat ini kami tidak menggunakan layanan analytics atau tracking pihak ketiga untuk melacak perilaku penggunaan Anda."
       },
       "cookies": {
         "heading": "Cookie",
         "body": "Aplikasi ini menggunakan cookie Supabase untuk menjaga sesi login Anda dan cookie balance-locale untuk mengingat preferensi bahasa. Kami tidak memakai cookie analytics atau iklan pihak ketiga."
       },
+      "aiProcessing": {
+        "heading": "Pemrosesan AI",
+        "body": "Fitur AI Assistant memproses pertanyaan Anda bersama data keuangan yang relevan untuk menghasilkan jawaban. Pertanyaan dan konteks dikirim ke OpenAI untuk diproses. Hasil AI dapat bersifat tidak akurat dan sebaiknya ditinjau oleh Anda sebelum digunakan sebagai dasar keputusan keuangan. Riwayat chat disimpan di akun Anda untuk mempertahankan konteks percakapan dan dapat dihapus kapan saja melalui fitur reset riwayat chat."
+      },
+      "sharedWallets": {
+        "heading": "Wallet Bersama",
+        "body": "Jika Anda membuat atau bergabung ke wallet bersama, data keuangan di wallet tersebut dapat dilihat oleh anggota lain sesuai peran mereka (owner, editor, atau viewer). Setiap anggota bertanggung jawab atas data yang mereka masukkan. Owner wallet dapat mengelola keanggotaan dan menghapus anggota kapan saja."
+      },
+      "pwa": {
+        "heading": "Akses Lewat PWA",
+        "body": "Balance dapat dipasang sebagai Progressive Web App (PWA) di perangkat mobile untuk akses cepat dari layar utama. PWA menyimpan beberapa data cache lokal untuk mempercepat pemuatan, tetapi Balance saat ini tidak berfungsi secara offline penuh — koneksi internet tetap diperlukan untuk mengakses dan menyimpan data keuangan."
+      },
       "userRights": {
         "heading": "Hak Pengguna",
-        "body": "Anda dapat meminta untuk melihat data yang disimpan tentang akun Anda atau meminta penghapusan data. Untuk login, kami hanya mengirim email magic link yang diperlukan untuk autentikasi."
+        "body": "Anda dapat meminta untuk melihat data yang disimpan tentang akun Anda, memperbarui data profil kapan saja melalui halaman pengaturan, atau meminta penghapusan data dan akun Anda. Untuk login, kami hanya mengirim email magic link yang diperlukan untuk autentikasi. Data chat AI dapat dihapus melalui fitur reset riwayat chat yang tersedia di halaman Asisten AI."
       },
       "contact": {
         "heading": "Kontak",
-        "body": "Jika Anda memiliki pertanyaan tentang kebijakan privasi ini atau ingin meminta penghapusan data, silakan hubungi kami melalui email kontak yang akan ditambahkan pada halaman ini."
+        "body": "Jika Anda memiliki pertanyaan tentang kebijakan privasi ini, ingin mengakses data Anda, atau meminta penghapusan data dan akun, silakan hubungi kami melalui email kontak yang akan ditambahkan pada halaman ini."
+      }
+    }
+  },
+  "terms": {
+    "title": "Ketentuan Layanan",
+    "lastUpdated": "Terakhir diperbarui: {date}",
+    "intro": "Dengan menggunakan aplikasi Balance, Anda menyetujui ketentuan layanan berikut. Harap baca dengan saksama sebelum menggunakan aplikasi ini.",
+    "sections": {
+      "acceptance": {
+        "heading": "Penerimaan Ketentuan",
+        "body": "Dengan membuat akun atau menggunakan Balance, Anda menyatakan telah membaca, memahami, dan menyetujui seluruh ketentuan layanan ini. Jika Anda tidak setuju dengan salah satu bagian dari ketentuan ini, harap tidak menggunakan aplikasi Balance."
+      },
+      "eligibility": {
+        "heading": "Kelayakan Pengguna",
+        "body": "Anda harus berusia minimal 17 tahun atau memiliki izin orang tua/wali untuk menggunakan Balance. Dengan mendaftar, Anda menjamin bahwa informasi yang Anda berikan adalah benar dan akurat."
+      },
+      "accountResponsibility": {
+        "heading": "Tanggung Jawab Akun",
+        "body": "Anda bertanggung jawab penuh atas keamanan akun Anda, termasuk menjaga kerahasiaan kata sandi dan tidak membagikan kredensial login kepada pihak lain. Balance tidak bertanggung jawab atas kerugian yang timbul akibat akses tidak sah ke akun Anda."
+      },
+      "acceptableUse": {
+        "heading": "Penggunaan yang Diizinkan",
+        "body": "Balance adalah alat bantu pencatatan dan pengelolaan keuangan rumah tangga. Anda setuju untuk menggunakan aplikasi ini sesuai dengan hukum yang berlaku dan tidak menyalahgunakannya untuk aktivitas ilegal, penipuan, atau pencucian uang."
+      },
+      "sharedWalletCollaboration": {
+        "heading": "Wallet Bersama dan Kolaborasi",
+        "body": "Wallet bersama memungkinkan beberapa anggota mengakses dan mengelola data keuangan yang sama. Anda bertanggung jawab atas tindakan anggota yang Anda undang. Owner wallet berhak mengelola keanggotaan dan menghapus anggota. Balance tidak bertanggung jawab atas perselisihan antar anggota wallet."
+      },
+      "aiAssistantDisclaimer": {
+        "heading": "Asisten AI dan Batasan",
+        "body": "Asisten AI Balance adalah fitur bantuan berbasis kecerdasan buatan yang dirancang untuk membantu membaca dan menganalisis data keuangan Anda. Hasil yang diberikan AI bersifat informatif dan dapat mengandung ketidakakuratan. Balance bukan merupakan penyedia nasihat keuangan, akuntansi, hukum, atau investasi. Keputusan keuangan tetap sepenuhnya berada di tangan Anda."
+      },
+      "pricingAndPlans": {
+        "heading": "Harga dan Paket",
+        "body": "Balance menyediakan paket Free dan Premium. Paket Free dapat digunakan tanpa biaya dengan fitur terbatas. Paket Premium berbayar memberikan akses ke fitur tambahan seperti AI Chat tanpa batas, laporan 12 bulan, dan ekspor PDF. Harga, fitur, dan ketentuan paket dapat berubah sewaktu-waktu dengan pemberitahuan sebelumnya. Mekanisme pembayaran dan penetapan Premium masih dalam tahap pengembangan."
+      },
+      "availability": {
+        "heading": "Ketersediaan dan Jaminan",
+        "body": "Balance disediakan dalam kondisi 'apa adanya' (as-is) tanpa jaminan bahwa layanan akan selalu tersedia, bebas dari kesalahan, atau aman dari gangguan teknis. Kami tidak memberikan jaminan tersurat maupun tersirat terkait kelayakan, keakuratan, atau keandalan aplikasi untuk tujuan tertentu. Dalam batas yang diizinkan oleh hukum, Balance tidak bertanggung jawab atas kerugian langsung, tidak langsung, insidental, atau konsekuensial yang timbul dari penggunaan atau ketidakmampuan menggunakan aplikasi ini."
+      },
+      "changes": {
+        "heading": "Perubahan Ketentuan",
+        "body": "Kami dapat memperbarui ketentuan layanan ini sewaktu-waktu. Perubahan akan diumumkan melalui aplikasi atau situs web. Dengan terus menggunakan Balance setelah perubahan diberlakukan, Anda dianggap menyetujui ketentuan yang telah diperbarui."
+      },
+      "contact": {
+        "heading": "Kontak",
+        "body": "Jika Anda memiliki pertanyaan, saran, atau keluhan terkait ketentuan layanan ini, silakan hubungi kami melalui email kontak yang akan ditambahkan pada halaman ini."
       }
     }
   },

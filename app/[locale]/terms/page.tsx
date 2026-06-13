@@ -3,15 +3,15 @@ import { getLocaleTag, getTranslator, resolveLocale } from "@/lib/i18n";
 
 const lastUpdatedAt = new Date("2026-06-24T00:00:00+07:00");
 const sectionKeys = [
-  "dataWeCollect",
-  "howWeUse",
-  "dataStorage",
-  "thirdParty",
-  "cookies",
-  "aiProcessing",
-  "sharedWallets",
-  "pwa",
-  "userRights",
+  "acceptance",
+  "eligibility",
+  "accountResponsibility",
+  "acceptableUse",
+  "sharedWalletCollaboration",
+  "aiAssistantDisclaimer",
+  "pricingAndPlans",
+  "availability",
+  "changes",
   "contact"
 ] as const;
 
@@ -25,12 +25,12 @@ export async function generateMetadata({
   const t = getTranslator(locale);
 
   return {
-    title: t("privacy.title"),
-    description: t("privacy.intro")
+    title: t("terms.title"),
+    description: t("terms.intro")
   };
 }
 
-export default async function PrivacyPage({
+export default async function TermsPage({
   params
 }: {
   params: Promise<{ locale: string }>;
@@ -48,13 +48,13 @@ export default async function PrivacyPage({
     <main className="page-wrap py-8 md:py-12">
       <section className="glass-panel-strong mx-auto max-w-4xl rounded-[2rem] p-6 shadow-float md:p-10">
         <div className="max-w-3xl">
-          <p className="eyebrow">{t("common.privacy")}</p>
-          <h1 className="headline-lg mt-4">{t("privacy.title")}</h1>
+          <p className="eyebrow">{t("common.terms")}</p>
+          <h1 className="headline-lg mt-4">{t("terms.title")}</h1>
           <p className="mt-3 text-sm text-muted-foreground md:text-base">
-            {t("privacy.lastUpdated", { date: formattedDate })}
+            {t("terms.lastUpdated", { date: formattedDate })}
           </p>
           <p className="mt-6 text-sm leading-7 text-muted-foreground md:text-base">
-            {t("privacy.intro")}
+            {t("terms.intro")}
           </p>
         </div>
 
@@ -62,10 +62,10 @@ export default async function PrivacyPage({
           {sectionKeys.map((sectionKey) => (
             <article key={sectionKey} className="card">
               <h2 className="headline-md">
-                {t(`privacy.sections.${sectionKey}.heading`)}
+                {t(`terms.sections.${sectionKey}.heading`)}
               </h2>
               <p className="mt-3 text-sm leading-7 text-muted-foreground md:text-base">
-                {t(`privacy.sections.${sectionKey}.body`)}
+                {t(`terms.sections.${sectionKey}.body`)}
               </p>
             </article>
           ))}
