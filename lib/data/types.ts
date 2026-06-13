@@ -379,6 +379,8 @@ export type TransactionsPageData = {
   shell: ShellData;
   walletId: string;
   walletName: string;
+  walletCurrency: string;
+  currentAvailableBalance: number;
   currentUserRole: WalletRole;
   selectedMonth: string;
   categories: CategoryRow[];

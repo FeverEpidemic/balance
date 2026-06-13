@@ -11,6 +11,11 @@ export const MANUAL_TRANSACTION_SOURCE: TransactionSource = "manual";
 export const SAVING_ADJUSTMENT_SOURCE: TransactionSource = "saving_adjustment";
 
 export type BalanceAdjustmentDirection = "increase" | "decrease";
+export type BalanceAdjustmentResolution = {
+  amount: number;
+  direction: BalanceAdjustmentDirection;
+  kind: TransactionKind;
+};
 
 export function getBalanceAdjustmentCategoryName(kind: TransactionKind) {
   return BALANCE_ADJUSTMENT_CATEGORY_NAMES[kind];
@@ -22,6 +27,22 @@ export function getBalanceAdjustmentTitle(kind: TransactionKind) {
 
 export function getBalanceAdjustmentKind(direction: BalanceAdjustmentDirection): TransactionKind {
   return direction === "increase" ? "income" : "expense";
+}
+
+export function resolveBalanceAdjustment(recordedBalance: number, actualBalance: number): BalanceAdjustmentResolution | null {
+  const difference = actualBalance - recordedBalance;
+
+  if (difference === 0) {
+    return null;
+  }
+
+  const direction = difference > 0 ? "increase" : "decrease";
+
+  return {
+    amount: Math.abs(difference),
+    direction,
+    kind: getBalanceAdjustmentKind(direction)
+  };
 }
 
 export function isBalanceAdjustmentCategory(category: Pick<CategoryRow, "kind" | "name" | "is_system">) {
@@ -37,7 +58,7 @@ export function isSavingAdjustmentSource(source: TransactionSource) {
 }
 
 export function getBalanceAdjustmentValidationError(input: {
-  amount: number | null;
+  actualBalance: number | null;
   happenedAt: string;
   note: string;
   isValidDate: boolean;
@@ -46,7 +67,7 @@ export function getBalanceAdjustmentValidationError(input: {
     return translate(locale, "actionErrors.balanceAdjustmentDateInvalid");
   }
 
-  if (!input.amount || input.amount <= 0) {
+  if (input.actualBalance === null) {
     return translate(locale, "actionErrors.balanceAdjustmentAmountInvalid");
   }
 

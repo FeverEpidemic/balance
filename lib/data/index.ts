@@ -257,11 +257,12 @@ export const getTransactionsPageData = cache(async (userId: string, walletId: st
       return null;
     }
 
-    const [shell, wallets, categories, transactions] = await Promise.all([
+    const [shell, wallets, categories, transactions, balanceRows] = await Promise.all([
       getShellData(userId),
       queryWallets([walletId]),
       queryCategories([walletId]),
-      queryTransactionsByMonth([walletId], { month: selectedMonth, limit: 8 })
+      queryTransactionsByMonth([walletId], { month: selectedMonth, limit: 8 }),
+      queryWalletBalances([walletId])
     ]);
 
     const wallet = wallets[0];
@@ -270,12 +271,15 @@ export const getTransactionsPageData = cache(async (userId: string, walletId: st
       return null;
     }
 
+    const currentAvailableBalance = balanceRows[0]?.available_balance ?? 0;
+
     return createTransactionsPageData({
       shell,
       wallet,
       memberships,
       categories,
       transactions,
+      currentAvailableBalance,
       selectedMonth,
       locale
     });

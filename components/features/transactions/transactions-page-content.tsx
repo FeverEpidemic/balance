@@ -260,16 +260,24 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
               <p className="mt-2 text-sm text-muted-foreground">{t("transactions.balanceAdjustmentDescription")}</p>
               <ActionForm action={createBalanceAdjustment} className="mt-6 grid min-w-0 gap-4" resetOnSuccess>
                 <input type="hidden" name="wallet_id" value={data.walletId} />
+                <div className="glass-panel rounded-2xl p-4">
+                  <p className="font-label text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                    {t("transactions.balanceAdjustmentRecordedBalanceLabel")}
+                  </p>
+                  <p className="metric mt-3 text-xl text-foreground">
+                    {formatCurrency(data.currentAvailableBalance, locale, data.walletCurrency)}
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">{t("transactions.balanceAdjustmentAutoDirectionHint")}</p>
+                </div>
                 <label className="block">
-                  <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.balanceAdjustmentDirectionLabel")}</span>
-                  <select name="direction" defaultValue="increase">
-                    <option value="increase">{t("transactions.balanceAdjustmentIncrease")}</option>
-                    <option value="decrease">{t("transactions.balanceAdjustmentDecrease")}</option>
-                  </select>
-                </label>
-                <label className="block">
-                  <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.balanceAdjustmentAmountLabel")}</span>
-                  <CurrencyInput name="amount" placeholder="Rp0" required />
+                  <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.balanceAdjustmentActualBalanceLabel")}</span>
+                  <CurrencyInput
+                    allowNegative
+                    name="actual_balance"
+                    placeholder="Rp0"
+                    required
+                    currency={data.walletCurrency}
+                  />
                 </label>
                 <label className="block">
                   <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.balanceAdjustmentReasonLabel")}</span>

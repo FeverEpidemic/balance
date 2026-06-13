@@ -505,6 +505,7 @@ describe("data mappers", () => {
       memberships,
       categories: categories.filter((category) => category.wallet_id === "w1"),
       transactions,
+      currentAvailableBalance: 960000,
       selectedMonth: "2026-05"
     });
 

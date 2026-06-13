@@ -842,10 +842,11 @@ export function createTransactionsPageData(args: {
   memberships: WalletMemberRow[];
   categories: CategoryRow[];
   transactions: TransactionRow[];
+  currentAvailableBalance: number;
   selectedMonth: string;
   locale?: AppLocale;
 }) {
-  const { shell, wallet, memberships, categories, transactions, selectedMonth, locale = defaultLocale } = args;
+  const { shell, wallet, memberships, categories, transactions, currentAvailableBalance, selectedMonth, locale = defaultLocale } = args;
   const formCategories = categories.filter(
     (category) => (category.kind === "expense" || category.kind === "income") && !isBalanceAdjustmentCategory(category)
   );
@@ -856,6 +857,8 @@ export function createTransactionsPageData(args: {
     shell,
     walletId: wallet.id,
     walletName: wallet.name,
+    walletCurrency: wallet.currency,
+    currentAvailableBalance,
     currentUserRole: getCurrentUserRole(memberships, wallet.id),
     selectedMonth,
     categories: formCategories,

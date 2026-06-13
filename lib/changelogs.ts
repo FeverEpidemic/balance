@@ -13,6 +13,17 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.14.10",
+    date: "2026-06-13",
+    title: "Penyesuaian saldo kini otomatis membaca selisih",
+    description: "Form penyesuaian saldo sekarang fokus ke saldo aktual wallet. Balance membandingkannya dengan saldo yang sudah tercatat, lalu otomatis memilih apakah perlu membuat penyesuaian masuk atau keluar.",
+    features: [
+      { icon: "🧮", text: "Field arah penyesuaian dihapus. Cukup isi saldo aktual, lalu Balance menghitung selisihnya otomatis." },
+      { icon: "💰", text: "Form sekarang menampilkan saldo tercatat saat ini supaya kamu tahu angka acuan sebelum sinkronisasi." },
+      { icon: "↕️", text: "Jika saldo aktual lebih besar, Balance membuat penyesuaian masuk. Jika lebih kecil, Balance membuat penyesuaian keluar." }
+    ]
+  },
+  {
     version: "1.14.9",
     date: "2026-06-13",
     title: "Landing page sekarang punya toggle light dan dark",

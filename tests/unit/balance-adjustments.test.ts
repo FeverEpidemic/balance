@@ -3,7 +3,8 @@ import {
   getBalanceAdjustmentCategoryName,
   getBalanceAdjustmentTitle,
   getBalanceAdjustmentValidationError,
-  isBalanceAdjustmentCategory
+  isBalanceAdjustmentCategory,
+  resolveBalanceAdjustment
 } from "../../lib/balance-adjustments";
 
 describe("balance adjustment helpers", () => {
@@ -34,16 +35,16 @@ describe("balance adjustment helpers", () => {
   it("validates note, amount, and date for balance adjustments", () => {
     expect(
       getBalanceAdjustmentValidationError({
-        amount: null,
+        actualBalance: null,
         happenedAt: "2026-05-29",
         note: "Koreksi kas",
         isValidDate: true
       })
-    ).toBe("Nominal penyesuaian saldo harus lebih besar dari nol.");
+    ).toBe("Saldo aktual harus diisi dengan nominal yang valid.");
 
     expect(
       getBalanceAdjustmentValidationError({
-        amount: 10000,
+        actualBalance: 10000,
         happenedAt: "2026-02-31",
         note: "Koreksi kas",
         isValidDate: false
@@ -52,7 +53,7 @@ describe("balance adjustment helpers", () => {
 
     expect(
       getBalanceAdjustmentValidationError({
-        amount: 10000,
+        actualBalance: 10000,
         happenedAt: "2026-05-29",
         note: "   ",
         isValidDate: true
@@ -61,11 +62,27 @@ describe("balance adjustment helpers", () => {
 
     expect(
       getBalanceAdjustmentValidationError({
-        amount: 10000,
+        actualBalance: 10000,
         happenedAt: "2026-05-29",
         note: "Koreksi kas",
         isValidDate: true
       })
     ).toBeNull();
+  });
+
+  it("derives adjustment direction and amount from the actual balance", () => {
+    expect(resolveBalanceAdjustment(100000, 130000)).toEqual({
+      amount: 30000,
+      direction: "increase",
+      kind: "income"
+    });
+
+    expect(resolveBalanceAdjustment(100000, 85000)).toEqual({
+      amount: 15000,
+      direction: "decrease",
+      kind: "expense"
+    });
+
+    expect(resolveBalanceAdjustment(100000, 100000)).toBeNull();
   });
 });

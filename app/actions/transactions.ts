@@ -3,8 +3,8 @@
 import { requireUser } from "@/lib/auth";
 import {
   BALANCE_ADJUSTMENT_SOURCE,
-  getBalanceAdjustmentKind,
-  getBalanceAdjustmentValidationError
+  getBalanceAdjustmentValidationError,
+  resolveBalanceAdjustment
 } from "@/lib/balance-adjustments";
 import { invalidateAiInsightCache, invalidateWalletReadCaches } from "@/lib/data/cache";
 import { consumeTransactionRateLimit } from "@/lib/rate-limit";
@@ -41,8 +41,7 @@ function readTransactionForm(formData: FormData) {
 function readBalanceAdjustmentForm(formData: FormData) {
   return {
     walletId: getStringValue(formData, "wallet_id"),
-    direction: getStringValue(formData, "direction") as "increase" | "decrease",
-    amount: getNumericValue(formData, "amount"),
+    actualBalance: getNumericValue(formData, "actual_balance"),
     note: getTrimmedValue(formData, "note"),
     happenedAt: getStringValue(formData, "happened_at"),
     happenedAtTime: getStringValue(formData, "happened_at_time")
@@ -94,6 +93,38 @@ async function ensureBalanceAdjustmentCategory(
   }
 
   return data as string;
+}
+
+async function getWalletWriteRole(
+  supabase: Awaited<ReturnType<typeof requireUser>>["supabase"],
+  walletId: string,
+  userId: string
+) {
+  const { data, error } = await supabase
+    .from("wallet_members")
+    .select("role")
+    .eq("wallet_id", walletId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return data.role as "owner" | "editor" | "viewer";
+}
+
+async function getWalletAvailableBalance(
+  supabase: Awaited<ReturnType<typeof requireUser>>["supabase"],
+  walletId: string
+) {
+  const { data, error } = await supabase.rpc("get_wallet_balances", { wallet_ids: [walletId] });
+
+  if (error) {
+    return null;
+  }
+
+  return Number(data?.[0]?.available_balance ?? 0);
 }
 
 export async function createTransaction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
@@ -149,12 +180,12 @@ export async function createTransaction(_prevState: ActionResult, formData: Form
 }
 
 export async function createBalanceAdjustment(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
-  const { walletId, direction, amount, note, happenedAt, happenedAtTime } = readBalanceAdjustmentForm(formData);
+  const { walletId, actualBalance, note, happenedAt, happenedAtTime } = readBalanceAdjustmentForm(formData);
   const { supabase, user } = await requireUser();
   const locale = await getActionLocale();
   const t = await getActionTranslator();
   const validationError = getBalanceAdjustmentValidationError({
-    amount,
+    actualBalance,
     happenedAt,
     note,
     isValidDate: isValidDateString(happenedAt)
@@ -170,8 +201,25 @@ export async function createBalanceAdjustment(_prevState: ActionResult, formData
     return errorResult(t("actionErrors.transactionRateLimited"));
   }
 
-  const kind = getBalanceAdjustmentKind(direction);
-  const categoryId = await ensureBalanceAdjustmentCategory(supabase, walletId, kind);
+  const role = await getWalletWriteRole(supabase, walletId, user.id);
+
+  if (role !== "owner" && role !== "editor") {
+    return errorResult(t("actionErrors.transactionWriteForbidden"));
+  }
+
+  const recordedBalance = await getWalletAvailableBalance(supabase, walletId);
+
+  if (recordedBalance === null) {
+    return errorResult(t("actionErrors.unexpectedError"));
+  }
+
+  const adjustment = resolveBalanceAdjustment(recordedBalance, actualBalance as number);
+
+  if (!adjustment) {
+    return errorResult(t("actionErrors.balanceAdjustmentNoChange"));
+  }
+
+  const categoryId = await ensureBalanceAdjustmentCategory(supabase, walletId, adjustment.kind);
 
   if (!categoryId) {
     return errorResult(t("actionErrors.balanceAdjustmentCategoryUnavailable"));
@@ -181,8 +229,8 @@ export async function createBalanceAdjustment(_prevState: ActionResult, formData
   const { error } = await supabase.from("transactions").insert({
     wallet_id: walletId,
     category_id: categoryId,
-    kind,
-    amount,
+    kind: adjustment.kind,
+    amount: adjustment.amount,
     note,
     happened_at: dateStringToISO(combineDateAndTime(happenedAt, happenedAtTime || null, timezone)),
     source: BALANCE_ADJUSTMENT_SOURCE,

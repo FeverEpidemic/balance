@@ -16,6 +16,7 @@
 
 ### Changed
 
+- **Penyesuaian saldo kini otomatis menentukan tambah/kurang** — Form penyesuaian saldo sekarang meminta saldo aktual wallet, lalu Balance menghitung selisih dengan saldo tercatat dan otomatis membuat penyesuaian masuk atau keluar sesuai kebutuhan.
 - **Landing dark mode khusus halaman publik dibuat lebih hangat** — Dark mode di landing page kini memakai forest background yang lebih hangat, ambient gradient sage-amber yang lebih terlihat, kartu dengan kontras lebih jelas, dan mockup hero yang terasa lebih inviting. Dashboard dan halaman internal tetap memakai dark mode fokus yang lama.
 - **OG metadata diperjelas & redirect locale publik jadi permanen** — Metadata `openGraph` kini memakai URL produksi (`https://mybalance.my.id`), judul/deskripsi Bahasa Indonesia yang lebih sesuai brand, dan detail image lengkap (`type`, `alt`). Redirect canonical publik di middleware (root `/` dan path tanpa locale) sekarang menggunakan status `301` agar crawler memahami hirarki URL permanen. Redirect berbasis auth/sesi tetap `307` (temporary).
 
