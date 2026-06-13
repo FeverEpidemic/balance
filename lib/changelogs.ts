@@ -13,6 +13,17 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.14.4",
+    date: "2026-06-13",
+    title: "AI Chat lebih aman saat tool mengembalikan error",
+    description: "Asisten AI kini tidak lagi melanjutkan jawaban bebas ketika tool transaksi atau anggaran mengembalikan error terstruktur. Untuk konfirmasi transaksi, preview tetap muncul seperti biasa.",
+    features: [
+      { icon: "🛡️", text: "Hasil tool sekarang jadi sumber kebenaran akhir untuk alur mutasi, jadi error seperti duplikat atau confidence rendah tidak diteruskan ke stream AI biasa." },
+      { icon: "📋", text: "Kode `NEEDS_CONFIRMATION` tetap menampilkan preview transaksi dan tombol konfirmasi, tanpa mengubah kontrak event yang sudah ada." },
+      { icon: "🌐", text: "Pesan fallback untuk error tool penting kini punya copy yang konsisten di Indonesia dan English." }
+    ]
+  },
+  {
     version: "1.14.3",
     date: "2026-06-13",
     title: "Riwayat transaksi kini lebih cepat dicari dan diurutkan",

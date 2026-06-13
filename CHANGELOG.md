@@ -19,6 +19,7 @@
 
 ### Fixed
 
+- **AI Chat tidak lagi mempercayai jawaban final saat tool gagal** — Setelah tool loop selesai, route kini memeriksa semua payload `role: "tool"` dan menghentikan final streaming biasa bila ada error terstruktur seperti `CONFIDENCE_TOO_LOW`, `DUPLICATE_DETECTED`, `DAILY_SPENDING_CAP_EXCEEDED`, atau `VALIDATION_FAILED`. `NEEDS_CONFIRMATION` tetap memunculkan preview transaksi seperti sebelumnya, sementara error tool non-konfirmasi sekarang dibalas dengan pesan aman deterministic dari server.
 - **Halaman Ketentuan Layanan kini benar-benar publik** — Middleware sekarang mengizinkan `/[locale]/terms` diakses tanpa login, sehingga tautan footer landing tidak lagi terlempar ke halaman masuk.
 
 ## [1.10.0] - 2026-06-17

@@ -15,6 +15,7 @@ import { buildFallbackFinanceAnswer, isLowSignalAiReply } from "@/lib/ai/fallbac
 import { buildAiSystemPrompt } from "@/lib/ai/prompts";
 import { shouldForceTransactionToolCall } from "@/lib/ai/read-intent";
 import { buildDirectRecapMessage } from "@/lib/ai/recap-message";
+import { analyzeConversationToolResults, resolveBlockingToolErrorMessage } from "@/lib/ai/tool-result";
 import { aiTools, executeAiToolCall } from "@/lib/ai/tools";
 import { requireUser } from "@/lib/auth";
 import { type RekapPeriod } from "@/lib/chat-auth";
@@ -346,35 +347,11 @@ export async function POST(request: Request) {
       ), aiDailyLimit);
     }
 
-    // After tool loop: check for NEEDS_CONFIRMATION and emit SSE directly
-    const needsConfirmationResult = (() => {
-      const toolResults = conversationMessages.filter((msg) => msg.role === "tool");
-      for (const toolResult of toolResults) {
-        try {
-          const parsed = JSON.parse(toolResult.content) as Record<string, unknown>;
-          if (parsed.code === "NEEDS_CONFIRMATION") {
-            return parsed as {
-              code: string;
-              confidence: { score: number; tier: string; reasons: string[]; flags: string[] };
-              preview: {
-                walletId: string;
-                kind: string;
-                amount: number;
-                categoryId?: string | null;
-                categoryName?: string | null;
-                note?: string | null;
-                happenedAt?: string | null;
-              };
-            };
-          }
-        } catch {
-          // skip unparseable results
-        }
-      }
-      return null;
-    })();
+    // After tool loop: tool payloads become the source of truth for mutation flows.
+    const toolResultAnalysis = analyzeConversationToolResults(conversationMessages);
 
-    if (needsConfirmationResult) {
+    if (toolResultAnalysis.status === "confirmation_required") {
+      const needsConfirmationResult = toolResultAnalysis.confirmation;
       const confirmSummary = buildRunningSummary(recap, `konfirmasi transaksi: ${formatCurrency(needsConfirmationResult.preview.amount)} (${needsConfirmationResult.preview.kind})`);
       return applyDailyLimitHeaders(applyRateLimitHeaders(
         createSseResponse(
@@ -396,6 +373,15 @@ export async function POST(request: Request) {
             }
           })
         ),
+        aiRateLimit
+      ), aiDailyLimit);
+    }
+
+    if (toolResultAnalysis.status === "blocking_error") {
+      const blockingSummary = buildRunningSummary(recap, action);
+      const blockingMessage = resolveBlockingToolErrorMessage(toolResultAnalysis.blockingError, t);
+      return applyDailyLimitHeaders(applyRateLimitHeaders(
+        createFriendlyFallbackStream(blockingMessage, undefined, blockingSummary),
         aiRateLimit
       ), aiDailyLimit);
     }
@@ -424,6 +410,16 @@ export async function POST(request: Request) {
       }
     }
     // ── End final budget check ─────────────────────────────────────
+
+    const finalToolResultAnalysis = analyzeConversationToolResults(conversationMessages);
+    if (finalToolResultAnalysis.status === "blocking_error") {
+      const guardedSummary = buildRunningSummary(recap, action);
+      const guardedMessage = resolveBlockingToolErrorMessage(finalToolResultAnalysis.blockingError, t);
+      return applyDailyLimitHeaders(applyRateLimitHeaders(
+        createFriendlyFallbackStream(guardedMessage, undefined, guardedSummary),
+        aiRateLimit
+      ), aiDailyLimit);
+    }
 
     // Streaming final reply — with retry wrapper and read timeout
     try {
