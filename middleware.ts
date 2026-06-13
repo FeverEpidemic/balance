@@ -23,6 +23,7 @@ function isPublicPath(pathname: string) {
   return (
     path === "/" ||
     path === "/privacy" ||
+    path === "/terms" ||
     path === "/offline" ||
     path === "/sw.js" ||
     path === "/manifest.webmanifest" ||

@@ -15,6 +15,10 @@
 
 - **Pricing & Premium repositioning** — Free AI chat quota lowered to 5/day. Premium at Rp29.000/bulan with unlimited AI, 12-month report history, and PDF export. Landing page redesigned with 2-card pricing comparison and hero emphasizing AI chat-to-transaction flow.
 
+### Fixed
+
+- **Halaman Ketentuan Layanan kini benar-benar publik** — Middleware sekarang mengizinkan `/[locale]/terms` diakses tanpa login, sehingga tautan footer landing tidak lagi terlempar ke halaman masuk.
+
 ## [1.10.0] - 2026-06-17
 
 ### Added

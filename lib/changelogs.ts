@@ -13,6 +13,17 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.14.1",
+    date: "2026-06-13",
+    title: "Perbaikan akses halaman Ketentuan Layanan",
+    description: "Halaman Terms of Service kini bisa dibuka langsung dari landing page tanpa harus login lebih dulu.",
+    features: [
+      { icon: "⚖️", text: "Route `/terms` sekarang diperlakukan sebagai halaman publik di middleware." },
+      { icon: "🔓", text: "Pengunjung yang menekan tautan Ketentuan Layanan di footer landing tidak lagi diarahkan ke halaman login." },
+      { icon: "🌐", text: "Perilaku ini konsisten untuk locale Indonesia maupun English melalui `/id/terms` dan `/en/terms`." }
+    ]
+  },
+  {
     version: "1.14.0",
     date: "2026-06-13",
     title: "Onboarding dashboard — alur setup 4 langkah",
