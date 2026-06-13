@@ -9,7 +9,8 @@ import {
   shouldStopToolCallsForBudget,
   toOpenAiMessages
 } from "@/lib/ai/chat-budget";
-import { getAiWalletOptions, getCategoryFocusForUser, getFinancialRecapForUser } from "@/lib/ai/data";
+import { getAiWalletOptions, getCategoryFocusForUser, getFinancialRecapForUser, type AiCategoryFocus, type AiWalletOption } from "@/lib/ai/data";
+import { cachedAiRecap, cachedAiWalletOptions } from "@/lib/ai/cache";
 import { buildFallbackFinanceAnswer, isLowSignalAiReply } from "@/lib/ai/fallback-response";
 import { buildAiSystemPrompt } from "@/lib/ai/prompts";
 import { buildDirectRecapMessage } from "@/lib/ai/recap-message";
@@ -73,7 +74,6 @@ function createFriendlyFallbackStream(message: string, init?: ResponseInit, runn
   );
 }
 
-const TOOL_LOOP_MAX_ITERATIONS = 3;
 const STREAM_READ_TIMEOUT_MS = 60_000;
 
 /**
@@ -145,7 +145,11 @@ export async function POST(request: Request) {
     return applyDailyLimitHeaders(applyRateLimitHeaders(createFriendlyFallbackStream(t("chat.unavailable")), aiRateLimit), aiDailyLimit);
   }
 
+  let tStart = 0;
+
   try {
+    tStart = Date.now();
+    console.log(`[AI][timing] stage=auth_limits_ms duration=0 userId=${user.id.slice(0, 8)}...`); // anchor: guard rails before try
     const latestUserMessage = userMessages[userMessages.length - 1]?.content ?? "";
     const tokenBudget = getAiChatTokenBudget();
 
@@ -153,17 +157,42 @@ export async function POST(request: Request) {
       return applyDailyLimitHeaders(applyRateLimitHeaders(createFriendlyFallbackStream(t("chat.validationTooLong"), { status: 400 }), aiRateLimit), aiDailyLimit);
     }
 
-    const [wallets, recap, categoryFocus] = await Promise.all([
-      getAiWalletOptions(user.id),
-      getFinancialRecapForUser(user.id, period, walletId),
-      getCategoryFocusForUser(user.id, period, latestUserMessage, walletId)
-    ]);
+    // ── Preload data with caching ─────────────────────────────────
+    const recap = await cachedAiRecap(user.id, period, walletId, () =>
+      getFinancialRecapForUser(user.id, period, walletId)
+    );
+    const tPreload = Date.now();
+    console.log(`[AI][timing] stage=preload_ms duration=${tPreload - tStart} userId=${user.id.slice(0, 8)}...`);
+
+    // Wallet options: fetch only when walletId is not specified (needs wallet picker)
+    // Cached with 30s TTL so repeated queries are cheap
+    let wallets: AiWalletOption[];
+    if (walletId) {
+      // Single wallet context — still use cache, lightest path after first hit
+      wallets = await cachedAiWalletOptions(user.id, () => getAiWalletOptions(user.id));
+    } else {
+      wallets = await cachedAiWalletOptions(user.id, () => getAiWalletOptions(user.id));
+    }
+
+    // Category focus: lazy — only fetch if prompt mentions a known category from recap
+    let categoryFocus: AiCategoryFocus | null = null;
+    const mentionedCategory = recap.topExpenseCategories.find((c) => {
+      const normalized = c.categoryName.toLocaleLowerCase("id-ID");
+      return latestUserMessage.toLocaleLowerCase("id-ID").includes(normalized);
+    });
+    if (mentionedCategory) {
+      categoryFocus = await getCategoryFocusForUser(user.id, period, latestUserMessage, walletId);
+    }
+
+    const tData = Date.now();
+    console.log(`[AI][timing] stage=data_load_ms duration=${tData - tPreload} userId=${user.id.slice(0, 8)}...`);
 
     if (intent === "recap") {
       const recapSummary = buildRunningSummary(recap, "rekap");
       return applyDailyLimitHeaders(applyRateLimitHeaders(createFriendlyFallbackStream(buildDirectRecapMessage(recap), undefined, recapSummary), aiRateLimit), aiDailyLimit);
     }
 
+    const tPromptStart = Date.now();
     const fullSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus, runningSummary: runningSummary || undefined });
     const compactSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus, compact: true, runningSummary: runningSummary || undefined });
     const initialBudgetedConversation = buildBudgetedConversation({
@@ -181,6 +210,9 @@ export async function POST(request: Request) {
       console.warn(`[AI] conversation still large after compact prompt, trimming low-relevance history (${initialBudgetedConversation.estimatedTokens}/${tokenBudget})`);
     }
 
+    const tBudgetEnd = Date.now();
+    console.log(`[AI][timing] stage=prompt_build_ms duration=${tBudgetEnd - tPromptStart} userId=${user.id.slice(0, 8)}...`);
+
     const client = getAiClient();
 
     if (!client) {
@@ -192,68 +224,104 @@ export async function POST(request: Request) {
     let shouldStreamFinalReply = true;
     let stopToolLoopForBudget = false;
 
+    // ── Mutation detection for fast path + tool-loop limits ──────
+    const MUTATION_KEYWORDS = [
+      "catat", "simpan", "buatkan transaksi", "record", "tambah transaksi",
+      "input transaksi", "masukkan transaksi", "buat budget", "set budget",
+      "atur budget", "anggaran", "ubah budget", "update budget", "hapus budget",
+      "delete budget", "konfirmasi", "confirm", "naikin budget", "turunin budget"
+    ];
+    const mightBeMutation = MUTATION_KEYWORDS.some((kw) =>
+      latestUserMessage.toLocaleLowerCase("id-ID").includes(kw)
+    );
+
+    // Fast path: skip tool loop entirely for read-only simple questions
+    // Only activates when no mutation keywords, no pending confirmation context
+    const hasConfirmationContext = recentMessages.some(
+      (m) => m.role === "assistant" && (m.content.includes("konfirmasi") || m.content.includes("preview") || m.content.includes("NEEDS_CONFIRMATION"))
+    );
+    const isFastPathEligible = !mightBeMutation && !hasConfirmationContext;
+
+    if (isFastPathEligible) {
+      console.log(`[AI][timing] fast_path_active userId=${user.id.slice(0, 8)}...`);
+    }
+
+    const maxIterations = mightBeMutation ? 3 : 1;
+
     // Tool-call loop with retry/fallback on upstream failures
+    // Fast-path: skip entirely for read-only queries
     try {
-      for (let index = 0; index < TOOL_LOOP_MAX_ITERATIONS; index += 1) {
-        const completion = await createAiChatCompletion(client, {
-          model: getAiModel(),
-          temperature: 0.4,
-          messages: toOpenAiMessages(conversationMessages),
-          tools: aiTools,
-          tool_choice: "auto",
-          stream: false
-        });
+      if (isFastPathEligible) {
+        // No tool calls needed — jump directly to streaming final reply
+        finalAssistantContent = "";
+        shouldStreamFinalReply = true;
+      } else {
+        for (let index = 0; index < maxIterations; index += 1) {
+          const completion = await createAiChatCompletion(client, {
+            model: getAiModel(),
+            temperature: 0.4,
+            messages: toOpenAiMessages(conversationMessages),
+            tools: aiTools,
+            tool_choice: "auto",
+            stream: false
+          });
 
-        const choice = (completion as { choices: Array<{ message?: { content?: string | null; tool_calls?: ChatCompletionMessageToolCall[] } | null }> }).choices[0];
-        const assistantMessage = choice?.message;
+          const choice = (completion as { choices: Array<{ message?: { content?: string | null; tool_calls?: ChatCompletionMessageToolCall[] } | null }> }).choices[0];
+          const assistantMessage = choice?.message;
 
-        if (!assistantMessage) {
-          break;
-        }
+          if (!assistantMessage) {
+            break;
+          }
 
-        if (
-          shouldReturnDirectAiReply({
-            assistantContent: assistantMessage.content,
-            hasToolCalls: Boolean(assistantMessage.tool_calls?.length)
-          })
-        ) {
-          finalAssistantContent = assistantMessage.content?.trim() ?? "";
-          shouldStreamFinalReply = false;
+          if (
+            shouldReturnDirectAiReply({
+              assistantContent: assistantMessage.content,
+              hasToolCalls: Boolean(assistantMessage.tool_calls?.length)
+            })
+          ) {
+            finalAssistantContent = assistantMessage.content?.trim() ?? "";
+            shouldStreamFinalReply = false;
+            conversationMessages.push({
+              role: "assistant",
+              content: finalAssistantContent
+            });
+            break;
+          }
+
+          if (!assistantMessage.tool_calls?.length) {
+            finalAssistantContent = assistantMessage.content?.trim() ?? "";
+            break;
+          }
+
           conversationMessages.push({
             role: "assistant",
-            content: finalAssistantContent
-          });
-          break;
-        }
-
-        if (!assistantMessage.tool_calls?.length) {
-          finalAssistantContent = assistantMessage.content?.trim() ?? "";
-          break;
-        }
-
-        conversationMessages.push({
-          role: "assistant",
-          content: assistantMessage.content ?? "",
-          tool_calls: assistantMessage.tool_calls
-        });
-
-        for (const toolCall of assistantMessage.tool_calls) {
-          const result = await executeAiToolCall(user.id, toolCall, { userMessage: latestUserMessage });
-          conversationMessages.push({
-            role: "tool",
-            tool_call_id: toolCall.id,
-            content: result
+            content: assistantMessage.content ?? "",
+            tool_calls: assistantMessage.tool_calls
           });
 
-          if (shouldStopToolCallsForBudget({ messages: conversationMessages, tokenBudget })) {
-            stopToolLoopForBudget = true;
+          for (const toolCall of assistantMessage.tool_calls) {
+            const result = await executeAiToolCall(user.id, toolCall, { userMessage: latestUserMessage });
+            conversationMessages.push({
+              role: "tool",
+              tool_call_id: toolCall.id,
+              content: result
+            });
+
+            if (shouldStopToolCallsForBudget({ messages: conversationMessages, tokenBudget })) {
+              stopToolLoopForBudget = true;
+              break;
+            }
+          }
+
+          if (stopToolLoopForBudget) {
             break;
           }
         }
+      }
 
-        if (stopToolLoopForBudget) {
-          break;
-        }
+      const tToolLoopEnd = Date.now();
+      if (!isFastPathEligible) {
+        console.log(`[AI][timing] stage=tool_loop_ms duration=${tToolLoopEnd - tBudgetEnd} iterations=${maxIterations} userId=${user.id.slice(0, 8)}...`);
       }
     } catch (toolLoopError: unknown) {
       // Upstream failure during tool-call loop → fallback to local answer
@@ -357,12 +425,15 @@ export async function POST(request: Request) {
         messages: toOpenAiMessages(conversationMessages),
         stream: true
       });
+      const tStreamCreate = Date.now();
+      console.log(`[AI][timing] stage=stream_create_ms duration=${tStreamCreate - tBudgetEnd} userId=${user.id.slice(0, 8)}...`);
 
       const response = createSseResponse(
         new ReadableStream({
           async start(controller) {
             const encoder = new TextEncoder();
             let streamTimedOut = false;
+            let firstTokenLogged = false;
             const streamTimeoutId = setTimeout(() => {
               streamTimedOut = true;
               controller.enqueue(
@@ -388,6 +459,10 @@ export async function POST(request: Request) {
 
                 if (content) {
                   controller.enqueue(emitSse(encoder, { type: "token", content }));
+                  if (!firstTokenLogged) {
+                    firstTokenLogged = true;
+                    console.log(`[AI][timing] stage=first_token_ms duration=${Date.now() - tBudgetEnd} userId=${user.id.slice(0, 8)}...`);
+                  }
                 }
               }
 
@@ -399,6 +474,7 @@ export async function POST(request: Request) {
                 }
                 controller.enqueue(emitSse(encoder, { type: "done" }));
                 controller.close();
+                console.log(`[AI][timing] stage=total_ms duration=${Date.now() - tStart} userId=${user.id.slice(0, 8)}...`);
               }
             } catch {
               clearTimeout(streamTimeoutId);
@@ -420,6 +496,7 @@ export async function POST(request: Request) {
 
       return applyDailyLimitHeaders(applyRateLimitHeaders(response, aiRateLimit), aiDailyLimit);
     } catch (streamCreateError: unknown) {
+      console.log(`[AI][timing] stage=total_ms duration=${Date.now() - tStart} userId=${user.id.slice(0, 8)}... error=stream_create_failed`);
       // Streaming creation failed — fallback to local answer
       if (streamCreateError instanceof AiUpstreamRateLimitedError) {
         console.warn("[AI] stream creation upstream rate limited, using local fallback");
@@ -434,6 +511,7 @@ export async function POST(request: Request) {
       ), aiDailyLimit);
     }
   } catch (error: unknown) {
+    console.log(`[AI][timing] stage=total_ms duration=${Date.now() - tStart} userId=${user.id.slice(0, 8)}... error=unexpected`);
     // Unexpected error (e.g. AI_CLIENT_UNAVAILABLE, data layer failure)
     console.warn("[AI] unexpected error in chat route", (error as Error)?.message ?? error);
     return applyDailyLimitHeaders(applyRateLimitHeaders(createFriendlyFallbackStream(t("chat.prepareFailed")), aiRateLimit), aiDailyLimit);

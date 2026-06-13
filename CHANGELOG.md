@@ -2,6 +2,12 @@
 
 ## [Unreleased] - 2026-06-12
 
+### Changed
+
+- **AI Chat lebih responsif — loading data diringankan** — Asisten AI kini memuat data dengan strategi lebih ringan: rekap keuangan otomatis di-cache 30 detik, data wallet hanya dimuat lengkap saat perlu pemilih wallet, dan data kategori hanya diambil jika prompt menyebut nama kategori. Alur chat umum non-mutasi langsung menuju streaming tanpa melalui tool-call loop, sehingga token pertama muncul lebih cepat. Untuk prompt mutasi (catat transaksi, kelola anggaran), tool loop tetap berjalan dengan maksimal 3 iterasi.
+
+- **Logging durasi per tahap di AI Chat** — Setiap request chat kini mencatat durasi terstruktur per tahap (auth+limit, preload data, tool loop, stream create, first token, total request) dengan prefix `[AI][timing]` untuk memudahkan debugging performa di production. Tidak ada data sensitif yang tercatat — userId di-hash (8 karakter pertama).
+
 ### Added
 
 - **Multi-mata uang (multi-currency)** — Wallet kini memiliki mata uang sendiri (default IDR). Pengaturan default currency bisa diubah di halaman Settings dan diterapkan ke wallet baru. Wallet yang sudah ada tetap menggunakan mata uang yang ditetapkan saat pembuatan. Form pembuatan wallet baru dilengkapi pemilih mata uang.

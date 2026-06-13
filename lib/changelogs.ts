@@ -13,6 +13,18 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.8.12",
+    date: "2026-06-13",
+    title: "Asisten AI lebih responsif & ringan",
+    description: "Asisten AI Balance kini lebih cepat dalam merespon — rekap keuangan di-cache, data kategori hanya dimuat saat dibutuhkan, dan chat umum non-mutasi langsung menuju streaming tanpa tool-call loop. Ditambah logging durasi per tahap untuk pemantauan performa.",
+    features: [
+      { icon: "⚡", text: "Chat umum non-mutasi lebih cepat: token pertama muncul lebih cepat karena tool-call loop dilewati untuk pertanyaan read-only." },
+      { icon: "💾", text: "Cache rekap keuangan 30 detik — data tidak perlu diambil ulang dari database untuk setiap pesan." },
+      { icon: "🎯", text: "Data kategori hanya dimuat jika prompt menyebut nama kategori — tidak diborong di awal percakapan." },
+      { icon: "📊", text: "Logging durasi per tahap (auth, preload, tool loop, stream, first token) dengan prefix [AI][timing] untuk debugging performa." },
+    ]
+  },
+  {
     version: "1.8.11",
     date: "2026-06-13",
     title: "Perbaikan dropdown kategori dan ikon duplikat",

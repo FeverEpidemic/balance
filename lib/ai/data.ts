@@ -1,6 +1,7 @@
 import "server-only";
 import { getCurrentMonthKey } from "@/lib/finance";
 import { invalidateAiInsightCache, invalidateWalletReadCaches } from "@/lib/data/cache";
+import { invalidateAiReadCache } from "@/lib/ai/cache";
 import { getPeriodRange, getPreviousPeriodRange, type RekapPeriod } from "@/lib/chat-auth";
 import { queryBudgets, queryCategories, queryCurrentUserWalletIds, queryTransactions, queryWallets } from "@/lib/data/queries";
 import type { BudgetRow, CategoryRow, TransactionKind, TransactionRow, WalletRow } from "@/lib/data/types";
@@ -480,6 +481,7 @@ export async function createTransactionViaAi(userId: string, params: AiCreateTra
     dashboardUserIds
   });
   await invalidateAiInsightCache(dashboardUserIds);
+  await invalidateAiReadCache(userId);
   await revalidateWalletPaths(params.walletId, {
     includeDashboard: true,
     includeOverview: true,
@@ -808,6 +810,7 @@ export async function createBudgetViaAi(
     dashboardUserIds
   });
   await invalidateAiInsightCache(dashboardUserIds);
+  await invalidateAiReadCache(userId);
   await revalidateWalletPaths(params.walletId, {
     includeDashboard: true,
     includeOverview: true,
@@ -901,6 +904,7 @@ export async function updateBudgetViaAi(
     dashboardUserIds
   });
   await invalidateAiInsightCache(dashboardUserIds);
+  await invalidateAiReadCache(userId);
   await revalidateWalletPaths(params.walletId, {
     includeDashboard: true,
     includeOverview: true,
@@ -977,6 +981,7 @@ export async function deleteBudgetViaAi(
     dashboardUserIds
   });
   await invalidateAiInsightCache(dashboardUserIds);
+  await invalidateAiReadCache(userId);
   await revalidateWalletPaths(params.walletId, {
     includeDashboard: true,
     includeOverview: true,
