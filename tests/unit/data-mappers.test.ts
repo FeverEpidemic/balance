@@ -3,12 +3,15 @@ import {
   buildDailyExpenses,
   buildMonthlyReport,
   buildRecurringTransactionListItems,
+  buildTransactionListItems,
   buildWalletSummaries,
+  createTransactionHistoryPageData,
   createRecurringTransactionsPageData,
   createBudgetsPageData,
   createCategoriesPageData,
   createDashboardData,
   createSavingsPageData,
+  filterAndPaginateTransactionHistory,
   createTransactionsPageData
 } from "../../lib/data/mappers";
 import type {
@@ -523,6 +526,75 @@ describe("data mappers", () => {
     });
     expect(pageData.categories.some((category) => category.id === "c8" || category.id === "c9")).toBe(false);
     expect(pageData.currentUserRole).toBe("owner");
+  });
+
+  it("filters, sorts, and paginates transaction history server-side", () => {
+    const historyItems = buildTransactionListItems(
+      transactions.filter((transaction) => transaction.wallet_id === "w1" && transaction.happened_at.startsWith("2026-05")),
+      categories.filter((category) => category.wallet_id === "w1")
+    );
+
+    const byCategory = filterAndPaginateTransactionHistory({
+      transactions: historyItems,
+      searchQuery: "tabungan",
+      sortBy: "category",
+      sortDirection: "asc",
+      page: 1,
+      pageSize: 10
+    });
+
+    expect(byCategory.totalCount).toBe(3);
+    expect(byCategory.transactions.map((transaction) => transaction.id)).toEqual(["t7", "t8", "t6"]);
+
+    const byKind = filterAndPaginateTransactionHistory({
+      transactions: historyItems,
+      sortBy: "kind",
+      sortDirection: "asc",
+      page: 1,
+      pageSize: 3
+    });
+
+    expect(byKind.transactions.map((transaction) => transaction.kind)).toEqual(["income", "income", "income"]);
+    expect(byKind.totalPages).toBe(3);
+    expect(byKind.hasNextPage).toBe(true);
+
+    const secondPage = filterAndPaginateTransactionHistory({
+      transactions: historyItems,
+      sortBy: "amount",
+      sortDirection: "desc",
+      page: 2,
+      pageSize: 2
+    });
+
+    expect(secondPage.currentPage).toBe(2);
+    expect(secondPage.hasPreviousPage).toBe(true);
+    expect(secondPage.transactions.map((transaction) => transaction.amount)).toEqual([300000, 200000]);
+  });
+
+  it("creates transaction history page data with active search and sort state", () => {
+    const pageData = createTransactionHistoryPageData({
+      shell,
+      wallet: wallets[0],
+      memberships,
+      categories: categories.filter((category) => category.wallet_id === "w1"),
+      transactions: transactions.filter((transaction) => transaction.wallet_id === "w1" && transaction.happened_at.startsWith("2026-05")),
+      selectedMonth: "2026-05",
+      searchQuery: "gaji",
+      sortBy: "kind",
+      sortDirection: "asc",
+      page: 1,
+      pageSize: 5
+    });
+
+    expect(pageData.searchQuery).toBe("gaji");
+    expect(pageData.sortBy).toBe("kind");
+    expect(pageData.sortDirection).toBe("asc");
+    expect(pageData.totalCount).toBe(1);
+    expect(pageData.transactions[0]).toMatchObject({
+      id: "t2",
+      categoryName: "Gaji",
+      kind: "income"
+    });
   });
 
   it("creates savings page data with shared contributions that stay historical", () => {

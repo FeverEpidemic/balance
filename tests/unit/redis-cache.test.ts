@@ -7,6 +7,7 @@ import {
   getDashboardCacheKey,
   getRecurringCacheKey,
   getSavingsCacheKey,
+  getTransactionHistoryCacheKey,
   getTransactionsCacheKey,
   getWalletOverviewCacheKey,
   getWalletReadCachePatterns,
@@ -245,6 +246,14 @@ describe("cache key scoping", () => {
     expect(getWalletOverviewCacheKey("u1", "w1", "en")).toBe("wallet:w1:user:u1:overview:en");
     expect(getTransactionsCacheKey("u1", "w1", "2026-05")).toBe("wallet:w1:user:u1:transactions:2026-05");
     expect(getTransactionsCacheKey("u1", "w1", "2026-05", "en")).toBe("wallet:w1:user:u1:transactions:2026-05:en");
+    expect(
+      getTransactionHistoryCacheKey("u1", "w1", "2026-05", "id", {
+        page: 2,
+        search: "gaji bulanan",
+        sortBy: "category",
+        sortDirection: "asc"
+      })
+    ).toBe("wallet:w1:user:u1:transactions-history:2026-05:page:2:q:gaji%20bulanan:sort:category:dir:asc");
     expect(getBudgetsCacheKey("u1", "w1", "2026-05")).toBe("wallet:w1:user:u1:budgets:2026-05");
     expect(getCategoriesCacheKey("u1", "w1")).toBe("wallet:w1:user:u1:categories");
     expect(getCategoriesCacheKey("u1", "w1", "en")).toBe("wallet:w1:user:u1:categories:en");

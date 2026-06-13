@@ -4,6 +4,7 @@
 
 ### Added
 
+- **Search & sort lengkap di Riwayat Transaksi** — Halaman Riwayat Lengkap kini memakai pencarian dan pengurutan berbasis server untuk seluruh transaksi pada bulan aktif. User bisa mencari berdasarkan catatan, kategori, atau jenis transaksi, lalu mengurutkan berdasarkan tanggal, nominal, kategori, dan jenis tanpa membuat halaman stuck saat mengetik.
 - **Onboarding dashboard diperbarui — alur setup 4 langkah** — Checklist onboarding di dashboard kini mengikuti alur produk saat ini: buat wallet, catat transaksi, rapikan kategori/anggaran, dan mulai menabung. CTA mengarah ke halaman yang relevan di wallet utama (mis. `/wallets/{id}/categories`, `/wallets/{id}/budgets`, `/wallets/{id}/savings`).
 - **Free Trial 7 Hari** — Setiap akun baru otomatis mendapat akses Premium selama 7 hari. Status trial ditampilkan di Settings. Setelah trial habis, akun kembali ke Free secara otomatis.
 - **Landing FAQ, badge repositioning & legal pages** — Landing page now has a FAQ accordion section before the CTA. Hero badges moved to above the features grid, with two new badges (Dark mode, AI Assistant). Footer links to both Privacy Policy and Terms of Service.
@@ -13,6 +14,7 @@
 
 ### Changed
 
+- **Landing header dipoles agar lebih premium** — Header publik kini memakai panel glass yang lebih rapi dan mengambang, hirarki brand/navigation lebih jelas, CTA login/daftar lebih seimbang, dan drawer mobile lebih terstruktur tanpa mengubah isi menu.
 - **Pricing & Premium repositioning** — Free AI chat quota lowered to 5/day. Premium at Rp29.000/bulan with unlimited AI, 12-month report history, and PDF export. Landing page redesigned with 2-card pricing comparison and hero emphasizing AI chat-to-transaction flow.
 
 ### Fixed

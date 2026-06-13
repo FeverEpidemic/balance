@@ -4,6 +4,8 @@ export type WalletRole = "owner" | "editor" | "viewer";
 export type WalletKind = "personal" | "shared";
 export type TransactionKind = "income" | "expense";
 export type TransactionSource = "manual" | "saving_adjustment" | "balance_adjustment";
+export type TransactionHistorySortField = "happened_at" | "amount" | "category" | "kind";
+export type SortDirection = "asc" | "desc";
 export type RecurringFrequency = "daily" | "weekly" | "monthly";
 export type RecurringStatus = "active" | "paused" | "ended";
 export type SavingEntryType = "deposit" | "withdraw";
@@ -385,8 +387,15 @@ export type TransactionHistoryPageData = {
   selectedMonth: string;
   categories: CategoryRow[];
   transactions: TransactionListItem[];
-  nextCursor: string | null;
-  prevCursor: string | null;
+  searchQuery: string;
+  sortBy: TransactionHistorySortField;
+  sortDirection: SortDirection;
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  pageSize: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
 };
 
 export type RecurringTransactionListItem = {

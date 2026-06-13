@@ -56,7 +56,13 @@ import {
   queryWalletMembers,
   queryWallets
 } from "@/lib/data/queries";
-import type { SettingsApiKeyItem, SettingsData, WalletBundle } from "@/lib/data/types";
+import type {
+  SettingsApiKeyItem,
+  SettingsData,
+  SortDirection,
+  TransactionHistorySortField,
+  WalletBundle
+} from "@/lib/data/types";
 
 export * from "@/lib/data/mappers";
 export * from "@/lib/data/types";
@@ -108,7 +114,7 @@ export const getDashboardData = cache(async (userId: string, locale: AppLocale =
       queryTransactions(walletIds, 8),
       queryCategories(walletIds),
       queryTransactionSplits(walletIds),
-      queryTransactionsByMonth(walletIds, month),
+      queryTransactionsByMonth(walletIds, { month }),
       queryWalletBalances(walletIds),
       queryHasManualTransaction(walletIds),
       querySavings(walletIds),
@@ -254,7 +260,7 @@ export const getTransactionsPageData = cache(async (userId: string, walletId: st
       getShellData(userId),
       queryWallets([walletId]),
       queryCategories([walletId]),
-      queryTransactionsByMonth([walletId], selectedMonth, 8)
+      queryTransactionsByMonth([walletId], { month: selectedMonth, limit: 8 })
     ]);
 
     const wallet = wallets[0];
@@ -276,9 +282,25 @@ export const getTransactionsPageData = cache(async (userId: string, walletId: st
 });
 
 export const getTransactionHistoryPageData = cache(
-  async (userId: string, walletId: string, selectedMonth: string, locale: AppLocale = defaultLocale, cursor?: string | null) => {
+  async (
+    userId: string,
+    walletId: string,
+    selectedMonth: string,
+    locale: AppLocale = defaultLocale,
+    options?: {
+      searchQuery?: string;
+      sortBy?: TransactionHistorySortField;
+      sortDirection?: SortDirection;
+      page?: number;
+    }
+  ) => {
     return redisCache.getOrSet(
-      getTransactionHistoryCacheKey(userId, walletId, selectedMonth, locale, cursor),
+      getTransactionHistoryCacheKey(userId, walletId, selectedMonth, locale, {
+        page: options?.page,
+        search: options?.searchQuery,
+        sortBy: options?.sortBy,
+        sortDirection: options?.sortDirection
+      }),
       TRANSACTIONS_CACHE_TTL_SECONDS,
       async () => {
         const { memberships, walletIds } = await getMembershipContext(userId);
@@ -287,14 +309,13 @@ export const getTransactionHistoryPageData = cache(
           return null;
         }
 
-        const pageSize = 50;
-        const fetchLimit = pageSize + 1;
-
         const [shell, wallets, categories, transactions] = await Promise.all([
           getShellData(userId),
           queryWallets([walletId]),
           queryCategories([walletId]),
-          queryTransactionsByMonth([walletId], selectedMonth, fetchLimit, cursor ?? undefined)
+          queryTransactionsByMonth([walletId], {
+            month: selectedMonth
+          })
         ]);
 
         const wallet = wallets[0];
@@ -303,21 +324,18 @@ export const getTransactionHistoryPageData = cache(
           return null;
         }
 
-        const hasMore = transactions.length > pageSize;
-        const pageTransactions = hasMore ? transactions.slice(0, pageSize) : transactions;
-        const nextCursor = hasMore ? pageTransactions[pageTransactions.length - 1].happened_at : null;
-        const prevCursor = cursor ?? null;
-
         return createTransactionHistoryPageData({
           shell,
           wallet,
           memberships,
           categories,
-          transactions: pageTransactions,
+          transactions,
           selectedMonth,
           locale,
-          nextCursor,
-          prevCursor
+          searchQuery: options?.searchQuery,
+          sortBy: options?.sortBy,
+          sortDirection: options?.sortDirection,
+          page: options?.page
         });
       }
     );

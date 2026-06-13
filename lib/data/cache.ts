@@ -34,10 +34,19 @@ export function getTransactionHistoryCacheKey(
   walletId: string,
   month: string,
   locale: AppLocale = "id",
-  cursor?: string | null,
+  options?: {
+    page?: number;
+    search?: string;
+    sortBy?: string;
+    sortDirection?: string;
+  },
 ) {
   const base = `wallet:${walletId}:user:${userId}:transactions-history:${month}`;
-  const suffix = cursor ? `:cursor:${cursor}` : ":first";
+  const page = options?.page ?? 1;
+  const search = options?.search?.trim() ? `:q:${encodeURIComponent(options.search.trim())}` : "";
+  const sortBy = options?.sortBy ? `:sort:${options.sortBy}` : "";
+  const sortDirection = options?.sortDirection ? `:dir:${options.sortDirection}` : "";
+  const suffix = `:page:${page}${search}${sortBy}${sortDirection}`;
   return withLocaleSuffix(`${base}${suffix}`, locale);
 }
 

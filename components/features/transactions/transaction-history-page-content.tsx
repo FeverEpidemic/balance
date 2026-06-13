@@ -1,15 +1,12 @@
 "use client";
 
-import { useDeferredValue, useState } from "react";
+import { useState } from "react";
 import {
   type ColumnDef,
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
-  type SortingState,
   useReactTable
 } from "@tanstack/react-table";
-import { useSearchParams } from "next/navigation";
 import { deleteTransaction, updateTransaction } from "@/app/actions/transactions";
 import { AppShell } from "@/components/app-shell";
 import { ExportExcelButton } from "@/components/features/transactions/export-excel-button";
@@ -27,28 +24,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { TransactionHistoryPageData, TransactionListItem } from "@/lib/data";
-import { getLocaleTag, getTranslator } from "@/lib/i18n";
+import { getTranslator } from "@/lib/i18n";
 import { formatCurrency, formatShortDate, formatTimeOfDay, toDateInputValue, toTimeInputValue } from "@/lib/utils";
-
-function matchesTransactionSearch(transaction: TransactionListItem, search: string, localeTag: string, t: ReturnType<typeof getTranslator>) {
-  if (!search) {
-    return true;
-  }
-
-  const haystack = [
-    transaction.title,
-    transaction.note ?? "",
-    transaction.categoryName,
-    transaction.kind === "expense" ? t("transactions.kindExpenseSearch") : t("transactions.kindIncomeSearch"),
-    transaction.isRecurring ? t("transactions.metaAutomatic") : "",
-    transaction.isSavingLinked ? t("transactions.metaSavings") : "",
-    transaction.isBalanceAdjustment ? t("transactions.metaAdjustment") : ""
-  ]
-    .join(" ")
-    .toLocaleLowerCase(localeTag);
-
-  return haystack.includes(search);
-}
 
 function TransactionKindBadge({ kind, t }: { kind: TransactionListItem["kind"]; t: ReturnType<typeof getTranslator> }) {
   return <Badge tone={kind === "expense" ? "danger" : "success"}>{kind === "expense" ? t("transactions.kindExpense") : t("transactions.kindIncome")}</Badge>;
@@ -232,14 +209,26 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
   const locale = useLocale();
   const timezone = useTimezone();
   const t = getTranslator(locale);
-  const localeTag = getLocaleTag(locale);
   const active = `/wallets/${data.walletId}/transactions`;
   const canMutate = data.currentUserRole === "owner" || data.currentUserRole === "editor";
-  const [sorting, setSorting] = useState<SortingState>([{ id: "happenedAt", desc: true }]);
-  const [search, setSearch] = useState("");
-  const baseHref = `/wallets/${data.walletId}/transactions?month=${data.selectedMonth}&view=history`;
-  const deferredSearch = useDeferredValue(search.trim().toLocaleLowerCase(localeTag));
-  const filteredTransactions = data.transactions.filter((transaction) => matchesTransactionSearch(transaction, deferredSearch, localeTag, t));
+  const basePath = `/wallets/${data.walletId}/transactions`;
+  const currentSortOption = `${data.sortBy}:${data.sortDirection}`;
+
+  function buildHistoryHref(page: number) {
+    const params = new URLSearchParams({
+      month: data.selectedMonth,
+      view: "history",
+      sort: data.sortBy,
+      dir: data.sortDirection,
+      page: String(page)
+    });
+
+    if (data.searchQuery.trim()) {
+      params.set("q", data.searchQuery);
+    }
+
+    return `${basePath}?${params.toString()}`;
+  }
 
   const columns: ColumnDef<TransactionListItem>[] = [
     {
@@ -316,27 +305,13 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
   ];
 
   const table = useReactTable({
-    data: filteredTransactions,
+    data: data.transactions,
     columns,
-    state: {
-      sorting
-    },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel()
+    getCoreRowModel: getCoreRowModel()
   });
 
   const rows = table.getRowModel().rows;
-
-  function makeNextHref() {
-    if (!data.nextCursor) return baseHref;
-    return `${baseHref}&cursor=${encodeURIComponent(data.nextCursor)}`;
-  }
-
-  function makePrevHref() {
-    if (!data.prevCursor) return baseHref;
-    return `${baseHref}&cursor=${encodeURIComponent(data.prevCursor)}`;
-  }
+  const hasActiveSearch = data.searchQuery.trim().length > 0;
 
   return (
     <AppShell
@@ -389,10 +364,51 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
           <div className="mt-6 flex min-w-0 flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
             <form method="get" className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
               <input type="hidden" name="view" value="history" />
+              <input type="hidden" name="page" value="1" />
               <label className="block">
                 <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.historyMonthFilter")}</span>
                 <input name="month" type="month" defaultValue={data.selectedMonth} />
               </label>
+              <label className="block lg:min-w-[18rem]">
+                <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.historySearchLabel")}</span>
+                <input name="q" defaultValue={data.searchQuery} placeholder={t("transactions.historySearchPlaceholder")} />
+              </label>
+              <label className="block">
+                <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.historySortLabel")}</span>
+                <select
+                  name="sortOption"
+                  defaultValue={currentSortOption}
+                  onChange={(event) => {
+                    const form = event.currentTarget.form;
+                    if (!form) {
+                      return;
+                    }
+
+                    const [sortBy, sortDirection] = event.currentTarget.value.split(":");
+                    const sortInput = form.elements.namedItem("sort");
+                    const dirInput = form.elements.namedItem("dir");
+
+                    if (sortInput instanceof HTMLInputElement) {
+                      sortInput.value = sortBy;
+                    }
+
+                    if (dirInput instanceof HTMLInputElement) {
+                      dirInput.value = sortDirection;
+                    }
+                  }}
+                >
+                  <option value="happened_at:desc">{t("transactions.historySortDateDesc")}</option>
+                  <option value="happened_at:asc">{t("transactions.historySortDateAsc")}</option>
+                  <option value="amount:desc">{t("transactions.historySortAmountDesc")}</option>
+                  <option value="amount:asc">{t("transactions.historySortAmountAsc")}</option>
+                  <option value="category:asc">{t("transactions.historySortCategoryAsc")}</option>
+                  <option value="category:desc">{t("transactions.historySortCategoryDesc")}</option>
+                  <option value="kind:asc">{t("transactions.historySortKindIncomeFirst")}</option>
+                  <option value="kind:desc">{t("transactions.historySortKindExpenseFirst")}</option>
+                </select>
+              </label>
+              <input type="hidden" name="sort" value={data.sortBy} />
+              <input type="hidden" name="dir" value={data.sortDirection} />
               <Button variant="soft" className="w-full sm:w-auto">
                 {t("common.apply")}
               </Button>
@@ -400,19 +416,19 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
                 {t("common.reset")}
               </Button>
             </form>
-            <label className="block lg:ml-auto lg:min-w-[18rem]">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.historySearchLabel")}</span>
-              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("transactions.historySearchPlaceholder")} />
-            </label>
           </div>
 
           <div className="mt-4 flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-            <p>{t("transactions.historyMatchCount", { count: filteredTransactions.length, month: data.selectedMonth })}</p>
+            <p>{t("transactions.historyMatchCount", { count: data.totalCount, month: data.selectedMonth })}</p>
+            <p>{t("transactions.historyPageCount", { page: data.currentPage, total: data.totalPages })}</p>
           </div>
 
-          {filteredTransactions.length === 0 ? (
+          {data.transactions.length === 0 ? (
             <div className="mt-6">
-              <EmptyState title={t("transactions.historyEmptyTitle")} description={t("transactions.historyEmptyDescription")} />
+              <EmptyState
+                title={hasActiveSearch ? t("transactions.historySearchEmptyTitle") : t("transactions.historyEmptyTitle")}
+                description={hasActiveSearch ? t("transactions.historySearchEmptyDescription", { query: data.searchQuery, month: data.selectedMonth }) : t("transactions.historyEmptyDescription")}
+              />
             </div>
           ) : (
             <>
@@ -423,24 +439,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
                       <TableRow key={headerGroup.id}>
                         {headerGroup.headers.map((header) => (
                           <TableHead key={header.id}>
-                            {header.isPlaceholder ? null : header.column.getCanSort() ? (
-                              <button
-                                type="button"
-                                className="inline-flex items-center gap-2 text-left"
-                                onClick={header.column.getToggleSortingHandler()}
-                              >
-                                <span>{flexRender(header.column.columnDef.header, header.getContext())}</span>
-                                <span className="text-[10px] text-muted-foreground">
-                                  {header.column.getIsSorted() === "asc"
-                                    ? t("transactions.historySortAsc")
-                                    : header.column.getIsSorted() === "desc"
-                                      ? t("transactions.historySortDesc")
-                                      : ""}
-                                </span>
-                              </button>
-                            ) : (
-                              flexRender(header.column.columnDef.header, header.getContext())
-                            )}
+                            {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                           </TableHead>
                         ))}
                       </TableRow>
@@ -475,12 +474,12 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
               </div>
 
               <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-muted-foreground">{t("transactions.historyShowingCount", { count: rows.length })}</p>
+                <p className="text-sm text-muted-foreground">{t("transactions.historyShowingCount", { count: rows.length, total: data.totalCount })}</p>
                 <div className="flex gap-2">
-                  <Button href={makePrevHref()} variant="ghost" size="sm" disabled={!data.prevCursor}>
+                  <Button href={data.hasPreviousPage ? buildHistoryHref(data.currentPage - 1) : undefined} variant="ghost" size="sm" disabled={!data.hasPreviousPage}>
                     {t("transactions.historyPrevious")}
                   </Button>
-                  <Button href={makeNextHref()} variant="soft" size="sm" disabled={!data.nextCursor}>
+                  <Button href={data.hasNextPage ? buildHistoryHref(data.currentPage + 1) : undefined} variant="soft" size="sm" disabled={!data.hasNextPage}>
                     {t("transactions.historyNext")}
                   </Button>
                 </div>

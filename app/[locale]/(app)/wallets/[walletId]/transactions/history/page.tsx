@@ -5,10 +5,17 @@ export default async function TransactionHistoryPage({
   searchParams
 }: {
   params: Promise<{ walletId: string }>;
-  searchParams: Promise<{ month?: string }>;
+  searchParams: Promise<{ month?: string; q?: string; sort?: string; dir?: string; page?: string }>;
 }) {
   const { walletId } = await params;
-  const { month } = await searchParams;
-  const query = month ? `?month=${month}&view=history` : "?view=history";
-  redirect(`/wallets/${walletId}/transactions${query}`);
+  const query = await searchParams;
+  const paramsToForward = new URLSearchParams({ view: "history" });
+
+  if (query.month) paramsToForward.set("month", query.month);
+  if (query.q) paramsToForward.set("q", query.q);
+  if (query.sort) paramsToForward.set("sort", query.sort);
+  if (query.dir) paramsToForward.set("dir", query.dir);
+  if (query.page) paramsToForward.set("page", query.page);
+
+  redirect(`/wallets/${walletId}/transactions?${paramsToForward.toString()}`);
 }

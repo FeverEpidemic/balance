@@ -13,6 +13,29 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.14.3",
+    date: "2026-06-13",
+    title: "Riwayat transaksi kini lebih cepat dicari dan diurutkan",
+    description: "Riwayat Lengkap sekarang memakai search dan sort berbasis server dalam bulan aktif, jadi pencarian terasa lebih stabil dan tidak bikin halaman macet.",
+    features: [
+      { icon: "🔎", text: "Cari transaksi bulan aktif berdasarkan catatan, kategori, atau jenis tanpa filter berat di browser." },
+      { icon: "↕️", text: "Urutan baru di Riwayat Lengkap: tanggal terbaru/terlama, nominal terbesar/terkecil, kategori A-Z/Z-A, serta jenis pemasukan atau pengeluaran dulu." },
+      { icon: "📄", text: "Pagination history sekarang menjaga state bulan, search, dan sort langsung dari URL agar hasil tetap konsisten saat pindah halaman." }
+    ]
+  },
+  {
+    version: "1.14.2",
+    date: "2026-06-13",
+    title: "Landing header lebih premium dan rapi",
+    description: "Header landing kini terasa lebih tenang dan premium tanpa mengubah isi navigasinya. Brand, anchor section, CTA, dan drawer mobile disusun ulang agar lebih jelas dan ringan dipakai.",
+    features: [
+      { icon: "🪟", text: "Header sticky kini memakai panel glass yang lebih mengambang dengan radius, border, dan shadow yang lebih halus." },
+      { icon: "🧭", text: "Navigasi desktop dirapikan ke pill navigation yang lebih konsisten, lengkap dengan state aktif, hover, dan focus yang theme-aware." },
+      { icon: "✨", text: "CTA Login dan Daftar diseimbangkan ulang agar hirarki visual lebih jelas tanpa terasa padat." },
+      { icon: "📱", text: "Drawer mobile kini lebih terstruktur sebagai panel penuh dengan ritme spacing yang lebih rapi dan menu otomatis tertutup setelah anchor dipilih." }
+    ]
+  },
+  {
     version: "1.14.1",
     date: "2026-06-13",
     title: "Perbaikan akses halaman Ketentuan Layanan",

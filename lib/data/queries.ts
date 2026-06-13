@@ -12,10 +12,12 @@ import type {
   SavingRow,
   TemplateRow,
   TransactionRow,
+  TransactionHistorySortField,
   TransactionSplitRow,
   UserApiKeyRow,
   WalletMemberRow,
-  WalletRow
+  WalletRow,
+  SortDirection
 } from "@/lib/data/types";
 
 export async function queryCurrentUserWalletIds(userId: string) {
@@ -108,29 +110,41 @@ export async function queryTransactions(walletIds: string[], limit?: number) {
 
 export async function queryTransactionsByMonth(
   walletIds: string[],
-  month: string,
-  limit?: number,
-  cursor?: string,
+  options: {
+    month: string;
+    limit?: number;
+    search?: string;
+    sortBy?: TransactionHistorySortField;
+    sortDirection?: SortDirection;
+  },
 ) {
   if (walletIds.length === 0) {
     return [];
   }
 
+  const { month, limit, search, sortBy = "happened_at", sortDirection = "desc" } = options;
   const range = getMonthDateRange(month);
   const startAt = `${range.start}T00:00:00.000Z`;
   const endAt = `${range.end}T23:59:59.999Z`;
   const supabase = await createClient();
+  const ascending = sortDirection === "asc";
   let query = supabase
     .from("transactions")
     .select("id, wallet_id, category_id, kind, amount, happened_at, note, split_type, recurring_transaction_id, recurring_scheduled_for, saving_entry_id, source")
     .in("wallet_id", walletIds)
     .gte("happened_at", startAt)
     .lte("happened_at", endAt)
-    .order("happened_at", { ascending: false })
-    .limit(limit ?? 50);
+    .order(sortBy === "amount" || sortBy === "kind" ? sortBy : "happened_at", { ascending })
+    .order("id", { ascending: true });
 
-  if (cursor) {
-    query = query.lt("happened_at", cursor);
+  if (limit) {
+    query = query.limit(limit);
+  }
+
+  const normalizedSearch = search?.trim();
+
+  if (normalizedSearch) {
+    query = query.or(`note.ilike.%${normalizedSearch}%,kind.ilike.%${normalizedSearch}%`);
   }
 
   const { data, error } = await query;

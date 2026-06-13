@@ -31,13 +31,15 @@ import type {
   TransactionRow,
   TransactionSplitRow,
   TransactionHistoryPageData,
+  TransactionHistorySortField,
   TransactionsPageData,
   WalletMemberRow,
   WalletOverviewData,
   WalletRole,
   WalletRoleSummary,
   WalletRow,
-  WalletSummary
+  WalletSummary,
+  SortDirection
 } from "@/lib/data/types";
 
 function isSameMonth(dateValue: string, month: string) {
@@ -438,6 +440,124 @@ export function buildTransactionListItems(
   }));
 }
 
+function matchesHistorySearch(
+  transaction: ReturnType<typeof buildTransactionListItems>[number],
+  search: string,
+  localeTag: string,
+  locale: AppLocale
+) {
+  if (!search) {
+    return true;
+  }
+
+  const haystack = [
+    transaction.title,
+    transaction.note ?? "",
+    transaction.categoryName,
+    transaction.kind,
+    transaction.kind === "expense" ? translate(locale, "transactions.kindExpense") : translate(locale, "transactions.kindIncome"),
+    transaction.splitLabel,
+    transaction.isRecurring ? translate(locale, "transactions.metaAutomatic") : "",
+    transaction.isSavingLinked ? translate(locale, "transactions.metaSavings") : "",
+    transaction.isBalanceAdjustment ? translate(locale, "transactions.metaAdjustment") : ""
+  ]
+    .join(" ")
+    .toLocaleLowerCase(localeTag);
+
+  return haystack.includes(search);
+}
+
+function compareHistoryKind(left: ReturnType<typeof buildTransactionListItems>[number], right: ReturnType<typeof buildTransactionListItems>[number], direction: SortDirection, localeTag: string) {
+  const rank = direction === "asc"
+    ? { income: 0, expense: 1 }
+    : { expense: 0, income: 1 };
+  const leftRank = rank[left.kind];
+  const rightRank = rank[right.kind];
+
+  if (leftRank !== rightRank) {
+    return leftRank - rightRank;
+  }
+
+  return left.title.localeCompare(right.title, localeTag);
+}
+
+export function filterAndPaginateTransactionHistory(args: {
+  transactions: ReturnType<typeof buildTransactionListItems>;
+  searchQuery?: string;
+  sortBy?: TransactionHistorySortField;
+  sortDirection?: SortDirection;
+  page?: number;
+  pageSize?: number;
+  locale?: AppLocale;
+}) {
+  const {
+    transactions,
+    searchQuery = "",
+    sortBy = "happened_at",
+    sortDirection = "desc",
+    page = 1,
+    pageSize = 50,
+    locale = defaultLocale
+  } = args;
+  const localeTag = getLocaleTag(locale);
+  const normalizedSearch = searchQuery.trim().toLocaleLowerCase(localeTag);
+
+  const filteredTransactions = transactions.filter((transaction) => matchesHistorySearch(transaction, normalizedSearch, localeTag, locale));
+  const sortedTransactions = [...filteredTransactions].sort((left, right) => {
+    switch (sortBy) {
+      case "amount": {
+        const diff = sortDirection === "asc" ? left.amount - right.amount : right.amount - left.amount;
+        if (diff !== 0) {
+          return diff;
+        }
+        break;
+      }
+      case "category": {
+        const diff = left.categoryName.localeCompare(right.categoryName, localeTag, { sensitivity: "base" });
+        if (diff !== 0) {
+          return sortDirection === "asc" ? diff : -diff;
+        }
+        break;
+      }
+      case "kind": {
+        const diff = compareHistoryKind(left, right, sortDirection, localeTag);
+        if (diff !== 0) {
+          return diff;
+        }
+        break;
+      }
+      case "happened_at":
+      default: {
+        const diff = sortDirection === "asc"
+          ? left.happenedAt.localeCompare(right.happenedAt)
+          : right.happenedAt.localeCompare(left.happenedAt);
+        if (diff !== 0) {
+          return diff;
+        }
+        break;
+      }
+    }
+
+    return right.happenedAt.localeCompare(left.happenedAt) || left.id.localeCompare(right.id);
+  });
+
+  const totalCount = sortedTransactions.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+  const currentPage = Math.min(Math.max(1, page), totalPages);
+  const start = (currentPage - 1) * pageSize;
+  const paginatedTransactions = sortedTransactions.slice(start, start + pageSize);
+
+  return {
+    transactions: paginatedTransactions,
+    totalCount,
+    totalPages,
+    currentPage,
+    pageSize,
+    hasPreviousPage: currentPage > 1,
+    hasNextPage: currentPage < totalPages
+  };
+}
+
 export function buildRecurringTransactionListItems(
   recurringTransactions: RecurringTransactionRow[],
   categories: CategoryRow[],
@@ -751,13 +871,38 @@ export function createTransactionHistoryPageData(args: {
   transactions: TransactionRow[];
   selectedMonth: string;
   locale?: AppLocale;
-  nextCursor?: string | null;
-  prevCursor?: string | null;
+  searchQuery?: string;
+  sortBy?: TransactionHistorySortField;
+  sortDirection?: SortDirection;
+  page?: number;
+  pageSize?: number;
 }) {
-  const { shell, wallet, memberships, categories, transactions, selectedMonth, locale = defaultLocale, nextCursor = null, prevCursor = null } = args;
+  const {
+    shell,
+    wallet,
+    memberships,
+    categories,
+    transactions,
+    selectedMonth,
+    locale = defaultLocale,
+    searchQuery = "",
+    sortBy = "happened_at",
+    sortDirection = "desc",
+    page = 1,
+    pageSize = 50
+  } = args;
   const formCategories = categories.filter(
     (category) => (category.kind === "expense" || category.kind === "income") && !isBalanceAdjustmentCategory(category)
   );
+  const historyTransactions = filterAndPaginateTransactionHistory({
+    transactions: buildTransactionListItems(transactions, categories, locale),
+    searchQuery,
+    sortBy,
+    sortDirection,
+    page,
+    pageSize,
+    locale
+  });
 
   return {
     shell,
@@ -766,9 +911,16 @@ export function createTransactionHistoryPageData(args: {
     currentUserRole: getCurrentUserRole(memberships, wallet.id),
     selectedMonth,
     categories: formCategories,
-    transactions: buildTransactionListItems(transactions, categories, locale),
-    nextCursor,
-    prevCursor
+    transactions: historyTransactions.transactions,
+    searchQuery,
+    sortBy,
+    sortDirection,
+    currentPage: historyTransactions.currentPage,
+    totalPages: historyTransactions.totalPages,
+    totalCount: historyTransactions.totalCount,
+    pageSize: historyTransactions.pageSize,
+    hasPreviousPage: historyTransactions.hasPreviousPage,
+    hasNextPage: historyTransactions.hasNextPage
   } satisfies TransactionHistoryPageData;
 }
 
