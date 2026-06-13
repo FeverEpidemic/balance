@@ -436,6 +436,51 @@ textarea {
     box-shadow: var(--shadow-serene);
   }
 
+  .landing-header-shell {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .landing-header-shell::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0)),
+      radial-gradient(circle at top left, rgba(224, 231, 187, 0.22), transparent 38%);
+    opacity: 0.95;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .landing-header-link {
+    @apply inline-flex items-center rounded-full px-4 py-2.5 font-label text-[11px] font-semibold uppercase tracking-[0.14em] transition;
+    color: var(--muted-foreground);
+  }
+
+  .landing-header-link:hover {
+    background: color-mix(in srgb, var(--primary-soft) 74%, transparent);
+    color: var(--foreground);
+  }
+
+  .landing-header-link:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(89, 95, 61, 0.16);
+  }
+
+  .landing-header-link-active {
+    background: color-mix(in srgb, var(--primary-soft) 86%, var(--surface-container-lowest));
+    color: var(--primary-strong);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      0 10px 24px -18px rgba(45, 54, 39, 0.46);
+  }
+
+  .landing-mobile-menu {
+    max-height: calc(100dvh - 7rem);
+  }
+
   .auth-brand-panel-bg {
     background:
       radial-gradient(circle at top left, rgba(232, 223, 184, 0.58), transparent 40%),
@@ -510,6 +555,28 @@ textarea {
   :root[data-theme="dark"] .auth-brand-rhythm-item {
     border-color: rgba(195, 202, 161, 0.1);
     background: rgba(28, 35, 27, 0.88);
+  }
+
+  :root[data-theme="dark"] .landing-header-shell::before {
+    background:
+      linear-gradient(180deg, rgba(237, 244, 207, 0.05), rgba(237, 244, 207, 0)),
+      radial-gradient(circle at top left, rgba(195, 202, 161, 0.14), transparent 40%);
+  }
+
+  :root[data-theme="dark"] .landing-header-link:hover {
+    background: color-mix(in srgb, var(--primary-soft) 86%, transparent);
+  }
+
+  :root[data-theme="dark"] .landing-header-link:focus-visible {
+    box-shadow: 0 0 0 4px rgba(195, 202, 161, 0.18);
+  }
+
+  :root[data-theme="dark"] .landing-header-link-active {
+    background: color-mix(in srgb, var(--primary-soft) 90%, rgba(32, 39, 31, 0.96));
+    color: var(--primary-strong);
+    box-shadow:
+      inset 0 1px 0 rgba(237, 244, 207, 0.05),
+      0 14px 28px -22px rgba(0, 0, 0, 0.6);
   }
 
   .theme-danger-pill {

@@ -45,7 +45,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <>
       <LandingHeader />
-      <main className="page-wrap pb-12 pt-2 md:pb-16 md:pt-4">
+      <main className="page-wrap pb-12 pt-3 md:pb-16 md:pt-5">
       <section className="grid gap-10 py-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center lg:py-14">
         <div>
           <p className="eyebrow">{t("landing.eyebrow")}</p>
