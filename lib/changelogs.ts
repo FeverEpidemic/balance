@@ -13,6 +13,18 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.14.7",
+    date: "2026-06-13",
+    title: "Kartu transaksi kini lebih ringkas",
+    description: "Daftar transaksi di Balance kini terasa lebih ringan dipindai. Kartu transaksi terbaru dan riwayat transaksi dirapikan supaya informasi inti tetap jelas tanpa tinggi kartu yang berlebihan.",
+    features: [
+      { icon: "🧾", text: "Kartu transaksi terbaru di dashboard dan halaman Transaksi kini memakai susunan yang lebih padat: judul, nominal, tanggal, dan satu baris meta utama." },
+      { icon: "🏷️", text: "Badge status dipangkas agar hanya muncul saat memang penting, seperti transaksi otomatis, tabungan, atau penyesuaian saldo." },
+      { icon: "📋", text: "Riwayat Lengkap di desktop tetap tabel, tapi row deskripsi dan aksi kini lebih hemat ruang dan tidak mengulang informasi berlebihan." },
+      { icon: "📱", text: "Kartu history di mobile ikut disederhanakan supaya edit/hapus tetap mudah dijangkau tanpa membuat kartu terlalu tinggi." }
+    ]
+  },
+  {
     version: "1.14.6",
     date: "2026-06-25",
     title: "AI Chat kini butuh persetujuan eksplisit",

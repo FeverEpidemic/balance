@@ -26,46 +26,57 @@ type TransactionItemProps = {
   t: ReturnType<typeof getTranslator>;
 };
 
+function buildTransactionMetaLine(transaction: TransactionsPageData["transactions"][number]) {
+  return [transaction.categoryName, transaction.splitLabel && transaction.splitLabel !== "-" ? transaction.splitLabel : null].filter(Boolean).join(" / ");
+}
+
 function TransactionItem({ canMutate, categories, transaction, walletId, t }: TransactionItemProps) {
   const locale = useLocale();
   const timezone = useTimezone();
   const canEditTransaction = canMutate && !transaction.isSavingLinked;
-  const meta = [transaction.categoryName, transaction.splitLabel].filter(Boolean).join(" / ");
+  const meta = buildTransactionMetaLine(transaction);
+  const hasStateBadges = transaction.isRecurring || transaction.isSavingLinked || transaction.isBalanceAdjustment;
 
   return (
     <div className="list-card">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex items-start gap-3">
             <span
-              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border bg-card"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border bg-card"
               style={{ borderColor: `${transaction.categoryColor}33`, color: transaction.categoryColor }}
             >
-              <CategoryIcon categoryName={transaction.categoryName} kind={transaction.kind} className="h-5 w-5" />
+              <CategoryIcon categoryName={transaction.categoryName} kind={transaction.kind} className="h-4 w-4" />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="truncate font-medium text-foreground">{transaction.title}</p>
-                {canEditTransaction ? <Badge>{t("common.editable")}</Badge> : null}
-                {transaction.isRecurring ? <Badge>{t("transactions.metaAutomatic")}</Badge> : null}
-                {transaction.isSavingLinked ? <Badge>{t("transactions.metaSavings")}</Badge> : null}
-                {transaction.isBalanceAdjustment ? <Badge>{t("transactions.metaAdjustment")}</Badge> : null}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <p className="truncate text-sm font-medium text-foreground">{transaction.title}</p>
+                <Badge className="px-2.5 py-0.5 text-[10px] tracking-[0.1em]" tone={transaction.kind === "expense" ? "danger" : "success"}>
+                  {transaction.kind === "expense" ? t("transactions.kindExpense") : t("transactions.kindIncome")}
+                </Badge>
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">{meta}</p>
-              {transaction.isSavingLinked ? <p className="mt-2 text-sm text-muted-foreground">{t("transactions.savingLinkedNotice")}</p> : null}
+              <p className="mt-1 text-xs text-muted-foreground">{meta}</p>
+              {hasStateBadges ? (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {transaction.isRecurring ? <Badge className="px-2.5 py-0.5 text-[10px] tracking-[0.1em]">{t("transactions.metaAutomatic")}</Badge> : null}
+                  {transaction.isSavingLinked ? <Badge className="px-2.5 py-0.5 text-[10px] tracking-[0.1em]">{t("transactions.metaSavings")}</Badge> : null}
+                  {transaction.isBalanceAdjustment ? <Badge className="px-2.5 py-0.5 text-[10px] tracking-[0.1em]">{t("transactions.metaAdjustment")}</Badge> : null}
+                </div>
+              ) : null}
+              {transaction.isSavingLinked ? <p className="mt-2 text-xs text-muted-foreground">{t("transactions.savingLinkedNotice")}</p> : null}
             </div>
           </div>
         </div>
 
-        <div className="flex items-start justify-between gap-4 lg:block lg:text-right">
+        <div className="flex items-start justify-between gap-3 lg:block lg:text-right">
           <div>
-            <p className={`metric text-lg ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
+            <p className={`metric text-base lg:text-lg ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
               {formatCurrency(transaction.kind === "expense" ? -transaction.amount : transaction.amount)}
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">{formatShortDate(transaction.happenedAt, locale, timezone)} • {formatTimeOfDay(transaction.happenedAt, locale, timezone) || "00:00"}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{formatShortDate(transaction.happenedAt, locale, timezone)} • {formatTimeOfDay(transaction.happenedAt, locale, timezone) || "00:00"}</p>
           </div>
           {canEditTransaction ? (
-            <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em] text-primary-strong lg:hidden">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-2.5 py-1 font-label text-[10px] font-semibold uppercase tracking-[0.1em] text-primary-strong lg:hidden">
               <AppIcon name="edit" className="h-3.5 w-3.5" tone="primary" />
               <span>{t("transactions.editButton")}</span>
             </span>
@@ -74,7 +85,7 @@ function TransactionItem({ canMutate, categories, transaction, walletId, t }: Tr
       </div>
 
       {canEditTransaction ? (
-        <ActionForm action={updateTransaction} onSuccess={() => undefined} className="mt-4">
+        <ActionForm action={updateTransaction} onSuccess={() => undefined} className="mt-3">
           {({ state }) => (
             <InlineEditPanel
               buttonLabel={t("transactions.editButton")}
@@ -139,7 +150,12 @@ function TransactionItem({ canMutate, categories, transaction, walletId, t }: Tr
         <ActionForm action={deleteTransaction} className="mt-2 w-full sm:w-auto">
           <input type="hidden" name="wallet_id" value={walletId} />
           <input type="hidden" name="transaction_id" value={transaction.id} />
-          <ConfirmSubmitButton className="w-full sm:w-auto" confirmMessage={t("transactions.deleteConfirm")} pendingText={t("transactions.deletePending")} variant="ghost">
+          <ConfirmSubmitButton
+            className="min-h-[2.5rem] w-full rounded-lg px-3 text-xs sm:w-auto"
+            confirmMessage={t("transactions.deleteConfirm")}
+            pendingText={t("transactions.deletePending")}
+            variant="ghost"
+          >
             {t("transactions.deleteButton")}
           </ConfirmSubmitButton>
         </ActionForm>

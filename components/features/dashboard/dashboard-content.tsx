@@ -306,22 +306,29 @@ export function DashboardContent({
                 <div key={transaction.id} className="list-card">
                   <div className="flex items-start gap-3">
                     <span
-                      className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border bg-card"
+                      className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border bg-card"
                       style={{ borderColor: `${transaction.categoryColor}33`, color: transaction.categoryColor }}
                     >
-                      <CategoryIcon categoryName={transaction.category} kind={transaction.kind} className="h-5 w-5" />
+                      <CategoryIcon categoryName={transaction.category} kind={transaction.kind} className="h-4 w-4" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                         <div className="min-w-0">
-                          <p className="truncate font-medium">{transaction.title}</p>
-                          <p className="mt-1 text-sm text-muted-foreground">{transaction.walletName} / {transaction.category} / {transaction.splitLabel}</p>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <p className="truncate text-sm font-medium">{transaction.title}</p>
+                            <Badge className="px-2.5 py-0.5 text-[10px] tracking-[0.1em]" tone={transaction.kind === "expense" ? "danger" : "success"}>
+                              {transaction.kind === "expense" ? t("transactions.kindExpense") : t("transactions.kindIncome")}
+                            </Badge>
+                          </div>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {[transaction.walletName, transaction.category, transaction.splitLabel !== "-" ? transaction.splitLabel : null].filter(Boolean).join(" / ")}
+                          </p>
                         </div>
                         <div className="text-left md:text-right">
-                          <p className={`metric text-lg ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
+                          <p className={`metric text-base md:text-lg ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
                             {formatCurrency(transaction.kind === "expense" ? -transaction.amount : transaction.amount, "id", transaction.walletCurrency)}
                           </p>
-                          <p className="mt-1 text-sm text-muted-foreground">{formatShortDate(transaction.date, locale, timezone)}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">{formatShortDate(transaction.date, locale, timezone)}</p>
                         </div>
                       </div>
                     </div>

@@ -27,16 +27,29 @@ import type { TransactionHistoryPageData, TransactionListItem } from "@/lib/data
 import { getTranslator } from "@/lib/i18n";
 import { formatCurrency, formatShortDate, formatTimeOfDay, toDateInputValue, toTimeInputValue } from "@/lib/utils";
 
+function buildTransactionMetaLine(transaction: TransactionListItem) {
+  return [
+    transaction.categoryName,
+    transaction.splitLabel && transaction.splitLabel !== "-" ? transaction.splitLabel : null
+  ]
+    .filter(Boolean)
+    .join(" / ");
+}
+
 function TransactionKindBadge({ kind, t }: { kind: TransactionListItem["kind"]; t: ReturnType<typeof getTranslator> }) {
-  return <Badge tone={kind === "expense" ? "danger" : "success"}>{kind === "expense" ? t("transactions.kindExpense") : t("transactions.kindIncome")}</Badge>;
+  return (
+    <Badge className="px-2.5 py-0.5 text-[10px] tracking-[0.1em]" tone={kind === "expense" ? "danger" : "success"}>
+      {kind === "expense" ? t("transactions.kindExpense") : t("transactions.kindIncome")}
+    </Badge>
+  );
 }
 
 function TransactionMetaBadges({ transaction, t }: { transaction: TransactionListItem; t: ReturnType<typeof getTranslator> }) {
   return (
-    <div className="mt-2 flex flex-wrap gap-2">
-      {transaction.isRecurring ? <Badge>{t("transactions.metaAutomatic")}</Badge> : null}
-      {transaction.isSavingLinked ? <Badge>{t("transactions.metaSavings")}</Badge> : null}
-      {transaction.isBalanceAdjustment ? <Badge>{t("transactions.metaAdjustment")}</Badge> : null}
+    <div className="flex flex-wrap gap-1.5">
+      {transaction.isRecurring ? <Badge className="px-2.5 py-0.5 text-[10px] tracking-[0.1em]">{t("transactions.metaAutomatic")}</Badge> : null}
+      {transaction.isSavingLinked ? <Badge className="px-2.5 py-0.5 text-[10px] tracking-[0.1em]">{t("transactions.metaSavings")}</Badge> : null}
+      {transaction.isBalanceAdjustment ? <Badge className="px-2.5 py-0.5 text-[10px] tracking-[0.1em]">{t("transactions.metaAdjustment")}</Badge> : null}
     </div>
   );
 }
@@ -58,9 +71,9 @@ function TransactionEditDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button type="button" variant="ghost" size="sm">
+        <Button type="button" variant="ghost" size="sm" className="min-h-[2.35rem] rounded-lg px-3 text-xs">
           <span className="inline-flex items-center gap-2">
-            <AppIcon name="edit" className="h-4 w-4" tone="primary" />
+            <AppIcon name="edit" className="h-3.5 w-3.5" tone="primary" />
             <span>{t("transactions.edit")}</span>
           </span>
         </Button>
@@ -135,7 +148,7 @@ function TransactionActions({
   t: ReturnType<typeof getTranslator>;
 }) {
   if (transaction.isSavingLinked || !canMutate) {
-    return <span className="text-sm text-muted-foreground">{transaction.isSavingLinked ? t("common.savingManaged") : t("common.readOnly")}</span>;
+    return <span className="text-xs text-muted-foreground">{transaction.isSavingLinked ? t("common.savingManaged") : t("common.readOnly")}</span>;
   }
 
   return (
@@ -144,7 +157,12 @@ function TransactionActions({
       <ActionForm action={deleteTransaction} className="w-full sm:w-auto">
         <input type="hidden" name="wallet_id" value={walletId} />
         <input type="hidden" name="transaction_id" value={transaction.id} />
-        <ConfirmSubmitButton className="w-full sm:w-auto" confirmMessage={t("transactions.deleteConfirm")} pendingText={t("transactions.deletePending")} variant="ghost">
+        <ConfirmSubmitButton
+          className="min-h-[2.35rem] w-full rounded-lg px-3 text-xs sm:w-auto"
+          confirmMessage={t("transactions.deleteConfirm")}
+          pendingText={t("transactions.deletePending")}
+          variant="ghost"
+        >
           {t("transactions.delete")}
         </ConfirmSubmitButton>
       </ActionForm>
@@ -167,36 +185,39 @@ function HistoryMobileCard({
 }) {
   const locale = useLocale();
   const timezone = useTimezone();
+  const metaLine = buildTransactionMetaLine(transaction);
   return (
     <div className="list-card">
       <div className="flex items-start gap-3">
         <span
-          className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border bg-card"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border bg-card"
           style={{ borderColor: `${transaction.categoryColor}33`, color: transaction.categoryColor }}
         >
-          <CategoryIcon categoryName={transaction.categoryName} kind={transaction.kind} className="h-5 w-5" />
+          <CategoryIcon categoryName={transaction.categoryName} kind={transaction.kind} className="h-4 w-4" />
         </span>
         <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <p className="truncate font-medium">{transaction.title}</p>
-                {!transaction.isSavingLinked && canMutate ? <Badge>{t("common.editable")}</Badge> : null}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <p className="truncate text-sm font-medium">{transaction.title}</p>
+                <TransactionKindBadge kind={transaction.kind} t={t} />
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">{transaction.categoryName} / {transaction.splitLabel}</p>
-              <TransactionMetaBadges transaction={transaction} t={t} />
+              <p className="mt-1 text-xs text-muted-foreground">{metaLine}</p>
+              {transaction.isSavingLinked ? <p className="mt-2 text-xs text-muted-foreground">{t("common.savingManaged")}</p> : null}
             </div>
             <div className="text-right">
-              <p className={`metric ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
+              <p className={`metric text-base ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
                 {formatCurrency(transaction.kind === "expense" ? -transaction.amount : transaction.amount)}
               </p>
-              <p className="mt-1 text-sm text-muted-foreground">{formatShortDate(transaction.happenedAt, locale, timezone)} • {formatTimeOfDay(transaction.happenedAt, locale, timezone) || "00:00"}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{formatShortDate(transaction.happenedAt, locale, timezone)} • {formatTimeOfDay(transaction.happenedAt, locale, timezone) || "00:00"}</p>
             </div>
           </div>
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <TransactionKindBadge kind={transaction.kind} t={t} />
-          </div>
-          <div className="mt-4">
+          {(transaction.isRecurring || transaction.isSavingLinked || transaction.isBalanceAdjustment) ? (
+            <div className="mt-2">
+              <TransactionMetaBadges transaction={transaction} t={t} />
+            </div>
+          ) : null}
+          <div className="mt-3">
             <TransactionActions canMutate={canMutate} categories={categories} transaction={transaction} walletId={walletId} t={t} />
           </div>
         </div>
@@ -246,19 +267,26 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
       header: t("transactions.historyTableDescription"),
       cell: ({ row }) => (
         <div className="min-w-0">
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3">
             <span
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border bg-card"
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-card"
               style={{ borderColor: `${row.original.categoryColor}33`, color: row.original.categoryColor }}
             >
-              <CategoryIcon categoryName={row.original.categoryName} kind={row.original.kind} className="h-4.5 w-4.5" />
+              <CategoryIcon categoryName={row.original.categoryName} kind={row.original.kind} className="h-4 w-4" />
             </span>
             <div className="min-w-0">
-              <p className="font-medium">{row.original.title}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{row.original.note || row.original.splitLabel}</p>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <p className="text-sm font-medium">{row.original.title}</p>
+                <TransactionKindBadge kind={row.original.kind} t={t} />
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">{buildTransactionMetaLine(row.original)}</p>
             </div>
           </div>
-          <TransactionMetaBadges transaction={row.original} t={t} />
+          {(row.original.isRecurring || row.original.isSavingLinked || row.original.isBalanceAdjustment) ? (
+            <div className="mt-2">
+              <TransactionMetaBadges transaction={row.original} t={t} />
+            </div>
+          ) : null}
         </div>
       )
     },
@@ -267,15 +295,15 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
       header: t("transactions.historyTableCategory"),
       cell: ({ row }) => (
         <div>
-          <p>{row.original.categoryName}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{row.original.splitLabel}</p>
+          <p className="text-sm">{row.original.categoryName}</p>
+          {row.original.note ? <p className="mt-1 text-xs text-muted-foreground">{row.original.note}</p> : null}
         </div>
       )
     },
     {
       accessorKey: "kind",
       header: t("transactions.historyTableKind"),
-      cell: ({ row }) => <TransactionKindBadge kind={row.original.kind} t={t} />
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.kind === "expense" ? t("transactions.kindExpense") : t("transactions.kindIncome")}</span>
     },
     {
       accessorKey: "amount",
@@ -447,10 +475,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
                   </TableHeader>
                   <TableBody>
                     {rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        className={row.original.kind === "expense" ? "bg-[rgba(180,94,94,0.04)]" : "bg-[rgba(91,143,98,0.05)]"}
-                      >
+                      <TableRow key={row.id} className={row.original.kind === "expense" ? "bg-[rgba(180,94,94,0.03)]" : "bg-[rgba(91,143,98,0.04)]"}>
                         {row.getVisibleCells().map((cell) => (
                           <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                         ))}
