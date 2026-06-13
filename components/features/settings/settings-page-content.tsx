@@ -1,8 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { updateLocalePreference, updateThemePreference, updateTimezonePreference, updateDefaultCurrency } from "@/app/actions/theme";
+import { disableAiChat } from "@/app/actions/ai-compliance";
+import { AiChatConsentDialog } from "@/components/features/chat/ai-chat-consent-dialog";
 import { ActionForm } from "@/components/ui/action-form";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { createApiKey, revokeApiKey, deleteApiKey } from "@/app/actions/api-keys";
@@ -57,6 +60,66 @@ export function SettingsPageContent({ settings, locale }: { settings: SettingsDa
       primaryWalletId={settings.shell.primaryWalletId}
     >
       <div className="space-y-6">
+        <section className="card">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h3 className="headline-sm">{t("settings.aiChatTitle")}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{t("settings.aiChatDescription")}</p>
+            </div>
+            <span
+              className={cn(
+                "inline-flex w-fit rounded-full px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em]",
+                settings.aiChatEnabled && !settings.aiChatConsentRequired
+                  ? "bg-primary-soft text-primary-strong"
+                  : settings.aiChatConsentRequired
+                    ? "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200"
+                    : "bg-muted text-muted-foreground"
+              )}
+            >
+              {settings.aiChatEnabled && !settings.aiChatConsentRequired
+                ? t("settings.aiChatStatusEnabled")
+                : settings.aiChatConsentRequired
+                  ? t("settings.aiChatStatusNeedsConsent")
+                  : t("settings.aiChatStatusDisabled")}
+            </span>
+          </div>
+
+          <div className="mt-4 rounded-[1.25rem] border border-border bg-muted/50 p-4">
+            <p className="text-sm text-foreground">{t("settings.aiChatDisclosureSummary")}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{t("settings.aiChatDisclosureDetail")}</p>
+            <Link href={`/${locale}/privacy`} className="mt-3 inline-flex text-sm font-medium text-primary hover:text-primary-strong">
+              {t("settings.aiChatPrivacyLink")}
+            </Link>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-3">
+            {settings.aiChatEnabled ? (
+              <ActionForm action={disableAiChat} initialState={initialActionResult}>
+                {({ pending }) => (
+                  <button
+                    type="submit"
+                    disabled={pending}
+                    className="rounded-full border border-border px-5 py-2.5 font-label text-xs font-semibold uppercase tracking-[0.12em] text-foreground transition hover:bg-muted disabled:opacity-50"
+                  >
+                    {t("settings.aiChatDisable")}
+                  </button>
+                )}
+              </ActionForm>
+            ) : null}
+
+            {(!settings.aiChatEnabled || settings.aiChatConsentRequired) ? (
+              <AiChatConsentDialog
+                locale={locale}
+                triggerLabel={settings.aiChatConsentRequired ? t("settings.aiChatReviewConsent") : t("settings.aiChatEnable")}
+                triggerVariant="primary"
+                triggerClassName="rounded-full px-5 py-2.5 text-xs uppercase tracking-[0.12em]"
+              />
+            ) : null}
+          </div>
+
+          <p className="mt-3 text-xs text-muted-foreground">{t("settings.aiChatFootnote")}</p>
+        </section>
+
         <section className="card">
           <h3 className="headline-sm">{t("settings.themeTitle")}</h3>
           <p className="mt-2 text-sm text-muted-foreground">{t("settings.themeDescription")}</p>

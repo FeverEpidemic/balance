@@ -23,6 +23,9 @@ export type ProfileRow = {
   onboarding_completed_at: string | null;
   timezone: string | null;
   default_currency: string;
+  ai_chat_enabled: boolean;
+  ai_chat_consent_version: string | null;
+  ai_chat_consented_at: string | null;
   plan_type: "free" | "premium";
   trial_started_at: string | null;
   trial_ends_at: string | null;
@@ -178,6 +181,9 @@ export type SettingsData = {
   themePreference: ThemePreference;
   timezone: string | null;
   defaultCurrency: string;
+  aiChatEnabled: boolean;
+  aiChatConsentRequired: boolean;
+  aiChatConsentVersion: string | null;
   planType: "free" | "premium";
   trialMeta: {
     isTrialActive: boolean;

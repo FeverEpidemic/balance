@@ -4,11 +4,12 @@
 
 ### Added
 
+- **Compliance gate untuk AI Chat DeepSeek** — AI Chat sekarang memerlukan persetujuan eksplisit sebelum bisa dipakai. User mendapat disclosure yang jelas tentang pengiriman pertanyaan, konteks wallet relevan, dan riwayat chat ke DeepSeek, lalu bisa mematikan AI Chat kapan saja dari halaman Settings.
 - **Search & sort lengkap di Riwayat Transaksi** — Halaman Riwayat Lengkap kini memakai pencarian dan pengurutan berbasis server untuk seluruh transaksi pada bulan aktif. User bisa mencari berdasarkan catatan, kategori, atau jenis transaksi, lalu mengurutkan berdasarkan tanggal, nominal, kategori, dan jenis tanpa membuat halaman stuck saat mengetik.
 - **Onboarding dashboard diperbarui — alur setup 4 langkah** — Checklist onboarding di dashboard kini mengikuti alur produk saat ini: buat wallet, catat transaksi, rapikan kategori/anggaran, dan mulai menabung. CTA mengarah ke halaman yang relevan di wallet utama (mis. `/wallets/{id}/categories`, `/wallets/{id}/budgets`, `/wallets/{id}/savings`).
 - **Free Trial 7 Hari** — Setiap akun baru otomatis mendapat akses Premium selama 7 hari. Status trial ditampilkan di Settings. Setelah trial habis, akun kembali ke Free secara otomatis.
 - **Landing FAQ, badge repositioning & legal pages** — Landing page now has a FAQ accordion section before the CTA. Hero badges moved to above the features grid, with two new badges (Dark mode, AI Assistant). Footer links to both Privacy Policy and Terms of Service.
-- **Kebijakan Privasi diperbarui** — Privacy policy expanded with dedicated sections on AI processing (OpenAI), shared wallet data visibility, PWA behavior, and cookies. All existing sections refreshed to reflect current app behavior.
+- **Kebijakan Privasi diperbarui** — Privacy policy expanded with dedicated sections on AI processing (DeepSeek), shared wallet data visibility, PWA behavior, and cookies. All existing sections refreshed to reflect current app behavior.
 - **Halaman Ketentuan Layanan** — New public Terms of Service page at /[locale]/terms with 10 sections covering eligibility, acceptable use, AI disclaimer, pricing, and more. Follows the same layout as the privacy page.
 - **Landing hero mockup interaktif** — Hero visual kanan kini berupa mockup jendela browser yang auto-slide melalui 3 tampilan kode: dashboard ringan, daftar transaksi, dan dashboard mode gelap. Transisi halus dengan pause saat hover dan dukungan reduced-motion.
 
@@ -19,6 +20,7 @@
 
 ### Fixed
 
+- **AI Chat lebih tegas soal kategori, nominal lokal, dan tanggal kasual** — Pencatatan transaksi via AI kini tidak lagi diam-diam menyimpan transaksi tanpa kategori saat `categoryName` tidak ditemukan. Confidence nominal juga sudah memahami format Indonesia seperti `45rb`, `1,5jt`, dan `2 juta`, typo kasual seperti `catet` kini tetap masuk jalur mutasi, serta pembacaan kategori/tanggal relatif lebih peka untuk prompt seperti `kmrn`, `2 hari lalu`, atau kategori income di luar top expense.
 - **AI Chat tidak lagi mempercayai jawaban final saat tool gagal** — Setelah tool loop selesai, route kini memeriksa semua payload `role: "tool"` dan menghentikan final streaming biasa bila ada error terstruktur seperti `CONFIDENCE_TOO_LOW`, `DUPLICATE_DETECTED`, `DAILY_SPENDING_CAP_EXCEEDED`, atau `VALIDATION_FAILED`. `NEEDS_CONFIRMATION` tetap memunculkan preview transaksi seperti sebelumnya, sementara error tool non-konfirmasi sekarang dibalas dengan pesan aman deterministic dari server.
 - **Halaman Ketentuan Layanan kini benar-benar publik** — Middleware sekarang mengizinkan `/[locale]/terms` diakses tanpa login, sehingga tautan footer landing tidak lagi terlempar ke halaman masuk.
 

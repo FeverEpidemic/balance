@@ -73,7 +73,7 @@ export async function queryProfiles(userIds: string[]) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, email, preferred_locale, theme_preference, onboarding_state, onboarding_dismissed_at, onboarding_completed_at, timezone, default_currency, plan_type, trial_started_at, trial_ends_at, trial_consumed_at")
+    .select("id, full_name, email, preferred_locale, theme_preference, onboarding_state, onboarding_dismissed_at, onboarding_completed_at, timezone, default_currency, ai_chat_enabled, ai_chat_consent_version, ai_chat_consented_at, plan_type, trial_started_at, trial_ends_at, trial_consumed_at")
     .in("id", userIds);
 
   if (error) {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getLocaleTag, getTranslator, resolveLocale } from "@/lib/i18n";
 
-const lastUpdatedAt = new Date("2026-06-24T00:00:00+07:00");
+const lastUpdatedAt = new Date("2026-06-25T00:00:00+07:00");
 const sectionKeys = [
   "dataWeCollect",
   "howWeUse",

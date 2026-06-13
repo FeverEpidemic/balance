@@ -13,6 +13,30 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.14.6",
+    date: "2026-06-25",
+    title: "AI Chat kini butuh persetujuan eksplisit",
+    description: "Balance menambahkan lapisan kepatuhan baru untuk AI Chat DeepSeek: disclosure di Privacy Policy diperjelas, persetujuan diminta sebelum fitur dipakai, dan user bisa mematikan AI Chat kapan saja dari Settings.",
+    features: [
+      { icon: "🔐", text: "AI Chat sekarang ditahan dulu sampai kamu menyetujui pengiriman pertanyaan, konteks wallet relevan, dan riwayat chat ke DeepSeek." },
+      { icon: "🧾", text: "Halaman Pengaturan punya kontrol baru untuk mengaktifkan atau mematikan AI Chat kapan saja, lengkap dengan ringkasan disclosure dan link ke Kebijakan Privasi." },
+      { icon: "📜", text: "Kebijakan Privasi diperbarui agar secara eksplisit menyebut DeepSeek sebagai penyedia AI berbasis China dan jenis data AI Chat yang diproses." },
+      { icon: "🛡️", text: "Route server AI Chat ikut memeriksa consent versi terbaru supaya request lama atau manual tidak bisa melewati gate compliance." }
+    ]
+  },
+  {
+    version: "1.14.5",
+    date: "2026-06-13",
+    title: "AI Chat lebih paham kategori dan format catatan lokal",
+    description: "Asisten AI kini lebih aman saat mencatat transaksi: kategori yang tidak ditemukan tidak lagi lolos diam-diam, dan prompt kasual Indonesia seperti `45rb`, `1,5jt`, `catet`, atau `kmrn` lebih mudah dipahami.",
+    features: [
+      { icon: "🧾", text: "Jika AI menyebut nama kategori yang tidak tersedia, transaksi sekarang diblokir dulu agar tidak tersimpan tanpa kategori." },
+      { icon: "💸", text: "Confidence nominal kini paham format Indonesia seperti `45rb`, `125 ribu`, `1jt`, `1,5jt`, dan `2 juta`." },
+      { icon: "🗣️", text: "Typo kasual seperti `catet` tetap dikenali sebagai permintaan mencatat transaksi, bukan obrolan biasa." },
+      { icon: "📂", text: "Fokus kategori kini bisa membaca kategori income maupun kategori non-top-expense, plus tanggal kasual seperti `kmrn`, `td mlm`, dan `2 hari lalu`." }
+    ]
+  },
+  {
     version: "1.14.4",
     date: "2026-06-13",
     title: "AI Chat lebih aman saat tool mengembalikan error",
@@ -77,7 +101,7 @@ export const changelogs: ChangelogEntry[] = [
     features: [
       { icon: "❓", text: "FAQ di landing page: pertanyaan umum seputar keamanan data, wallet bersama, biaya, dan akses mobile." },
       { icon: "🏷️", text: "Badge fitur dipindahkan ke atas grid fitur, dengan badge baru Dark mode dan AI Assistant." },
-      { icon: "📜", text: "Kebijakan Privasi diperbarui mencakup AI chat, shared wallet, PWA, dan pemrosesan OpenAI." },
+      { icon: "📜", text: "Kebijakan Privasi diperbarui mencakup AI chat, shared wallet, PWA, dan pemrosesan DeepSeek." },
       { icon: "⚖️", text: "Halaman Ketentuan Layanan baru tersedia di /terms dan ditautkan dari footer landing." },
     ]
   },

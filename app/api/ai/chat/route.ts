@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import type { ChatCompletionMessageToolCall } from "openai/resources/chat/completions";
 import { validateChatMessage } from "@/lib/ai/guard";
+import { getAiChatComplianceState } from "@/lib/ai/compliance";
 import { createAiChatCompletion, getAiClient, getAiModel, isAiChatAvailable, AiUpstreamRateLimitedError } from "@/lib/ai/client";
 import { shouldReturnDirectAiReply } from "@/lib/ai/chat-response";
 import {
@@ -43,6 +44,18 @@ type ConversationMessage = {
   tool_call_id?: string;
   relevanceScore?: number;
 };
+
+const MUTATION_KEYWORDS = [
+  "catat", "catet", "simpan", "buatkan transaksi", "record", "tambah transaksi",
+  "input transaksi", "masukkan transaksi", "buat budget", "set budget",
+  "atur budget", "anggaran", "ubah budget", "update budget", "hapus budget",
+  "delete budget", "konfirmasi", "confirm", "naikin budget", "turunin budget"
+];
+
+export function isMutationLikeMessage(message: string) {
+  const normalized = message.toLocaleLowerCase("id-ID");
+  return MUTATION_KEYWORDS.some((keyword) => normalized.includes(keyword));
+}
 
 function createSseResponse(stream: ReadableStream, init?: ResponseInit) {
   return new Response(stream, {
@@ -100,7 +113,7 @@ function buildRunningSummary(recap: {
 }
 
 export async function POST(request: Request) {
-  const { user } = await requireUser();
+  const { user, supabase } = await requireUser();
   const cookieStore = await cookies();
   const body = (await request.json()) as ChatRequestBody;
   const locale = resolveLocale(body.locale ?? cookieStore.get(LOCALE_COOKIE_NAME)?.value);
@@ -115,6 +128,23 @@ export async function POST(request: Request) {
 
   if (!userMessages.length) {
     return createFriendlyFallbackStream(t("chat.emptyPrompt"));
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("ai_chat_enabled, ai_chat_consent_version, ai_chat_consented_at")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileError) {
+    console.warn("[AI] failed to load profile compliance state", profileError.message);
+    return createFriendlyFallbackStream(t("chat.prepareFailed"), { status: 500 });
+  }
+
+  const aiCompliance = getAiChatComplianceState(profile);
+
+  if (!aiCompliance.isAiChatAllowed) {
+    return createFriendlyFallbackStream(t("chat.consentRequired"), { status: 403 });
   }
 
   // Plan-aware daily limit: premium users skip the daily cap entirely.
@@ -182,13 +212,9 @@ export async function POST(request: Request) {
       wallets = await cachedAiWalletOptions(user.id, () => getAiWalletOptions(user.id));
     }
 
-    // Category focus: lazy — only fetch if prompt mentions a known category from recap
+    // Category focus: attempt against all accessible categories so income and non-top categories still resolve
     let categoryFocus: AiCategoryFocus | null = null;
-    const mentionedCategory = recap.topExpenseCategories.find((c) => {
-      const normalized = c.categoryName.toLocaleLowerCase("id-ID");
-      return latestUserMessage.toLocaleLowerCase("id-ID").includes(normalized);
-    });
-    if (mentionedCategory) {
+    if (latestUserMessage.trim()) {
       categoryFocus = await getCategoryFocusForUser(user.id, period, latestUserMessage, walletId);
     }
 
@@ -233,15 +259,7 @@ export async function POST(request: Request) {
     let stopToolLoopForBudget = false;
 
     // ── Mutation detection for fast path + tool-loop limits ──────
-    const MUTATION_KEYWORDS = [
-      "catat", "simpan", "buatkan transaksi", "record", "tambah transaksi",
-      "input transaksi", "masukkan transaksi", "buat budget", "set budget",
-      "atur budget", "anggaran", "ubah budget", "update budget", "hapus budget",
-      "delete budget", "konfirmasi", "confirm", "naikin budget", "turunin budget"
-    ];
-    const mightBeMutation = MUTATION_KEYWORDS.some((kw) =>
-      latestUserMessage.toLocaleLowerCase("id-ID").includes(kw)
-    );
+    const mightBeMutation = isMutationLikeMessage(latestUserMessage);
 
     // Fast path: skip tool loop entirely for read-only simple questions
     // Only activates when no mutation keywords, no pending confirmation context

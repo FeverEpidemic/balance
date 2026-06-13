@@ -2,12 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
+import { AiChatConsentDialog } from "@/components/features/chat/ai-chat-consent-dialog";
 import { ChatInput } from "@/components/features/chat/chat-input";
 import { ChatMessage } from "@/components/features/chat/chat-message";
 import { ChatRateLimitIndicator, type RateLimitInfo } from "@/components/features/chat/chat-rate-limit-indicator";
 import { ChatSuggestions } from "@/components/features/chat/chat-suggestions";
 import { AppIcon } from "@/components/ui/app-icon";
 import { Button } from "@/components/ui/button";
+import type { AiChatComplianceState } from "@/lib/ai/compliance";
 import { CHAT_STORAGE_KEY, buildChatRequestMessages, clearChatHistory, sanitizeStoredChatSession, classifyChatAction, type ChatIntent, type ChatAction, type UiChatMessage } from "@/lib/chat-session";
 import type { AppLocale } from "@/lib/i18n";
 import { getTranslator } from "@/lib/i18n";
@@ -28,12 +30,13 @@ type ChatPageContentProps = {
     memberCount: number;
     primaryWalletId: string | null;
   };
+  aiCompliance: AiChatComplianceState;
   wallets: WalletOption[];
 };
 
 const periods = ["day", "week", "month"] as const;
 
-export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps) {
+export function ChatPageContent({ locale, shell, aiCompliance, wallets }: ChatPageContentProps) {
   const t = getTranslator(locale);
   const [messages, setMessages] = useState<UiChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -58,6 +61,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
   const [rateLimitInfo, setRateLimitInfo] = useState<RateLimitInfo | null>(null);
   const [dailyLimitInfo, setDailyLimitInfo] = useState<RateLimitInfo | null>(null);
   const [runningSummary, setRunningSummary] = useState<string>("");
+  const isAiChatBlocked = !aiCompliance.isAiChatAllowed;
 
   useEffect(() => {
     const raw = window.localStorage.getItem(CHAT_STORAGE_KEY);
@@ -121,6 +125,10 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
     const prompt = (overridePrompt ?? input).trim();
 
     if (!prompt || isLoading) {
+      return;
+    }
+
+    if (isAiChatBlocked) {
       return;
     }
 
@@ -202,6 +210,10 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
         throw new Error("EMPTY_STREAM");
       }
 
+      if (response.status === 403) {
+        throw new Error("AI_CHAT_CONSENT_REQUIRED");
+      }
+
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
@@ -281,6 +293,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
         }
       }
     } catch (error: unknown) {
+      const isConsentError = error instanceof Error && error.message === "AI_CHAT_CONSENT_REQUIRED";
       const isAbortError = error instanceof DOMException && error.name === "AbortError";
 
       setMessages((current) =>
@@ -289,8 +302,8 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
             ? {
                 ...message,
                 content: message.content
-                  ? `${message.content}\n\n⚠️ ${t(isAbortError ? "chat.streamTimeout" : "chat.errorState")}`
-                  : t(isAbortError ? "chat.streamTimeout" : "chat.errorState"),
+                  ? `${message.content}\n\n⚠️ ${t(isConsentError ? "chat.consentRequired" : isAbortError ? "chat.streamTimeout" : "chat.errorState")}`
+                  : t(isConsentError ? "chat.consentRequired" : isAbortError ? "chat.streamTimeout" : "chat.errorState"),
                 isStreaming: false
               }
             : message
@@ -399,17 +412,46 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
       memberCount={shell.memberCount}
       primaryWalletId={shell.primaryWalletId}
       headerAction={
-        <Button type="button" variant="soft" className="rounded-full text-[13px] sm:text-sm" onClick={() => handleRecapSuggestion("month")}>
-          {t("chat.quickStart")}
-        </Button>
+        isAiChatBlocked ? (
+          <AiChatConsentDialog
+            locale={locale}
+            triggerLabel={t("chat.unlockAi")}
+            triggerVariant="soft"
+            triggerClassName="rounded-full text-[13px] sm:text-sm"
+          />
+        ) : (
+          <Button type="button" variant="soft" className="rounded-full text-[13px] sm:text-sm" onClick={() => handleRecapSuggestion("month")}>
+            {t("chat.quickStart")}
+          </Button>
+        )
       }
     >
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_22rem]">
         <div className="min-w-0 space-y-4">
+          {isAiChatBlocked ? (
+            <div className="card border border-amber-200 bg-amber-50/80 dark:border-amber-500/20 dark:bg-amber-500/10">
+              <p className="eyebrow text-amber-800 dark:text-amber-200">{t("chat.blockedEyebrow")}</p>
+              <h3 className="mt-2 font-display text-lg font-medium text-foreground sm:text-xl">{t("chat.blockedTitle")}</h3>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">{t("chat.blockedDescription")}</p>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">{t("chat.blockedDisclosure")}</p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <AiChatConsentDialog
+                  locale={locale}
+                  triggerLabel={t("chat.reviewConsent")}
+                  triggerClassName="rounded-full px-5 py-2.5 text-xs uppercase tracking-[0.12em]"
+                />
+                <Button href="/settings" variant="ghost" className="rounded-full px-5 py-2.5 text-xs uppercase tracking-[0.12em]">
+                  {t("chat.openSettings")}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
           <div className="card space-y-4">
             <ChatSuggestions
               items={suggestions}
               activeKey={activeSuggestion}
+              disabled={isAiChatBlocked || isLoading}
               onSelect={(prompt) => {
                 const selected = suggestions.find((item) => item.prompt === prompt);
 
@@ -432,8 +474,9 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
                 <button
                   key={period}
                   type="button"
+                  disabled={isAiChatBlocked}
                   onClick={() => setSelectedPeriod(period)}
-                  className={`shrink-0 rounded-full px-3 py-2 text-[11px] font-semibold tracking-[0.04em] transition sm:text-xs sm:uppercase sm:tracking-[0.12em] ${
+                  className={`shrink-0 rounded-full px-3 py-2 text-[11px] font-semibold tracking-[0.04em] transition disabled:cursor-not-allowed disabled:opacity-50 sm:text-xs sm:uppercase sm:tracking-[0.12em] ${
                     selectedPeriod === period ? "bg-primary text-[var(--button-primary-text)]" : "bg-muted text-muted-foreground"
                   }`}
                 >
@@ -445,7 +488,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
             <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_14rem]">
               <div className="min-w-0">
                 <label className="mb-2 block font-label text-[11px] tracking-[0.08em] text-muted-foreground sm:text-xs sm:uppercase sm:tracking-[0.12em]">{t("common.wallet")}</label>
-                <select value={selectedWalletId} onChange={(event) => setSelectedWalletId(event.target.value)}>
+                <select value={selectedWalletId} onChange={(event) => setSelectedWalletId(event.target.value)} disabled={isAiChatBlocked}>
                   <option value="">{t("chat.allWallets")}</option>
                   {wallets.map((wallet) => (
                     <option key={wallet.id} value={wallet.id}>
@@ -544,7 +587,7 @@ export function ChatPageContent({ locale, shell, wallets }: ChatPageContentProps
             )}
           </div>
 
-          <ChatInput value={input} onChange={setInput} onSubmit={() => void handleSubmit()} disabled={isLoading} loading={isLoading} locale={locale} />
+          <ChatInput value={input} onChange={setInput} onSubmit={() => void handleSubmit()} disabled={isAiChatBlocked || isLoading} loading={isLoading} locale={locale} />
         </div>
 
         <aside className="min-w-0 space-y-4">
