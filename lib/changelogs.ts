@@ -13,6 +13,28 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.10.0",
+    date: "2026-06-17",
+    title: "Navigasi landing & section Harga",
+    description: "Header landing baru dengan sticky glass effect, navigasi anchor scroll ke Fitur, Cara Kerja, dan Harga. Section Harga baru dengan kartu gratis yang jujur.",
+    features: [
+      { icon: "🧭", text: "Header sticky dengan glass effect — navigasi section selalu terlihat saat scroll." },
+      { icon: "📱", text: "Menu hamburger mobile untuk akses cepat ke semua section landing." },
+      { icon: "💰", text: "Section Harga baru dengan informasi paket gratis dan tanpa biaya tersembunyi." },
+    ]
+  },
+  {
+    version: "1.8.13",
+    date: "2026-06-13",
+    title: "Asisten AI lebih akurat membaca transaksi harian",
+    description: "Pertanyaan seperti \"transaksi kemarin berapa\" kini lebih konsisten dijawab berdasarkan daftar transaksi yang benar-benar dibaca, bukan hanya ringkasan singkat.",
+    features: [
+      { icon: "📆", text: "AI sekarang lebih sadar konteks tanggal relatif seperti kemarin, hari ini, dan minggu ini saat membaca transaksi." },
+      { icon: "📋", text: "Pertanyaan yang meminta jumlah atau daftar transaksi akan memicu pembacaan tool transaksi, jadi jawaban tidak mudah melewatkan item lain." },
+      { icon: "🔢", text: "Hasil tool transaksi kini menyertakan total kecocokan (`totalMatched`) agar jumlah transaksi yang disebut AI lebih stabil." },
+    ]
+  },
+  {
     version: "1.9.0",
     date: "2026-06-14",
     title: "Free vs Premium — paket langganan & batas pemakaian",

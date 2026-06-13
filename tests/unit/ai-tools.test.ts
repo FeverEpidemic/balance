@@ -97,6 +97,61 @@ describe("executeAiToolCall", () => {
     expect(JSON.parse(result)).toEqual([{ id: "cat-1", name: "Makan" }]);
   });
 
+  it("routes getTransactions with date filters and preserves totalMatched", async () => {
+    getRecentTransactionsForUserMock.mockResolvedValue({
+      totalMatched: 6,
+      startDate: "2026-06-12",
+      endDate: "2026-06-12",
+      items: [
+        {
+          id: "tx-1",
+          walletId: "wallet-1",
+          walletName: "Dompet Utama",
+          amount: 15000,
+          kind: "expense",
+          happenedAt: "2026-06-12T10:00:00.000Z",
+          note: "Kopi",
+          categoryName: "Makan"
+        }
+      ]
+    });
+
+    const result = await executeAiToolCall("user-1", {
+      id: "call-tx-1",
+      type: "function",
+      function: {
+        name: "getTransactions",
+        arguments: JSON.stringify({
+          walletId: "wallet-1",
+          startDate: "2026-06-12",
+          endDate: "2026-06-12",
+          limit: 20
+        })
+      }
+    });
+
+    expect(getRecentTransactionsForUserMock).toHaveBeenCalledWith("user-1", "wallet-1", {
+      limit: 20,
+      startDate: "2026-06-12",
+      endDate: "2026-06-12"
+    });
+    expect(JSON.parse(result)).toEqual({
+      totalMatched: 6,
+      startDate: "2026-06-12",
+      endDate: "2026-06-12",
+      items: [
+        {
+          walletName: "Dompet Utama",
+          amount: 15000,
+          kind: "expense",
+          happenedAt: "2026-06-12T10:00:00.000Z",
+          note: "Kopi",
+          categoryName: "Makan"
+        }
+      ]
+    });
+  });
+
   it("routes createTransaction to the data layer with parsed arguments", async () => {
     createTransactionViaAiMock.mockResolvedValue({
       ok: true,

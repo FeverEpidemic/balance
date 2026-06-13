@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.10.0] - 2026-06-17
+
+### Added
+
+- **Landing header & pricing section** — Sticky glass header with smooth-scroll navigation to Features, How It Works, and Pricing sections. New pricing section with an honest free-tier card. Mobile hamburger menu for landing navigation.
+
 ## [1.9.0] - 2026-06-14
 
 ### Added
@@ -9,6 +15,12 @@
 ### Changed
 
 - **Modul plan sentral** — Logika penentuan plan (Free/Premium) dipindahkan ke `lib/plan.ts` sebagai sumber kebenaran tunggal. Semua batas pemakaian dibaca dari modul ini.
+
+## [Unreleased] - 2026-06-13
+
+### Fixed
+
+- **AI Chat lebih akurat saat membaca transaksi per hari** — Pertanyaan seperti "transaksi kemarin berapa" kini tidak lagi terlalu sering dijawab dari rekap ringkas saja. AI akan memaksa pembacaan daftar transaksi saat user meminta jumlah/daftar transaksi atau menyebut tanggal relatif seperti kemarin/hari ini, lalu hasil tool juga membawa `totalMatched` agar jumlah transaksi yang disebut lebih konsisten.
 
 ## [Unreleased] - 2026-06-12
 

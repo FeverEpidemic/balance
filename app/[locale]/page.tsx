@@ -3,6 +3,7 @@ import Link from "next/link";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { LandingHeader } from "@/components/landing/landing-header";
 import { localizePath, resolveLocale, getTranslator } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -35,7 +36,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   ];
 
   return (
-    <main className="page-wrap pb-12 pt-6 md:pb-16 md:pt-8">
+    <>
+      <LandingHeader />
+      <main className="page-wrap pb-12 pt-2 md:pb-16 md:pt-4">
       <section className="grid gap-10 py-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center lg:py-14">
         <div>
           <p className="eyebrow">{t("landing.eyebrow")}</p>
@@ -44,8 +47,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             {t("landing.description")}
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button href={localizePath(locale, "/register")}>{t("landing.registerButton")}</Button>
-            <Button href={localizePath(locale, "/login")} variant="ghost">{t("landing.loginButton")}</Button>
+            <Button href="/register">{t("landing.registerButton")}</Button>
+            <Button href="/login" variant="ghost">{t("landing.loginButton")}</Button>
           </div>
           <InstallPrompt />
           <div className="mt-8 flex flex-wrap gap-3">
@@ -115,7 +118,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
-      <section className="section-gap">
+      <section id="features" className="section-gap">
         <div className="max-w-2xl">
           <p className="eyebrow">{t("landing.featuresEyebrow")}</p>
           <h2 className="headline-lg mt-3">{t("landing.featuresTitle")}</h2>
@@ -130,7 +133,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
-      <section className="section-gap">
+      <section id="how-it-works" className="section-gap">
         <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
           <div className="max-w-xl">
             <p className="eyebrow">{t("landing.stepsEyebrow")}</p>
@@ -163,6 +166,22 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
+      <section id="pricing" className="section-gap">
+        <div className="max-w-2xl">
+          <p className="eyebrow">{t("landing.pricingEyebrow")}</p>
+          <h2 className="headline-lg mt-3">{t("landing.pricingTitle")}</h2>
+          <p className="mt-4 text-base leading-7 text-muted-foreground md:text-lg">
+            {t("landing.pricingDescription")}
+          </p>
+        </div>
+        <div className="mt-8 max-w-md">
+          <div className="card p-6 md:p-8">
+            <p className="headline-md">Gratis</p>
+            <p className="mt-2 text-sm text-muted-foreground">{t("landing.pricingNote")}</p>
+          </div>
+        </div>
+      </section>
+
       <section className="section-gap">
         <div className="overflow-hidden rounded-[2rem] bg-primary px-6 py-8 text-white shadow-float md:px-10 md:py-10">
           <div className="max-w-3xl">
@@ -170,8 +189,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <h2 className="headline-lg mt-3 text-white">{t("landing.ctaTitle")}</h2>
             <p className="mt-4 text-base leading-7 text-white/75 md:text-lg">{t("landing.ctaDescription")}</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button href={localizePath(locale, "/register")} className="bg-white text-primary-strong hover:bg-[#f4f1e5]">{t("landing.ctaRegister")}</Button>
-              <Button href={localizePath(locale, "/login")} variant="ghost" className="border-white/30 text-white hover:bg-white/10">{t("landing.ctaLogin")}</Button>
+              <Button href="/register" className="bg-white text-primary-strong hover:bg-[#f4f1e5]">{t("landing.ctaRegister")}</Button>
+              <Button href="/login" variant="ghost" className="border-white/30 text-white hover:bg-white/10">{t("landing.ctaLogin")}</Button>
             </div>
           </div>
         </div>
@@ -186,5 +205,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </Link>
       </footer>
     </main>
+    </>
   );
 }

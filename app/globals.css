@@ -169,6 +169,7 @@ html {
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 4rem;
   overflow-x: hidden;
   background-color: var(--background);
 }

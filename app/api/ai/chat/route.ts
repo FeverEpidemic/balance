@@ -13,11 +13,12 @@ import { getAiWalletOptions, getCategoryFocusForUser, getFinancialRecapForUser, 
 import { cachedAiRecap, cachedAiWalletOptions } from "@/lib/ai/cache";
 import { buildFallbackFinanceAnswer, isLowSignalAiReply } from "@/lib/ai/fallback-response";
 import { buildAiSystemPrompt } from "@/lib/ai/prompts";
+import { shouldForceTransactionToolCall } from "@/lib/ai/read-intent";
 import { buildDirectRecapMessage } from "@/lib/ai/recap-message";
 import { aiTools, executeAiToolCall } from "@/lib/ai/tools";
 import { requireUser } from "@/lib/auth";
 import { type RekapPeriod } from "@/lib/chat-auth";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getTodayDateString } from "@/lib/utils";
 import { LOCALE_COOKIE_NAME, getTranslator, resolveLocale } from "@/lib/i18n";
 import { applyDailyLimitHeaders, applyRateLimitHeaders, consumeAiChatDailyLimit, consumeAiChatRateLimit, type RateLimitResult } from "@/lib/rate-limit";
 import { getPlanPolicy } from "@/lib/plan";
@@ -156,6 +157,7 @@ export async function POST(request: Request) {
     tStart = Date.now();
     console.log(`[AI][timing] stage=auth_limits_ms duration=0 userId=${user.id.slice(0, 8)}...`); // anchor: guard rails before try
     const latestUserMessage = userMessages[userMessages.length - 1]?.content ?? "";
+    const todayDate = getTodayDateString();
     const tokenBudget = getAiChatTokenBudget();
 
     if (exceedsPreflightCompactBudget({ messages: recentMessages, tokenBudget })) {
@@ -198,8 +200,8 @@ export async function POST(request: Request) {
     }
 
     const tPromptStart = Date.now();
-    const fullSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus, runningSummary: runningSummary || undefined });
-    const compactSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus, compact: true, runningSummary: runningSummary || undefined });
+    const fullSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus, todayDate, runningSummary: runningSummary || undefined });
+    const compactSystemPrompt = buildAiSystemPrompt({ recap, wallets, period, latestUserMessage, categoryFocus, todayDate, compact: true, runningSummary: runningSummary || undefined });
     const initialBudgetedConversation = buildBudgetedConversation({
       systemPrompt: fullSystemPrompt,
       compactSystemPrompt,
@@ -245,7 +247,8 @@ export async function POST(request: Request) {
     const hasConfirmationContext = recentMessages.some(
       (m) => m.role === "assistant" && (m.content.includes("konfirmasi") || m.content.includes("preview") || m.content.includes("NEEDS_CONFIRMATION"))
     );
-    const isFastPathEligible = !mightBeMutation && !hasConfirmationContext;
+    const needsTransactionReadTool = shouldForceTransactionToolCall(latestUserMessage);
+    const isFastPathEligible = !mightBeMutation && !hasConfirmationContext && !needsTransactionReadTool;
 
     if (isFastPathEligible) {
       console.log(`[AI][timing] fast_path_active userId=${user.id.slice(0, 8)}...`);

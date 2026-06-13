@@ -42,7 +42,15 @@ export const aiTools: ChatCompletionTool[] = [
           limit: {
             type: "number",
             minimum: 1,
-            maximum: 20
+            maximum: 50
+          },
+          startDate: {
+            type: "string",
+            description: "Opsional. Filter tanggal mulai inklusif dalam format YYYY-MM-DD."
+          },
+          endDate: {
+            type: "string",
+            description: "Opsional. Filter tanggal akhir inklusif dalam format YYYY-MM-DD."
           }
         }
       }
@@ -287,12 +295,17 @@ function compressToolResult(rawJson: string, toolName: string): string {
         return JSON.stringify(recap);
       }
       case "getTransactions": {
-        const arr = parsed as Array<Record<string, unknown>>;
-        const trimmed = arr.slice(0, 5).map((item) => {
+        const result = parsed as { totalMatched?: number; startDate?: string | null; endDate?: string | null; items?: Array<Record<string, unknown>> };
+        const trimmedItems = (result.items ?? []).slice(0, 10).map((item) => {
           const { id, walletId, ...rest } = item;
           return rest;
         });
-        return JSON.stringify(trimmed);
+        return JSON.stringify({
+          totalMatched: result.totalMatched ?? trimmedItems.length,
+          startDate: result.startDate ?? null,
+          endDate: result.endDate ?? null,
+          items: trimmedItems
+        });
       }
       default:
         return rawJson;
@@ -328,7 +341,11 @@ export async function executeAiToolCall(
       case "getTransactions":
         return compressToolResult(
           JSON.stringify(
-            await getRecentTransactionsForUser(userId, (args.walletId as string | undefined) ?? null, Number(args.limit) || 8)
+            await getRecentTransactionsForUser(userId, (args.walletId as string | undefined) ?? null, {
+              limit: Number(args.limit) || 12,
+              startDate: typeof args.startDate === "string" ? args.startDate : null,
+              endDate: typeof args.endDate === "string" ? args.endDate : null
+            })
           ),
           "getTransactions"
         );

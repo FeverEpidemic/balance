@@ -58,6 +58,13 @@ export type AiTransactionItem = {
   categoryName: string;
 };
 
+export type AiTransactionQueryResult = {
+  totalMatched: number;
+  startDate: string | null;
+  endDate: string | null;
+  items: AiTransactionItem[];
+};
+
 export type AiCategoryOption = {
   id: string;
   walletId: string;
@@ -604,27 +611,62 @@ export async function getCategoryFocusForUser(
   };
 }
 
-export async function getRecentTransactionsForUser(userId: string, walletId?: string | null, limit = 8): Promise<AiTransactionItem[]> {
+export async function getRecentTransactionsForUser(
+  userId: string,
+  walletId?: string | null,
+  options?: {
+    limit?: number;
+    startDate?: string | null;
+    endDate?: string | null;
+  }
+): Promise<AiTransactionQueryResult> {
   const { walletIds, wallets } = await getAccessibleWallets(userId);
   assertAccessibleWallet(walletIds, walletId);
   const targetWalletIds = walletId ? [walletId] : walletIds;
+  const limit = Math.min(Math.max(options?.limit ?? 12, 1), 50);
+  const startDate = options?.startDate?.trim() ?? null;
+  const endDate = options?.endDate?.trim() ?? null;
+  const hasDateFilter = Boolean(startDate || endDate);
+
+  if ((startDate && !isValidDateString(startDate)) || (endDate && !isValidDateString(endDate))) {
+    throw new Error("INVALID_TRANSACTION_DATE_FILTER");
+  }
+
   const [transactions, categories] = await Promise.all([
-    queryTransactions(targetWalletIds, limit),
+    queryTransactions(targetWalletIds, hasDateFilter ? undefined : limit),
     queryCategories(targetWalletIds)
   ]);
   const walletMap = buildWalletMap(wallets);
   const categoryMap = buildCategoryMap(categories);
+  const filteredTransactions = transactions.filter((transaction) => {
+    const happenedDate = transaction.happened_at.slice(0, 10);
 
-  return transactions.slice(0, limit).map((transaction) => ({
-    id: transaction.id,
-    walletId: transaction.wallet_id,
-    walletName: walletMap.get(transaction.wallet_id)?.name ?? "Wallet",
-    amount: transaction.amount,
-    kind: transaction.kind,
-    happenedAt: transaction.happened_at,
-    note: transaction.note,
-    categoryName: transaction.category_id ? categoryMap.get(transaction.category_id)?.name ?? "Tanpa kategori" : "Tanpa kategori"
-  }));
+    if (startDate && happenedDate < startDate) {
+      return false;
+    }
+
+    if (endDate && happenedDate > endDate) {
+      return false;
+    }
+
+    return true;
+  });
+
+  return {
+    totalMatched: filteredTransactions.length,
+    startDate,
+    endDate,
+    items: filteredTransactions.slice(0, limit).map((transaction) => ({
+      id: transaction.id,
+      walletId: transaction.wallet_id,
+      walletName: walletMap.get(transaction.wallet_id)?.name ?? "Wallet",
+      amount: transaction.amount,
+      kind: transaction.kind,
+      happenedAt: transaction.happened_at,
+      note: transaction.note,
+      categoryName: transaction.category_id ? categoryMap.get(transaction.category_id)?.name ?? "Tanpa kategori" : "Tanpa kategori"
+    }))
+  };
 }
 
 function groupSpentByCategory(transactions: TransactionRow[]) {

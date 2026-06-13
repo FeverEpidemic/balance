@@ -29,6 +29,7 @@ export function buildAiSystemPrompt(input: {
   period: RekapPeriod;
   latestUserMessage: string;
   categoryFocus: AiCategoryFocus | null;
+  todayDate?: string;
   compact?: boolean;
   runningSummary?: string;
 }) {
@@ -117,6 +118,7 @@ ${walletList}
 
 Pertanyaan user saat ini:
 - ${input.latestUserMessage}
+- Tanggal acuan hari ini: ${input.todayDate ?? "tidak tersedia"}
 
 Rekap aktif:
 - Periode: ${input.period}
@@ -151,6 +153,8 @@ Kemampuan tool:
 - Kamu bisa memakai createTransaction untuk mencatat transaksi baru hanya setelah user secara eksplisit meminta pencatatan atau memberi konfirmasi jelas.
 - Kamu bisa memakai confirmTransaction untuk mengonfirmasi transaksi yang sebelumnya mendapat respons NEEDS_CONFIRMATION. Hanya panggil setelah user memberikan konfirmasi eksplisit.
 - Kamu bisa memakai createBudget, updateBudget, dan deleteBudget untuk mengelola anggaran bulanan per kategori.
+- Untuk pertanyaan transaksi pada tanggal tertentu atau relatif seperti "kemarin", "hari ini", atau "minggu ini", pakai getTransactions dengan startDate/endDate yang sesuai agar jawaban tidak hanya berdasarkan ringkasan.
+- Jika user menanyakan jumlah atau daftar transaksi, utamakan hasil tool getTransactions dan sebutkan totalMatched jika tersedia.
 
 Aturan saat mengelola anggaran:
 - Sebelum membuat anggaran, pastikan kategori dan wallet sudah jelas. Gunakan getCategories jika perlu.
