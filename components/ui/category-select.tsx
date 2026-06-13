@@ -7,6 +7,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectItemText,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/shadcn/select";
@@ -16,6 +17,8 @@ type CategoryOption = {
   name: string;
   kind: "income" | "expense";
 };
+
+const NO_CATEGORY_SENTINEL = "__none__";
 
 export function CategorySelect({
   categories,
@@ -34,13 +37,18 @@ export function CategorySelect({
   name: string;
   required?: boolean;
 }) {
-  const [selectedId, setSelectedId] = useState(defaultValue ?? (includeEmptyOption ? "" : categories[0]?.id ?? ""));
+  const resolveInitial = () => {
+    if (defaultValue) return defaultValue;
+    if (includeEmptyOption) return NO_CATEGORY_SENTINEL;
+    return categories[0]?.id ?? "";
+  };
+  const [selectedId, setSelectedId] = useState(resolveInitial);
   const selectedCategory = useMemo(() => categories.find((category) => category.id === selectedId) ?? null, [categories, selectedId]);
 
   return (
     <div className={cn("relative", className)}>
       {/* Hidden input for form submission */}
-      <input type="hidden" name={name} value={selectedId} />
+      <input type="hidden" name={name} value={selectedId === NO_CATEGORY_SENTINEL ? "" : selectedId} />
       <Select
         value={selectedId}
         onValueChange={(value) => setSelectedId(value)}
@@ -63,19 +71,17 @@ export function CategorySelect({
         </SelectTrigger>
         <SelectContent>
           {includeEmptyOption ? (
-            <SelectItem value="">{emptyLabel ?? "No category"}</SelectItem>
+            <SelectItem value={NO_CATEGORY_SENTINEL}>{emptyLabel ?? "No category"}</SelectItem>
           ) : null}
           {categories.map((category) => (
             <SelectItem key={category.id} value={category.id}>
-              <div className="flex items-center gap-2">
-                <CategoryIcon
-                  categoryName={category.name}
-                  kind={category.kind}
-                  className="h-4 w-4"
-                  tone={category.kind === "income" ? "success" : "danger"}
-                />
-                <span>{category.name}</span>
-              </div>
+              <CategoryIcon
+                categoryName={category.name}
+                kind={category.kind}
+                className="h-4 w-4 shrink-0"
+                tone={category.kind === "income" ? "success" : "danger"}
+              />
+              <SelectItemText>{category.name}</SelectItemText>
             </SelectItem>
           ))}
         </SelectContent>

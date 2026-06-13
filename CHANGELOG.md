@@ -18,6 +18,14 @@
 
 - **OG Image card untuk link preview** — Balance kini punya kartu Open Graph 1200×630px yang tampil saat link dibagikan ke Telegram, WhatsApp, Twitter, atau Discord. Desain warm minimalist: krem #fbf9f3, headline sage #595f3d, dan kurva pertumbuhan di sisi kanan.
 
+### Fixed
+
+- **Ikon kategori duplikat di dropdown teratasi** — Ikon kategori tidak lagi muncul ganda di trigger `SelectTrigger` saat kategori dipilih. Kini hanya teks kategori yang terbaca oleh Radix `SelectItemText`, sementara ikon tetap sebagai dekorasi visual di daftar dropdown saja.
+
+- **Dropdown kategori bisa di-scroll** — Konten dropdown kategori kini memiliki tinggi maksimum (`max-h-60`) sehingga daftar kategori yang panjang bisa di-scroll secara alami di mobile dan desktop, tanpa terpotong setinggi satu baris trigger.
+
+- **Edit transaksi dari History tidak lagi crash** — Modal edit History untuk transaksi tanpa kategori sebelumnya error karena Radix Select menolak `value=""`. Kini menggunakan sentinel internal sehingga modal tetap terbuka normal dan server tetap menerima `""` untuk kategori kosong.
+
 ### Changed
 
 - **Kontrol mobile diperkecil lagi** — Mengunci `text-size-adjust` browser mobile dan menurunkan ukuran chip, tab, select context, subtitle hero, serta metrik Dashboard/Chat yang masih tampak terlalu besar di perangkat Android.

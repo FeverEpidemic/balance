@@ -13,6 +13,25 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.8.11",
+    date: "2026-06-13",
+    title: "Perbaikan dropdown kategori dan ikon duplikat",
+    description: "Ikon kategori tidak lagi muncul ganda di trigger dropdown saat kategori dipilih. Dropdown kategori kini bisa di-scroll dengan nyaman di mobile dan desktop.",
+    features: [
+      { icon: "🎯", text: "Ikon kategori di trigger dropdown tidak lagi duplikat — hanya teks yang tampil di selected value." },
+      { icon: "📜", text: "Dropdown kategori memiliki tinggi maksimum dan bisa di-scroll secara alami saat daftar panjang." },
+    ]
+  },
+  {
+    version: "1.8.10",
+    date: "2026-06-13",
+    title: "Perbaikan edit transaksi dari History",
+    description: "Modal edit History untuk transaksi tanpa kategori sebelumnya error karena Radix Select menolak value kosong. Kini diperbaiki dengan sentinel internal sehingga modal terbuka normal dan server tetap menerima data kategori kosong.",
+    features: [
+      { icon: "🛠️", text: "Edit transaksi dari History tidak lagi crash saat transaksi tanpa kategori." },
+    ]
+  },
+  {
     version: "1.8.9",
     date: "2026-06-13",
     title: "Multi-mata uang (multi-currency)",
