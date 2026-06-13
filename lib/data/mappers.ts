@@ -292,9 +292,12 @@ export function buildDashboardOnboarding(args: {
   shell: ShellData;
   wallets: WalletRow[];
   hasManualTransaction: boolean;
+  categories: CategoryRow[];
+  budgets: BudgetRow[];
+  savings: SavingRow[];
   locale?: AppLocale;
 }) {
-  const { shell, wallets, hasManualTransaction, locale = defaultLocale } = args;
+  const { shell, wallets, hasManualTransaction, categories, budgets, savings, locale = defaultLocale } = args;
   const persistedState = shell.onboardingState ?? "active";
 
   if (persistedState === "dismissed" || shell.onboardingDismissedAt) {
@@ -318,15 +321,28 @@ export function buildDashboardOnboarding(args: {
   }
 
   const hasWallet = wallets.length > 0;
-  const transactionsHref = shell.primaryWalletId ? `/wallets/${shell.primaryWalletId}/transactions` : "/wallets";
-  const reviewComplete = hasWallet && hasManualTransaction;
+  const primaryWalletHref = shell.primaryWalletId ? `/wallets/${shell.primaryWalletId}` : "/dashboard";
+  const transactionsHref = shell.primaryWalletId ? `/wallets/${shell.primaryWalletId}/transactions` : "/dashboard";
+  const categoriesHref = shell.primaryWalletId ? `/wallets/${shell.primaryWalletId}/categories` : "/dashboard";
+  const budgetsHref = shell.primaryWalletId ? `/wallets/${shell.primaryWalletId}/budgets` : "/dashboard";
+  const savingsHref = shell.primaryWalletId ? `/wallets/${shell.primaryWalletId}/savings` : "/dashboard";
+
+  const hasCustomCategory = categories.some((category) => !category.is_system);
+  const hasBudget = budgets.length > 0;
+  const hasSaving = savings.length > 0;
+  const organizeComplete = hasCustomCategory || hasBudget;
+
+  const organizeHref = hasCustomCategory ? budgetsHref : categoriesHref;
+  const organizeCta = hasCustomCategory
+    ? translate(locale, "dashboard.onboardingStep3CtaViewBudgets")
+    : translate(locale, "dashboard.onboardingStep3CtaCreateCategory");
 
   const steps = [
     {
       id: "create_wallet",
       title: translate(locale, "dashboard.onboardingStep1Title"),
       description: translate(locale, "dashboard.onboardingStep1Description"),
-      href: "/wallets",
+      href: hasWallet ? primaryWalletHref : "/dashboard",
       ctaLabel: hasWallet
         ? translate(locale, "dashboard.onboardingStep1CtaView")
         : translate(locale, "dashboard.onboardingStep1CtaCreate"),
@@ -343,12 +359,22 @@ export function buildDashboardOnboarding(args: {
       isComplete: hasManualTransaction
     },
     {
-      id: "review_dashboard",
+      id: "organize_wallet",
       title: translate(locale, "dashboard.onboardingStep3Title"),
       description: translate(locale, "dashboard.onboardingStep3Description"),
-      href: "#ringkasan-finansial",
-      ctaLabel: translate(locale, "dashboard.onboardingStep3Cta"),
-      isComplete: reviewComplete
+      href: organizeHref,
+      ctaLabel: organizeCta,
+      isComplete: organizeComplete
+    },
+    {
+      id: "start_saving",
+      title: translate(locale, "dashboard.onboardingStep4Title"),
+      description: translate(locale, "dashboard.onboardingStep4Description"),
+      href: savingsHref,
+      ctaLabel: hasSaving
+        ? translate(locale, "dashboard.onboardingStep4CtaView")
+        : translate(locale, "dashboard.onboardingStep4CtaCreate"),
+      isComplete: hasSaving
     }
   ] satisfies DashboardOnboardingStep[];
 
@@ -630,6 +656,9 @@ export function createDashboardData(args: {
       shell,
       wallets,
       hasManualTransaction: hasManualTransaction ?? monthTransactions.some((row) => row.source === "manual"),
+      categories,
+      budgets,
+      savings,
       locale
     }),
     totalAvailableBalance: walletSummaries.reduce((total, wallet) => total + wallet.availableBalance, 0),

@@ -13,6 +13,18 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.14.0",
+    date: "2026-06-13",
+    title: "Onboarding dashboard — alur setup 4 langkah",
+    description: "Checklist onboarding di dashboard kini mengikuti alur produk saat ini: buat wallet, catat transaksi, rapikan kategori/anggaran, dan mulai menabung. CTA mengarah ke halaman yang relevan di wallet utama.",
+    features: [
+      { icon: "🪜", text: "4 langkah onboarding: buat wallet, catat transaksi, rapikan kategori & anggaran, mulai menabung." },
+      { icon: "🧭", text: "CTA onboarding mengarah ke halaman yang relevan (mis. /wallets/{id}/categories, /budgets, /savings) — bukan lagi ke halaman /wallets." },
+      { icon: "✅", text: "Auto-complete tetap berjalan: langkah dianggap selesai berdasarkan aksi nyata (wallet ada, transaksi manual tercatat, kategori kustom atau anggaran dibuat, tabungan dibuat)." },
+      { icon: "🎨", text: "Tata letak kartu onboarding mengikuti grid responsif baru agar tetap rapi dengan 4 langkah (2 kolom di tablet, 4 di desktop)." }
+    ]
+  },
+  {
     version: "1.13.0",
     date: "2026-06-24",
     title: "FAQ Landing, Badge Baru & Halaman Legal",

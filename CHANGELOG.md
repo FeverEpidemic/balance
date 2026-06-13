@@ -4,6 +4,7 @@
 
 ### Added
 
+- **Onboarding dashboard diperbarui — alur setup 4 langkah** — Checklist onboarding di dashboard kini mengikuti alur produk saat ini: buat wallet, catat transaksi, rapikan kategori/anggaran, dan mulai menabung. CTA mengarah ke halaman yang relevan di wallet utama (mis. `/wallets/{id}/categories`, `/wallets/{id}/budgets`, `/wallets/{id}/savings`).
 - **Free Trial 7 Hari** — Setiap akun baru otomatis mendapat akses Premium selama 7 hari. Status trial ditampilkan di Settings. Setelah trial habis, akun kembali ke Free secara otomatis.
 - **Landing FAQ, badge repositioning & legal pages** — Landing page now has a FAQ accordion section before the CTA. Hero badges moved to above the features grid, with two new badges (Dark mode, AI Assistant). Footer links to both Privacy Policy and Terms of Service.
 - **Kebijakan Privasi diperbarui** — Privacy policy expanded with dedicated sections on AI processing (OpenAI), shared wallet data visibility, PWA behavior, and cookies. All existing sections refreshed to reflect current app behavior.

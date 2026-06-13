@@ -201,7 +201,7 @@ export type ShellData = {
 };
 
 export type DashboardOnboardingStep = {
-  id: "create_wallet" | "add_transaction" | "review_dashboard";
+  id: "create_wallet" | "add_transaction" | "organize_wallet" | "start_saving";
   title: string;
   description: string;
   href: string;

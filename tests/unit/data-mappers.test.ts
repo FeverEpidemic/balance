@@ -269,11 +269,12 @@ describe("data mappers", () => {
       isVisible: true,
       state: "active",
       completedSteps: 0,
-      totalSteps: 3
+      totalSteps: 4
     });
     expect(dashboard.onboarding.steps[0]).toMatchObject({
       id: "create_wallet",
-      isComplete: false
+      isComplete: false,
+      href: "/dashboard"
     });
   });
 
@@ -293,9 +294,11 @@ describe("data mappers", () => {
       budgets: [],
       recentTransactions: [],
       monthTransactions: transactions.filter((transaction) => transaction.source !== "manual"),
-      savings: savings.filter((saving) => saving.wallet_id === "w1"),
-      savingEntries: savingEntries.filter((entry) => entry.wallet_id === "w1"),
-      categories: categories.filter((category) => category.wallet_id === "w1"),
+      savings: [],
+      savingEntries: [],
+      categories: categories
+        .filter((category) => category.wallet_id === "w1")
+        .map((category) => ({ ...category, is_system: true })),
       splits: [],
       month: "2026-05"
     });
@@ -304,10 +307,140 @@ describe("data mappers", () => {
       isVisible: true,
       state: "active",
       completedSteps: 1,
-      totalSteps: 3
+      totalSteps: 4
     });
     expect(dashboard.onboarding.steps[0]?.isComplete).toBe(true);
     expect(dashboard.onboarding.steps[1]?.isComplete).toBe(false);
+    expect(dashboard.onboarding.steps[2]?.isComplete).toBe(false);
+    expect(dashboard.onboarding.steps[3]?.isComplete).toBe(false);
+  });
+
+  it("completes the organize step when the wallet has a custom category or any budget", () => {
+    const customCategoryDashboard = createDashboardData({
+      shell: {
+        ...shell,
+        walletCount: 1,
+        budgetCount: 0,
+        memberCount: 1,
+        primaryWalletId: "w1",
+        onboardingState: "active"
+      },
+      memberships: [{ wallet_id: "w1", user_id: "u1", role: "owner" }],
+      wallets: [wallets[0]],
+      memberRows: [{ wallet_id: "w1", user_id: "u1", role: "owner" }],
+      budgets: [],
+      recentTransactions: [],
+      monthTransactions: [transactions[0]],
+      savings: [],
+      savingEntries: [],
+      categories: categories.filter((category) => category.wallet_id === "w1"),
+      splits: [],
+      month: "2026-05"
+    });
+
+    expect(customCategoryDashboard.onboarding.steps[2]).toMatchObject({
+      id: "organize_wallet",
+      isComplete: true,
+      href: "/wallets/w1/budgets"
+    });
+
+    const budgetOnlyDashboard = createDashboardData({
+      shell: {
+        ...shell,
+        walletCount: 1,
+        budgetCount: 1,
+        memberCount: 1,
+        primaryWalletId: "w1",
+        onboardingState: "active"
+      },
+      memberships: [{ wallet_id: "w1", user_id: "u1", role: "owner" }],
+      wallets: [wallets[0]],
+      memberRows: [{ wallet_id: "w1", user_id: "u1", role: "owner" }],
+      budgets: [budgets[0]],
+      recentTransactions: [],
+      monthTransactions: [transactions[0]],
+      savings: [],
+      savingEntries: [],
+      categories: categories
+        .filter((category) => category.wallet_id === "w1")
+        .map((category) => ({ ...category, is_system: true })),
+      splits: [],
+      month: "2026-05"
+    });
+
+    expect(budgetOnlyDashboard.onboarding.steps[2]).toMatchObject({
+      id: "organize_wallet",
+      isComplete: true,
+      href: "/wallets/w1/categories"
+    });
+  });
+
+  it("completes the savings step when any wallet has a saving record", () => {
+    const dashboard = createDashboardData({
+      shell: {
+        ...shell,
+        walletCount: 1,
+        budgetCount: 0,
+        memberCount: 1,
+        primaryWalletId: "w1",
+        onboardingState: "active"
+      },
+      memberships: [{ wallet_id: "w1", user_id: "u1", role: "owner" }],
+      wallets: [wallets[0]],
+      memberRows: [{ wallet_id: "w1", user_id: "u1", role: "owner" }],
+      budgets: [],
+      recentTransactions: [],
+      monthTransactions: [],
+      savings: [savings[0]],
+      savingEntries: [],
+      categories: categories.filter((category) => category.wallet_id === "w1"),
+      splits: [],
+      month: "2026-05"
+    });
+
+    expect(dashboard.onboarding.steps[3]).toMatchObject({
+      id: "start_saving",
+      isComplete: true,
+      href: "/wallets/w1/savings"
+    });
+  });
+
+  it("reaches the completed state when all four onboarding steps are done", () => {
+    const dashboard = createDashboardData({
+      shell: {
+        ...shell,
+        walletCount: 1,
+        budgetCount: 1,
+        memberCount: 1,
+        primaryWalletId: "w1",
+        onboardingState: "active"
+      },
+      memberships: [{ wallet_id: "w1", user_id: "u1", role: "owner" }],
+      wallets: [wallets[0]],
+      memberRows: [{ wallet_id: "w1", user_id: "u1", role: "owner" }],
+      budgets: [budgets[0]],
+      recentTransactions: [],
+      monthTransactions: [transactions[0]],
+      savings: [savings[0]],
+      savingEntries: [],
+      categories: categories.filter((category) => category.wallet_id === "w1"),
+      splits: [],
+      month: "2026-05"
+    });
+
+    expect(dashboard.onboarding).toMatchObject({
+      isVisible: true,
+      state: "completed",
+      completedSteps: 4,
+      totalSteps: 4
+    });
+    expect(dashboard.onboarding.steps.map((step) => step.id)).toEqual([
+      "create_wallet",
+      "add_transaction",
+      "organize_wallet",
+      "start_saving"
+    ]);
+    expect(dashboard.onboarding.steps.every((step) => step.isComplete)).toBe(true);
   });
 
   it("hides onboarding when the profile has already dismissed it", () => {

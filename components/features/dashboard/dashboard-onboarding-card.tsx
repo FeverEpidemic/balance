@@ -78,7 +78,7 @@ export function DashboardOnboardingCard({ onboarding }: { onboarding: DashboardO
         </div>
       </div>
 
-      <div className="mt-6 grid gap-3 lg:grid-cols-3">
+      <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {onboarding.steps.map((step, index) => (
           <article
             key={step.id}
