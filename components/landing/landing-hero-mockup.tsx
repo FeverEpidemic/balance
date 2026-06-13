@@ -129,10 +129,17 @@ function SlideTransactions() {
 
 function SlideDarkOverview() {
   return (
-    <div className="flex h-full flex-col gap-4 p-5 md:p-6" style={{ background: "#171c16", color: "#edf1e6" }}>
+    <div
+      className="flex h-full flex-col gap-4 p-5 md:p-6"
+      style={{
+        background:
+          "radial-gradient(circle at 82% 16%, rgba(232, 188, 103, 0.16), transparent 26%), radial-gradient(circle at 18% 14%, rgba(194, 211, 166, 0.12), transparent 32%), linear-gradient(180deg, #1e261d 0%, #1a2119 100%)",
+        color: "#edf1e6"
+      }}
+    >
       {/* Saldo utama */}
       <div>
-        <p className="font-label text-xs uppercase tracking-[0.16em]" style={{ color: "#b7c0af" }}>
+        <p className="font-label text-xs uppercase tracking-[0.16em]" style={{ color: "#d4ddca" }}>
           Saldo Utama
         </p>
         <p className="metric mt-1 text-3xl md:text-[2.2rem]" style={{ color: "#edf1e6" }}>
@@ -142,36 +149,63 @@ function SlideDarkOverview() {
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-xl p-4" style={{ background: "#20271f", border: "1px solid #364033" }}>
-          <p className="font-label text-xs uppercase tracking-[0.14em]" style={{ color: "#b7c0af" }}>
+        <div
+          className="rounded-xl p-4"
+          style={{
+            background: "linear-gradient(180deg, rgba(53, 66, 50, 0.98), rgba(45, 56, 44, 0.98))",
+            border: "1px solid #4a5c44",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04), 0 14px 28px -24px rgba(0,0,0,0.55)"
+          }}
+        >
+          <p className="font-label text-xs uppercase tracking-[0.14em]" style={{ color: "#d4ddca" }}>
             Pengeluaran Bulan Ini
           </p>
-          <p className="metric mt-2 text-xl" style={{ color: "#e1a1a1" }}>
+          <p className="metric mt-2 text-xl" style={{ color: "#efb0a7" }}>
             Rp3.200.000
           </p>
         </div>
-        <div className="rounded-xl p-4" style={{ background: "#20271f", border: "1px solid #364033" }}>
-          <p className="font-label text-xs uppercase tracking-[0.14em]" style={{ color: "#b7c0af" }}>
+        <div
+          className="rounded-xl p-4"
+          style={{
+            background: "linear-gradient(180deg, rgba(53, 66, 50, 0.98), rgba(45, 56, 44, 0.98))",
+            border: "1px solid #4a5c44",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04), 0 14px 28px -24px rgba(0,0,0,0.55)"
+          }}
+        >
+          <p className="font-label text-xs uppercase tracking-[0.14em]" style={{ color: "#d4ddca" }}>
             Pemasukan
           </p>
-          <p className="metric mt-2 text-xl" style={{ color: "#8fc48f" }}>
+          <p className="metric mt-2 text-xl" style={{ color: "#a9d3a2" }}>
             Rp5.100.000
           </p>
         </div>
       </div>
 
       {/* Budget bar */}
-      <div className="mt-auto rounded-xl p-4" style={{ background: "#242c23" }}>
+      <div
+        className="mt-auto rounded-xl p-4"
+        style={{
+          background: "linear-gradient(180deg, rgba(45, 56, 44, 0.96), rgba(39, 48, 38, 0.96))",
+          border: "1px solid rgba(74, 92, 68, 0.76)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.03)"
+        }}
+      >
         <div className="flex items-center justify-between">
-          <p className="font-label text-xs uppercase tracking-[0.14em]" style={{ color: "#b7c0af" }}>
+          <p className="font-label text-xs uppercase tracking-[0.14em]" style={{ color: "#d4ddca" }}>
             Kebutuhan Pokok
           </p>
-          <p className="font-label text-xs" style={{ color: "#c3caa1" }}>
+          <p className="font-label text-xs" style={{ color: "#e3ca8c" }}>
             68%
           </p>
         </div>
-        <div className="mt-2 h-2.5 rounded-full" style={{ background: "#364033" }}>
-          <div className="h-2.5 w-[68%] rounded-full" style={{ background: "#c3caa1" }} />
+        <div className="mt-2 h-2.5 rounded-full" style={{ background: "#445441" }}>
+          <div
+            className="h-2.5 w-[68%] rounded-full"
+            style={{
+              background: "linear-gradient(90deg, #ced8aa 0%, #e3ca8c 100%)",
+              boxShadow: "0 0 18px rgba(227, 202, 140, 0.28)"
+            }}
+          />
         </div>
       </div>
     </div>
@@ -250,8 +284,15 @@ export function LandingHeroMockup() {
       <div aria-hidden="true" className="relative">
         {/* Background glow */}
         <div className="absolute inset-x-8 top-4 h-40 rounded-full bg-primary-soft/60 blur-3xl" />
+        <div
+          className="absolute right-10 top-10 h-24 w-24 rounded-full blur-3xl"
+          style={{ background: "rgba(232, 188, 103, 0.18)" }}
+        />
         {/* Browser frame */}
-        <div className="relative overflow-hidden rounded-[1.5rem] border bg-card shadow-float">
+        <div
+          className="relative overflow-hidden rounded-[1.5rem] border bg-card shadow-float"
+          style={{ boxShadow: "var(--shadow-float), 0 0 0 1px rgba(232, 188, 103, 0.06)" }}
+        >
           {/* Chrome bar */}
           <div className="flex h-9 items-center gap-2 border-b bg-card px-4">
             <div className="flex gap-1.5">
@@ -276,11 +317,16 @@ export function LandingHeroMockup() {
     <div aria-hidden="true" className="relative">
       {/* Background glow */}
       <div className="absolute inset-x-8 top-4 h-40 rounded-full bg-primary-soft/60 blur-3xl" />
+      <div
+        className="absolute right-10 top-10 h-24 w-24 rounded-full blur-3xl"
+        style={{ background: "rgba(232, 188, 103, 0.18)" }}
+      />
 
       {/* Browser frame */}
       <div
         ref={containerRef}
         className="relative overflow-hidden rounded-[1.5rem] border bg-card shadow-float"
+        style={{ boxShadow: "var(--shadow-float), 0 0 0 1px rgba(232, 188, 103, 0.06)" }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onFocus={handleFocus}

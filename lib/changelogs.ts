@@ -13,6 +13,29 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.14.9",
+    date: "2026-06-13",
+    title: "Landing page sekarang punya toggle light dan dark",
+    description: "Pengunjung landing kini bisa memilih mode terang atau gelap langsung dari header. Pilihannya memakai mekanisme theme yang sama dengan Balance supaya halaman publik tetap konsisten tanpa perlu login.",
+    features: [
+      { icon: "🌓", text: "Toggle light/dark baru tersedia langsung di header landing desktop dan menu mobile." },
+      { icon: "🍪", text: "Pilihan tema disimpan lewat cookie yang sama dengan Balance, jadi preferensi tetap terbaca saat membuka halaman publik lain." },
+      { icon: "🌲", text: "Jika mode gelap dipilih, landing tetap memakai versi warm forest yang lebih ramah dibaca." }
+    ]
+  },
+  {
+    version: "1.14.8",
+    date: "2026-06-13",
+    title: "Landing dark mode kini lebih hangat dan mengundang",
+    description: "Dark mode di landing page sekarang terasa lebih ramah dibaca: background bergeser ke warm forest, gradient ambient lebih terlihat, dan mockup hero punya glow yang lebih hangat. Dashboard dan halaman app internal tidak berubah.",
+    features: [
+      { icon: "🌲", text: "Landing page dark mode kini memakai background forest yang sedikit lebih terang agar terasa hangat, bukan hitam pekat." },
+      { icon: "✨", text: "Gradient body di landing dibuat lebih terlihat dengan campuran sage, soft green, dan amber glow yang halus." },
+      { icon: "🪟", text: "Card, border, dan muted text di landing dark mode ditingkatkan kontrasnya supaya section lebih mudah dipindai." },
+      { icon: "🖥️", text: "Mockup hero dark slide ikut dipoles dengan aksen glow hangat tanpa mengubah tema dark dashboard asli di dalam aplikasi." }
+    ]
+  },
+  {
     version: "1.14.7",
     date: "2026-06-13",
     title: "Kartu transaksi kini lebih ringkas",

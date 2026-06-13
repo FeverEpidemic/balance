@@ -1,3 +1,4 @@
+import type { Viewport } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
@@ -7,6 +8,14 @@ import { LandingHeader } from "@/components/landing/landing-header";
 import { LandingHeroMockup } from "@/components/landing/landing-hero-mockup";
 import { localizePath, resolveLocale, getTranslator } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#595f3d" },
+    { media: "(prefers-color-scheme: dark)", color: "#1e261d" }
+  ]
+};
+
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: localeParam } = await params;
   const locale = resolveLocale(localeParam);
@@ -45,7 +54,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   return (
     <>
       <LandingHeader />
-      <main className="page-wrap pb-12 pt-3 md:pb-16 md:pt-5">
+      <main className="landing-page page-wrap pb-12 pt-3 md:pb-16 md:pt-5">
       <section className="grid gap-10 py-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center lg:py-14">
         <div>
           <p className="eyebrow">{t("landing.eyebrow")}</p>

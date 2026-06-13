@@ -5,6 +5,7 @@
 ### Added
 
 - **Compliance gate untuk AI Chat DeepSeek** — AI Chat sekarang memerlukan persetujuan eksplisit sebelum bisa dipakai. User mendapat disclosure yang jelas tentang pengiriman pertanyaan, konteks wallet relevan, dan riwayat chat ke DeepSeek, lalu bisa mematikan AI Chat kapan saja dari halaman Settings.
+- **Toggle light/dark di landing page** — Pengunjung landing sekarang bisa langsung mengganti tampilan terang atau gelap dari header tanpa masuk ke aplikasi. Toggle ini memakai mekanisme theme yang sama dengan Balance, jadi preferensinya tetap konsisten di halaman publik lain.
 - **Search & sort lengkap di Riwayat Transaksi** — Halaman Riwayat Lengkap kini memakai pencarian dan pengurutan berbasis server untuk seluruh transaksi pada bulan aktif. User bisa mencari berdasarkan catatan, kategori, atau jenis transaksi, lalu mengurutkan berdasarkan tanggal, nominal, kategori, dan jenis tanpa membuat halaman stuck saat mengetik.
 - **Onboarding dashboard diperbarui — alur setup 4 langkah** — Checklist onboarding di dashboard kini mengikuti alur produk saat ini: buat wallet, catat transaksi, rapikan kategori/anggaran, dan mulai menabung. CTA mengarah ke halaman yang relevan di wallet utama (mis. `/wallets/{id}/categories`, `/wallets/{id}/budgets`, `/wallets/{id}/savings`).
 - **Free Trial 7 Hari** — Setiap akun baru otomatis mendapat akses Premium selama 7 hari. Status trial ditampilkan di Settings. Setelah trial habis, akun kembali ke Free secara otomatis.
@@ -15,6 +16,7 @@
 
 ### Changed
 
+- **Landing dark mode khusus halaman publik dibuat lebih hangat** — Dark mode di landing page kini memakai forest background yang lebih hangat, ambient gradient sage-amber yang lebih terlihat, kartu dengan kontras lebih jelas, dan mockup hero yang terasa lebih inviting. Dashboard dan halaman internal tetap memakai dark mode fokus yang lama.
 - **OG metadata diperjelas & redirect locale publik jadi permanen** — Metadata `openGraph` kini memakai URL produksi (`https://mybalance.my.id`), judul/deskripsi Bahasa Indonesia yang lebih sesuai brand, dan detail image lengkap (`type`, `alt`). Redirect canonical publik di middleware (root `/` dan path tanpa locale) sekarang menggunakan status `301` agar crawler memahami hirarki URL permanen. Redirect berbasis auth/sesi tetap `307` (temporary).
 
 - **Kartu transaksi dibuat lebih ringkas dan konsisten** — Daftar transaksi terbaru di dashboard, daftar transaksi di halaman transaksi, dan Riwayat Lengkap kini punya density yang lebih ringan. Ikon kategori diperkecil, metadata diringkas jadi satu baris utama, badge status hanya muncul saat penting, dan area aksi edit/hapus tidak lagi membuat kartu terasa gemuk.
