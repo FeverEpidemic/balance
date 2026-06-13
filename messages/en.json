@@ -254,7 +254,17 @@
     "currencyTitle": "Default Currency",
     "currencyDescription": "Choose the default currency for new wallets. Each wallet can be changed to its own currency later.",
     "currencyUpdated": "Default currency updated successfully.",
-    "invalidCurrency": "Invalid currency."
+    "invalidCurrency": "Invalid currency.",
+    "planTitle": "Subscription Plan",
+    "planDescription": "What features you can access depends on your active plan.",
+    "planStatusLabel": "Status",
+    "planStatusFree": "Free",
+    "planStatusPremium": "Premium",
+    "planBenefitAiChatFree": "AI Chat: {limit} messages/day",
+    "planBenefitAiChatPremium": "AI Chat: unlimited",
+    "planBenefitTransactionUnlimited": "Manual transactions: unlimited",
+    "planBenefitApiAlways": "API Key & AI integration: always free",
+    "planUpgradeCta": "Want to upgrade to Premium? Contact the admin."
   },
   "offline": {
     "eyebrow": "Offline mode",

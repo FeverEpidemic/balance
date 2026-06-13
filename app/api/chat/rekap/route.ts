@@ -33,6 +33,8 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // Read-only endpoint — no plan limits apply. API integration is always free.
+
   const { searchParams } = new URL(request.url);
   const periodParam = searchParams.get("period") ?? "month";
   let period: RekapPeriod = "month";

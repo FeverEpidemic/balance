@@ -21,6 +21,7 @@ export type ProfileRow = {
   onboarding_completed_at: string | null;
   timezone: string | null;
   default_currency: string;
+  plan_type: "free" | "premium";
 };
 
 export type WalletRow = {
@@ -172,6 +173,8 @@ export type SettingsData = {
   themePreference: ThemePreference;
   timezone: string | null;
   defaultCurrency: string;
+  planType: "free" | "premium";
+  aiChatDailyLimit: number | null;
 };
 
 export type ShellData = {

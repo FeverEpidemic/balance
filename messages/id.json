@@ -254,7 +254,17 @@
     "currencyTitle": "Mata uang",
     "currencyDescription": "Pilih mata uang default untuk wallet baru. Tiap wallet bisa diubah mata uangnya sendiri nanti.",
     "currencyUpdated": "Mata uang default berhasil diperbarui.",
-    "invalidCurrency": "Mata uang tidak valid."
+    "invalidCurrency": "Mata uang tidak valid.",
+    "planTitle": "Paket Langganan",
+    "planDescription": "Fitur apa saja yang bisa kamu akses tergantung paket yang aktif.",
+    "planStatusLabel": "Status",
+    "planStatusFree": "Free",
+    "planStatusPremium": "Premium",
+    "planBenefitAiChatFree": "AI Chat: {limit} pesan/hari",
+    "planBenefitAiChatPremium": "AI Chat: tidak terbatas",
+    "planBenefitTransactionUnlimited": "Transaksi manual: tidak terbatas",
+    "planBenefitApiAlways": "API Key & integrasi AI sendiri: selalu gratis",
+    "planUpgradeCta": "Ingin upgrade ke Premium? Hubungi admin."
   },
   "offline": {
     "eyebrow": "Mode offline",

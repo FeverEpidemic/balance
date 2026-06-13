@@ -22,6 +22,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // API key endpoints intentionally bypass plan limits (monthly transaction cap, AI chat daily limit).
+  // API integration is always free — no checkFreeTransactionLimit / incrementTransactionCount here.
+
   let body: Record<string, unknown>;
   try {
     body = await request.json();

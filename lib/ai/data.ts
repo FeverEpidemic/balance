@@ -6,7 +6,6 @@ import { getPeriodRange, getPreviousPeriodRange, type RekapPeriod } from "@/lib/
 import { queryBudgets, queryCategories, queryCurrentUserWalletIds, queryTransactions, queryWallets } from "@/lib/data/queries";
 import type { BudgetRow, CategoryRow, TransactionKind, TransactionRow, WalletRow } from "@/lib/data/types";
 import { consumeTransactionRateLimit } from "@/lib/rate-limit";
-import { checkFreeTransactionLimit, incrementTransactionCount } from "@/lib/transaction-limits";
 import { createClient } from "@/lib/supabase/server";
 import { combineDateAndTime, dateStringToISO, getTodayDateString, isValidDateString } from "@/lib/utils";
 import { getActionTranslator, getWalletMemberUserIds, revalidateWalletPaths } from "@/app/actions/_shared";
@@ -402,18 +401,6 @@ export async function createTransactionViaAi(userId: string, params: AiCreateTra
 
   const happenedAt = combineDateAndTime(happenedAtDate, happenedAtTime);
 
-  const transactionLimit = await checkFreeTransactionLimit(userId);
-
-  if (!transactionLimit.allowed) {
-    return {
-      ok: false,
-      code: "FREE_TIER_TRANSACTION_LIMIT_REACHED",
-      message: t("actionErrors.freeTierTransactionLimitReached", {
-        maxTransactions: transactionLimit.maxMonthlyTransactions
-      })
-    };
-  }
-
   const rateLimit = await consumeTransactionRateLimit(userId);
 
   if (!rateLimit.allowed) {
@@ -472,8 +459,6 @@ export async function createTransactionViaAi(userId: string, params: AiCreateTra
       message: mapTransactionError(error?.message ?? "TRANSACTION_INSERT_FAILED", t("actionStatus.linkedSavingTransaction"))
     };
   }
-
-  await incrementTransactionCount(userId);
 
   const dashboardUserIds = await getWalletMemberUserIds(supabase, params.walletId);
   await invalidateWalletReadCaches(params.walletId, {

@@ -20,6 +20,7 @@ import { type RekapPeriod } from "@/lib/chat-auth";
 import { formatCurrency } from "@/lib/utils";
 import { LOCALE_COOKIE_NAME, getTranslator, resolveLocale } from "@/lib/i18n";
 import { applyDailyLimitHeaders, applyRateLimitHeaders, consumeAiChatDailyLimit, consumeAiChatRateLimit, type RateLimitResult } from "@/lib/rate-limit";
+import { getPlanPolicy } from "@/lib/plan";
 import { budgetConversationMessages, estimateConversationTokens } from "@/lib/ai/token-budget";
 import { getAiChatTokenBudget } from "@/lib/env";
 
@@ -114,7 +115,11 @@ export async function POST(request: Request) {
     return createFriendlyFallbackStream(t("chat.emptyPrompt"));
   }
 
-  const aiDailyLimit = await consumeAiChatDailyLimit(user.id);
+  // Plan-aware daily limit: premium users skip the daily cap entirely.
+  const planPolicy = await getPlanPolicy(user.id);
+  const aiDailyLimit = planPolicy.aiChatDailyLimit === null
+    ? { allowed: true, limit: Infinity, remaining: Infinity, resetAt: 0, usedRedis: false } satisfies RateLimitResult
+    : await consumeAiChatDailyLimit(user.id);
 
   if (!aiDailyLimit.allowed) {
     return applyDailyLimitHeaders(createFriendlyFallbackStream(t("ai.dailyRateLimited"), { status: 429 }), aiDailyLimit);

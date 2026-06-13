@@ -13,6 +13,18 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.9.0",
+    date: "2026-06-14",
+    title: "Free vs Premium — paket langganan & batas pemakaian",
+    description: "Balance kini membedakan pengguna Free dan Premium. Free memiliki batas AI Chat harian (default 20 pesan/hari), sementara Premium menawarkan AI Chat tanpa batas. Transaksi manual tidak terbatas untuk semua plan. API Key & integrasi AI selalu gratis tanpa batas.",
+    features: [
+      { icon: "🏷️", text: "Kartu \"Paket Langganan\" di halaman Settings — lihat status plan dan batas pemakaian." },
+      { icon: "🤖", text: "Free: AI Chat terbatas per hari. Premium: AI Chat tanpa batas harian." },
+      { icon: "📝", text: "Transaksi manual: tidak terbatas untuk semua plan (Free & Premium)." },
+      { icon: "🔑", text: "API Key & integrasi AI: selalu gratis tanpa batas — tidak terpengaruh plan." },
+    ]
+  },
+  {
     version: "1.8.12",
     date: "2026-06-13",
     title: "Asisten AI lebih responsif & ringan",

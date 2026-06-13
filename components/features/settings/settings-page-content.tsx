@@ -221,6 +221,59 @@ export function SettingsPageContent({ settings, locale }: { settings: SettingsDa
           </ActionForm>
         </section>
 
+        {/* ── Plan card ─────────────────────────────── */}
+        <section className="card">
+          <h3 className="headline-sm">{t("settings.planTitle")}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">{t("settings.planDescription")}</p>
+          <div className="mt-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="font-label text-xs text-muted-foreground uppercase tracking-[0.12em]">
+                {t("settings.planStatusLabel")}
+              </span>
+              <span
+                className={cn(
+                  "inline-flex rounded-full px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em]",
+                  settings.planType === "premium"
+                    ? "bg-primary-soft text-primary-strong"
+                    : "bg-muted text-muted-foreground"
+                )}
+              >
+                {settings.planType === "premium"
+                  ? t("settings.planStatusPremium")
+                  : t("settings.planStatusFree")}
+              </span>
+            </div>
+            <ul className="space-y-2 text-sm text-foreground">
+              {settings.planType === "free" && settings.aiChatDailyLimit !== null ? (
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0 text-muted-foreground">•</span>
+                  <span>
+                    {t("settings.planBenefitAiChatFree", {
+                      limit: settings.aiChatDailyLimit
+                    })}
+                  </span>
+                </li>
+              ) : (
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0 text-muted-foreground">•</span>
+                  <span>{t("settings.planBenefitAiChatPremium")}</span>
+                </li>
+              )}
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 shrink-0 text-muted-foreground">•</span>
+                <span>{t("settings.planBenefitTransactionUnlimited")}</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 shrink-0 text-muted-foreground">•</span>
+                <span>{t("settings.planBenefitApiAlways")}</span>
+              </li>
+            </ul>
+            {settings.planType === "free" ? (
+              <p className="mt-3 text-xs text-muted-foreground">{t("settings.planUpgradeCta")}</p>
+            ) : null}
+          </div>
+        </section>
+
         <section className="card">
           <h3 className="headline-sm">{t("settings.apiCreateTitle")}</h3>
           <p className="mt-2 text-sm text-muted-foreground">{t("settings.apiCreateDescription")}</p>

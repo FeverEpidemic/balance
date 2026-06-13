@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.9.0] - 2026-06-14
+
+### Added
+
+- **Free vs Premium — Paket Langganan** — Kartu "Paket Langganan" di Settings menampilkan status plan dan batas AI Chat harian. Free: AI Chat terbatas (default 20 pesan/hari). Premium: AI Chat tanpa batas. Transaksi manual tidak terbatas untuk semua plan. API Key & integrasi AI: selalu gratis tanpa batas plan.
+
+### Changed
+
+- **Modul plan sentral** — Logika penentuan plan (Free/Premium) dipindahkan ke `lib/plan.ts` sebagai sumber kebenaran tunggal. Semua batas pemakaian dibaca dari modul ini.
+
 ## [Unreleased] - 2026-06-12
 
 ### Changed

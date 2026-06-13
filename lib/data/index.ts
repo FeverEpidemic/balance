@@ -2,6 +2,7 @@ import { cache } from "react";
 import { getCurrentMonthKey } from "@/lib/finance";
 import { defaultLocale, translate, type AppLocale } from "@/lib/i18n";
 import { redisCache } from "@/lib/redis";
+import { getAiChatDailyLimitMax } from "@/lib/env";
 import {
   buildMonthlyReport,
   buildWalletSummaries,
@@ -419,9 +420,10 @@ export const getRecurringTransactionsPageData = cache(async (userId: string, wal
 
 export const getSettingsData = cache(async (userId: string): Promise<SettingsData> => {
   return redisCache.getOrSet(getSettingsCacheKey(userId), SETTINGS_CACHE_TTL_SECONDS, async () => {
-    const [shell, apiKeyRows] = await Promise.all([
+    const [shell, apiKeyRows, profiles] = await Promise.all([
       getShellData(userId),
-      queryUserApiKeys(userId)
+      queryUserApiKeys(userId),
+      queryProfiles([userId])
     ]);
 
     const apiKeys: SettingsApiKeyItem[] = apiKeyRows.map((row) => ({
@@ -433,13 +435,18 @@ export const getSettingsData = cache(async (userId: string): Promise<SettingsDat
       isRevoked: !!row.revoked_at
     }));
 
+    const profile = profiles[0];
+    const planType = profile?.plan_type ?? "free";
+
     return {
       shell,
       apiKeys,
       preferredLocale: shell.preferredLocale ?? defaultLocale,
       themePreference: shell.themePreference ?? "system",
       timezone: shell.timezone ?? null,
-      defaultCurrency: shell.defaultCurrency ?? "IDR"
+      defaultCurrency: shell.defaultCurrency ?? "IDR",
+      planType,
+      aiChatDailyLimit: planType === "premium" ? null : getAiChatDailyLimitMax()
     };
   });
 });
