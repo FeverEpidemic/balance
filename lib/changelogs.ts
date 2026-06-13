@@ -13,6 +13,18 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.12.0",
+    date: "2026-06-20",
+    title: "Free Trial 7 Hari",
+    description: "Setiap akun baru otomatis mendapat akses Premium selama 7 hari. Status trial dan sisa waktu ditampilkan di halaman Settings. Setelah trial habis, akun kembali ke Free secara otomatis.",
+    features: [
+      { icon: "🎁", text: "Akun baru langsung dapat Premium Trial 7 hari — tanpa perlu kode atau konfirmasi." },
+      { icon: "⏳", text: "Di halaman Settings, kamu bisa lihat sisa waktu trial dalam hari atau jam." },
+      { icon: "🔄", text: "Saat trial habis, akun otomatis kembali ke Free tanpa mengubah data apapun." },
+      { icon: "💎", text: "Selama trial aktif, semua fitur Premium bisa dinikmati: AI Chat tanpa batas, laporan 12 bulan, dan ekspor PDF." },
+    ]
+  },
+  {
     version: "1.11.0",
     date: "2026-06-17",
     title: "Pricing & Premium — Free vs Premium yang lebih jelas",

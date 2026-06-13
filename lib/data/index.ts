@@ -3,6 +3,7 @@ import { getCurrentMonthKey } from "@/lib/finance";
 import { defaultLocale, translate, type AppLocale } from "@/lib/i18n";
 import { redisCache } from "@/lib/redis";
 import { getAiChatDailyLimitMax } from "@/lib/env";
+import { getEffectivePlanType, getTrialMeta } from "@/lib/plan";
 import {
   buildMonthlyReport,
   buildWalletSummaries,
@@ -437,6 +438,9 @@ export const getSettingsData = cache(async (userId: string): Promise<SettingsDat
 
     const profile = profiles[0];
     const planType = profile?.plan_type ?? "free";
+    const trialEndsAt = profile?.trial_ends_at ?? null;
+    const effectivePlan = getEffectivePlanType(planType, trialEndsAt);
+    const trialMeta = getTrialMeta(planType, trialEndsAt);
 
     return {
       shell,
@@ -445,8 +449,9 @@ export const getSettingsData = cache(async (userId: string): Promise<SettingsDat
       themePreference: shell.themePreference ?? "system",
       timezone: shell.timezone ?? null,
       defaultCurrency: shell.defaultCurrency ?? "IDR",
-      planType,
-      aiChatDailyLimit: planType === "premium" ? null : getAiChatDailyLimitMax()
+      planType: effectivePlan,
+      trialMeta,
+      aiChatDailyLimit: effectivePlan === "premium" ? null : getAiChatDailyLimitMax()
     };
   });
 });

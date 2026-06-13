@@ -22,6 +22,9 @@ export type ProfileRow = {
   timezone: string | null;
   default_currency: string;
   plan_type: "free" | "premium";
+  trial_started_at: string | null;
+  trial_ends_at: string | null;
+  trial_consumed_at: string | null;
 };
 
 export type WalletRow = {
@@ -174,6 +177,11 @@ export type SettingsData = {
   timezone: string | null;
   defaultCurrency: string;
   planType: "free" | "premium";
+  trialMeta: {
+    isTrialActive: boolean;
+    trialEndsAt: string | null;
+    trialDaysRemaining: number | null;
+  };
   aiChatDailyLimit: number | null;
 };
 

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- **Free Trial 7 Hari** — Setiap akun baru otomatis mendapat akses Premium selama 7 hari. Status trial ditampilkan di Settings. Setelah trial habis, akun kembali ke Free secara otomatis.
+
 ### Changed
 
 - **Pricing & Premium repositioning** — Free AI chat quota lowered to 5/day. Premium at Rp29.000/bulan with unlimited AI, 12-month report history, and PDF export. Landing page redesigned with 2-card pricing comparison and hero emphasizing AI chat-to-transaction flow.

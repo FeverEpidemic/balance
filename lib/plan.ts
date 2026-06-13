@@ -6,6 +6,60 @@ import { createAdminClient } from "@/lib/supabase/admin";
 /** The tier a user is on. */
 export type PlanType = "free" | "premium";
 
+/** Trial metadata for the current user. */
+export type TrialMeta = {
+  isTrialActive: boolean;
+  trialEndsAt: string | null;
+  trialDaysRemaining: number | null;
+};
+
+/**
+ * Returns the effective plan type considering both the stored plan_type
+ * and an active trial. A user with plan_type "free" who still has a valid
+ * trial gets treated as "premium".
+ *
+ * Pure synchronous function — no DB access.
+ */
+export function getEffectivePlanType(
+  planType: PlanType,
+  trialEndsAt: string | null
+): PlanType {
+  if (planType === "premium") {
+    return "premium";
+  }
+
+  if (trialEndsAt && new Date(trialEndsAt).getTime() > Date.now()) {
+    return "premium";
+  }
+
+  return "free";
+}
+
+/**
+ * Compute trial metadata from plan type and trial end date.
+ * Pure synchronous function — no DB access.
+ */
+export function getTrialMeta(
+  planType: PlanType,
+  trialEndsAt: string | null
+): TrialMeta {
+  if (!trialEndsAt || planType === "premium") {
+    return { isTrialActive: false, trialEndsAt: null, trialDaysRemaining: null };
+  }
+
+  const now = Date.now();
+  const trialEnd = new Date(trialEndsAt).getTime();
+  const diffMs = trialEnd - now;
+
+  if (diffMs <= 0) {
+    return { isTrialActive: false, trialEndsAt, trialDaysRemaining: null };
+  }
+
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+  return { isTrialActive: true, trialEndsAt, trialDaysRemaining: diffDays };
+}
+
 /** Returns the number of months of report history available for the given plan. */
 export function getReportHistoryMonths(planType: PlanType): number {
   return planType === "premium" ? 12 : 3;
@@ -19,6 +73,7 @@ export function canExportPdf(planType: PlanType): boolean {
 /** Derived policy that applies to a user based on their plan. */
 export type PlanPolicy = {
   planType: PlanType;
+  trialMeta: TrialMeta;
   /** null = unlimited (premium). Daily chat limit for free users. */
   aiChatDailyLimit: number | null;
   /** Per-minute rate-limit ceiling (all plans get at least the base). */
@@ -30,22 +85,23 @@ export type PlanPolicy = {
   apiEndpointsBypassPlanLimits: true;
 };
 
-const FREE_POLICY: PlanPolicy = {
+type PlanRow = {
+  plan_type: PlanType;
+  trial_ends_at: string | null;
+};
+
+const FREE_POLICY: Omit<PlanPolicy, "trialMeta"> = {
   planType: "free",
   aiChatDailyLimit: getAiChatDailyLimitMax(),
   aiChatRateLimitMaxRequests: getAiChatRateLimitMaxRequests(),
   apiEndpointsBypassPlanLimits: true
 };
 
-const PREMIUM_POLICY: PlanPolicy = {
+const PREMIUM_POLICY: Omit<PlanPolicy, "trialMeta"> = {
   planType: "premium",
   aiChatDailyLimit: null,
   aiChatRateLimitMaxRequests: getAiChatRateLimitMaxRequests() * 3,
   apiEndpointsBypassPlanLimits: true
-};
-
-type PlanRow = {
-  plan_type: PlanType;
 };
 
 /**
@@ -58,18 +114,22 @@ export async function getPlanPolicy(userId: string): Promise<PlanPolicy> {
   const admin = createAdminClient();
 
   if (!admin) {
-    return FREE_POLICY;
+    return { ...FREE_POLICY, trialMeta: { isTrialActive: false, trialEndsAt: null, trialDaysRemaining: null }, planType: "free" };
   }
 
   const { data, error } = await admin
     .from("profiles")
-    .select("plan_type")
+    .select("plan_type, trial_ends_at")
     .eq("id", userId)
     .maybeSingle<PlanRow>();
 
   if (error || !data) {
-    return FREE_POLICY;
+    return { ...FREE_POLICY, trialMeta: { isTrialActive: false, trialEndsAt: null, trialDaysRemaining: null }, planType: "free" };
   }
 
-  return data.plan_type === "premium" ? PREMIUM_POLICY : FREE_POLICY;
+  const effectivePlan = getEffectivePlanType(data.plan_type, data.trial_ends_at);
+  const trialMeta = getTrialMeta(data.plan_type, data.trial_ends_at);
+  const basePolicy = effectivePlan === "premium" ? PREMIUM_POLICY : FREE_POLICY;
+
+  return { ...basePolicy, planType: effectivePlan, trialMeta };
 }

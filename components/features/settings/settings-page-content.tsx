@@ -230,18 +230,40 @@ export function SettingsPageContent({ settings, locale }: { settings: SettingsDa
               <span className="font-label text-xs text-muted-foreground uppercase tracking-[0.12em]">
                 {t("settings.planStatusLabel")}
               </span>
-              <span
-                className={cn(
-                  "inline-flex rounded-full px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em]",
-                  settings.planType === "premium"
-                    ? "bg-primary-soft text-primary-strong"
-                    : "bg-muted text-muted-foreground"
-                )}
-              >
-                {settings.planType === "premium"
-                  ? t("settings.planStatusPremium")
-                  : t("settings.planStatusFree")}
-              </span>
+              {settings.trialMeta.isTrialActive ? (
+                <>
+                  <span
+                    className="inline-flex rounded-full px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em]"
+                    style={{ backgroundColor: "var(--color-accent-soft, #dbe4d8)", color: "var(--color-accent-strong, #3d5a3d)" }}
+                  >
+                    {t("settings.planStatusTrial")}
+                  </span>
+                  {settings.trialMeta.trialDaysRemaining !== null && (
+                    <span className="font-label text-[11px] text-muted-foreground">
+                      {settings.trialMeta.trialDaysRemaining >= 1
+                        ? t("settings.planTrialDaysRemaining", {
+                            days: Math.round(settings.trialMeta.trialDaysRemaining)
+                          })
+                        : t("settings.planTrialHoursRemaining", {
+                            hours: Math.max(1, Math.ceil(settings.trialMeta.trialDaysRemaining * 24))
+                          })}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span
+                  className={cn(
+                    "inline-flex rounded-full px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em]",
+                    settings.planType === "premium"
+                      ? "bg-primary-soft text-primary-strong"
+                      : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {settings.planType === "premium"
+                    ? t("settings.planStatusPremium")
+                    : t("settings.planStatusFree")}
+                </span>
+              )}
             </div>
             <ul className="space-y-2 text-sm text-foreground">
               {settings.planType === "free" && settings.aiChatDailyLimit !== null ? (
@@ -290,6 +312,9 @@ export function SettingsPageContent({ settings, locale }: { settings: SettingsDa
                 </li>
               )}
             </ul>
+            {!settings.trialMeta.isTrialActive && settings.planType === "free" && settings.trialMeta.trialEndsAt ? (
+              <p className="mt-3 text-xs text-muted-foreground">{t("settings.planTrialExpiredNote")}</p>
+            ) : null}
             {settings.planType === "free" ? (
               <p className="mt-3 text-xs text-muted-foreground">{t("settings.planUpgradeCta")}</p>
             ) : null}
