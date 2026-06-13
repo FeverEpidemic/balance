@@ -113,10 +113,11 @@ export function buildWalletSummaries(args: {
   savings: SavingRow[];
   savingEntries: SavingEntryRow[];
   budgets: BudgetRow[];
+  balancesByWallet?: Map<string, number>;
   month: string;
   locale?: AppLocale;
 }) {
-  const { memberships, wallets, memberRows, transactions, savings, savingEntries, budgets, month, locale = defaultLocale } = args;
+  const { memberships, wallets, memberRows, transactions, savings, savingEntries, budgets, balancesByWallet, month, locale = defaultLocale } = args;
   const currentRange = getMonthDateRange(month);
   const roleByWallet = new Map(memberships.map((membership) => [membership.wallet_id, membership.role]));
   const memberCountByWallet = new Map<string, number>();
@@ -162,11 +163,18 @@ export function buildWalletSummaries(args: {
         .filter((row) => row.kind === "expense" && row.happened_at.slice(0, 10) >= currentRange.start && row.happened_at.slice(0, 10) <= currentRange.end)
         .reduce((total, row) => total + row.amount, 0);
       const monthBudget = (budgetByWallet.get(wallet.id) ?? []).reduce((total, row) => total + row.amount, 0);
-      const balances = buildWalletBalanceSummary({
-        transactions: walletTransactions,
-        savings: walletSavings,
-        savingEntries: walletSavingEntries
-      });
+      const precomputedBalance = balancesByWallet?.get(wallet.id);
+      const balances = precomputedBalance !== undefined
+        ? {
+            availableBalance: precomputedBalance,
+            savingBalance: sumSavingBalance(walletSavings),
+            totalBalance: precomputedBalance + sumSavingBalance(walletSavings)
+          }
+        : buildWalletBalanceSummary({
+            transactions: walletTransactions,
+            savings: walletSavings,
+            savingEntries: walletSavingEntries
+          });
 
       return {
         id: wallet.id,
@@ -283,10 +291,10 @@ export function buildDailyExpenses(transactions: TransactionRow[], month: string
 export function buildDashboardOnboarding(args: {
   shell: ShellData;
   wallets: WalletRow[];
-  allTransactions: TransactionRow[];
+  hasManualTransaction: boolean;
   locale?: AppLocale;
 }) {
-  const { shell, wallets, allTransactions, locale = defaultLocale } = args;
+  const { shell, wallets, hasManualTransaction, locale = defaultLocale } = args;
   const persistedState = shell.onboardingState ?? "active";
 
   if (persistedState === "dismissed" || shell.onboardingDismissedAt) {
@@ -310,7 +318,6 @@ export function buildDashboardOnboarding(args: {
   }
 
   const hasWallet = wallets.length > 0;
-  const hasManualTransaction = allTransactions.some((transaction) => transaction.source === "manual");
   const transactionsHref = shell.primaryWalletId ? `/wallets/${shell.primaryWalletId}/transactions` : "/wallets";
   const reviewComplete = hasWallet && hasManualTransaction;
 
@@ -576,7 +583,9 @@ export function createDashboardData(args: {
   memberRows: WalletMemberRow[];
   budgets: BudgetRow[];
   recentTransactions: TransactionRow[];
-  allTransactions: TransactionRow[];
+  monthTransactions: TransactionRow[];
+  balancesByWallet?: Map<string, number>;
+  hasManualTransaction?: boolean;
   savings: SavingRow[];
   savingEntries: SavingEntryRow[];
   categories: CategoryRow[];
@@ -591,7 +600,9 @@ export function createDashboardData(args: {
     memberRows,
     budgets,
     recentTransactions,
-    allTransactions,
+    monthTransactions,
+    balancesByWallet,
+    hasManualTransaction,
     savings,
     savingEntries,
     categories,
@@ -603,21 +614,22 @@ export function createDashboardData(args: {
     memberships,
     wallets,
     memberRows,
-    transactions: allTransactions,
+    transactions: monthTransactions,
     savings,
     savingEntries,
     budgets,
+    balancesByWallet,
     month,
     locale
   });
-  const currentMonthTransactions = filterTransactionsByMonth(allTransactions, month);
+  const currentMonthTransactions = monthTransactions;
 
   return {
     shell,
     onboarding: buildDashboardOnboarding({
       shell,
       wallets,
-      allTransactions,
+      hasManualTransaction: hasManualTransaction ?? monthTransactions.some((row) => row.source === "manual"),
       locale
     }),
     totalAvailableBalance: walletSummaries.reduce((total, wallet) => total + wallet.availableBalance, 0),
@@ -710,8 +722,10 @@ export function createTransactionHistoryPageData(args: {
   transactions: TransactionRow[];
   selectedMonth: string;
   locale?: AppLocale;
+  nextCursor?: string | null;
+  prevCursor?: string | null;
 }) {
-  const { shell, wallet, memberships, categories, transactions, selectedMonth, locale = defaultLocale } = args;
+  const { shell, wallet, memberships, categories, transactions, selectedMonth, locale = defaultLocale, nextCursor = null, prevCursor = null } = args;
   const formCategories = categories.filter(
     (category) => (category.kind === "expense" || category.kind === "income") && !isBalanceAdjustmentCategory(category)
   );
@@ -723,7 +737,9 @@ export function createTransactionHistoryPageData(args: {
     currentUserRole: getCurrentUserRole(memberships, wallet.id),
     selectedMonth,
     categories: formCategories,
-    transactions: buildTransactionListItems(transactions, categories, locale)
+    transactions: buildTransactionListItems(transactions, categories, locale),
+    nextCursor,
+    prevCursor
   } satisfies TransactionHistoryPageData;
 }
 

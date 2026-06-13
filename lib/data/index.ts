@@ -37,6 +37,7 @@ import {
   queryBudgets,
   queryCategories,
   queryCurrentUserWalletIds,
+  queryHasManualTransaction,
   queryInvitationTokens,
   queryInvitations,
   queryProfiles,
@@ -49,6 +50,7 @@ import {
   queryTransactionsByMonth,
   queryTransactionSplits,
   queryUserApiKeys,
+  queryWalletBalances,
   queryWalletMembers,
   queryWallets
 } from "@/lib/data/queries";
@@ -96,7 +98,7 @@ export const getDashboardData = cache(async (userId: string, locale: AppLocale =
   return redisCache.getOrSet(getDashboardCacheKey(userId, locale), DASHBOARD_CACHE_TTL_SECONDS, async () => {
     const month = getCurrentMonthKey();
     const { memberships, walletIds } = await getMembershipContext(userId);
-    const [shell, wallets, memberRows, budgets, recentTransactions, categories, splits, allTransactions, savings, savingEntries] = await Promise.all([
+    const [shell, wallets, memberRows, budgets, recentTransactions, categories, splits, monthTransactions, balanceRows, hasManualTransaction, savings, savingEntries] = await Promise.all([
       getShellData(userId),
       queryWallets(walletIds),
       queryWalletMembers(walletIds),
@@ -104,10 +106,14 @@ export const getDashboardData = cache(async (userId: string, locale: AppLocale =
       queryTransactions(walletIds, 8),
       queryCategories(walletIds),
       queryTransactionSplits(walletIds),
-      queryTransactions(walletIds),
+      queryTransactionsByMonth(walletIds, month),
+      queryWalletBalances(walletIds),
+      queryHasManualTransaction(walletIds),
       querySavings(walletIds),
       querySavingEntries(walletIds)
     ]);
+
+    const balancesByWallet = new Map(balanceRows.map((row) => [row.wallet_id, row.available_balance]));
 
     return createDashboardData({
       shell,
@@ -116,7 +122,9 @@ export const getDashboardData = cache(async (userId: string, locale: AppLocale =
       memberRows,
       budgets,
       recentTransactions,
-      allTransactions,
+      monthTransactions,
+      balancesByWallet,
+      hasManualTransaction,
       savings,
       savingEntries,
       categories,
@@ -266,9 +274,9 @@ export const getTransactionsPageData = cache(async (userId: string, walletId: st
 });
 
 export const getTransactionHistoryPageData = cache(
-  async (userId: string, walletId: string, selectedMonth: string, locale: AppLocale = defaultLocale) => {
+  async (userId: string, walletId: string, selectedMonth: string, locale: AppLocale = defaultLocale, cursor?: string | null) => {
     return redisCache.getOrSet(
-      getTransactionHistoryCacheKey(userId, walletId, selectedMonth, locale),
+      getTransactionHistoryCacheKey(userId, walletId, selectedMonth, locale, cursor),
       TRANSACTIONS_CACHE_TTL_SECONDS,
       async () => {
         const { memberships, walletIds } = await getMembershipContext(userId);
@@ -277,11 +285,14 @@ export const getTransactionHistoryPageData = cache(
           return null;
         }
 
+        const pageSize = 50;
+        const fetchLimit = pageSize + 1;
+
         const [shell, wallets, categories, transactions] = await Promise.all([
           getShellData(userId),
           queryWallets([walletId]),
           queryCategories([walletId]),
-          queryTransactionsByMonth([walletId], selectedMonth)
+          queryTransactionsByMonth([walletId], selectedMonth, fetchLimit, cursor ?? undefined)
         ]);
 
         const wallet = wallets[0];
@@ -290,14 +301,21 @@ export const getTransactionHistoryPageData = cache(
           return null;
         }
 
+        const hasMore = transactions.length > pageSize;
+        const pageTransactions = hasMore ? transactions.slice(0, pageSize) : transactions;
+        const nextCursor = hasMore ? pageTransactions[pageTransactions.length - 1].happened_at : null;
+        const prevCursor = cursor ?? null;
+
         return createTransactionHistoryPageData({
           shell,
           wallet,
           memberships,
           categories,
-          transactions,
+          transactions: pageTransactions,
           selectedMonth,
-          locale
+          locale,
+          nextCursor,
+          prevCursor
         });
       }
     );

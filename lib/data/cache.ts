@@ -2,14 +2,14 @@ import "server-only";
 import { defaultLocale, locales, type AppLocale } from "@/lib/i18n";
 import { redisCache } from "@/lib/redis";
 
-export const DASHBOARD_CACHE_TTL_SECONDS = 60;
-export const WALLET_OVERVIEW_CACHE_TTL_SECONDS = 90;
-export const TRANSACTIONS_CACHE_TTL_SECONDS = 90;
-export const BUDGETS_CACHE_TTL_SECONDS = 120;
-export const CATEGORIES_CACHE_TTL_SECONDS = 120;
-export const RECURRING_CACHE_TTL_SECONDS = 90;
-export const SAVINGS_CACHE_TTL_SECONDS = 90;
-export const SETTINGS_CACHE_TTL_SECONDS = 60;
+export const DASHBOARD_CACHE_TTL_SECONDS = 300;
+export const WALLET_OVERVIEW_CACHE_TTL_SECONDS = 300;
+export const TRANSACTIONS_CACHE_TTL_SECONDS = 300;
+export const BUDGETS_CACHE_TTL_SECONDS = 300;
+export const CATEGORIES_CACHE_TTL_SECONDS = 300;
+export const RECURRING_CACHE_TTL_SECONDS = 300;
+export const SAVINGS_CACHE_TTL_SECONDS = 300;
+export const SETTINGS_CACHE_TTL_SECONDS = 600;
 
 export type WalletReadCacheTarget = "overview" | "transactions" | "budgets" | "categories" | "recurring" | "savings";
 
@@ -29,8 +29,16 @@ export function getTransactionsCacheKey(userId: string, walletId: string, month:
   return withLocaleSuffix(`wallet:${walletId}:user:${userId}:transactions:${month}`, locale);
 }
 
-export function getTransactionHistoryCacheKey(userId: string, walletId: string, month: string, locale: AppLocale = "id") {
-  return withLocaleSuffix(`wallet:${walletId}:user:${userId}:transactions-history:${month}`, locale);
+export function getTransactionHistoryCacheKey(
+  userId: string,
+  walletId: string,
+  month: string,
+  locale: AppLocale = "id",
+  cursor?: string | null,
+) {
+  const base = `wallet:${walletId}:user:${userId}:transactions-history:${month}`;
+  const suffix = cursor ? `:cursor:${cursor}` : ":first";
+  return withLocaleSuffix(`${base}${suffix}`, locale);
 }
 
 export function getBudgetsCacheKey(userId: string, walletId: string, month: string) {

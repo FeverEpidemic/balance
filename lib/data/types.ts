@@ -374,6 +374,8 @@ export type TransactionHistoryPageData = {
   selectedMonth: string;
   categories: CategoryRow[];
   transactions: TransactionListItem[];
+  nextCursor: string | null;
+  prevCursor: string | null;
 };
 
 export type RecurringTransactionListItem = {

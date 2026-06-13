@@ -106,7 +106,12 @@ export async function queryTransactions(walletIds: string[], limit?: number) {
   return (data ?? []) as TransactionRow[];
 }
 
-export async function queryTransactionsByMonth(walletIds: string[], month: string, limit?: number) {
+export async function queryTransactionsByMonth(
+  walletIds: string[],
+  month: string,
+  limit?: number,
+  cursor?: string,
+) {
   if (walletIds.length === 0) {
     return [];
   }
@@ -121,10 +126,11 @@ export async function queryTransactionsByMonth(walletIds: string[], month: strin
     .in("wallet_id", walletIds)
     .gte("happened_at", startAt)
     .lte("happened_at", endAt)
-    .order("happened_at", { ascending: false });
+    .order("happened_at", { ascending: false })
+    .limit(limit ?? 50);
 
-  if (limit) {
-    query = query.limit(limit);
+  if (cursor) {
+    query = query.lt("happened_at", cursor);
   }
 
   const { data, error } = await query;
@@ -266,6 +272,41 @@ export async function queryTemplates(walletIds: string[]) {
   }
 
   return (data ?? []) as TemplateRow[];
+}
+
+export async function queryWalletBalances(walletIds: string[]) {
+  if (walletIds.length === 0) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_wallet_balances", { wallet_ids: walletIds });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as { wallet_id: string; available_balance: number }[];
+}
+
+export async function queryHasManualTransaction(walletIds: string[]) {
+  if (walletIds.length === 0) {
+    return false;
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("id")
+    .in("wallet_id", walletIds)
+    .eq("source", "manual")
+    .limit(1);
+
+  if (error) {
+    throw error;
+  }
+
+  return (data?.length ?? 0) > 0;
 }
 
 export async function queryInvitations(walletIds: string[]) {

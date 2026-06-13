@@ -10,7 +10,7 @@ export default async function TransactionsPage({
   searchParams
 }: {
   params: Promise<{ walletId: string }>;
-  searchParams: Promise<{ month?: string; view?: string }>;
+  searchParams: Promise<{ month?: string; view?: string; cursor?: string }>;
 }) {
   const { walletId } = await params;
   const query = await searchParams;
@@ -18,7 +18,7 @@ export default async function TransactionsPage({
   const { user } = await requireUser();
 
   if (query.view === "history") {
-    const data = await getTransactionHistoryPageData(user.id, walletId, selectedMonth);
+    const data = await getTransactionHistoryPageData(user.id, walletId, selectedMonth, undefined, query.cursor);
     if (!data) {
       return redirect("/dashboard");
     }

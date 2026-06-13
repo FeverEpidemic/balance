@@ -139,6 +139,7 @@ describe("data mappers", () => {
   });
 
   it("creates dashboard data from fixture inputs", () => {
+    const mayTransactions = transactions.filter((t) => t.happened_at.startsWith("2026-05"));
     const dashboard = createDashboardData({
       shell,
       memberships,
@@ -146,7 +147,8 @@ describe("data mappers", () => {
       memberRows,
       budgets,
       recentTransactions: transactions.slice(0, 3),
-      allTransactions: transactions,
+      monthTransactions: mayTransactions,
+      balancesByWallet: new Map([["w1", 660000], ["w2", -200000]]),
       savings,
       savingEntries,
       categories,
@@ -255,7 +257,7 @@ describe("data mappers", () => {
       memberRows: [],
       budgets: [],
       recentTransactions: [],
-      allTransactions: [],
+      monthTransactions: [],
       savings: [],
       savingEntries: [],
       categories: [],
@@ -290,7 +292,7 @@ describe("data mappers", () => {
       memberRows: [{ wallet_id: "w1", user_id: "u1", role: "owner" }],
       budgets: [],
       recentTransactions: [],
-      allTransactions: transactions.filter((transaction) => transaction.source !== "manual"),
+      monthTransactions: transactions.filter((transaction) => transaction.source !== "manual"),
       savings: savings.filter((saving) => saving.wallet_id === "w1"),
       savingEntries: savingEntries.filter((entry) => entry.wallet_id === "w1"),
       categories: categories.filter((category) => category.wallet_id === "w1"),
@@ -320,7 +322,7 @@ describe("data mappers", () => {
       memberRows,
       budgets,
       recentTransactions: transactions.slice(0, 3),
-      allTransactions: transactions,
+      monthTransactions: transactions,
       savings,
       savingEntries,
       categories,
@@ -346,7 +348,7 @@ describe("data mappers", () => {
       memberRows,
       budgets,
       recentTransactions: transactions.slice(0, 3),
-      allTransactions: transactions,
+      monthTransactions: transactions,
       savings,
       savingEntries,
       categories,

@@ -1,17 +1,15 @@
 "use client";
 
-import { useDeferredValue, useEffect, useState } from "react";
+import { useDeferredValue, useState } from "react";
 import {
   type ColumnDef,
   flexRender,
-  functionalUpdate,
   getCoreRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
-  type PaginationState,
   type SortingState,
   useReactTable
 } from "@tanstack/react-table";
+import { useSearchParams } from "next/navigation";
 import { deleteTransaction, updateTransaction } from "@/app/actions/transactions";
 import { AppShell } from "@/components/app-shell";
 import { ExportExcelButton } from "@/components/features/transactions/export-excel-button";
@@ -30,8 +28,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { TransactionHistoryPageData, TransactionListItem } from "@/lib/data";
 import { getLocaleTag, getTranslator } from "@/lib/i18n";
-import { TRANSACTION_HISTORY_PAGE_SIZE, clampTransactionHistoryPageIndex } from "@/lib/transaction-history-pagination";
-import { formatCurrency, formatShortDate, formatTimeOfDay, getCurrentTimeString, toDateInputValue, toTimeInputValue } from "@/lib/utils";
+import { formatCurrency, formatShortDate, formatTimeOfDay, toDateInputValue, toTimeInputValue } from "@/lib/utils";
 
 function matchesTransactionSearch(transaction: TransactionListItem, search: string, localeTag: string, t: ReturnType<typeof getTranslator>) {
   if (!search) {
@@ -240,10 +237,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
   const canMutate = data.currentUserRole === "owner" || data.currentUserRole === "editor";
   const [sorting, setSorting] = useState<SortingState>([{ id: "happenedAt", desc: true }]);
   const [search, setSearch] = useState("");
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: TRANSACTION_HISTORY_PAGE_SIZE
-  });
+  const baseHref = `/wallets/${data.walletId}/transactions?month=${data.selectedMonth}&view=history`;
   const deferredSearch = useDeferredValue(search.trim().toLocaleLowerCase(localeTag));
   const filteredTransactions = data.transactions.filter((transaction) => matchesTransactionSearch(transaction, deferredSearch, localeTag, t));
 
@@ -325,48 +319,24 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
     data: filteredTransactions,
     columns,
     state: {
-      sorting,
-      pagination
+      sorting
     },
     onSortingChange: setSorting,
-    onPaginationChange: (updater) => {
-      setPagination((current) => {
-        const next = functionalUpdate(updater, current);
-        const nextPageIndex = clampTransactionHistoryPageIndex(next.pageIndex, filteredTransactions.length, next.pageSize);
-
-        return {
-          ...next,
-          pageIndex: nextPageIndex
-        };
-      });
-    },
-    autoResetPageIndex: false,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel()
+    getSortedRowModel: getSortedRowModel()
   });
 
-  useEffect(() => {
-    setPagination((current) => ({ ...current, pageIndex: 0 }));
-  }, [deferredSearch]);
+  const rows = table.getRowModel().rows;
 
-  useEffect(() => {
-    setPagination((current) => {
-      const nextPageIndex = clampTransactionHistoryPageIndex(current.pageIndex, filteredTransactions.length, current.pageSize);
+  function makeNextHref() {
+    if (!data.nextCursor) return baseHref;
+    return `${baseHref}&cursor=${encodeURIComponent(data.nextCursor)}`;
+  }
 
-      if (nextPageIndex === current.pageIndex) {
-        return current;
-      }
-
-      return {
-        ...current,
-        pageIndex: nextPageIndex
-      };
-    });
-  }, [filteredTransactions.length]);
-
-  const paginatedRows = table.getRowModel().rows;
-  const rowCount = paginatedRows.length;
+  function makePrevHref() {
+    if (!data.prevCursor) return baseHref;
+    return `${baseHref}&cursor=${encodeURIComponent(data.prevCursor)}`;
+  }
 
   return (
     <AppShell
@@ -418,6 +388,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
 
           <div className="mt-6 flex min-w-0 flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end">
             <form method="get" className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+              <input type="hidden" name="view" value="history" />
               <label className="block">
                 <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.historyMonthFilter")}</span>
                 <input name="month" type="month" defaultValue={data.selectedMonth} />
@@ -437,7 +408,6 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
 
           <div className="mt-4 flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
             <p>{t("transactions.historyMatchCount", { count: filteredTransactions.length, month: data.selectedMonth })}</p>
-            <p>{t("transactions.historyPageCount", { page: table.getState().pagination.pageIndex + 1, total: table.getPageCount() || 1 })}</p>
           </div>
 
           {filteredTransactions.length === 0 ? (
@@ -477,7 +447,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
                     ))}
                   </TableHeader>
                   <TableBody>
-                    {paginatedRows.map((row) => (
+                    {rows.map((row) => (
                       <TableRow
                         key={row.id}
                         className={row.original.kind === "expense" ? "bg-[rgba(180,94,94,0.04)]" : "bg-[rgba(91,143,98,0.05)]"}
@@ -492,7 +462,7 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
               </div>
 
               <div className="mt-6 stack-list lg:hidden">
-                {paginatedRows.map((row) => (
+                {rows.map((row) => (
                   <HistoryMobileCard
                     key={row.original.id}
                     canMutate={canMutate}
@@ -505,12 +475,12 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
               </div>
 
               <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-muted-foreground">{t("transactions.historyShowingCount", { count: rowCount })}</p>
+                <p className="text-sm text-muted-foreground">{t("transactions.historyShowingCount", { count: rows.length })}</p>
                 <div className="flex gap-2">
-                  <Button type="button" variant="ghost" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}>
+                  <Button href={makePrevHref()} variant="ghost" size="sm" disabled={!data.prevCursor}>
                     {t("transactions.historyPrevious")}
                   </Button>
-                  <Button type="button" variant="soft" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}>
+                  <Button href={makeNextHref()} variant="soft" size="sm" disabled={!data.nextCursor}>
                     {t("transactions.historyNext")}
                   </Button>
                 </div>

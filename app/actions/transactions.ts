@@ -33,7 +33,7 @@ function readTransactionForm(formData: FormData) {
     categoryId: getStringValue(formData, "category_id"),
     note: getNullableText(formData, "note"),
     amount: getNumericValue(formData, "amount"),
-    happenedAt: getStringValue(formData, "happened_at"),
+    happenedAt: getStringValue(formData, "happened_at"),
     happenedAtTime: getStringValue(formData, "happened_at_time")
   };
 }

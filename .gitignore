@@ -10,3 +10,5 @@ coverage
 docker-compose.yml
 docker-compose.self-hosted.yml
 .npm-cache/
+.node-bin/
+node22.tar.xz
