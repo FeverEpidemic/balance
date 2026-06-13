@@ -163,5 +163,5 @@ export function getAiChatDailyLimitEnabled() {
 }
 
 export function getAiChatDailyLimitMax() {
-  return readPositiveIntegerEnv("AI_CHAT_DAILY_LIMIT_MAX", 20);
+  return readPositiveIntegerEnv("AI_CHAT_DAILY_LIMIT_MAX", 5);
 }

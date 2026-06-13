@@ -854,7 +854,7 @@ export function createSavingsPageData(args: {
   } satisfies SavingsPageData;
 }
 
-export function buildMonthlyReport(transactions: TransactionRow[], locale: AppLocale = defaultLocale) {
+export function buildMonthlyReport(transactions: TransactionRow[], locale: AppLocale = defaultLocale, maxMonths: number = 6) {
   const monthlyMap = new Map<string, { income: number; expense: number }>();
 
   transactions.forEach((transaction) => {
@@ -872,7 +872,7 @@ export function buildMonthlyReport(transactions: TransactionRow[], locale: AppLo
 
   return [...monthlyMap.entries()]
     .sort(([left], [right]) => left.localeCompare(right))
-    .slice(-6)
+    .slice(-maxMonths)
     .map(([month, value]) => ({
       month,
       label: new Intl.DateTimeFormat(getLocaleTag(locale), { month: "short", timeZone: "UTC" }).format(

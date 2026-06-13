@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getPlanPolicy } from "@/lib/plan";
+import { getPlanPolicy, getReportHistoryMonths, canExportPdf } from "@/lib/plan";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 vi.mock("@/lib/supabase/admin", () => ({
@@ -37,7 +37,7 @@ describe("getPlanPolicy", () => {
     const policy = await getPlanPolicy("user-1");
 
     expect(policy.planType).toBe("free");
-    expect(policy.aiChatDailyLimit).toBe(20); // default env value
+    expect(policy.aiChatDailyLimit).toBe(5); // default env value
     expect(policy.apiEndpointsBypassPlanLimits).toBe(true);
   });
 
@@ -60,7 +60,7 @@ describe("getPlanPolicy", () => {
     const policy = await getPlanPolicy("user-1");
 
     expect(policy.planType).toBe("free");
-    expect(policy.aiChatDailyLimit).toBe(20);
+    expect(policy.aiChatDailyLimit).toBe(5);
   });
 
   it("falls back to free policy when no row is returned", async () => {
@@ -77,7 +77,7 @@ describe("getPlanPolicy", () => {
     const policy = await getPlanPolicy("user-1");
 
     expect(policy.planType).toBe("free");
-    expect(policy.aiChatDailyLimit).toBe(20);
+    expect(policy.aiChatDailyLimit).toBe(5);
   });
 
   it("falls back to free policy on DB error", async () => {
@@ -94,6 +94,26 @@ describe("getPlanPolicy", () => {
     const policy = await getPlanPolicy("user-1");
 
     expect(policy.planType).toBe("free");
-    expect(policy.aiChatDailyLimit).toBe(20);
+    expect(policy.aiChatDailyLimit).toBe(5);
+  });
+});
+
+describe("getReportHistoryMonths", () => {
+  it("returns 3 for free plan", () => {
+    expect(getReportHistoryMonths("free")).toBe(3);
+  });
+
+  it("returns 12 for premium plan", () => {
+    expect(getReportHistoryMonths("premium")).toBe(12);
+  });
+});
+
+describe("canExportPdf", () => {
+  it("returns false for free plan", () => {
+    expect(canExportPdf("free")).toBe(false);
+  });
+
+  it("returns true for premium plan", () => {
+    expect(canExportPdf("premium")).toBe(true);
   });
 });

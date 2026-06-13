@@ -6,6 +6,16 @@ import { createAdminClient } from "@/lib/supabase/admin";
 /** The tier a user is on. */
 export type PlanType = "free" | "premium";
 
+/** Returns the number of months of report history available for the given plan. */
+export function getReportHistoryMonths(planType: PlanType): number {
+  return planType === "premium" ? 12 : 3;
+}
+
+/** Whether PDF export is available for the given plan. */
+export function canExportPdf(planType: PlanType): boolean {
+  return planType === "premium";
+}
+
 /** Derived policy that applies to a user based on their plan. */
 export type PlanPolicy = {
   planType: PlanType;

@@ -13,6 +13,31 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.11.0",
+    date: "2026-06-17",
+    title: "Pricing & Premium — Free vs Premium yang lebih jelas",
+    description: "Paket Free dan Premium kini punya posisi yang lebih jelas. AI Chat free 5/hari, Premium unlimited. Laporan 3 bulan untuk Free, 12 bulan untuk Premium. Ekspor PDF khusus Premium.",
+    features: [
+      { icon: "🤖", text: "AI Chat free: 5 pesan/hari (sebelumnya 20). Premium: tanpa batas." },
+      { icon: "📊", text: "Riwayat laporan: 3 bulan terakhir untuk Free, 12 bulan untuk Premium." },
+      { icon: "📄", text: "Ekspor PDF kini khusus Premium. Free melihat tombol terkunci dengan info upgrade." },
+      { icon: "💎", text: "Premium Rp29.000/bulan. Opsi tahunan Rp250.000/tahun (info hemat di landing page)." },
+      { icon: "🏠", text: "Landing page baru: hero menekankan chat → transaksi otomatis, section Harga dengan 2 kartu perbandingan." },
+    ]
+  },
+  {
+    version: "1.10.1",
+    date: "2026-06-17",
+    title: "Mockup hero landing interaktif",
+    description: "Hero visual di landing page kini diganti mockup jendela browser animasi yang auto-slide melalui 3 tampilan dashboard Balance. Transisi halus, pause saat hover, dan ramah aksesibilitas.",
+    features: [
+      { icon: "🖥️", text: "Mockup jendela browser dengan 3 slide kode: dashboard ringan, transaksi terbaru, dan tampilan mode gelap." },
+      { icon: "🎞️", text: "Auto-slide setiap 4 detik dengan transisi fade dan geser yang halus." },
+      { icon: "⏸️", text: "Slide otomatis berhenti saat kursor di atas mockup — aman dihover tanpa kehilangan konteks." },
+      { icon: "♿", text: "Dukungan prefers-reduced-motion: hanya slide pertama ditampilkan, tanpa animasi." },
+    ]
+  },
+  {
     version: "1.10.0",
     date: "2026-06-17",
     title: "Navigasi landing & section Harga",

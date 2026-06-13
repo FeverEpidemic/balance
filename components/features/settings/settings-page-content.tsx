@@ -267,6 +267,28 @@ export function SettingsPageContent({ settings, locale }: { settings: SettingsDa
                 <span className="mt-0.5 shrink-0 text-muted-foreground">•</span>
                 <span>{t("settings.planBenefitApiAlways")}</span>
               </li>
+              {settings.planType === "free" ? (
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0 text-muted-foreground">•</span>
+                  <span>{t("settings.planBenefitReportHistoryFree")}</span>
+                </li>
+              ) : (
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0 text-muted-foreground">•</span>
+                  <span>{t("settings.planBenefitReportHistoryPremium")}</span>
+                </li>
+              )}
+              {settings.planType === "free" ? (
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0 text-muted-foreground">•</span>
+                  <span>{t("settings.planBenefitExportFree")}</span>
+                </li>
+              ) : (
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0 text-muted-foreground">•</span>
+                  <span>{t("settings.planBenefitExportPremium")}</span>
+                </li>
+              )}
             </ul>
             {settings.planType === "free" ? (
               <p className="mt-3 text-xs text-muted-foreground">{t("settings.planUpgradeCta")}</p>

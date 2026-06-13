@@ -4,6 +4,7 @@ import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LandingHeader } from "@/components/landing/landing-header";
+import { LandingHeroMockup } from "@/components/landing/landing-hero-mockup";
 import { localizePath, resolveLocale, getTranslator } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -72,50 +73,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
         </div>
 
-        <div className="relative">
-          <div className="absolute inset-x-8 top-4 h-40 rounded-full bg-primary-soft/60 blur-3xl" />
-          <div className="glass-panel-strong relative overflow-hidden rounded-[2rem] p-4 shadow-float md:p-6">
-            <div className="rounded-[1.5rem] bg-primary px-5 py-6 text-white">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-label text-xs uppercase tracking-[0.18em] text-white/70">{t("landing.summaryLabel")}</p>
-                  <p className="metric mt-4 text-3xl md:text-[2.5rem]">Rp12.450.000</p>
-                </div>
-                <div className="rounded-full bg-white/12 px-3 py-2 font-label text-xs text-white">{t("landing.summaryStatus")}</div>
-              </div>
-              <p className="mt-4 max-w-sm text-sm leading-6 text-white/75">{t("landing.summaryDescription")}</p>
-            </div>
-
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="card p-5">
-                <p className="font-label text-xs uppercase tracking-[0.16em] text-muted-foreground">{t("landing.budgetLabel")}</p>
-                <p className="metric mt-3 text-2xl">68%</p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{t("landing.budgetDescription")}</p>
-              </div>
-              <div className="card p-5">
-                <p className="font-label text-xs uppercase tracking-[0.16em] text-muted-foreground">{t("landing.splitLabel")}</p>
-                <p className="metric mt-3 text-2xl">Rp950.000</p>
-                <p className="mt-2 text-sm leading-6 text-muted-foreground">{t("landing.splitDescription")}</p>
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-4">
-              <div className="card-muted p-5">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="font-label text-xs uppercase tracking-[0.16em] text-muted-foreground">{t("landing.savingLabel")}</p>
-                    <p className="headline-md mt-2">{t("landing.savingTitle")}</p>
-                  </div>
-                  <Badge>{t("landing.savingBadge")}</Badge>
-                </div>
-                <div className="mt-4 h-3 rounded-full bg-card">
-                  <div className="h-3 w-[74%] rounded-full bg-primary" />
-                </div>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">{t("landing.savingDescription")}</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <LandingHeroMockup />
       </section>
 
       <section id="features" className="section-gap">
@@ -174,10 +132,30 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             {t("landing.pricingDescription")}
           </p>
         </div>
-        <div className="mt-8 max-w-md">
+        <div className="mt-8 grid gap-6 md:grid-cols-2">
           <div className="card p-6 md:p-8">
-            <p className="headline-md">Gratis</p>
-            <p className="mt-2 text-sm text-muted-foreground">{t("landing.pricingNote")}</p>
+            <p className="headline-md">{t("landing.pricingFreeTitle")}</p>
+            <p className="mt-2 metric text-2xl">{t("landing.pricingFreePrice")}</p>
+            <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2">• {t("landing.pricingFreeBullet1")}</li>
+              <li className="flex items-start gap-2">• {t("landing.pricingFreeBullet2")}</li>
+              <li className="flex items-start gap-2">• {t("landing.pricingFreeBullet3")}</li>
+              <li className="flex items-start gap-2">• {t("landing.pricingFreeBullet4")}</li>
+            </ul>
+          </div>
+          <div className="card relative p-6 ring-2 ring-primary md:p-8">
+            <span className="absolute -top-3 right-6 rounded-full bg-primary px-4 py-1 text-xs font-medium text-white">
+              {t("landing.pricingPremiumBadge")}
+            </span>
+            <p className="headline-md">{t("landing.pricingPremiumTitle")}</p>
+            <p className="mt-2 metric text-2xl">{t("landing.pricingPremiumPrice")}</p>
+            <span className="mt-1 inline-block text-xs text-muted-foreground">{t("landing.pricingAnnualHighlight")}</span>
+            <ul className="mt-6 space-y-2 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2">• {t("landing.pricingPremiumBullet1")}</li>
+              <li className="flex items-start gap-2">• {t("landing.pricingPremiumBullet2")}</li>
+              <li className="flex items-start gap-2">• {t("landing.pricingPremiumBullet3")}</li>
+              <li className="flex items-start gap-2">• {t("landing.pricingPremiumBullet4")}</li>
+            </ul>
           </div>
         </div>
       </section>

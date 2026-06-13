@@ -493,4 +493,33 @@ describe("data mappers", () => {
       { month: "2026-05", label: "Mei", income: 2150000, expense: 1550000 }
     ]);
   });
+
+  it("respects maxMonths=3, returning at most 3 entries", () => {
+    const report = buildMonthlyReport(transactions, "id", 3);
+
+    // Only 2 months exist in test data; both should be returned
+    expect(report).toHaveLength(2);
+    expect(report[0].month).toBe("2026-04");
+    expect(report[1].month).toBe("2026-05");
+  });
+
+  it("respects maxMonths=1, returning only the most recent month", () => {
+    const report = buildMonthlyReport(transactions, "id", 1);
+
+    expect(report).toHaveLength(1);
+    expect(report[0].month).toBe("2026-05");
+  });
+
+  it("defaults to 6-month window when no maxMonths is provided", () => {
+    const report = buildMonthlyReport(transactions);
+
+    expect(report).toHaveLength(2); // test data has only 2 months
+  });
+
+  it("orders results oldest-to-newest within the visible range", () => {
+    const report = buildMonthlyReport(transactions, "id", 3);
+
+    expect(report[0].month).toBe("2026-04");
+    expect(report[1].month).toBe("2026-05");
+  });
 });

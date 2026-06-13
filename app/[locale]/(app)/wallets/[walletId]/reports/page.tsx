@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { EmptyState } from "@/components/ui/empty-state";
 import { getTranslator, resolveLocale } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/utils";
+import { getPlanPolicy, getReportHistoryMonths, canExportPdf } from "@/lib/plan";
 
 export default async function ReportsPage({ params }: { params: Promise<{ locale: string; walletId: string }> }) {
   const { locale: localeParam, walletId } = await params;
@@ -19,7 +20,10 @@ export default async function ReportsPage({ params }: { params: Promise<{ locale
     notFound();
   }
 
-  const monthlyReport = buildMonthlyReport(bundle.transactions, locale);
+  const planPolicy = await getPlanPolicy(user.id);
+  const reportHistoryMonths = getReportHistoryMonths(planPolicy.planType);
+  const canExport = canExportPdf(planPolicy.planType);
+  const monthlyReport = buildMonthlyReport(bundle.transactions, locale, reportHistoryMonths);
   const maxIncome = Math.max(...monthlyReport.map((item) => Math.max(item.income, item.expense)), 1);
 
   return (
@@ -33,7 +37,7 @@ export default async function ReportsPage({ params }: { params: Promise<{ locale
       memberCount={bundle.shell.memberCount}
       primaryWalletId={bundle.shell.primaryWalletId}
       currentWalletId={walletId}
-      headerAction={<ExportPdfButton walletId={walletId} />}
+      headerAction={<ExportPdfButton walletId={walletId} canExport={canExport} />}
     >
       <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="card">
@@ -53,6 +57,12 @@ export default async function ReportsPage({ params }: { params: Promise<{ locale
             ))}
             </div>
           </div>
+          {planPolicy.planType === "free" && (
+            <div className="mt-4 rounded-lg bg-muted p-4 text-sm text-muted-foreground">
+              <p className="font-label text-xs uppercase tracking-wider text-muted-foreground">{t("reports.historyLockedTitle")}</p>
+              <p className="mt-1">{t("reports.historyLockedDescription")}</p>
+            </div>
+          )}
         </div>
 
         <div className="card">
