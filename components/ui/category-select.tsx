@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CategoryIcon } from "@/components/ui/app-icon";
 import { cn } from "@/lib/utils";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectItemText,
   SelectTrigger,
@@ -37,24 +38,47 @@ export function CategorySelect({
   name: string;
   required?: boolean;
 }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const resolveInitial = () => {
     if (defaultValue) return defaultValue;
     if (includeEmptyOption) return NO_CATEGORY_SENTINEL;
     return categories[0]?.id ?? "";
   };
   const [selectedId, setSelectedId] = useState(resolveInitial);
+
+  useEffect(() => {
+    setSelectedId(resolveInitial());
+  }, [defaultValue, includeEmptyOption, categories]);
+
+  useEffect(() => {
+    const input = inputRef.current;
+
+    if (!input?.form) {
+      return;
+    }
+
+    const handleReset = () => {
+      setSelectedId(resolveInitial());
+    };
+
+    input.form.addEventListener("reset", handleReset);
+    return () => {
+      input.form?.removeEventListener("reset", handleReset);
+    };
+  }, [defaultValue, includeEmptyOption, categories]);
+
   const selectedCategory = useMemo(() => categories.find((category) => category.id === selectedId) ?? null, [categories, selectedId]);
 
   return (
     <div className={cn("relative", className)}>
-      {/* Hidden input for form submission */}
-      <input type="hidden" name={name} value={selectedId === NO_CATEGORY_SENTINEL ? "" : selectedId} />
+      <input ref={inputRef} type="hidden" name={name} value={selectedId === NO_CATEGORY_SENTINEL ? "" : selectedId} />
       <Select
         value={selectedId}
         onValueChange={(value) => setSelectedId(value)}
         required={required}
       >
-        <SelectTrigger className="pl-11 min-h-[3.25rem]">
+        <SelectTrigger className="relative min-h-[3.25rem] pl-11">
           <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             {selectedCategory ? (
               <CategoryIcon
@@ -70,20 +94,24 @@ export function CategorySelect({
           <SelectValue placeholder={emptyLabel ?? "Pilih kategori"} />
         </SelectTrigger>
         <SelectContent>
-          {includeEmptyOption ? (
-            <SelectItem value={NO_CATEGORY_SENTINEL}>{emptyLabel ?? "No category"}</SelectItem>
-          ) : null}
-          {categories.map((category) => (
-            <SelectItem key={category.id} value={category.id}>
-              <CategoryIcon
-                categoryName={category.name}
-                kind={category.kind}
-                className="h-4 w-4 shrink-0"
-                tone={category.kind === "income" ? "success" : "danger"}
-              />
-              <SelectItemText>{category.name}</SelectItemText>
-            </SelectItem>
-          ))}
+          <SelectGroup>
+            {includeEmptyOption ? (
+              <SelectItem value={NO_CATEGORY_SENTINEL}>
+                <SelectItemText>{emptyLabel ?? "No category"}</SelectItemText>
+              </SelectItem>
+            ) : null}
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                <CategoryIcon
+                  categoryName={category.name}
+                  kind={category.kind}
+                  className="h-4 w-4 shrink-0"
+                  tone={category.kind === "income" ? "success" : "danger"}
+                />
+                <SelectItemText>{category.name}</SelectItemText>
+              </SelectItem>
+            ))}
+          </SelectGroup>
         </SelectContent>
       </Select>
     </div>

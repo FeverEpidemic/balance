@@ -5,6 +5,7 @@ import { DashboardAiInsight } from "@/components/features/dashboard/dashboard-ai
 import { DashboardDailyExpenseChart } from "@/components/features/dashboard/dashboard-daily-expense-chart";
 import { DashboardOnboardingCard } from "@/components/features/dashboard/dashboard-onboarding-card";
 import { DashboardWalletCreate } from "@/components/features/dashboard/dashboard-wallet-create";
+import { TransactionCreateDialogButton } from "@/components/features/transactions/transaction-create-dialog-button";
 import { AppIcon, CategoryIcon } from "@/components/ui/app-icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -58,17 +59,9 @@ export function DashboardContent({
         </div>
       }
       headerAction={
-        <Button
-          href={transactionsHref}
-          variant="soft"
-          className="min-h-[2.75rem] gap-2 rounded-full border border-border bg-overlay px-3 shadow-none hover:shadow-none"
-        >
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-card ring-1 ring-inset ring-border">
-            <AppIcon name="plus" className="h-4 w-4" tone="primary" />
-          </span>
-          <span className="hidden sm:inline">{t("dashboard.addTransaction")}</span>
-          <span className="sr-only sm:hidden">{t("dashboard.addTransaction")}</span>
-        </Button>
+        dashboard.createTransactionContext ? (
+          <TransactionCreateDialogButton context={dashboard.createTransactionContext} label={t("dashboard.addTransaction")} />
+        ) : null
       }
     >
       <DashboardOnboardingCard onboarding={dashboard.onboarding} />

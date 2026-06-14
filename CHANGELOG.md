@@ -5,6 +5,8 @@
 ### Changed
 
 - **Performa navigasi antar tab dioptimasi** — Tiga sumber degradasi utama diperbaiki: (1) `getWalletBundle` (digunakan halaman Members, Settlements, Templates, Reports) kini di-cache Redis TTL 120s, menghilangkan 13 query per navigasi. (2) `getShellData` di-cache Redis TTL 300s, menghilangkan 4+ query redundant per halaman. (3) Pengecekan profil di `ensureProfileForUser` tidak lagi berjalan di setiap navigasi — profil di-lazy-create di data layer hanya saat pertama kali. (4) `getMessages()` i18n di-cache dengan module-level Map agar `deepMerge` hanya berjalan sekali per locale.
+- **Tambah transaksi kini bisa lewat popup** — Tombol `Tambah transaksi` di dashboard dan header halaman transaksi sekarang membuka modal form reusable, jadi user bisa mencatat pemasukan/pengeluaran tanpa redirect atau self-refresh halaman. Quick input inline di halaman transaksi tetap dipertahankan.
+- **Field kategori transaksi dirapikan** — Komposisi `Select` untuk kategori dibenahi agar ikon tetap sejajar di trigger dan dropdown list, sekaligus memastikan reset form mengembalikan pilihan kategori dengan benar setelah submit berhasil.
 
 ### Added
 

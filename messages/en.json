@@ -479,6 +479,8 @@
     "pageSubtitle": "Enter transactions for {walletName}",
     "quickInputEyebrow": "Quick input",
     "quickInputTitle": "Add income or expenses",
+    "createDialogTitle": "Add a new transaction",
+    "createDialogDescription": "Record income or spending for {walletName} without leaving this page.",
     "quickInputTab": "Quick Input",
     "fullHistoryTab": "Full History",
     "quickInputKindLabel": "Transaction type",

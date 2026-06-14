@@ -13,6 +13,17 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.14.16",
+    date: "2026-06-14",
+    title: "Tambah transaksi kini bisa lewat popup",
+    description: "Tombol `Tambah transaksi` di dashboard dan halaman transaksi sekarang membuka form modal yang lebih cepat dipakai tanpa harus pindah konteks. Field kategori juga dirapikan supaya ikon dan label lebih stabil saat dipilih.",
+    features: [
+      { icon: "🪟", text: "CTA `Tambah transaksi` di dashboard dan header halaman transaksi kini membuka popup form langsung." },
+      { icon: "🧾", text: "Form popup dan form input cepat di halaman transaksi sekarang memakai komponen yang sama supaya perilaku simpan, toast, dan reset tetap konsisten." },
+      { icon: "🏷️", text: "Dropdown kategori dirapikan: ikon kini duduk rapi di field tertutup maupun di daftar pilihan, tanpa komposisi item yang berantakan." }
+    ]
+  },
+  {
     version: "1.14.15",
     date: "2026-07-09",
     title: "Navigasi antar tab terasa jauh lebih cepat",

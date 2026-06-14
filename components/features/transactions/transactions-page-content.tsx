@@ -1,7 +1,9 @@
 "use client";
 
-import { createBalanceAdjustment, createTransaction, deleteTransaction, updateTransaction } from "@/app/actions/transactions";
+import { createBalanceAdjustment, deleteTransaction, updateTransaction } from "@/app/actions/transactions";
 import { AppShell } from "@/components/app-shell";
+import { TransactionCreateDialogButton } from "@/components/features/transactions/transaction-create-dialog-button";
+import { TransactionCreateForm } from "@/components/features/transactions/transaction-create-form";
 import { useLocale } from "@/components/providers/locale-provider";
 import { useTimezone } from "@/components/providers/timezone-provider";
 import { AppIcon, CategoryIcon } from "@/components/ui/app-icon";
@@ -169,6 +171,12 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
   const t = getTranslator(locale);
   const active = `/wallets/${data.walletId}/transactions`;
   const canMutate = data.currentUserRole === "owner" || data.currentUserRole === "editor";
+  const createTransactionContext = {
+    walletId: data.walletId,
+    walletName: data.walletName,
+    walletCurrency: data.walletCurrency,
+    categories: data.categories
+  };
 
   return (
     <AppShell
@@ -183,17 +191,7 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
       currentWalletId={data.walletId}
       headerAction={
         canMutate ? (
-          <Button
-            href={`/wallets/${data.walletId}/transactions`}
-            variant="soft"
-            className="min-h-[2.75rem] gap-2 rounded-full border border-border bg-overlay px-3 shadow-none hover:shadow-none"
-          >
-            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-card ring-1 ring-inset ring-border">
-              <AppIcon name="plus" className="h-4 w-4" tone="primary" />
-            </span>
-            <span className="hidden sm:inline">{t("dashboard.addTransaction")}</span>
-            <span className="sr-only sm:hidden">{t("dashboard.addTransaction")}</span>
-          </Button>
+          <TransactionCreateDialogButton context={createTransactionContext} label={t("dashboard.addTransaction")} />
         ) : null
       }
     >
@@ -221,37 +219,7 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
         <div className="card">
           <p className="eyebrow">{t("transactions.quickInputEyebrow")}</p>
           <h3 className="headline-md mt-2">{t("transactions.quickInputTitle")}</h3>
-          <ActionForm action={createTransaction} className="mt-6 grid min-w-0 gap-4" resetOnSuccess>
-            <input type="hidden" name="wallet_id" value={data.walletId} />
-            <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.quickInputKindLabel")}</span>
-              <select name="kind" defaultValue="expense">
-                <option value="expense">{t("transactions.kindExpense")}</option>
-                <option value="income">{t("transactions.kindIncome")}</option>
-              </select>
-            </label>
-            <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.amountLabel")}</span>
-              <CurrencyInput name="amount" placeholder="Rp0" required />
-            </label>
-            <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.quickInputCategoryLabel")}</span>
-              <CategorySelect name="category_id" categories={data.categories} defaultValue={data.categories[0]?.id ?? ""} required />
-            </label>
-            <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.noteLabel")}</span>
-              <input name="note" placeholder={t("transactions.quickInputNotePlaceholder")} />
-            </label>
-            <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.dateLabel")}</span>
-              <input name="happened_at" type="date" defaultValue={getTodayDateString()} required />
-            </label>
-            <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.timeLabel")}</span>
-              <input name="happened_at_time" type="time" defaultValue={getCurrentTimeString()} />
-            </label>
-            <SubmitButton pendingText={t("transactions.quickInputSavePending")}>{t("transactions.quickInputSave")}</SubmitButton>
-          </ActionForm>
+          <TransactionCreateForm context={createTransactionContext} className="mt-6 grid min-w-0 gap-4" />
 
           {canMutate ? (
             <div className="mt-8 border-t border-border pt-6">

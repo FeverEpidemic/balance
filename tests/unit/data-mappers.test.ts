@@ -167,6 +167,12 @@ describe("data mappers", () => {
     expect(dashboard.totalIncomeThisMonth).toBe(2150000);
     expect(dashboard.outstandingSplit).toBe(200000);
     expect(dashboard.wallets).toHaveLength(2);
+    expect(dashboard.createTransactionContext).toMatchObject({
+      walletId: "w1",
+      walletName: "Rumah Utama",
+      walletCurrency: "IDR"
+    });
+    expect(dashboard.createTransactionContext?.categories.map((category) => category.id)).toEqual(["c1", "c2", "c3", "c5", "c6"]);
     expect(dashboard.recentTransactions[2]).toMatchObject({
       category: "Sewa",
       categoryColor: "#abcdef",
@@ -280,6 +286,7 @@ describe("data mappers", () => {
       isComplete: false,
       href: "/dashboard"
     });
+    expect(dashboard.createTransactionContext).toBeNull();
   });
 
   it("marks only the wallet step complete when the user has a wallet but no manual transactions", () => {
@@ -317,6 +324,50 @@ describe("data mappers", () => {
     expect(dashboard.onboarding.steps[1]?.isComplete).toBe(false);
     expect(dashboard.onboarding.steps[2]?.isComplete).toBe(false);
     expect(dashboard.onboarding.steps[3]?.isComplete).toBe(false);
+  });
+
+  it("omits dashboard transaction context when the primary wallet is read-only", () => {
+    const dashboard = createDashboardData({
+      shell: {
+        ...shell,
+        primaryWalletId: "w1"
+      },
+      memberships: [{ wallet_id: "w1", user_id: "u1", role: "viewer" }],
+      wallets: [wallets[0]],
+      memberRows: [{ wallet_id: "w1", user_id: "u1", role: "viewer" }],
+      budgets: [],
+      recentTransactions: [],
+      monthTransactions: [],
+      savings: [],
+      savingEntries: [],
+      categories: categories.filter((category) => category.wallet_id === "w1"),
+      splits: [],
+      month: "2026-05"
+    });
+
+    expect(dashboard.createTransactionContext).toBeNull();
+  });
+
+  it("omits dashboard transaction context when the primary wallet cannot be resolved", () => {
+    const dashboard = createDashboardData({
+      shell: {
+        ...shell,
+        primaryWalletId: "missing-wallet"
+      },
+      memberships,
+      wallets,
+      memberRows,
+      budgets,
+      recentTransactions: [],
+      monthTransactions: [],
+      savings: [],
+      savingEntries: [],
+      categories,
+      splits: [],
+      month: "2026-05"
+    });
+
+    expect(dashboard.createTransactionContext).toBeNull();
   });
 
   it("completes the organize step when the wallet has a custom category or any budget", () => {

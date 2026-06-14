@@ -479,6 +479,8 @@
     "pageSubtitle": "Input transaksi untuk {walletName}",
     "quickInputEyebrow": "Input cepat",
     "quickInputTitle": "Tambah pemasukan atau pengeluaran",
+    "createDialogTitle": "Tambah transaksi baru",
+    "createDialogDescription": "Catat pemasukan atau pengeluaran untuk {walletName} tanpa meninggalkan halaman ini.",
     "quickInputTab": "Input Cepat",
     "fullHistoryTab": "Riwayat Lengkap",
     "quickInputKindLabel": "Jenis transaksi",
