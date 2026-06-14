@@ -81,7 +81,6 @@ export function AppShell({
     { href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet" as const },
     { href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions" as const },
     { href: "/chat", label: t("common.aiAssistant"), icon: "chat" as const },
-    { href: "/settings", label: t("common.settings"), icon: "settings" as const }
   ];
 
   return (
