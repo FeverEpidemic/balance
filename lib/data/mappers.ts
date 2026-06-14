@@ -32,6 +32,7 @@ import type {
   TransactionSplitRow,
   TransactionHistoryPageData,
   TransactionHistorySortField,
+  TransactionCreateContext,
   TransactionsPageData,
   WalletMemberRow,
   WalletOverviewData,
@@ -403,6 +404,48 @@ export function buildDashboardOnboarding(args: {
 
 export function filterTransactionsByMonth(transactions: TransactionRow[], month: string) {
   return transactions.filter((transaction) => isSameMonth(transaction.happened_at, month));
+}
+
+function buildTransactionCreateCategories(categories: CategoryRow[], walletId: string) {
+  return categories
+    .filter((category) => category.wallet_id === walletId)
+    .filter(
+      (category) => (category.kind === "expense" || category.kind === "income") && !isBalanceAdjustmentCategory(category)
+    )
+    .filter(deduplicateById());
+}
+
+function buildTransactionCreateContext(args: {
+  shell: ShellData;
+  wallets: WalletRow[];
+  memberships: WalletMemberRow[];
+  categories: CategoryRow[];
+}): TransactionCreateContext | null {
+  const { shell, wallets, memberships, categories } = args;
+  const primaryWalletId = shell.primaryWalletId;
+
+  if (!primaryWalletId) {
+    return null;
+  }
+
+  const wallet = wallets.find((item) => item.id === primaryWalletId);
+
+  if (!wallet) {
+    return null;
+  }
+
+  const role = getCurrentUserRole(memberships, wallet.id);
+
+  if (role !== "owner" && role !== "editor") {
+    return null;
+  }
+
+  return {
+    walletId: wallet.id,
+    walletName: wallet.name,
+    walletCurrency: wallet.currency,
+    categories: buildTransactionCreateCategories(categories, wallet.id)
+  } satisfies TransactionCreateContext;
 }
 
 export function buildTransactionListItems(
@@ -791,6 +834,12 @@ export function createDashboardData(args: {
       savings,
       locale
     }),
+    createTransactionContext: buildTransactionCreateContext({
+      shell,
+      wallets,
+      memberships,
+      categories
+    }),
     totalAvailableBalance: walletSummaries.reduce((total, wallet) => total + wallet.availableBalance, 0),
     totalAvailableBudget: walletSummaries.reduce(
       (total, wallet) => total + (wallet.budgetThisMonth > 0 ? wallet.budgetThisMonth - wallet.spentThisMonth : 0),
@@ -861,11 +910,7 @@ export function createTransactionsPageData(args: {
   locale?: AppLocale;
 }) {
   const { shell, wallet, memberships, categories, transactions, currentAvailableBalance, selectedMonth, locale = defaultLocale } = args;
-  const formCategories = categories
-    .filter(
-      (category) => (category.kind === "expense" || category.kind === "income") && !isBalanceAdjustmentCategory(category)
-    )
-    .filter(deduplicateById());
+  const formCategories = buildTransactionCreateCategories(categories, wallet.id);
   const walletTransactions = transactions.filter((transaction) => transaction.wallet_id === wallet.id);
   const filteredTransactions = filterTransactionsByMonth(walletTransactions, selectedMonth);
 
