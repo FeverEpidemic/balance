@@ -40,6 +40,7 @@
 - **AI Chat lebih tegas soal kategori, nominal lokal, dan tanggal kasual** — Pencatatan transaksi via AI kini tidak lagi diam-diam menyimpan transaksi tanpa kategori saat `categoryName` tidak ditemukan. Confidence nominal juga sudah memahami format Indonesia seperti `45rb`, `1,5jt`, dan `2 juta`, typo kasual seperti `catet` kini tetap masuk jalur mutasi, serta pembacaan kategori/tanggal relatif lebih peka untuk prompt seperti `kmrn`, `2 hari lalu`, atau kategori income di luar top expense.
 - **AI Chat tidak lagi mempercayai jawaban final saat tool gagal** — Setelah tool loop selesai, route kini memeriksa semua payload `role: "tool"` dan menghentikan final streaming biasa bila ada error terstruktur seperti `CONFIDENCE_TOO_LOW`, `DUPLICATE_DETECTED`, `DAILY_SPENDING_CAP_EXCEEDED`, atau `VALIDATION_FAILED`. `NEEDS_CONFIRMATION` tetap memunculkan preview transaksi seperti sebelumnya, sementara error tool non-konfirmasi sekarang dibalas dengan pesan aman deterministic dari server.
 - **Halaman Ketentuan Layanan kini benar-benar publik** — Middleware sekarang mengizinkan `/[locale]/terms` diakses tanpa login, sehingga tautan footer landing tidak lagi terlempar ke halaman masuk.
+- **Terjemahan kartu Available Budget di dashboard diperbaiki** — Label dan detail `availableBudget` kini menampilkan teks yang benar dalam Bahasa Indonesia ("Sisa Anggaran Bulan Ini") dan Inggris ("This Month's Remaining Budget") alih-alih menampilkan raw key.
 
 ## [1.10.0] - 2026-06-17
 

@@ -187,20 +187,20 @@ export function AppShell({
           <div className="pb-24 lg:pb-0">{children}</div>
         </main>
 
-        <nav className="glass-nav fixed inset-x-4 bottom-4 z-40 rounded-2xl p-2 backdrop-blur lg:hidden">
-          <div className="touch-scroll-x flex gap-2">
+        <nav className="glass-nav fixed inset-x-4 bottom-4 z-40 rounded-2xl px-1.5 py-1.5 backdrop-blur lg:hidden">
+          <div className="flex gap-1">
             {mobileNavItems.map((item) => (
               <Link
                 key={getNavItemKey(item)}
                 href={localizePath(locale, item.href)}
                 className={cn(
-                  "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
+                  "min-w-0 flex-1 rounded-xl px-1.5 py-1.5 text-center font-label text-[11px] font-medium uppercase tracking-[0.06em] transition",
                   isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "bg-transparent text-muted-foreground"
                 )}
               >
-                <span className="flex flex-col items-center justify-center gap-1">
+                <span className="flex flex-col items-center justify-center gap-0.5">
                   <AppIcon name={item.icon} className="h-4 w-4" />
-                  <span>{item.label}</span>
+                  <span className="truncate">{item.label}</span>
                 </span>
               </Link>
             ))}

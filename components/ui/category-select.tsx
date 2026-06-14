@@ -79,7 +79,7 @@ export function CategorySelect({
         required={required}
       >
         <SelectTrigger className="relative min-h-[3.25rem] pl-11">
-          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             {selectedCategory ? (
               <CategoryIcon
                 categoryName={selectedCategory.name}
@@ -90,7 +90,7 @@ export function CategorySelect({
             ) : (
               <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/40" aria-hidden="true" />
             )}
-          </span>
+          </div>
           <SelectValue placeholder={emptyLabel ?? "Pilih kategori"} />
         </SelectTrigger>
         <SelectContent>
