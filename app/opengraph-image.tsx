@@ -1,29 +1,18 @@
 import { ImageResponse } from "next/og";
+import fs from "node:fs";
+import path from "node:path";
 
 export const alt = "Balance — Personal Finance Tracker";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+export const runtime = "nodejs";
 
 export default async function Image() {
-  // Load fonts from Google Fonts
-  const [hankenGrotesk, inter] = await Promise.all([
-    fetch(
-      "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@600;700",
-      { headers: { "User-Agent": "Mozilla/5.0" } },
-    ).then((res) => res.text()),
-    fetch(
-      "https://fonts.googleapis.com/css2?family=Inter:wght@400;600",
-      { headers: { "User-Agent": "Mozilla/5.0" } },
-    ).then((res) => res.text()),
-  ]);
-
-  // Extract font URLs from Google's CSS response
-  const hankenUrl = hankenGrotesk.match(/url\(([^)]+)\)/)?.[1] ?? "";
-  const interUrl = inter.match(/url\(([^)]+)\)/)?.[1] ?? "";
+  const publicDir = path.join(process.cwd(), "public");
 
   const [hankenBuffer, interBuffer] = await Promise.all([
-    fetch(hankenUrl).then((res) => res.arrayBuffer()),
-    fetch(interUrl).then((res) => res.arrayBuffer()),
+    fs.promises.readFile(path.join(publicDir, "fonts", "hanken-grotesk-700.ttf")),
+    fs.promises.readFile(path.join(publicDir, "fonts", "inter-400.ttf")),
   ]);
 
   return new ImageResponse(
