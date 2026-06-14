@@ -5,6 +5,7 @@ import { redisCache } from "@/lib/redis";
 import { getAiChatDailyLimitMax } from "@/lib/env";
 import { getAiChatComplianceState } from "@/lib/ai/compliance";
 import { getEffectivePlanType, getTrialMeta } from "@/lib/plan";
+import { ensureProfileForUser } from "@/lib/profile";
 import {
   buildMonthlyReport,
   buildWalletSummaries,
@@ -27,13 +28,17 @@ import {
   getRecurringCacheKey,
   getSavingsCacheKey,
   getSettingsCacheKey,
+  getShellDataCacheKey,
   getTransactionHistoryCacheKey,
   getTransactionsCacheKey,
+  getWalletBundleCacheKey,
   getWalletOverviewCacheKey,
   RECURRING_CACHE_TTL_SECONDS,
   SAVINGS_CACHE_TTL_SECONDS,
   SETTINGS_CACHE_TTL_SECONDS,
+  SHELL_DATA_CACHE_TTL_SECONDS,
   TRANSACTIONS_CACHE_TTL_SECONDS,
+  WALLET_BUNDLE_CACHE_TTL_SECONDS,
   WALLET_OVERVIEW_CACHE_TTL_SECONDS
 } from "@/lib/data/cache";
 import {
@@ -58,6 +63,7 @@ import {
   queryWallets
 } from "@/lib/data/queries";
 import type {
+  ProfileRow,
   SettingsApiKeyItem,
   SettingsData,
   SortDirection,
@@ -78,29 +84,43 @@ async function getMembershipContext(userId: string) {
 }
 
 export const getShellData = cache(async (userId: string) => {
-  const month = getCurrentMonthKey();
-  const { walletIds } = await getMembershipContext(userId);
-  const [wallets, memberRows, budgets, profiles] = await Promise.all([
-    queryWallets(walletIds),
-    queryWalletMembers(walletIds),
-    queryBudgets(walletIds, month),
-    queryProfiles([userId])
-  ]);
+  return redisCache.getOrSet(getShellDataCacheKey(userId), SHELL_DATA_CACHE_TTL_SECONDS, async () => {
+    const month = getCurrentMonthKey();
+    const { walletIds } = await getMembershipContext(userId);
+    const [wallets, memberRows, budgets, profiles] = await Promise.all([
+      queryWallets(walletIds),
+      queryWalletMembers(walletIds),
+      queryBudgets(walletIds, month),
+      queryProfiles([userId])
+    ]);
 
-  return {
-    userName: profiles[0]?.full_name || profiles[0]?.email || translate(defaultLocale, "common.user"),
-    walletCount: wallets.length,
-    budgetCount: budgets.length,
-    memberCount: new Set(memberRows.map((row) => row.user_id)).size,
-    primaryWalletId: wallets[0]?.id ?? null,
-    preferredLocale: profiles[0]?.preferred_locale ?? defaultLocale,
-    themePreference: profiles[0]?.theme_preference ?? "system",
-    onboardingState: profiles[0]?.onboarding_state ?? "active",
-    onboardingDismissedAt: profiles[0]?.onboarding_dismissed_at ?? null,
-    onboardingCompletedAt: profiles[0]?.onboarding_completed_at ?? null,
-    timezone: profiles[0]?.timezone ?? null,
-    defaultCurrency: profiles[0]?.default_currency ?? "IDR"
-  };
+    // Lazily ensure profile exists — only runs on first visit for new users
+    if (!profiles[0]) {
+      const created = await ensureProfileForUser({ id: userId });
+      if (created) {
+        // Re-query to get the full profile row
+        const [fullProfile] = await queryProfiles([userId]);
+        if (fullProfile) {
+          profiles[0] = fullProfile;
+        }
+      }
+    }
+
+    return {
+      userName: profiles[0]?.full_name || profiles[0]?.email || translate(defaultLocale, "common.user"),
+      walletCount: wallets.length,
+      budgetCount: budgets.length,
+      memberCount: new Set(memberRows.map((row) => row.user_id)).size,
+      primaryWalletId: wallets[0]?.id ?? null,
+      preferredLocale: profiles[0]?.preferred_locale ?? defaultLocale,
+      themePreference: profiles[0]?.theme_preference ?? "system",
+      onboardingState: profiles[0]?.onboarding_state ?? "active",
+      onboardingDismissedAt: profiles[0]?.onboarding_dismissed_at ?? null,
+      onboardingCompletedAt: profiles[0]?.onboarding_completed_at ?? null,
+      timezone: profiles[0]?.timezone ?? null,
+      defaultCurrency: profiles[0]?.default_currency ?? "IDR"
+    };
+  });
 });
 
 export const getDashboardData = cache(async (userId: string, locale: AppLocale = defaultLocale) => {
@@ -145,63 +165,82 @@ export const getDashboardData = cache(async (userId: string, locale: AppLocale =
 });
 
 export const getWalletBundle = cache(async (userId: string, walletId: string) => {
-  const month = getCurrentMonthKey();
-  const { memberships, walletIds } = await getMembershipContext(userId);
+  const data = await redisCache.getOrSet(
+    getWalletBundleCacheKey(userId, walletId),
+    WALLET_BUNDLE_CACHE_TTL_SECONDS,
+    async () => {
+      const month = getCurrentMonthKey();
+      const { memberships, walletIds } = await getMembershipContext(userId);
 
-  if (!walletIds.includes(walletId)) {
+      if (!walletIds.includes(walletId)) {
+        return null;
+      }
+
+      const [shell, wallets, memberRows, categories, budgets, recurringTransactions, transactions, templates, settlements, invitations, savings, savingEntries] = await Promise.all([
+        getShellData(userId),
+        queryWallets([walletId]),
+        queryWalletMembers([walletId]),
+        queryCategories([walletId]),
+        queryBudgets([walletId], month),
+        queryRecurringTransactions([walletId]),
+        queryTransactions([walletId]),
+        queryTemplates([walletId]),
+        querySettlements([walletId]),
+        queryInvitations([walletId]),
+        querySavings([walletId]),
+        querySavingEntries([walletId])
+      ]);
+
+      const wallet = wallets[0];
+
+      if (!wallet) {
+        return null;
+      }
+
+      const [summary] = buildWalletSummaries({
+        memberships,
+        wallets: [wallet],
+        memberRows,
+        transactions,
+        savings,
+        savingEntries,
+        budgets,
+        month
+      });
+
+      const memberIds = [...new Set(memberRows.map((row) => row.user_id))];
+      const profiles = await queryProfiles(memberIds);
+      const profileMap: Record<string, ProfileRow> = {};
+      for (const profile of profiles) {
+        profileMap[profile.id] = profile;
+      }
+
+      return {
+        shell,
+        profileMap,
+        categories,
+        budgets,
+        members: memberRows,
+        recurringTransactions,
+        savings,
+        savingEntries,
+        settlements,
+        templates,
+        transactions,
+        invitations,
+        wallet: summary
+      };
+    }
+  );
+
+  if (!data) {
     return null;
   }
 
-  const [shell, wallets, memberRows, categories, budgets, recurringTransactions, transactions, templates, settlements, invitations, savings, savingEntries] = await Promise.all([
-    getShellData(userId),
-    queryWallets([walletId]),
-    queryWalletMembers([walletId]),
-    queryCategories([walletId]),
-    queryBudgets([walletId], month),
-    queryRecurringTransactions([walletId]),
-    queryTransactions([walletId]),
-    queryTemplates([walletId]),
-    querySettlements([walletId]),
-    queryInvitations([walletId]),
-    querySavings([walletId]),
-    querySavingEntries([walletId])
-  ]);
-
-  const wallet = wallets[0];
-
-  if (!wallet) {
-    return null;
-  }
-
-  const [summary] = buildWalletSummaries({
-    memberships,
-    wallets: [wallet],
-    memberRows,
-    transactions,
-    savings,
-    savingEntries,
-    budgets,
-    month
-  });
-
-  const memberIds = [...new Set(memberRows.map((row) => row.user_id))];
-  const profiles = await queryProfiles(memberIds);
-  const profileMap = new Map(profiles.map((profile) => [profile.id, profile]));
-
+  // Reconstitute Map from serialized Record for callers that use .get()
   return {
-    shell,
-    profileMap,
-    categories,
-    budgets,
-    members: memberRows,
-    recurringTransactions,
-    savings,
-    savingEntries,
-    settlements,
-    templates,
-    transactions,
-    invitations,
-    wallet: summary
+    ...data,
+    profileMap: new Map(Object.entries(data.profileMap))
   } satisfies WalletBundle;
 });
 

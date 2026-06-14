@@ -42,6 +42,16 @@ import type {
   SortDirection
 } from "@/lib/data/types";
 
+/** Returns a filter function that keeps only the first item with each id. */
+function deduplicateById<T extends { id: string }>(): (item: T) => boolean {
+  const seen = new Set<string>();
+  return (item) => {
+    const dup = seen.has(item.id);
+    seen.add(item.id);
+    return !dup;
+  };
+}
+
 function isSameMonth(dateValue: string, month: string) {
   return dateValue.slice(0, 7) === month;
 }
@@ -782,6 +792,10 @@ export function createDashboardData(args: {
       locale
     }),
     totalAvailableBalance: walletSummaries.reduce((total, wallet) => total + wallet.availableBalance, 0),
+    totalAvailableBudget: walletSummaries.reduce(
+      (total, wallet) => total + (wallet.budgetThisMonth > 0 ? wallet.budgetThisMonth - wallet.spentThisMonth : 0),
+      0
+    ),
     totalSavingBalance: walletSummaries.reduce((total, wallet) => total + wallet.savingBalance, 0),
     totalBalance: walletSummaries.reduce((total, wallet) => total + wallet.totalBalance, 0),
     totalExpenseThisMonth: currentMonthTransactions.filter((row) => row.kind === "expense").reduce((total, row) => total + row.amount, 0),
@@ -847,9 +861,11 @@ export function createTransactionsPageData(args: {
   locale?: AppLocale;
 }) {
   const { shell, wallet, memberships, categories, transactions, currentAvailableBalance, selectedMonth, locale = defaultLocale } = args;
-  const formCategories = categories.filter(
-    (category) => (category.kind === "expense" || category.kind === "income") && !isBalanceAdjustmentCategory(category)
-  );
+  const formCategories = categories
+    .filter(
+      (category) => (category.kind === "expense" || category.kind === "income") && !isBalanceAdjustmentCategory(category)
+    )
+    .filter(deduplicateById());
   const walletTransactions = transactions.filter((transaction) => transaction.wallet_id === wallet.id);
   const filteredTransactions = filterTransactionsByMonth(walletTransactions, selectedMonth);
 
@@ -894,9 +910,11 @@ export function createTransactionHistoryPageData(args: {
     page = 1,
     pageSize = 50
   } = args;
-  const formCategories = categories.filter(
-    (category) => (category.kind === "expense" || category.kind === "income") && !isBalanceAdjustmentCategory(category)
-  );
+  const formCategories = categories
+    .filter(
+      (category) => (category.kind === "expense" || category.kind === "income") && !isBalanceAdjustmentCategory(category)
+    )
+    .filter(deduplicateById());
   const historyTransactions = filterAndPaginateTransactionHistory({
     transactions: buildTransactionListItems(transactions, categories, locale),
     searchQuery,

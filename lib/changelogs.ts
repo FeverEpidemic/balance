@@ -13,6 +13,64 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.14.15",
+    date: "2026-07-09",
+    title: "Navigasi antar tab terasa jauh lebih cepat",
+    description: "Performa perpindahan antar tab dan halaman dioptimasi dengan beberapa lapis caching — Redis cache untuk data wallet bundle dan shell data, serta eliminasi query profil redundant di setiap navigasi.",
+    features: [
+      { icon: "⚡", text: "Navigasi tab Members, Settlements, Templates, dan Reports tidak perlu reload 13 query setiap kali — Redis cache 2 menit." },
+      { icon: "⚡", text: "Data shell (jumlah wallet, anggota, budget) di-cache Redis 5 menit — mengurangi 4+ query per halaman." },
+      { icon: "⚡", text: "Pengecekan profil tidak lagi berjalan di setiap navigasi — hanya saat pertama kali user mengakses aplikasi." },
+      { icon: "⚡", text: "Sistem i18n tidak lagi melakukan deepMerge JSON setiap lookup — sekali per locale per sesi." }
+    ]
+  },
+  {
+    version: "1.14.14",
+    date: "2026-06-14",
+    title: "Dashboard kini menampilkan Available Budget",
+    description: "Satu kartu ringkasan baru ditambahkan tepat di bawah hero dashboard untuk menunjukkan sisa anggaran aktif bulan ini. Angka ini dipisahkan dari saldo tersedia dan saldo tabungan supaya kondisi kas dan ruang anggaran lebih mudah dibaca.",
+    features: [
+      { icon: "📊", text: "Kartu `Available Budget` baru muncul di deretan ringkasan bawah hero dashboard." },
+      { icon: "🧮", text: "Nilai kartu dihitung dari total budget aktif bulan ini dikurangi pengeluaran berjalan di semua wallet yang punya budget." },
+      { icon: "💸", text: "Saldo tersedia, saldo tabungan, dan sisa anggaran sekarang tampil sebagai tiga konteks yang jelas terpisah." }
+    ]
+  },
+  {
+    version: "1.14.13",
+    date: "2026-06-14",
+    title: "Hero dashboard kini menonjolkan saldo tersedia",
+    description: "Dashboard sekarang menampilkan `Saldo tersedia` sebagai angka utama di hero, dihitung dari seluruh wallet tanpa menambahkan tabungan. Kartu ringkasan yang menampilkan angka sama di bawah hero juga dihapus agar halaman lebih ringkas.",
+    features: [
+      { icon: "💸", text: "Angka hero dashboard kini memakai `Saldo tersedia` seluruh wallet, bukan `Total saldo` yang mencampur tabungan." },
+      { icon: "🧾", text: "Saldo tabungan tetap tampil sebagai kartu statistik terpisah supaya komposisi dana lebih mudah dibedakan." },
+      { icon: "🪶", text: "Kartu ringkasan duplikat untuk saldo tersedia di bawah hero dihapus agar isi dashboard terasa lebih ringan." }
+    ]
+  },
+  {
+    version: "1.14.12",
+    date: "2026-06-14",
+    title: "Header wallet lebih bersih, ringkasan pindah ke bawah",
+    description: "Hero dashboard dan halaman wallet sekarang terasa lebih ringan karena shortcut pill di header mobile dihapus. Ringkasan jumlah wallet, anggaran, dan anggota tetap ada, tapi kini tampil sebagai section terakhir di dashboard.",
+    features: [
+      { icon: "🧼", text: "Shortcut pill wallet di header mobile dihapus dari dashboard dan seluruh halaman wallet agar hero terasa lebih tenang." },
+      { icon: "📊", text: "Ringkasan Wallet, Anggaran, dan Anggota dipindah ke bagian paling bawah dashboard supaya alur baca halaman lebih natural dari atas ke bawah." },
+      { icon: "🧭", text: "Akses ke Overview, Transaksi, Tabungan, Anggaran, Laporan, dan halaman wallet lain tetap tersedia lewat sidebar desktop dan drawer mobile." },
+      { icon: "📱", text: "Perubahan ini tetap menjaga layout responsif di mobile maupun desktop tanpa menambah navigasi baru." }
+    ]
+  },
+  {
+    version: "1.14.11",
+    date: "2026-06-14",
+    title: "Dashboard hero kini fokus ke total saldo",
+    description: "Ringkasan utama dashboard sekarang lebih langsung kebaca. Total saldo pindah ke hero teratas, statistik wallet dipindah ke bawah hero, dan seluruh isi dashboard menyatu dalam satu alur scroll.",
+    features: [
+      { icon: "💰", text: "Total saldo kini tampil langsung di hero dashboard sebagai angka utama yang paling menonjol." },
+      { icon: "🧭", text: "Pill navigation Ringkasan, Dompet, dan Aktivitas dihapus agar dashboard tidak terasa terpecah." },
+      { icon: "📊", text: "Total wallet, anggaran, dan anggota dipindah ke strip ringkasan di bawah hero supaya status akun tetap cepat dipindai." },
+      { icon: "📜", text: "Konten dashboard kini mengalir dalam satu halaman: ringkasan, insight AI, chart harian, wallet, kategori, dan transaksi terbaru." }
+    ]
+  },
+  {
     version: "1.14.10",
     date: "2026-06-13",
     title: "Penyesuaian saldo kini otomatis membaca selisih",

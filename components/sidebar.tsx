@@ -36,6 +36,10 @@ export function useSidebarState(): [boolean, (collapsed: boolean) => void] {
   return [collapsed, setAndPersist];
 }
 
+function getNavItemKey(item: NavItem) {
+  return `${item.icon}:${item.href}`;
+}
+
 function SidebarToggleIcon({ collapsed }: { collapsed: boolean }) {
   return (
     <svg
@@ -313,11 +317,12 @@ function SidebarSections({
   const t = getTranslator(locale);
 
   const renderLink = (item: NavItem) => {
+    const itemKey = getNavItemKey(item);
     const active = isActivePath(currentPath, item.href);
     const isWalletShortcut = walletShortcuts.some((s) => s.href === item.href);
     const link = (
       <Link
-        key={item.href}
+        key={itemKey}
         href={item.href}
         onClick={onNavClick}
         className={cn(
@@ -338,7 +343,7 @@ function SidebarSections({
     );
 
     if (collapsed) {
-      return <Tooltip key={item.href} label={item.label}>{link}</Tooltip>;
+      return <Tooltip key={itemKey} label={item.label}>{link}</Tooltip>;
     }
     return link;
   };
@@ -348,7 +353,7 @@ function SidebarSections({
     const active = isActivePath(currentPath, item.href);
     return (
       <Link
-        key={item.href}
+        key={getNavItemKey(item)}
         href={localizePath(locale, item.href)}
         onClick={onNavClick}
         className={cn(
@@ -397,7 +402,7 @@ function SidebarSections({
                 const active = isActivePath(currentPath, item.href);
                 return (
                   <Link
-                    key={item.href}
+                    key={getNavItemKey(item)}
                     href={item.href}
                     className={cn(
                       "flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition",

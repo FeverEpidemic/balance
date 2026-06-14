@@ -3,6 +3,10 @@ import { AppIcon } from "@/components/ui/app-icon";
 import { defaultLocale, getTranslator, type AppLocale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
+function getNavItemKey(item: { href: string; icon: Parameters<typeof AppIcon>[0]["name"] }) {
+  return `${item.icon}:${item.href}`;
+}
+
 function isActivePath(currentPath: string, href: string) {
   if (href === "/dashboard") {
     return currentPath === "/dashboard" || currentPath === "/wallets";
@@ -115,13 +119,19 @@ function AppShellSkeleton({
   title,
   locale = defaultLocale,
   walletContext = false,
-  children
+  children,
+  headerBody,
+  headerFooter,
+  hideDefaultHeaderStats = false
 }: {
   currentPath: string;
   title: string;
   locale?: AppLocale;
   walletContext?: boolean;
   children: ReactNode;
+  headerBody?: ReactNode;
+  headerFooter?: ReactNode;
+  hideDefaultHeaderStats?: boolean;
 }) {
   const t = getTranslator(locale);
   const walletId = walletContext ? "loading-wallet" : null;
@@ -172,7 +182,7 @@ function AppShellSkeleton({
         </div>
         <nav className="mt-8 flex-1 space-y-2 overflow-y-auto px-4 pb-4">
           {navItems.map((item) => (
-            <AppNavLink key={item.href} currentPath={currentPath} href={item.href} icon={item.icon} label={item.label} />
+            <AppNavLink key={getNavItemKey(item)} currentPath={currentPath} href={item.href} icon={item.icon} label={item.label} />
           ))}
         </nav>
       </aside>
@@ -194,6 +204,7 @@ function AppShellSkeleton({
                 <SkeletonBlock className="h-9 w-full max-w-[18rem]" />
                 <SkeletonBlock className="mt-3 h-4 w-full max-w-[28rem]" />
                 <SkeletonBlock className="mt-2 h-4 w-full max-w-[24rem]" />
+                {headerBody ? <div className="mt-5">{headerBody}</div> : null}
                 {shortcuts.length > 0 ? (
                   <div className="touch-scroll-x mt-4 flex gap-2 pb-1 pr-1 lg:hidden">
                     {shortcuts.map((item) => {
@@ -201,7 +212,7 @@ function AppShellSkeleton({
 
                       return (
                         <div
-                          key={item.href}
+                          key={getNavItemKey(item)}
                           className={cn(
                             "shrink-0 whitespace-nowrap rounded-full border px-3 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.12em]",
                             active
@@ -219,18 +230,21 @@ function AppShellSkeleton({
                   </div>
                 ) : null}
               </div>
-              <div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
+              <div className={cn("w-full flex-col gap-3 md:w-auto md:items-end", hideDefaultHeaderStats ? "hidden md:flex" : "flex")}>
                 <SkeletonBlock className="h-11 w-full rounded-full md:w-36" />
-                <div className="grid w-full max-w-sm grid-cols-3 gap-2 rounded-xl bg-card p-2 shadow-serene md:w-auto">
-                  {[t("common.wallet"), t("common.budgets"), t("common.members")].map((label) => (
-                    <div key={label} className="rounded-lg bg-muted px-3 py-2 text-center">
-                      <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
-                      <SkeletonBlock className="mx-auto mt-2 h-6 w-10" />
-                    </div>
-                  ))}
-                </div>
+                {!hideDefaultHeaderStats ? (
+                  <div className="grid w-full max-w-sm grid-cols-3 gap-2 rounded-xl bg-card p-2 shadow-serene md:w-auto">
+                    {[t("common.wallet"), t("common.budgets"), t("common.members")].map((label) => (
+                      <div key={label} className="rounded-lg bg-muted px-3 py-2 text-center">
+                        <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
+                        <SkeletonBlock className="mx-auto mt-2 h-6 w-10" />
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </div>
+            {headerFooter ? <div className="mt-4">{headerFooter}</div> : null}
           </header>
 
           <div className="pb-24 lg:pb-0">{children}</div>
@@ -240,7 +254,7 @@ function AppShellSkeleton({
           <div className="touch-scroll-x flex gap-2">
             {mobileNavItems.map((item) => (
               <div
-                key={item.href}
+                key={getNavItemKey(item)}
                 className={cn(
                   "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em]",
                   isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "text-muted-foreground"
@@ -278,8 +292,68 @@ export function AppAreaLoadingSkeleton({ locale = defaultLocale }: { locale?: Ap
 
 export function DashboardLoadingSkeleton({ locale = defaultLocale }: { locale?: AppLocale }) {
   return (
-    <AppShellSkeleton currentPath="/dashboard" title={getTranslator(locale)("common.dashboard")} locale={locale}>
-      <StatGridSkeleton />
+    <AppShellSkeleton
+      currentPath="/dashboard"
+      title={getTranslator(locale)("common.dashboard")}
+      locale={locale}
+      hideDefaultHeaderStats
+      headerBody={
+        <div className="max-w-3xl">
+          <SkeletonBlock className="h-4 w-28 rounded-full" />
+          <SkeletonBlock className="mt-3 h-12 w-full max-w-[18rem] sm:h-14 md:h-16 md:max-w-[20rem]" />
+          <SkeletonBlock className="mt-3 h-4 w-full max-w-[26rem]" />
+          <SkeletonBlock className="mt-2 h-4 w-full max-w-[22rem]" />
+        </div>
+      }
+      headerFooter={
+        <div className="grid gap-2 rounded-[1rem] bg-card p-2 shadow-serene sm:grid-cols-3">
+          {[getTranslator(locale)("common.wallet"), getTranslator(locale)("common.budgets"), getTranslator(locale)("common.members")].map((label) => (
+            <div key={label} className="rounded-lg bg-muted px-3 py-2 text-center">
+              <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{label}</p>
+              <SkeletonBlock className="mx-auto mt-2 h-6 w-10" />
+            </div>
+          ))}
+        </div>
+      }
+    >
+      <section className="card">
+        <PageSectionHeading />
+        <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <SkeletonBlock key={index} className="h-28 w-full rounded-2xl" />
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-4">
+        <StatGridSkeleton count={5} />
+      </section>
+
+      <section className="mt-4 overflow-hidden rounded-[1.4rem] border border-[color:var(--soft-border)] bg-[linear-gradient(135deg,var(--primary-soft),color-mix(in_srgb,var(--card)_82%,var(--primary-soft)_18%))] p-5 shadow-serene">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <SkeletonBlock className="h-3 w-24 rounded-full" />
+            <SkeletonBlock className="mt-3 h-7 w-full max-w-[16rem]" />
+          </div>
+          <SkeletonBlock className="h-11 w-11 rounded-2xl" />
+        </div>
+        <div className="mt-5 space-y-3">
+          <SkeletonBlock className="h-4 w-3/4" />
+          <SkeletonBlock className="h-4 w-full" />
+          <SkeletonBlock className="h-4 w-2/3" />
+        </div>
+        <SkeletonBlock className="mt-5 h-10 w-32 rounded-full" />
+      </section>
+
+      <section className="mt-4 card">
+        <PageSectionHeading />
+        <SkeletonBlock className="mt-6 h-72 w-full rounded-2xl" />
+      </section>
+
+      <section className="mt-4">
+        <FormCardSkeleton fields={4} />
+      </section>
+
       <section className="mt-4 grid gap-4 2xl:grid-cols-12">
         <div className="card 2xl:col-span-7">
           <PageSectionHeading />

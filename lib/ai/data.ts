@@ -106,7 +106,8 @@ export type AiCreateTransactionResult = {
 export type AiCategoryFocus = {
   categoryId: string;
   categoryName: string;
-  totalExpense: number;
+  categoryKind: TransactionKind;
+  totalAmount: number;
   transactionCount: number;
   walletNames: string[];
   recentNotes: string[];
@@ -120,7 +121,7 @@ export type AiCategoryFocus = {
   } | null;
   previousPeriod?: {
     range: { start: string; end: string };
-    totalExpense: number;
+    totalAmount: number;
     transactionCount: number;
     deltaAmount: number;
     deltaPercent: number | null;
@@ -442,6 +443,14 @@ export async function createTransactionViaAi(userId: string, params: AiCreateTra
     resolvedCategory = await resolveCategoryByName(userId, params.walletId, params.categoryName, params.kind);
   }
 
+  if (!resolvedCategory && params.categoryName) {
+    return {
+      ok: false,
+      code: "CATEGORY_NOT_FOUND",
+      message: t("actionErrors.transactionCategoryNotFound")
+    };
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("transactions")
@@ -519,8 +528,7 @@ export async function getCategoryFocusForUser(
     queryCategories(targetWalletIds),
     queryBudgets(targetWalletIds, currentMonth)
   ]);
-  const expenseCategories = categories.filter((category) => category.kind === "expense");
-  const matchedCategory = expenseCategories
+  const matchedCategory = categories
     .sort((a, b) => b.name.length - a.name.length)
     .find((category) => normalizedPrompt.includes(normalizeForMatch(category.name)));
 
@@ -539,7 +547,7 @@ export async function getCategoryFocusForUser(
     const happenedAt = Date.parse(transaction.happened_at);
 
     return (
-      transaction.kind === "expense" &&
+      transaction.kind === matchedCategory.kind &&
       transaction.category_id === matchedCategory.id &&
       Number.isFinite(happenedAt) &&
       happenedAt >= startAt &&
@@ -550,7 +558,7 @@ export async function getCategoryFocusForUser(
     const happenedAt = Date.parse(transaction.happened_at);
 
     return (
-      transaction.kind === "expense" &&
+      transaction.kind === matchedCategory.kind &&
       transaction.category_id === matchedCategory.id &&
       Number.isFinite(happenedAt) &&
       happenedAt >= previousStartAt &&
@@ -568,12 +576,12 @@ export async function getCategoryFocusForUser(
   const matchedBudget = budgets.find((budget) => budget.category_id === matchedCategory.id);
   const monthTransactions = allTransactions.filter(
     (transaction) =>
-      transaction.kind === "expense" &&
+      transaction.kind === matchedCategory.kind &&
       transaction.category_id === matchedCategory.id &&
       transaction.happened_at.startsWith(currentMonth)
   );
   const spentThisMonth = monthTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-  const budgetInfo = matchedBudget
+  const budgetInfo = matchedCategory.kind === "expense" && matchedBudget
     ? {
         month: currentMonth,
         amount: matchedBudget.amount,
@@ -588,21 +596,22 @@ export async function getCategoryFocusForUser(
               : ("safe" as const)
       }
     : null;
-  const previousTotalExpense = previousMatchingTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-  const currentTotalExpense = matchingTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-  const deltaAmount = currentTotalExpense - previousTotalExpense;
+  const previousTotalAmount = previousMatchingTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+  const currentTotalAmount = matchingTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+  const deltaAmount = currentTotalAmount - previousTotalAmount;
   const previousPeriodInfo = {
     range: previousRange,
-    totalExpense: previousTotalExpense,
+    totalAmount: previousTotalAmount,
     transactionCount: previousMatchingTransactions.length,
     deltaAmount,
-    deltaPercent: previousTotalExpense > 0 ? Math.round((deltaAmount / previousTotalExpense) * 100) : null
+    deltaPercent: previousTotalAmount > 0 ? Math.round((deltaAmount / previousTotalAmount) * 100) : null
   };
 
   return {
     categoryId: matchedCategory.id,
     categoryName: matchedCategory.name,
-    totalExpense: currentTotalExpense,
+    categoryKind: matchedCategory.kind,
+    totalAmount: currentTotalAmount,
     transactionCount: matchingTransactions.length,
     walletNames,
     recentNotes,

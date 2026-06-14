@@ -259,6 +259,13 @@ export type DashboardCategorySpend = {
   color: string;
 };
 
+export type TransactionCreateContext = {
+  walletId: string;
+  walletName: string;
+  walletCurrency: string;
+  categories: CategoryRow[];
+};
+
 export type DailyExpenseItem = {
   day: number;
   dayLabel: string;
@@ -270,7 +277,9 @@ export type DailyExpenseItem = {
 export type DashboardData = {
   shell: ShellData;
   onboarding: DashboardOnboarding;
+  createTransactionContext: TransactionCreateContext | null;
   totalAvailableBalance: number;
+  totalAvailableBudget: number;
   totalSavingBalance: number;
   totalBalance: number;
   totalExpenseThisMonth: number;

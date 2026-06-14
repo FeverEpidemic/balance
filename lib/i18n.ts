@@ -71,12 +71,18 @@ export function getLocaleTag(locale: AppLocale) {
   return localeTags[locale];
 }
 
-export function getMessages(locale: AppLocale) {
-  if (locale === defaultLocale) {
-    return localizedMessages.id;
-  }
+const messageCache = new Map<AppLocale, MessageDictionary>();
 
-  return deepMerge(localizedMessages.id, localizedMessages[locale]);
+export function getMessages(locale: AppLocale) {
+  const cached = messageCache.get(locale);
+  if (cached) return cached;
+
+  const messages = locale === defaultLocale
+    ? localizedMessages.id
+    : deepMerge(localizedMessages.id, localizedMessages[locale]);
+
+  messageCache.set(locale, messages);
+  return messages;
 }
 
 export function translate(locale: AppLocale, key: string, values?: TranslationValues) {

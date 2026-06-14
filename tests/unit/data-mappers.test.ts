@@ -161,6 +161,7 @@ describe("data mappers", () => {
 
     expect(dashboard.totalBalance).toBe(810000);
     expect(dashboard.totalAvailableBalance).toBe(460000);
+    expect(dashboard.totalAvailableBudget).toBe(150000);
     expect(dashboard.totalSavingBalance).toBe(350000);
     expect(dashboard.totalExpenseThisMonth).toBe(1550000);
     expect(dashboard.totalIncomeThisMonth).toBe(2150000);

@@ -69,8 +69,10 @@ export function buildAiSystemPrompt(input: {
   const categoryFocusSummary = input.categoryFocus
     ? (() => {
         const lines: string[] = [];
+        const categoryLabel = input.categoryFocus.categoryKind === "income" ? "pemasukan" : "pengeluaran";
         lines.push(`- Kategori disebut user: ${input.categoryFocus.categoryName}`);
-        lines.push(`- Total pengeluaran kategori ini di periode aktif: ${formatCurrency(input.categoryFocus.totalExpense)}`);
+        lines.push(`- Jenis kategori ini: ${categoryLabel}`);
+        lines.push(`- Total ${categoryLabel} kategori ini di periode aktif: ${formatCurrency(input.categoryFocus.totalAmount)}`);
         lines.push(`- Jumlah transaksi kategori ini: ${input.categoryFocus.transactionCount}`);
         lines.push(`- Muncul di wallet: ${input.categoryFocus.walletNames.join(", ") || "Belum ada wallet aktif"}`);
 
@@ -82,13 +84,15 @@ export function buildAiSystemPrompt(input: {
         lines.push(`- Status anggaran bulan ini: ${
           input.categoryFocus.budget
             ? `${formatCurrency(input.categoryFocus.budget.spent)} dari ${formatCurrency(input.categoryFocus.budget.amount)} (${input.categoryFocus.budget.usagePercent}%), sisa ${formatCurrency(input.categoryFocus.budget.remaining)}, status ${input.categoryFocus.budget.status}`
-            : "Tidak ada anggaran aktif untuk kategori ini"
+            : input.categoryFocus.categoryKind === "expense"
+              ? "Tidak ada anggaran aktif untuk kategori ini"
+              : "Tidak berlaku untuk kategori pemasukan"
         }`);
 
         if (detailTier !== "minimal" && (!input.compact || !isShortPeriod(input.period))) {
           lines.push(`- Perbandingan dengan periode sebelumnya: ${
             input.categoryFocus.previousPeriod
-              ? `sebelumnya ${formatCurrency(input.categoryFocus.previousPeriod.totalExpense)} dari ${input.categoryFocus.previousPeriod.transactionCount} transaksi, selisih ${formatCurrency(input.categoryFocus.previousPeriod.deltaAmount)}${input.categoryFocus.previousPeriod.deltaPercent !== null ? ` (${input.categoryFocus.previousPeriod.deltaPercent}%)` : ""}`
+              ? `sebelumnya ${formatCurrency(input.categoryFocus.previousPeriod.totalAmount)} dari ${input.categoryFocus.previousPeriod.transactionCount} transaksi, selisih ${formatCurrency(input.categoryFocus.previousPeriod.deltaAmount)}${input.categoryFocus.previousPeriod.deltaPercent !== null ? ` (${input.categoryFocus.previousPeriod.deltaPercent}%)` : ""}`
               : "Belum ada data pembanding"
           }`);
         }

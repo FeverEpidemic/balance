@@ -114,14 +114,15 @@ describe("buildAiSystemPrompt compact mode", () => {
     const categoryFocus = {
       categoryId: "c1",
       categoryName: "Makan",
-      totalExpense: 50000,
+      categoryKind: "expense" as const,
+      totalAmount: 50000,
       transactionCount: 2,
       walletNames: ["Dompet"],
       recentNotes: ["Makan siang"],
       budget: null,
       previousPeriod: {
         range: { start: "2026-06-09T00:00:00.000Z", end: "2026-06-09T23:59:59.999Z" },
-        totalExpense: 45000,
+        totalAmount: 45000,
         transactionCount: 1,
         deltaAmount: 5000,
         deltaPercent: 11
@@ -144,7 +145,8 @@ describe("buildAiSystemPrompt compact mode", () => {
     const categoryFocus = {
       categoryId: "c1",
       categoryName: "Makan",
-      totalExpense: 50000,
+      categoryKind: "expense" as const,
+      totalAmount: 50000,
       transactionCount: 2,
       walletNames: ["Dompet A", "Dompet B", "Dompet C"],
       recentNotes: ["Makan siang", "Kopi"],
@@ -200,6 +202,36 @@ describe("buildAiSystemPrompt compact mode", () => {
     expect(dayPrompt).not.toContain("Dompet A: pemasukan");
     expect(weekPrompt).toContain("Dompet A: pemasukan");
     expect(monthPrompt).toContain("Dompet C: pemasukan");
+  });
+
+  it("describes income category focus without expense wording", () => {
+    const prompt = buildAiSystemPrompt({
+      recap: createRecap(),
+      wallets: [{ id: "w1", name: "Dompet", kind: "personal" }],
+      period: "month",
+      latestUserMessage: "Gaji bulan ini berapa?",
+      categoryFocus: {
+        categoryId: "income-1",
+        categoryName: "Gaji",
+        categoryKind: "income",
+        totalAmount: 5000000,
+        transactionCount: 1,
+        walletNames: ["Dompet"],
+        recentNotes: ["Gaji bulanan"],
+        budget: null,
+        previousPeriod: {
+          range: { start: "2026-05-01T00:00:00.000Z", end: "2026-05-31T23:59:59.999Z" },
+          totalAmount: 4800000,
+          transactionCount: 1,
+          deltaAmount: 200000,
+          deltaPercent: 4
+        }
+      }
+    });
+
+    expect(prompt).toContain("Jenis kategori ini: pemasukan");
+    expect(prompt).toContain("Tidak berlaku untuk kategori pemasukan");
+    expect(prompt).toContain("Total pemasukan kategori ini di periode aktif");
   });
 });
 

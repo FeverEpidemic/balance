@@ -14,7 +14,7 @@ function buildSavingsSuggestion(recap: AiFinancialRecap, categoryFocus: AiCatego
   const topCategory = categoryFocus
     ? {
         categoryName: categoryFocus.categoryName,
-        total: categoryFocus.totalExpense
+        total: categoryFocus.totalAmount
       }
     : recap.topExpenseCategories[0];
 
@@ -35,7 +35,7 @@ function buildAnalysisResponse(recap: AiFinancialRecap, categoryFocus: AiCategor
   const topCategory = categoryFocus
     ? {
         categoryName: categoryFocus.categoryName,
-        total: categoryFocus.totalExpense
+        total: categoryFocus.totalAmount
       }
     : recap.topExpenseCategories[0];
   const busiestWallet = recap.perWallet[0];
@@ -53,8 +53,10 @@ function buildAnalysisResponse(recap: AiFinancialRecap, categoryFocus: AiCategor
   }
 
   if (categoryFocus) {
+    const categoryLabel = categoryFocus.categoryKind === "income" ? "pemasukan" : "pengeluaran";
+
     lines.push(
-      `Untuk kategori ${categoryFocus.categoryName} sendiri, tercatat ${categoryFocus.transactionCount} transaksi pada periode aktif${
+      `Untuk kategori ${categoryFocus.categoryName} sendiri, tercatat ${categoryFocus.transactionCount} transaksi ${categoryLabel} pada periode aktif${
         categoryFocus.recentNotes.length ? ` dengan catatan seperti ${categoryFocus.recentNotes.join(", ")}` : ""
       }.`
     );
@@ -82,7 +84,7 @@ function buildAnalysisResponse(recap: AiFinancialRecap, categoryFocus: AiCategor
       const absoluteDelta = Math.abs(categoryFocus.previousPeriod.deltaAmount);
 
       lines.push(
-        `Dibanding periode sebelumnya, pengeluaran kategori ini ${comparisonLabel} ${formatCurrency(absoluteDelta)} dari ${formatCurrency(categoryFocus.previousPeriod.totalExpense)}${
+        `Dibanding periode sebelumnya, ${categoryLabel} kategori ini ${comparisonLabel} ${formatCurrency(absoluteDelta)} dari ${formatCurrency(categoryFocus.previousPeriod.totalAmount)}${
           categoryFocus.previousPeriod.deltaPercent !== null ? ` (${Math.abs(categoryFocus.previousPeriod.deltaPercent)}%)` : ""
         }.`
       );

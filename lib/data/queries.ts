@@ -230,7 +230,13 @@ export async function queryCategories(walletIds: string[]) {
     throw error;
   }
 
-  return (data ?? []) as CategoryRow[];
+  const rows = (data ?? []) as CategoryRow[];
+  const seen = new Set<string>();
+  return rows.filter((row) => {
+    const dup = seen.has(row.id);
+    seen.add(row.id);
+    return !dup;
+  });
 }
 
 export async function queryBudgets(walletIds: string[], month: string) {

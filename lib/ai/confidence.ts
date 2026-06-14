@@ -45,22 +45,62 @@ function computeTier(score: number): "high" | "medium" | "low" {
   return "low";
 }
 
+const AMOUNT_PATTERN = /(?:rp\s?|idr\s?)?(\d[\d.,]*\d|\d)(?:\s*(rb|ribu|jt|juta))?\b/gi;
+const INTENT_PATTERN =
+  /\b(catat|catet|simpan|buatkan?\s?transaksi|record|tambah|input|masukkan?)\b/i;
+const RELATIVE_DATE_PATTERN =
+  /\b(kemarin|kmrn|lusa|besok|hari\s+ini|tadi|td|tadi\s+malam|tadi\s+pagi|tadi\s+siang|td\s+mlm|td\s+pagi|td\s+siang|\d+\s+(hari|minggu)\s+lalu|minggu\s+lalu|tgl\.?\s*\d{1,2}|tanggal\s+\d{1,2})\b/i;
+
+function parseIndonesianAmount(rawAmount: string, suffix?: string): number | null {
+  const raw = rawAmount.replace(/[^\d.,]/g, "");
+
+  if (!raw) {
+    return null;
+  }
+
+  const normalizedSuffix = suffix?.toLocaleLowerCase("id-ID") ?? "";
+  const hasMillionSuffix = normalizedSuffix === "jt" || normalizedSuffix === "juta";
+  const hasThousandSuffix = normalizedSuffix === "rb" || normalizedSuffix === "ribu";
+  const hasCompactDecimal = /^[0-9]+[.,][0-9]{1,2}$/.test(raw);
+
+  let normalized = raw;
+
+  if (hasMillionSuffix) {
+    normalized = hasCompactDecimal ? raw.replace(",", ".") : raw.replace(/\./g, "").replace(/,/g, "");
+  } else if (hasThousandSuffix) {
+    normalized = hasCompactDecimal ? raw.replace(",", ".") : raw.replace(/\./g, "").replace(/,/g, "");
+  } else {
+    normalized = raw.replace(/\./g, "").replace(/,/g, "");
+  }
+
+  const parsed = Number(normalized);
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+
+  if (hasMillionSuffix) {
+    return Math.round(parsed * 1_000_000);
+  }
+
+  if (hasThousandSuffix) {
+    return Math.round(parsed * 1_000);
+  }
+
+  return parsed;
+}
+
 /**
  * Extract all numeric values from user message (including Rp/IDR prefixed amounts).
  */
 function extractAmountsFromText(text: string): number[] {
-  const regex = /(?:Rp\s?|IDR\s?)?(\d[\d.,]*\d|\d)\b/gi;
   const matches: number[] = [];
   let match: RegExpExecArray | null;
 
-  while ((match = regex.exec(text)) !== null) {
-    // Remove non-numeric characters except dots/commas
-    const raw = match[1].replace(/[^\d.,]/g, "");
-    // Try parsing as Indonesian format (1.500 = 1500)
-    const withDots = raw.replace(/\./g, "");
-    const normalized = Number(withDots.replace(/,/g, ""));
+  while ((match = AMOUNT_PATTERN.exec(text)) !== null) {
+    const normalized = parseIndonesianAmount(match[1], match[2]);
 
-    if (Number.isFinite(normalized) && normalized > 0) {
+    if (normalized !== null) {
       matches.push(normalized);
     }
   }
@@ -99,9 +139,7 @@ function findClosestAmountRatio(
  * Check if user message contains intent keywords for recording a transaction.
  */
 function hasIntentKeywords(text: string): boolean {
-  const intentPattern =
-    /\b(catat|simpan|buatkan?\s?transaksi|record|tambah|input|masukkan?)\b/i;
-  return intentPattern.test(text);
+  return INTENT_PATTERN.test(text);
 }
 
 /**
@@ -121,7 +159,7 @@ function hasExplicitDate(text: string): boolean {
     /\d{4}-\d{2}-\d{2}/, // ISO dates
     /\d{1,2}\s+(Januari|Februari|Maret|April|Mei|Juni|Juli|Agustus|September|Oktober|November|Desember)\s+\d{4}/i, // "15 Juni 2026"
     /\d{1,2}\s+(Jan|Feb|Mar|Apr|Mei|Jun|Jul|Agu|Sep|Okt|Nov|Des)\s+\d{4}/i, // "15 Jun 2026"
-    /(kemarin|lusa|besok|hari\s+ini|tadi\s+malam|tadi\s+pagi|tadi\s+siang)/i // Relative dates
+    RELATIVE_DATE_PATTERN // Relative and casual dates
   ];
 
   return datePatterns.some((pattern) => pattern.test(text));

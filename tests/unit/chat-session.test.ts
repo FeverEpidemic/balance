@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildChatRequestMessages, buildWindowedChatMessages, sanitizeStoredChatSession, CHAT_WINDOW_RECENT, REINFORCEMENT_PREFIX } from "@/lib/chat-session";
+import { buildChatRequestMessages, buildWindowedChatMessages, classifyChatAction, sanitizeStoredChatSession, CHAT_WINDOW_RECENT, REINFORCEMENT_PREFIX } from "@/lib/chat-session";
 
 describe("buildChatRequestMessages", () => {
   it("resets history for direct recap requests", () => {
@@ -140,5 +140,11 @@ describe("sanitizeStoredChatSession", () => {
         { id: "2", role: "assistant", content: "Sedang mengetik", isStreaming: false }
       ]
     });
+  });
+});
+
+describe("classifyChatAction", () => {
+  it("classifies casual typo 'catet' as a record action", () => {
+    expect(classifyChatAction("catet pengeluaran 50rb buat gofood")).toBe("record");
   });
 });

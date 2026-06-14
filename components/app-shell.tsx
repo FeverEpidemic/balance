@@ -11,6 +11,10 @@ import { cn } from "@/lib/utils";
 import { logout } from "@/app/actions/auth";
 import type { ReactNode } from "react";
 
+function getNavItemKey(item: { href: string; icon: Parameters<typeof AppIcon>[0]["name"] }) {
+  return `${item.icon}:${item.href}`;
+}
+
 export function AppShell({
   children,
   currentPath,
@@ -23,7 +27,10 @@ export function AppShell({
   primaryWalletId,
   currentWalletId,
   headerAction,
-  subtitleClassName
+  subtitleClassName,
+  headerBody,
+  headerFooter,
+  hideDefaultHeaderStats = false
 }: {
   children: ReactNode;
   currentPath: string;
@@ -37,6 +44,9 @@ export function AppShell({
   currentWalletId?: string | null;
   headerAction?: ReactNode;
   subtitleClassName?: string;
+  headerBody?: ReactNode;
+  headerFooter?: ReactNode;
+  hideDefaultHeaderStats?: boolean;
 }) {
   const locale = useLocale();
   const t = getTranslator(locale);
@@ -66,8 +76,6 @@ export function AppShell({
   const desktopSidebarWidth = isDesktop ? (sidebarCollapsed ? 72 : 280) : 0;
 
   const logoutButtonClassName = "rounded-full bg-primary-soft px-3 py-2 font-label text-xs text-primary-strong";
-  const inactiveWalletPillClassName =
-    "glass-panel border text-muted-foreground hover:border-primary/25 hover:bg-[color:var(--primary-soft)] hover:text-foreground";
   const mobileNavItems = [
     { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" as const },
     { href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet" as const },
@@ -75,15 +83,6 @@ export function AppShell({
     { href: "/chat", label: t("common.aiAssistant"), icon: "chat" as const },
     { href: "/settings", label: t("common.settings"), icon: "settings" as const }
   ];
-  const mobileWalletShortcuts = walletId
-    ? [
-        { href: `/wallets/${walletId}`, label: t("common.overview"), icon: "overview" as const },
-        { href: `/wallets/${walletId}/transactions`, label: t("common.transactions"), icon: "transactions" as const },
-        { href: `/wallets/${walletId}/savings`, label: t("common.savings"), icon: "savings" as const },
-        { href: `/wallets/${walletId}/budgets`, label: t("common.budgets"), icon: "budgets" as const },
-        { href: `/wallets/${walletId}/reports`, label: t("common.reports"), icon: "reports" as const },
-      ]
-    : [];
 
   return (
     <div className="flex min-h-screen">
@@ -158,46 +157,31 @@ export function AppShell({
                 <p className="mt-2 max-w-2xl text-[15px] leading-7 text-muted-foreground sm:text-sm">
                   {t("app.shellHeaderDescription")}
                 </p>
-                {mobileWalletShortcuts.length > 0 ? (
-                  <div className="touch-scroll-x mt-4 flex gap-2 pb-1 pr-1 lg:hidden">
-                    {mobileWalletShortcuts.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={localizePath(locale, item.href)}
-                        className={cn(
-                          "shrink-0 whitespace-nowrap rounded-full border px-3 py-2 font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",
-                          isActivePath(currentPath, item.href)
-                            ? "border-primary bg-primary text-[var(--button-primary-text)] shadow-serene hover:bg-primary-hover"
-                            : inactiveWalletPillClassName
-                        )}
-                      >
-                        <span className="inline-flex items-center gap-2">
-                          <AppIcon name={item.icon} className="h-3.5 w-3.5" />
-                          <span>{item.label}</span>
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                ) : null}
+                {headerBody ? <div className="mt-5">{headerBody}</div> : null}
               </div>
-              <div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
-                {headerAction ? <div className="hidden md:flex w-full justify-start md:justify-end">{headerAction}</div> : null}
-                <div className="grid w-full max-w-sm grid-cols-3 gap-2 rounded-xl bg-card p-2 shadow-serene md:w-auto">
-                  <div className="rounded-lg bg-muted px-3 py-2 text-center">
-                    <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{t("common.wallet")}</p>
-                    <p className="mt-1 metric text-sm">{walletCount}</p>
-                  </div>
-                  <div className="rounded-lg bg-muted px-3 py-2 text-center">
-                    <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{t("common.budgets")}</p>
-                    <p className="mt-1 metric text-sm">{budgetCount}</p>
-                  </div>
-                  <div className="rounded-lg bg-muted px-3 py-2 text-center">
-                    <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{t("common.members")}</p>
-                    <p className="mt-1 metric text-sm">{memberCount}</p>
-                  </div>
+              {headerAction || !hideDefaultHeaderStats ? (
+                <div className={cn("w-full flex-col gap-3 md:w-auto md:items-end", hideDefaultHeaderStats ? "hidden md:flex" : "flex")}>
+                  {headerAction ? <div className="hidden md:flex w-full justify-start md:justify-end">{headerAction}</div> : null}
+                  {!hideDefaultHeaderStats ? (
+                    <div className="grid w-full max-w-sm grid-cols-3 gap-2 rounded-xl bg-card p-2 shadow-serene md:w-auto">
+                      <div className="rounded-lg bg-muted px-3 py-2 text-center">
+                        <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{t("common.wallet")}</p>
+                        <p className="mt-1 metric text-sm">{walletCount}</p>
+                      </div>
+                      <div className="rounded-lg bg-muted px-3 py-2 text-center">
+                        <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{t("common.budgets")}</p>
+                        <p className="mt-1 metric text-sm">{budgetCount}</p>
+                      </div>
+                      <div className="rounded-lg bg-muted px-3 py-2 text-center">
+                        <p className="font-label text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{t("common.members")}</p>
+                        <p className="mt-1 metric text-sm">{memberCount}</p>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-              </div>
+              ) : null}
             </div>
+            {headerFooter ? <div className="mt-4">{headerFooter}</div> : null}
           </header>
 
           <div className="pb-24 lg:pb-0">{children}</div>
@@ -207,7 +191,7 @@ export function AppShell({
           <div className="touch-scroll-x flex gap-2">
             {mobileNavItems.map((item) => (
               <Link
-                key={item.href}
+                key={getNavItemKey(item)}
                 href={localizePath(locale, item.href)}
                 className={cn(
                   "min-w-[calc(50%-0.25rem)] flex-1 rounded-xl px-2 py-2 text-center font-label text-[11px] font-semibold uppercase tracking-[0.12em] transition",

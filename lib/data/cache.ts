@@ -10,8 +10,10 @@ export const CATEGORIES_CACHE_TTL_SECONDS = 300;
 export const RECURRING_CACHE_TTL_SECONDS = 300;
 export const SAVINGS_CACHE_TTL_SECONDS = 300;
 export const SETTINGS_CACHE_TTL_SECONDS = 600;
+export const WALLET_BUNDLE_CACHE_TTL_SECONDS = 120;
+export const SHELL_DATA_CACHE_TTL_SECONDS = 300;
 
-export type WalletReadCacheTarget = "overview" | "transactions" | "budgets" | "categories" | "recurring" | "savings";
+export type WalletReadCacheTarget = "overview" | "transactions" | "budgets" | "categories" | "recurring" | "savings" | "bundle";
 
 function withLocaleSuffix(key: string, locale: AppLocale) {
   return locale === defaultLocale ? key : `${key}:${locale}`;
@@ -66,6 +68,10 @@ export function getSavingsCacheKey(userId: string, walletId: string, locale: App
   return withLocaleSuffix(`wallet:${walletId}:user:${userId}:savings`, locale);
 }
 
+export function getWalletBundleCacheKey(userId: string, walletId: string) {
+  return `wallet:${walletId}:user:${userId}:bundle`;
+}
+
 export function getWalletReadCachePatterns(walletId: string, targets: WalletReadCacheTarget[]) {
   return Array.from(
     new Set(
@@ -83,6 +89,8 @@ export function getWalletReadCachePatterns(walletId: string, targets: WalletRead
             return `wallet:${walletId}:user:*:recurring*`;
           case "savings":
             return `wallet:${walletId}:user:*:savings*`;
+          case "bundle":
+            return `wallet:${walletId}:user:*:bundle*`;
         }
       })
     )
@@ -93,12 +101,22 @@ export function getSettingsCacheKey(userId: string) {
   return `user:${userId}:settings`;
 }
 
+export function getShellDataCacheKey(userId: string) {
+  return `user:${userId}:shell`;
+}
+
 export function getAiInsightCachePattern(userId: string) {
   return `ai:insight:${userId}:*`;
 }
 
 export async function invalidateSettingsCache(userId: string) {
   await redisCache.del(getSettingsCacheKey(userId));
+}
+
+export async function invalidateShellDataCache(userIds: string | string[]) {
+  const ids = Array.isArray(userIds) ? userIds : [userIds];
+  if (ids.length === 0) return;
+  await redisCache.del(ids.map(getShellDataCacheKey));
 }
 
 export async function invalidateAiInsightCache(userIds: string[]) {

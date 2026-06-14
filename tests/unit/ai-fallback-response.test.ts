@@ -59,7 +59,8 @@ describe("buildFallbackFinanceAnswer", () => {
     const message = buildFallbackFinanceAnswer("Breakdown cicilan saya", createRecap(), {
       categoryId: "cat-1",
       categoryName: "Cicilan",
-      totalExpense: 500000,
+      categoryKind: "expense",
+      totalAmount: 500000,
       transactionCount: 2,
       walletNames: ["Personal"],
       recentNotes: ["KPR rumah", "Cicilan motor"],
@@ -76,7 +77,7 @@ describe("buildFallbackFinanceAnswer", () => {
           start: "2026-05-01T00:00:00.000Z",
           end: "2026-05-10T23:59:59.999Z"
         },
-        totalExpense: 350000,
+        totalAmount: 350000,
         transactionCount: 1,
         deltaAmount: 150000,
         deltaPercent: 43
@@ -87,5 +88,31 @@ describe("buildFallbackFinanceAnswer", () => {
     expect(message).toContain("KPR rumah");
     expect(message).toContain("sudah mendekati batas");
     expect(message).toContain("Dibanding periode sebelumnya, pengeluaran kategori ini naik");
+  });
+
+  it("uses pemasukan wording for income category focus", () => {
+    const message = buildFallbackFinanceAnswer("Breakdown gaji saya", createRecap(), {
+      categoryId: "income-1",
+      categoryName: "Gaji",
+      categoryKind: "income",
+      totalAmount: 5000000,
+      transactionCount: 1,
+      walletNames: ["Personal"],
+      recentNotes: ["Gaji bulanan"],
+      budget: null,
+      previousPeriod: {
+        range: {
+          start: "2026-05-01T00:00:00.000Z",
+          end: "2026-05-10T23:59:59.999Z"
+        },
+        totalAmount: 4800000,
+        transactionCount: 1,
+        deltaAmount: 200000,
+        deltaPercent: 4
+      }
+    });
+
+    expect(message).toContain("1 transaksi pemasukan");
+    expect(message).toContain("pemasukan kategori ini naik");
   });
 });

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **Performa navigasi antar tab dioptimasi** — Tiga sumber degradasi utama diperbaiki: (1) `getWalletBundle` (digunakan halaman Members, Settlements, Templates, Reports) kini di-cache Redis TTL 120s, menghilangkan 13 query per navigasi. (2) `getShellData` di-cache Redis TTL 300s, menghilangkan 4+ query redundant per halaman. (3) Pengecekan profil di `ensureProfileForUser` tidak lagi berjalan di setiap navigasi — profil di-lazy-create di data layer hanya saat pertama kali. (4) `getMessages()` i18n di-cache dengan module-level Map agar `deepMerge` hanya berjalan sekali per locale.
+
 ### Added
 
 - **Compliance gate untuk AI Chat DeepSeek** — AI Chat sekarang memerlukan persetujuan eksplisit sebelum bisa dipakai. User mendapat disclosure yang jelas tentang pengiriman pertanyaan, konteks wallet relevan, dan riwayat chat ke DeepSeek, lalu bisa mematikan AI Chat kapan saja dari halaman Settings.
@@ -16,6 +20,10 @@
 
 ### Changed
 
+- **Card `Available Budget` ditambahkan ke dashboard** — Tepat di bawah hero dashboard sekarang ada kartu ringkasan baru untuk menunjukkan sisa anggaran aktif bulan ini. Nilainya dihitung dari total budget berjalan dikurangi pengeluaran bulan ini, jadi terpisah jelas dari saldo tersedia dan saldo tabungan.
+- **Hero dashboard kini fokus ke saldo tersedia** — Angka utama di hero dashboard sekarang memakai `Saldo tersedia` dari seluruh wallet tanpa menambahkan tabungan. Kartu statistik yang sama di bawah hero dihapus supaya ringkasan tidak mengulang angka yang identik.
+- **Header wallet mobile dibuat lebih tenang** — Shortcut pill wallet di hero app kini dihapus dari dashboard dan semua halaman wallet. Akses `Overview`, `Transaksi`, `Tabungan`, `Anggaran`, `Laporan`, dan halaman wallet lain tetap tersedia lewat sidebar/drawer, sementara ringkasan `Wallet / Anggaran / Anggota` di dashboard dipindah ke bagian paling bawah halaman agar alur scroll terasa lebih rapi.
+- **Dashboard hero sekarang menonjolkan total saldo** — Dashboard tidak lagi dibagi pill navigation `Ringkasan / Dompet / Aktivitas`. Total saldo kini tampil langsung di hero utama, sementara ringkasan `Wallet / Anggaran / Anggota` dipindah ke strip di bawah hero agar halaman terasa lebih fokus dan bisa discroll dalam satu alur.
 - **Penyesuaian saldo kini otomatis menentukan tambah/kurang** — Form penyesuaian saldo sekarang meminta saldo aktual wallet, lalu Balance menghitung selisih dengan saldo tercatat dan otomatis membuat penyesuaian masuk atau keluar sesuai kebutuhan.
 - **Landing dark mode khusus halaman publik dibuat lebih hangat** — Dark mode di landing page kini memakai forest background yang lebih hangat, ambient gradient sage-amber yang lebih terlihat, kartu dengan kontras lebih jelas, dan mockup hero yang terasa lebih inviting. Dashboard dan halaman internal tetap memakai dark mode fokus yang lama.
 - **OG metadata diperjelas & redirect locale publik jadi permanen** — Metadata `openGraph` kini memakai URL produksi (`https://mybalance.my.id`), judul/deskripsi Bahasa Indonesia yang lebih sesuai brand, dan detail image lengkap (`type`, `alt`). Redirect canonical publik di middleware (root `/` dan path tanpa locale) sekarang menggunakan status `301` agar crawler memahami hirarki URL permanen. Redirect berbasis auth/sesi tetap `307` (temporary).
@@ -26,6 +34,7 @@
 
 ### Fixed
 
+- **Console warning duplicate key di navigasi loading** — Skeleton dashboard/sidebar dan nav mobile tidak lagi memakai `href` saja sebagai React key saat wallet aktif belum ada. Item fallback yang sama-sama menuju `/dashboard` kini punya key stabil sendiri, jadi warning duplicate key di console hilang dan render nav tetap konsisten.
 - **AI Chat lebih tegas soal kategori, nominal lokal, dan tanggal kasual** — Pencatatan transaksi via AI kini tidak lagi diam-diam menyimpan transaksi tanpa kategori saat `categoryName` tidak ditemukan. Confidence nominal juga sudah memahami format Indonesia seperti `45rb`, `1,5jt`, dan `2 juta`, typo kasual seperti `catet` kini tetap masuk jalur mutasi, serta pembacaan kategori/tanggal relatif lebih peka untuk prompt seperti `kmrn`, `2 hari lalu`, atau kategori income di luar top expense.
 - **AI Chat tidak lagi mempercayai jawaban final saat tool gagal** — Setelah tool loop selesai, route kini memeriksa semua payload `role: "tool"` dan menghentikan final streaming biasa bila ada error terstruktur seperti `CONFIDENCE_TOO_LOW`, `DUPLICATE_DETECTED`, `DAILY_SPENDING_CAP_EXCEEDED`, atau `VALIDATION_FAILED`. `NEEDS_CONFIRMATION` tetap memunculkan preview transaksi seperti sebelumnya, sementara error tool non-konfirmasi sekarang dibalas dengan pesan aman deterministic dari server.
 - **Halaman Ketentuan Layanan kini benar-benar publik** — Middleware sekarang mengizinkan `/[locale]/terms` diakses tanpa login, sehingga tautan footer landing tidak lagi terlempar ke halaman masuk.

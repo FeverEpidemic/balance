@@ -77,6 +77,24 @@ describe("computeTransactionConfidence", () => {
       // No penalty for missing numbers, just no bonus
       expect(result.flags).not.toContain("AMOUNT_MISMATCH");
     });
+
+    it.each([
+      ["catat gofood 45rb", 45000],
+      ["catat gofood 45 ribu", 45000],
+      ["catat pemasukan 1jt", 1000000],
+      ["catat pemasukan 1.5jt", 1500000],
+      ["catat pemasukan 1,5jt", 1500000],
+      ["catat bonus 2 juta", 2000000],
+      ["catat makan Rp 50.000", 50000]
+    ])("parses Indonesian amount format %s", (message, amount) => {
+      const result = computeTransactionConfidence(
+        { ...baseParams, amount },
+        message,
+        "Dompet"
+      );
+
+      expect(result.flags).not.toContain("AMOUNT_MISMATCH");
+    });
   });
 
   describe("Category confidence", () => {
@@ -154,6 +172,16 @@ describe("computeTransactionConfidence", () => {
       expect(result.reasons).toContain("Teks mengandung kata kunci pencatatan");
     });
 
+    it("adds +25 for casual typo 'catet'", () => {
+      const result = computeTransactionConfidence(
+        baseParams,
+        "Catet pengeluaran 50000 dong",
+        "Dompet"
+      );
+
+      expect(result.reasons).toContain("Teks mengandung kata kunci pencatatan");
+    });
+
     it("adds +0 for analytical questions", () => {
       const result = computeTransactionConfidence(
         { ...baseParams, amount: 50000 },
@@ -185,6 +213,22 @@ describe("computeTransactionConfidence", () => {
       );
 
       expect(result.reasons).toContain("Menggunakan tanggal hari ini");
+    });
+
+    it.each([
+      "Catat pengeluaran 50000 kmrn",
+      "Catat pengeluaran 50000 td mlm",
+      "Catat pengeluaran 50000 2 hari lalu",
+      "Catat pengeluaran 50000 minggu lalu",
+      "Catat pengeluaran 50000 tgl 15"
+    ])("adds explicit-date reasoning for casual relative date: %s", (message) => {
+      const result = computeTransactionConfidence(
+        baseParams,
+        message,
+        "Dompet"
+      );
+
+      expect(result.reasons).toContain("Tanggal disebut dalam teks");
     });
   });
 

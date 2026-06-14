@@ -20,7 +20,7 @@ export function classifyChatAction(message: string): ChatAction {
 
   // Record transaction patterns
   const recordPatterns = [
-    /(^|\s)(catat|tambah|simpan|buat|input|record|add|new)(\s|$)/i,
+    /(^|\s)(catat|catet|tambah|simpan|buat|input|record|add|new)(\s|$)/i,
     /(^|\s)(beli|bayar|keluar|jual|terima|dapat|transfer|tarik|setor|gaji)(\s|$)/i,
     /(^|\s)(pengeluaran|pemasukan|transaksi)\s+(baru|)/i,
     /(rp|rupiah|ribu|juta|rb)\s/,
