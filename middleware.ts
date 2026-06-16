@@ -24,6 +24,7 @@ function isPublicPath(pathname: string) {
     path === "/" ||
     path === "/privacy" ||
     path === "/terms" ||
+    path === "/refund-policy" ||
     path === "/offline" ||
     path === "/sw.js" ||
     path === "/manifest.webmanifest" ||

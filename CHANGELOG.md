@@ -11,6 +11,7 @@
 
 ### Added
 
+- **Halaman Refund Policy publik** — Balance sekarang punya halaman `Refund Policy` baru di `/[locale]/refund-policy` untuk kebutuhan compliance Midtrans. Footer landing juga sekarang menautkan `Privacy Policy`, `Terms of Service`, dan `Refund Policy`, sementara middleware mengizinkan route refund policy dibuka tanpa login.
 - **Compliance gate untuk AI Chat DeepSeek** — AI Chat sekarang memerlukan persetujuan eksplisit sebelum bisa dipakai. User mendapat disclosure yang jelas tentang pengiriman pertanyaan, konteks wallet relevan, dan riwayat chat ke DeepSeek, lalu bisa mematikan AI Chat kapan saja dari halaman Settings.
 - **Toggle light/dark di landing page** — Pengunjung landing sekarang bisa langsung mengganti tampilan terang atau gelap dari header tanpa masuk ke aplikasi. Toggle ini memakai mekanisme theme yang sama dengan Balance, jadi preferensinya tetap konsisten di halaman publik lain.
 - **Search & sort lengkap di Riwayat Transaksi** — Halaman Riwayat Lengkap kini memakai pencarian dan pengurutan berbasis server untuk seluruh transaksi pada bulan aktif. User bisa mencari berdasarkan catatan, kategori, atau jenis transaksi, lalu mengurutkan berdasarkan tanggal, nominal, kategori, dan jenis tanpa membuat halaman stuck saat mengetik.

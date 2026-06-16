@@ -13,6 +13,17 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.14.21",
+    date: "2026-06-16",
+    title: "Refund Policy publik ditambahkan untuk kebutuhan Midtrans",
+    description: "Balance sekarang punya halaman Refund Policy publik yang bisa dibuka tanpa login, lengkap dengan ringkasan kondisi refund yang sangat terbatas untuk pembayaran layanan digital seperti akses Premium.",
+    features: [
+      { icon: "💳", text: "Halaman `Refund Policy` baru tersedia di `/id/refund-policy` dan `/en/refund-policy` dengan layout legal yang konsisten." },
+      { icon: "🔗", text: "Footer landing kini menautkan tiga halaman legal sekaligus: Privacy Policy, Terms of Service, dan Refund Policy." },
+      { icon: "📨", text: "Kebijakan baru ini menjelaskan bahwa pembayaran umumnya final, dengan pengecualian terbatas seperti pembayaran ganda atau layanan tidak terkirim karena gangguan teknis, dan semua permintaan diajukan ke `support@mybalance.my.id`." }
+    ]
+  },
+  {
     version: "1.14.20",
     date: "2026-06-16",
     title: "Penyesuaian saldo kini lebih tahan saat kategori sistem belum siap",

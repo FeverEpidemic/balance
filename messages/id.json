@@ -18,6 +18,7 @@
     "active": "Aktif",
     "privacy": "Kebijakan Privasi",
     "terms": "Ketentuan Layanan",
+    "refundPolicy": "Refund Policy",
     "theme": "Tema",
     "save": "Simpan",
     "delete": "Hapus",
@@ -958,6 +959,49 @@
       "contact": {
         "heading": "Kontak",
         "body": "Jika Anda memiliki pertanyaan, saran, atau keluhan terkait ketentuan layanan ini, silakan hubungi kami melalui email kontak yang akan ditambahkan pada halaman ini."
+      }
+    }
+  },
+  "refundPolicy": {
+    "title": "Refund Policy",
+    "lastUpdated": "Terakhir diperbarui: {date}",
+    "intro": "Kebijakan ini menjelaskan bagaimana Balance menangani permintaan refund untuk pembayaran digital atas layanan seperti akses Premium yang dibeli melalui Balance. Secara umum, seluruh pembayaran bersifat final dan tidak dapat dikembalikan, kecuali pada kondisi terbatas yang dijelaskan di bawah.",
+    "sections": {
+      "scope": {
+        "heading": "Cakupan Kebijakan",
+        "body": "Refund Policy ini berlaku untuk pembayaran digital yang dilakukan untuk layanan Balance, termasuk namun tidak terbatas pada akses Premium atau layanan digital serupa yang dibeli melalui alur pembayaran Balance. Kebijakan ini tidak dimaksudkan untuk memperluas hak refund di luar yang secara tegas disebutkan di halaman ini."
+      },
+      "generalPolicy": {
+        "heading": "Kebijakan Umum",
+        "body": "Semua pembayaran kepada Balance pada dasarnya bersifat final dan non-refundable. Setelah pembayaran berhasil diproses, Anda dianggap telah menyetujui harga, fitur, dan ruang lingkup layanan yang tersedia pada saat transaksi dilakukan."
+      },
+      "exceptions": {
+        "heading": "Pengecualian Terbatas",
+        "body": "Balance hanya dapat mempertimbangkan refund dalam keadaan terbatas berikut: terjadi pembayaran ganda untuk transaksi yang sama, pembayaran berhasil tetapi akses atau layanan digital tidak terkirim karena gangguan teknis di sisi Balance, atau refund diwajibkan oleh hukum yang berlaku."
+      },
+      "nonRefundableSituations": {
+        "heading": "Situasi yang Tidak Memenuhi Refund",
+        "body": "Permintaan refund karena berubah pikiran, tidak lagi membutuhkan layanan, atau ekspektasi pribadi yang tidak sesuai dengan preferensi penggunaan Anda pada umumnya tidak memenuhi syarat refund. Balance berhak menolak permintaan yang tidak termasuk dalam pengecualian terbatas pada kebijakan ini."
+      },
+      "requestProcess": {
+        "heading": "Cara Mengajukan Refund",
+        "body": "Seluruh permintaan refund harus diajukan melalui email ke support@mybalance.my.id. Permintaan sebaiknya dikirim segera setelah Anda menemukan masalah agar kami dapat meninjau transaksi dan status layanan dengan lebih akurat."
+      },
+      "requiredInformation": {
+        "heading": "Informasi yang Wajib Disertakan",
+        "body": "Saat mengajukan refund, Anda wajib menyertakan minimal alamat email akun Balance, detail transaksi atau order, tanggal pembayaran, nominal yang dibayarkan, dan penjelasan singkat mengenai masalah yang dialami. Balance dapat meminta informasi tambahan bila diperlukan untuk proses verifikasi."
+      },
+      "reviewAndApproval": {
+        "heading": "Peninjauan dan Persetujuan",
+        "body": "Setiap permintaan refund akan ditinjau secara manual berdasarkan data transaksi, status layanan, dan bukti pendukung yang tersedia. Pengajuan refund tidak otomatis disetujui, dan keputusan akhir tetap berada pada Balance sepanjang tidak bertentangan dengan hukum yang berlaku."
+      },
+      "processingTime": {
+        "heading": "Waktu Proses Refund",
+        "body": "Jika refund disetujui, waktu pengembalian dana dapat berbeda-beda tergantung metode pembayaran yang digunakan serta alur pemrosesan oleh penyedia pembayaran, termasuk Midtrans dan partner kanal pembayaran terkait. Balance akan memproses refund yang disetujui secepat mungkin, tetapi waktu dana kembali masuk ke pelanggan tidak sepenuhnya berada di bawah kendali Balance."
+      },
+      "contact": {
+        "heading": "Kontak",
+        "body": "Untuk pertanyaan mengenai kebijakan ini atau untuk mengajukan refund, silakan hubungi support@mybalance.my.id."
       }
     }
   },

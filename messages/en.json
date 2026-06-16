@@ -18,6 +18,7 @@
     "active": "Active",
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
+    "refundPolicy": "Refund Policy",
     "theme": "Theme",
     "save": "Save",
     "delete": "Delete",
@@ -958,6 +959,49 @@
       "contact": {
         "heading": "Contact",
         "body": "If you have questions, suggestions, or complaints regarding these terms of service, please contact us through the support email that will be added to this page."
+      }
+    }
+  },
+  "refundPolicy": {
+    "title": "Refund Policy",
+    "lastUpdated": "Last updated: {date}",
+    "intro": "This policy explains how Balance handles refund requests for digital payments related to services such as Premium access purchased through Balance. As a general rule, all payments are final and non-refundable, except for the limited cases described below.",
+    "sections": {
+      "scope": {
+        "heading": "Policy Scope",
+        "body": "This Refund Policy applies to digital payments made for Balance services, including but not limited to Premium access or similar digital services purchased through Balance. This policy does not expand any refund rights beyond what is expressly stated on this page."
+      },
+      "generalPolicy": {
+        "heading": "General Policy",
+        "body": "All payments made to Balance are generally final and non-refundable. Once a payment has been successfully processed, you are considered to have accepted the price, features, and service scope available at the time of the transaction."
+      },
+      "exceptions": {
+        "heading": "Limited Exceptions",
+        "body": "Balance may only consider a refund in the following limited situations: a duplicate charge for the same transaction, a successful payment where the digital service or access was not delivered due to a technical issue on Balance's side, or a refund that is required by applicable law."
+      },
+      "nonRefundableSituations": {
+        "heading": "Non-Refundable Situations",
+        "body": "Refund requests based on a change of mind, no longer needing the service, or personal expectations that do not match your usage preference are generally not eligible. Balance may reject requests that do not fall within the limited exceptions stated in this policy."
+      },
+      "requestProcess": {
+        "heading": "How to Request a Refund",
+        "body": "All refund requests must be submitted by email to support@mybalance.my.id. Requests should be sent as soon as possible after you discover the issue so we can review the transaction and service status more accurately."
+      },
+      "requiredInformation": {
+        "heading": "Required Information",
+        "body": "When requesting a refund, you must include at minimum your Balance account email, transaction or order details, payment date, amount paid, and a short explanation of the issue. Balance may request additional information when needed for verification."
+      },
+      "reviewAndApproval": {
+        "heading": "Review and Approval",
+        "body": "Each refund request will be reviewed manually based on transaction data, service status, and available supporting evidence. A refund request is not automatically approved, and the final decision remains with Balance to the extent permitted by applicable law."
+      },
+      "processingTime": {
+        "heading": "Refund Processing Time",
+        "body": "If a refund is approved, the time required for the funds to be returned may vary depending on the payment method used and the processing flow of the payment provider, including Midtrans and the related payment channel partners. Balance will process approved refunds as soon as reasonably possible, but the time for the funds to appear back in the customer's account is not fully under Balance's control."
+      },
+      "contact": {
+        "heading": "Contact",
+        "body": "For questions about this policy or to submit a refund request, please contact support@mybalance.my.id."
       }
     }
   },
