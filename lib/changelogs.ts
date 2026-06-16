@@ -13,6 +13,17 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.14.23",
+    date: "2026-06-16",
+    title: "Footer legal link kini lebih rapi di mobile dan desktop",
+    description: "Area footer landing yang memuat Privacy Policy, Terms of Service, dan Refund Policy sekarang ditata ulang supaya spacing terasa lebih seimbang dan hasil wrap-nya lebih rapi.",
+    features: [
+      { icon: "↔️", text: "Jarak horizontal antar link legal diperkecil di mobile agar tidak terasa terlalu renggang." },
+      { icon: "📱", text: "Saat link footer membungkus ke baris baru, susunannya sekarang lebih rapi dan nyaman dibaca di layar kecil." },
+      { icon: "🧭", text: "Kelompok link legal kini dibatasi lebarnya di tengah footer supaya tidak terlalu melebar di desktop." }
+    ]
+  },
+  {
     version: "1.14.22",
     date: "2026-06-16",
     title: "Asisten AI kini punya panduan cepat di header chat",

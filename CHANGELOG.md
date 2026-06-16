@@ -4,6 +4,7 @@
 
 ### Changed
 
+- **Spacing footer legal link dirapikan** — Footer landing sekarang punya jarak yang lebih seimbang untuk tautan `Privacy Policy`, `Terms of Service`, dan `Refund Policy`, dengan wrap mobile yang lebih rapi dan kelompok link yang tidak terlalu melebar di desktop.
 - **Asisten AI kini punya modal tips di header chat** — Halaman `/chat` sekarang menampilkan tombol `?` di header yang membuka panduan penggunaan Asisten AI. User bisa melihat kemampuan utama, contoh prompt, tips agar hasil lebih akurat, dan catatan review AI tanpa harus menebak flow terbaik.
 - **Bottom nav mobile kini auto-compact saat scroll** — Navigasi bawah di mobile sekarang otomatis masuk mode compact saat user scroll turun: label disembunyikan, bar ikut memendek dalam tinggi dan lebar, dan ikon compact dibuat sedikit lebih menonjol. Saat user scroll naik atau berinteraksi dengan nav, bentuk penuh kembali dengan transisi halus tanpa mengorbankan kejelasan active state.
 - **Performa navigasi antar tab dioptimasi** — Tiga sumber degradasi utama diperbaiki: (1) `getWalletBundle` (digunakan halaman Members, Settlements, Templates, Reports) kini di-cache Redis TTL 120s, menghilangkan 13 query per navigasi. (2) `getShellData` di-cache Redis TTL 300s, menghilangkan 4+ query redundant per halaman. (3) Pengecekan profil di `ensureProfileForUser` tidak lagi berjalan di setiap navigasi — profil di-lazy-create di data layer hanya saat pertama kali. (4) `getMessages()` i18n di-cache dengan module-level Map agar `deepMerge` hanya berjalan sekali per locale.

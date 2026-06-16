@@ -204,23 +204,23 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </div>
       </section>
 
-      <footer className="mt-8 border-t border-border pt-8 text-center">
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3">
+      <footer className="mt-10 border-t border-border pt-6 text-center sm:pt-8">
+        <div className="mx-auto flex max-w-xl flex-wrap items-center justify-center gap-x-4 gap-y-2 px-4 sm:gap-x-6 sm:gap-y-3">
           <Link
             href={localizePath(locale, "/privacy")}
-            className="text-sm text-muted-foreground transition hover:text-foreground"
+            className="inline-flex text-sm text-muted-foreground transition hover:text-foreground"
           >
             {t("common.privacy")}
           </Link>
           <Link
             href={localizePath(locale, "/terms")}
-            className="text-sm text-muted-foreground transition hover:text-foreground"
+            className="inline-flex text-sm text-muted-foreground transition hover:text-foreground"
           >
             {t("common.terms")}
           </Link>
           <Link
             href={localizePath(locale, "/refund-policy")}
-            className="text-sm text-muted-foreground transition hover:text-foreground"
+            className="inline-flex text-sm text-muted-foreground transition hover:text-foreground"
           >
             {t("common.refundPolicy")}
           </Link>
