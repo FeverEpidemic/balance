@@ -58,7 +58,6 @@ export const changelogs: ChangelogEntry[] = [
     ]
   },
   {
->>>>>>> 9df6244 (Refine compact mobile bottom nav)
     version: "1.14.16",
     date: "2026-06-14",
     title: "Tambah transaksi kini bisa lewat popup",

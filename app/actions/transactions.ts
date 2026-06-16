@@ -3,6 +3,8 @@
 import { requireUser } from "@/lib/auth";
 import {
   BALANCE_ADJUSTMENT_SOURCE,
+  getBalanceAdjustmentCategoryColor,
+  getBalanceAdjustmentCategoryName,
   getBalanceAdjustmentValidationError,
   resolveBalanceAdjustment
 } from "@/lib/balance-adjustments";
@@ -81,18 +83,75 @@ async function getTransactionLinkState(
 async function ensureBalanceAdjustmentCategory(
   supabase: Awaited<ReturnType<typeof requireUser>>["supabase"],
   walletId: string,
-  kind: "income" | "expense"
+  kind: "income" | "expense",
+  userId: string
 ) {
   const { data, error } = await supabase.rpc("ensure_balance_adjustment_category", {
     target_wallet_id: walletId,
     target_kind: kind
   });
 
-  if (error || !data) {
-    return null;
+  if (!error && data) {
+    return data as string;
   }
 
-  return data as string;
+  // Keep balance adjustments usable when the RPC signature/schema cache lags behind deployed app code.
+  const categoryName = getBalanceAdjustmentCategoryName(kind);
+  const categoryColor = getBalanceAdjustmentCategoryColor(kind);
+
+  const loadExistingCategory = async () => {
+    const { data: category } = await supabase
+      .from("categories")
+      .select("id, is_system")
+      .eq("wallet_id", walletId)
+      .eq("kind", kind)
+      .eq("name", categoryName)
+      .maybeSingle();
+
+    return category as { id: string; is_system: boolean } | null;
+  };
+
+  const existingCategory = await loadExistingCategory();
+
+  if (existingCategory) {
+    if (!existingCategory.is_system) {
+      void supabase
+        .from("categories")
+        .update({
+          is_system: true,
+          color: categoryColor,
+          updated_by: userId
+        })
+        .eq("id", existingCategory.id)
+        .eq("wallet_id", walletId);
+    }
+
+    return existingCategory.id;
+  }
+
+  const { data: insertedCategory, error: insertError } = await supabase
+    .from("categories")
+    .insert({
+      wallet_id: walletId,
+      name: categoryName,
+      kind,
+      color: categoryColor,
+      is_system: true,
+      created_by: userId,
+      updated_by: userId
+    })
+    .select("id")
+    .single();
+
+  if (!insertError && insertedCategory?.id) {
+    return insertedCategory.id as string;
+  }
+
+  if (insertError && typeof insertError === "object" && "code" in insertError && insertError.code === "23505") {
+    return (await loadExistingCategory())?.id ?? null;
+  }
+
+  return null;
 }
 
 async function getWalletWriteRole(
@@ -219,7 +278,7 @@ export async function createBalanceAdjustment(_prevState: ActionResult, formData
     return errorResult(t("actionErrors.balanceAdjustmentNoChange"));
   }
 
-  const categoryId = await ensureBalanceAdjustmentCategory(supabase, walletId, adjustment.kind);
+  const categoryId = await ensureBalanceAdjustmentCategory(supabase, walletId, adjustment.kind, user.id);
 
   if (!categoryId) {
     return errorResult(t("actionErrors.balanceAdjustmentCategoryUnavailable"));
@@ -284,7 +343,7 @@ export async function updateTransaction(_prevState: ActionResult, formData: Form
   }
 
   const nextCategoryId = linkedState.source === BALANCE_ADJUSTMENT_SOURCE
-    ? await ensureBalanceAdjustmentCategory(supabase, walletId, kind as "income" | "expense")
+    ? await ensureBalanceAdjustmentCategory(supabase, walletId, kind as "income" | "expense", user.id)
     : categoryId || null;
 
   if (linkedState.source === BALANCE_ADJUSTMENT_SOURCE && !nextCategoryId) {

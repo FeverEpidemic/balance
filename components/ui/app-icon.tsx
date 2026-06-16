@@ -258,7 +258,7 @@ export function AppIcon({
   }
 }
 
-function resolveCategoryIconName(categoryName: string, kind: "income" | "expense"): CategoryIconName {
+export function resolveCategoryIconName(categoryName: string, kind: "income" | "expense"): CategoryIconName {
   const normalized = categoryName.toLocaleLowerCase();
 
   if (normalized.includes("makan") || normalized.includes("food") || normalized.includes("grocer") || normalized.includes("resto")) {

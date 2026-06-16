@@ -6,6 +6,11 @@ export const BALANCE_ADJUSTMENT_CATEGORY_NAMES: Record<TransactionKind, string> 
   expense: "Penyesuaian Saldo Keluar"
 };
 
+export const BALANCE_ADJUSTMENT_CATEGORY_COLORS: Record<TransactionKind, string> = {
+  income: "#6f8f78",
+  expense: "#8e7558"
+};
+
 export const BALANCE_ADJUSTMENT_SOURCE: TransactionSource = "balance_adjustment";
 export const MANUAL_TRANSACTION_SOURCE: TransactionSource = "manual";
 export const SAVING_ADJUSTMENT_SOURCE: TransactionSource = "saving_adjustment";
@@ -19,6 +24,10 @@ export type BalanceAdjustmentResolution = {
 
 export function getBalanceAdjustmentCategoryName(kind: TransactionKind) {
   return BALANCE_ADJUSTMENT_CATEGORY_NAMES[kind];
+}
+
+export function getBalanceAdjustmentCategoryColor(kind: TransactionKind) {
+  return BALANCE_ADJUSTMENT_CATEGORY_COLORS[kind];
 }
 
 export function getBalanceAdjustmentTitle(kind: TransactionKind) {
