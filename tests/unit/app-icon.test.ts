@@ -34,4 +34,11 @@ describe("resolveCategoryIconName", () => {
 
     expect(markup).toContain("text-inherit");
   });
+
+  it("renders the help icon used by the AI assistant guide trigger", () => {
+    const markup = renderToStaticMarkup(createElement(AppIcon, { name: "help" }));
+
+    expect(markup).toContain("circle");
+    expect(markup).toContain("stroke-current");
+  });
 });

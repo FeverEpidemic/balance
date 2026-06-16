@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/app-shell";
 import { AiChatConsentDialog } from "@/components/features/chat/ai-chat-consent-dialog";
+import { AiChatHelpDialog } from "@/components/features/chat/ai-chat-help-dialog";
 import { ChatInput } from "@/components/features/chat/chat-input";
 import { ChatMessage } from "@/components/features/chat/chat-message";
 import { ChatRateLimitIndicator, type RateLimitInfo } from "@/components/features/chat/chat-rate-limit-indicator";
@@ -412,18 +413,21 @@ export function ChatPageContent({ locale, shell, aiCompliance, wallets }: ChatPa
       memberCount={shell.memberCount}
       primaryWalletId={shell.primaryWalletId}
       headerAction={
-        isAiChatBlocked ? (
-          <AiChatConsentDialog
-            locale={locale}
-            triggerLabel={t("chat.unlockAi")}
-            triggerVariant="soft"
-            triggerClassName="rounded-full text-[13px] sm:text-sm"
-          />
-        ) : (
-          <Button type="button" variant="soft" className="rounded-full text-[13px] sm:text-sm" onClick={() => handleRecapSuggestion("month")}>
-            {t("chat.quickStart")}
-          </Button>
-        )
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          {isAiChatBlocked ? (
+            <AiChatConsentDialog
+              locale={locale}
+              triggerLabel={t("chat.unlockAi")}
+              triggerVariant="soft"
+              triggerClassName="rounded-full text-[13px] sm:text-sm"
+            />
+          ) : (
+            <Button type="button" variant="soft" className="rounded-full text-[13px] sm:text-sm" onClick={() => handleRecapSuggestion("month")}>
+              {t("chat.quickStart")}
+            </Button>
+          )}
+          <AiChatHelpDialog locale={locale} />
+        </div>
       }
     >
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.45fr)_22rem]">
@@ -595,10 +599,8 @@ export function ChatPageContent({ locale, shell, aiCompliance, wallets }: ChatPa
             <p className="eyebrow">{t("chat.sidebarTitle")}</p>
             <h3 className="mt-2 font-display text-lg font-medium text-foreground sm:text-xl">{t("chat.sidebarHeading")}</h3>
             <div className="mt-5 space-y-3 text-sm text-muted-foreground">
-              <p>{t("chat.sidebarPoint1")}</p>
-              <p>{t("chat.sidebarPoint2")}</p>
-              <p>{t("chat.sidebarPoint3")}</p>
-              <p>{t("chat.sidebarPoint4")}</p>
+              <p>{t("chat.sidebarSummary")}</p>
+              <p>{t("chat.sidebarFocusHint")}</p>
             </div>
             <ChatRateLimitIndicator rateLimitInfo={rateLimitInfo} dailyLimitInfo={dailyLimitInfo} locale={locale} />
           </div>

@@ -13,6 +13,17 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.14.22",
+    date: "2026-06-16",
+    title: "Asisten AI kini punya panduan cepat di header chat",
+    description: "Halaman chat sekarang punya tombol `?` di header untuk membuka modal tips penggunaan. Panduan ini merangkum kemampuan utama AI, contoh prompt yang lebih konkret, serta tips agar pertanyaan dan flow pencatatan transaksi terasa lebih jelas sejak awal.",
+    features: [
+      { icon: "❓", text: "Tombol bantuan baru muncul di header `/chat` berdampingan dengan CTA utama seperti `Rekap bulan ini` atau `Aktifkan AI Chat`." },
+      { icon: "🧠", text: "Modal panduan menampilkan kemampuan AI, contoh prompt, tips memberi konteks yang lebih tepat, dan pengingat agar hasil tetap ditinjau ulang." },
+      { icon: "🪶", text: "Card bantuan di sidebar chat diringkas supaya tidak mengulang isi modal, tetapi tetap mempertahankan indikator kuota AI." }
+    ]
+  },
+  {
     version: "1.14.21",
     date: "2026-06-16",
     title: "Refund Policy publik ditambahkan untuk kebutuhan Midtrans",

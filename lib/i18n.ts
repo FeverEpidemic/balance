@@ -74,6 +74,12 @@ export function getLocaleTag(locale: AppLocale) {
 const messageCache = new Map<AppLocale, MessageDictionary>();
 
 export function getMessages(locale: AppLocale) {
+  if (process.env.NODE_ENV !== "production") {
+    return locale === defaultLocale
+      ? localizedMessages.id
+      : deepMerge(localizedMessages.id, localizedMessages[locale]);
+  }
+
   const cached = messageCache.get(locale);
   if (cached) return cached;
 

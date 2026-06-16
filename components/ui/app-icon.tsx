@@ -21,6 +21,7 @@ type AppIconName =
   | "overview"
   | "automatic"
   | "menu"
+  | "help"
   | "plus"
   | "edit"
   | "download"
@@ -223,6 +224,14 @@ export function AppIcon({
           <path d="M4.5 7.5h15" />
           <path d="M4.5 12h15" />
           <path d="M4.5 16.5h15" />
+        </StrokeIcon>
+      );
+    case "help":
+      return (
+        <StrokeIcon className={className} tone={tone}>
+          <circle cx="12" cy="12" r="8.5" />
+          <path d="M9.75 9.5a2.25 2.25 0 1 1 4.12 1.24c-.72 1.02-1.87 1.43-1.87 3.01" />
+          <path d="M12 17.25h.01" />
         </StrokeIcon>
       );
     case "plus":
