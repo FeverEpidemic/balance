@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-type IconTone = "default" | "muted" | "primary" | "success" | "danger";
+type IconTone = "default" | "muted" | "primary" | "success" | "danger" | "inherit";
 
 type AppIconName =
   | "dashboard"
@@ -52,6 +52,8 @@ function iconToneClassName(tone: IconTone) {
       return "text-success";
     case "danger":
       return "text-danger";
+    case "inherit":
+      return "text-inherit";
     default:
       return "text-foreground";
   }

@@ -247,25 +247,28 @@ function AppShellSkeleton({
             {headerFooter ? <div className="mt-4">{headerFooter}</div> : null}
           </header>
 
-          <div className="pb-24 lg:pb-0">{children}</div>
+          <div className="pb-20 lg:pb-0">{children}</div>
         </main>
 
-        <nav className="glass-nav fixed inset-x-4 bottom-4 z-40 rounded-2xl px-1.5 py-1.5 backdrop-blur lg:hidden">
-          <div className="flex gap-1">
-            {mobileNavItems.map((item) => (
-              <div
-                key={getNavItemKey(item)}
-                className={cn(
-                  "min-w-0 flex-1 rounded-xl px-1.5 py-1.5 text-center font-label text-[11px] font-medium uppercase tracking-[0.06em]",
-                  isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "text-muted-foreground"
-                )}
-              >
-                <span className="flex flex-col items-center justify-center gap-0.5">
-                  <AppIcon name={item.icon} className="h-4 w-4" />
-                  <span className="truncate">{item.label}</span>
-                </span>
-              </div>
-            ))}
+        <nav className="fixed inset-x-4 bottom-4 z-40 lg:hidden">
+          <div className="glass-nav mx-auto w-full max-w-full rounded-2xl px-1 py-1 backdrop-blur">
+            <div className="flex w-full flex-row items-stretch gap-1">
+              {mobileNavItems.map((item) => (
+                <div
+                  key={getNavItemKey(item)}
+                  className={cn(
+                    "block min-w-0 basis-0 flex-1 rounded-xl px-1 py-1.5 text-center font-label text-[10px] font-medium uppercase tracking-[0.06em]",
+                    "min-h-[3rem]",
+                    isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "text-muted-foreground"
+                  )}
+                >
+                  <span className="flex flex-col items-center justify-center gap-0.5">
+                    <AppIcon name={item.icon} tone="inherit" className="h-3.5 w-3.5" />
+                    <span className="block w-full truncate leading-none">{item.label}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </nav>
       </div>

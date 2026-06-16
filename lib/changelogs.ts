@@ -13,6 +13,52 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.14.20",
+    date: "2026-06-16",
+    title: "Penyesuaian saldo kini lebih tahan saat kategori sistem belum siap",
+    description: "Flow penyesuaian saldo sekarang tetap bisa jalan walau helper kategori sistem di database belum siap atau sedang tidak sinkron. Balance akan langsung memastikan kategori `Penyesuaian Saldo Masuk/Keluar` tersedia sebelum transaksi penyesuaian disimpan.",
+    features: [
+      { icon: "🛠️", text: "Saat helper RPC kategori penyesuaian saldo gagal, aplikasi otomatis fallback ke tabel kategori tanpa memblokir penyimpanan." },
+      { icon: "🏷️", text: "Kategori `Penyesuaian Saldo Masuk` dan `Penyesuaian Saldo Keluar` tetap dipakai konsisten dengan warna sistem yang sama." },
+      { icon: "✅", text: "Sinkronisasi saldo aktual jadi tetap berhasil untuk kondisi saldo lebih besar maupun lebih kecil dari saldo tercatat." }
+    ]
+  },
+  {
+    version: "1.14.19",
+    date: "2026-06-16",
+    title: "Bottom nav mobile kini mengecil saat kamu scroll",
+    description: "Navigasi bawah di mobile sekarang otomatis berubah jadi mode compact saat kamu scroll turun: lebar dan tingginya ikut menyusut, label disembunyikan, dan ikon dibuat sedikit lebih menonjol agar tetap cepat dipindai. Saat kamu scroll naik atau menyentuh navigasinya, bar kembali lengkap dengan transisi yang tetap halus.",
+    features: [
+      { icon: "📱", text: "Bottom nav mobile kini otomatis compact jadi ikon saja saat kamu scroll turun di area app." },
+      { icon: "↔️", text: "Mode compact sekarang ikut memendekkan lebar dan tinggi nav bar supaya terasa lebih ringkas dan tetap centered." },
+      { icon: "🧭", text: "Saat kamu scroll naik sedikit atau menyentuh nav, label langsung muncul lagi tanpa perlu tap dua kali." },
+      { icon: "✨", text: "Perubahan bentuk nav dan ukuran ikon compact memakai animasi pendek yang smooth dan tetap nyaman di light mode maupun dark mode." }
+    ]
+  },
+  {
+    version: "1.14.18",
+    date: "2026-06-14",
+    title: "Ikon kategori kini lebih modern dan konsisten",
+    description: "Ikon kategori di seluruh aplikasi kini memakai set outline Tabler yang lebih rapi dan konsisten, tanpa mengubah cara Balance mengenali kategori pemasukan maupun pengeluaran.",
+    features: [
+      { icon: "🏷️", text: "Ikon kategori di daftar kategori, dropdown kategori, dashboard, dan riwayat transaksi kini tampil lebih modern." },
+      { icon: "🌗", text: "Stroke, warna, dan kontras ikon tetap mengikuti token tema yang sama agar nyaman di light mode maupun dark mode." },
+      { icon: "🧠", text: "Logika pembacaan nama kategori tetap sama, jadi kategori seperti `Makan`, `Transport`, dan `Gaji` tetap otomatis mendapat ikon yang sesuai." }
+    ]
+  },
+  {
+    version: "1.14.17",
+    date: "2026-06-14",
+    title: "Bottom nav mobile kini lebih ringkas",
+    description: "Navigasi bawah di mobile sekarang dipangkas jadi empat tujuan utama agar layar terasa lebih ringan. `Pengaturan` tidak lagi memakan slot di bottom nav, tapi tetap bisa dibuka lewat drawer hamburger seperti biasa.",
+    features: [
+      { icon: "📱", text: "Bottom nav mobile kini hanya berisi `Dashboard`, `Wallet`, `Transaksi`, dan `Chat AI`." },
+      { icon: "⚙️", text: "Akses `Pengaturan` tetap aman lewat drawer menu mobile dan sidebar desktop, jadi tidak ada fitur yang hilang." },
+      { icon: "🪶", text: "Ikon, label, dan padding bottom nav diperkecil sedikit supaya tampil lebih rapi dan hemat ruang di layar kecil." }
+    ]
+  },
+  {
+>>>>>>> 9df6244 (Refine compact mobile bottom nav)
     version: "1.14.16",
     date: "2026-06-14",
     title: "Tambah transaksi kini bisa lewat popup",

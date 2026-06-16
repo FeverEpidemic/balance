@@ -1,17 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { logout } from "@/app/actions/auth";
 import { ChangelogPopup } from "@/components/features/changelogs/changelog-popup";
 import { UnifiedSidebar, useSidebarState } from "@/components/sidebar";
 import { useLocale } from "@/components/providers/locale-provider";
 import { AppIcon } from "@/components/ui/app-icon";
 import { getTranslator, localizePath } from "@/lib/i18n";
+import {
+  createMobileNavScrollState,
+  expandMobileNavScrollState,
+  updateMobileNavScrollState
+} from "@/lib/mobile-nav";
 import { cn } from "@/lib/utils";
-import { logout } from "@/app/actions/auth";
 import type { ReactNode } from "react";
 
-function getNavItemKey(item: { href: string; icon: Parameters<typeof AppIcon>[0]["name"] }) {
+type MobileNavItem = {
+  href: string;
+  icon: Parameters<typeof AppIcon>[0]["name"];
+  label: string;
+};
+
+function getNavItemKey(item: MobileNavItem) {
   return `${item.icon}:${item.href}`;
 }
 
@@ -54,6 +65,8 @@ export function AppShell({
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useSidebarState();
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isMobileNavCompact, setIsMobileNavCompact] = useState(false);
+  const mobileNavScrollStateRef = useRef(createMobileNavScrollState());
 
   // Keep desktop-only sidebar out of the mobile tree entirely.
   useEffect(() => {
@@ -72,6 +85,27 @@ export function AppShell({
     }
   }, [isDesktop]);
 
+  useEffect(() => {
+    if (isDesktop) {
+      mobileNavScrollStateRef.current = createMobileNavScrollState();
+      setIsMobileNavCompact(false);
+      return;
+    }
+
+    mobileNavScrollStateRef.current = createMobileNavScrollState(window.scrollY);
+    setIsMobileNavCompact(false);
+
+    const handleScroll = () => {
+      const nextState = updateMobileNavScrollState(mobileNavScrollStateRef.current, window.scrollY);
+      mobileNavScrollStateRef.current = nextState;
+      setIsMobileNavCompact((currentValue) => (currentValue === nextState.isCompact ? currentValue : nextState.isCompact));
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [currentPath, isDesktop]);
+
   // Sidebar width used by the flex layout
   const desktopSidebarWidth = isDesktop ? (sidebarCollapsed ? 72 : 280) : 0;
 
@@ -82,6 +116,17 @@ export function AppShell({
     { href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions" as const },
     { href: "/chat", label: t("common.aiAssistant"), icon: "chat" as const },
   ];
+
+  const handleMobileNavInteraction = () => {
+    if (isDesktop || !mobileNavScrollStateRef.current.isCompact) {
+      return;
+    }
+
+    const nextState = expandMobileNavScrollState(mobileNavScrollStateRef.current, window.scrollY);
+
+    mobileNavScrollStateRef.current = nextState;
+    setIsMobileNavCompact(false);
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -183,26 +228,66 @@ export function AppShell({
             {headerFooter ? <div className="mt-4">{headerFooter}</div> : null}
           </header>
 
-          <div className="pb-24 lg:pb-0">{children}</div>
+          <div className="pb-20 lg:pb-0">{children}</div>
         </main>
 
-        <nav className="glass-nav fixed inset-x-4 bottom-4 z-40 rounded-2xl px-1.5 py-1.5 backdrop-blur lg:hidden">
-          <div className="flex gap-1">
-            {mobileNavItems.map((item) => (
-              <Link
-                key={getNavItemKey(item)}
-                href={localizePath(locale, item.href)}
-                className={cn(
-                  "min-w-0 flex-1 rounded-xl px-1.5 py-1.5 text-center font-label text-[11px] font-medium uppercase tracking-[0.06em] transition",
-                  isActivePath(currentPath, item.href) ? "bg-primary text-[var(--button-primary-text)]" : "bg-transparent text-muted-foreground"
-                )}
-              >
-                <span className="flex flex-col items-center justify-center gap-0.5">
-                  <AppIcon name={item.icon} className="h-4 w-4" />
-                  <span className="truncate">{item.label}</span>
-                </span>
-              </Link>
-            ))}
+        <nav className="fixed inset-x-4 bottom-4 z-40 lg:hidden">
+          <div
+            className={cn(
+              "glass-nav mx-auto w-full overflow-hidden backdrop-blur transition-[max-width,padding,border-radius,transform,background-color,box-shadow] duration-200 ease-out motion-reduce:transition-none motion-reduce:transform-none",
+              isMobileNavCompact ? "max-w-[16rem] translate-y-[1px] rounded-full px-1 py-0.5" : "max-w-full translate-y-0 rounded-2xl px-1 py-1"
+            )}
+            onPointerDownCapture={handleMobileNavInteraction}
+            onFocusCapture={handleMobileNavInteraction}
+          >
+            <div
+              className={cn(
+                "flex w-full flex-row items-stretch transition-[gap] duration-200 ease-out motion-reduce:transition-none",
+                isMobileNavCompact ? "gap-0.5" : "gap-1"
+              )}
+            >
+              {mobileNavItems.map((item) => {
+                const isActive = isActivePath(currentPath, item.href);
+
+                return (
+                  <Link
+                    key={getNavItemKey(item)}
+                    href={localizePath(locale, item.href)}
+                    aria-current={isActive ? "page" : undefined}
+                    aria-label={item.label}
+                    className={cn(
+                      "block min-w-0 basis-0 flex-1 text-center font-label text-[10px] font-medium uppercase tracking-[0.06em] transition-[min-height,padding,color,background-color,border-radius] duration-200 ease-out motion-reduce:transition-none",
+                      isMobileNavCompact ? "min-h-[2.125rem] rounded-full px-0.5 py-0.5" : "min-h-[3rem] rounded-xl px-1 py-1.5",
+                      isActive ? "bg-primary text-[var(--button-primary-text)]" : "bg-transparent text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "flex h-full flex-col items-center justify-center transition-[gap] duration-200 ease-out motion-reduce:transition-none",
+                        isMobileNavCompact ? "gap-0" : "gap-0.5"
+                      )}
+                    >
+                      <AppIcon
+                        name={item.icon}
+                        tone="inherit"
+                        className={cn(
+                          "transition-[width,height,transform] duration-200 ease-out motion-reduce:transition-none",
+                          isMobileNavCompact ? "h-4 w-4" : "h-3.5 w-3.5"
+                        )}
+                      />
+                      <span
+                        className={cn(
+                          "w-full overflow-hidden transition-[max-height,opacity,transform] duration-200 ease-out motion-reduce:translate-y-0 motion-reduce:transition-none",
+                          isMobileNavCompact ? "max-h-0 -translate-y-1 opacity-0" : "max-h-4 translate-y-0 opacity-100"
+                        )}
+                      >
+                        <span className="block truncate leading-none">{item.label}</span>
+                      </span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
         </nav>
       </div>
