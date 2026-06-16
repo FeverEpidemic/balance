@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
-import { invalidateSettingsCache } from "@/lib/data/cache";
+import { invalidateDashboardCache, invalidateSettingsCache, invalidateShellDataCache } from "@/lib/data/cache";
 import { errorResult, getActionLocale, getTrimmedValue, successResult, type ActionResult } from "@/app/actions/_shared";
 import { isLocale, LOCALE_COOKIE_NAME, localizePath, translate } from "@/lib/i18n";
 import { THEME_COOKIE_NAME, isThemePreference } from "@/lib/theme";
@@ -33,6 +33,7 @@ export async function updateThemePreference(_prevState: ActionResult, formData: 
   });
 
   await invalidateSettingsCache(user.id);
+  await invalidateShellDataCache(user.id);
   revalidatePath(localizePath(locale, "/settings"));
   revalidatePath("/", "layout");
 
@@ -62,6 +63,7 @@ export async function updateLocalePreference(_prevState: ActionResult, formData:
   });
 
   await invalidateSettingsCache(user.id);
+  await invalidateShellDataCache(user.id);
   revalidatePath(localizePath(preference, "/settings"));
   revalidatePath("/", "layout");
   redirect(localizePath(preference, "/settings"));
@@ -93,6 +95,7 @@ export async function updateTimezonePreference(_prevState: ActionResult, formDat
   }
 
   await invalidateSettingsCache(user.id);
+  await invalidateShellDataCache(user.id);
   revalidatePath(localizePath(locale, "/settings"));
   revalidatePath("/", "layout");
 
@@ -117,6 +120,8 @@ export async function updateDefaultCurrency(_prevState: ActionResult, formData: 
   }
 
   await invalidateSettingsCache(user.id);
+  await invalidateShellDataCache(user.id);
+  await invalidateDashboardCache([user.id]);
   revalidatePath(localizePath(locale, "/settings"));
   revalidatePath("/", "layout");
 
