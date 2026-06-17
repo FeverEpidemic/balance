@@ -1,7 +1,7 @@
 ---
 title: Balance — Product Requirements Document
-version: 1.0.0
-last_updated: 2026-06-09
+version: 1.1.0
+last_updated: 2026-06-17
 author: FeverEpidemic
 ---
 
@@ -97,7 +97,22 @@ author: FeverEpidemic
 | Transaksi terbaru | ✅ Selesai |
 | Kartu onboarding untuk user baru | ✅ Selesai |
 
-### 2.8. API Chat
+### 2.8. Asisten AI (Chat)
+
+| Fitur | Status |
+|-------|--------|
+| Halaman chat dengan natural language | ✅ Selesai |
+| Rekap keuangan via chat (day/week/month) | ✅ Selesai |
+| Pencatatan transaksi via AI (confidence-based) | ✅ Selesai |
+| Pengelolaan anggaran via AI | ✅ Selesai |
+| Deteksi duplikat + konfirmasi transaksi | ✅ Selesai |
+| Insight AI di dashboard | ✅ Selesai |
+| Compliance gate (opt-in AI, privacy notice) | ✅ Selesai |
+| Token budgeting & sliding window history | ✅ Selesai |
+| Rate limiting AI Chat + daily limit | ✅ Selesai |
+| Free trial 7 hari Premium (AI unlimited) | ✅ Selesai |
+
+### 2.9. API Chat
 
 | Fitur | Status |
 |-------|--------|
@@ -106,7 +121,15 @@ author: FeverEpidemic
 | Autentikasi via API key (SHA256 hash) | ✅ Selesai |
 | Rate limiting (Redis-based) | ✅ Selesai |
 
-### 2.9. PWA
+### 2.10. Export & Reporting
+
+| Fitur | Status |
+|-------|--------|
+| Export Excel (.xlsx) untuk transaksi | ✅ Selesai |
+| Export PDF laporan bulanan | ✅ Selesai |
+| Changelog page + popup "Yang Baru" | ✅ Selesai |
+
+### 2.11. PWA
 
 | Fitur | Status |
 |-------|--------|
@@ -152,7 +175,15 @@ author: FeverEpidemic
 3. Panggil process_due_recurring_transactions() stored procedure
 4. Generate transaksi baru untuk yang sudah jatuh tempo
 
-### 3.5. Alur API Chat
+### 3.5. Alur AI Chat
+
+1. User buka halaman `/chat` → compliance gate (opt-in pertama kali)
+2. User pilih periode & wallet, lalu ketik pertanyaan natural
+3. AI (DeepSeek) membaca konteks finansial → jawab dengan data
+4. Untuk mutasi: AI deteksi intent → confidence check → auto-save atau minta konfirmasi
+5. Rivayat chat disimpan di localStorage browser
+
+### 3.6. Alur API Chat
 
 1. User generate API key dari halaman Settings
 2. Gunakan Bearer token di header Authorization
@@ -178,10 +209,10 @@ author: FeverEpidemic
 ## 5. Batasan Produk (Saat Ini)
 
 - Belum ada notifikasi push atau reminder
-- Belum ada ekspor PDF/CSV
-- Belum ada multi-mata uang per transaksi
-- Belum ada kategori sistem untuk recurring transactions
-- API key belum bisa di-revoke dari halaman Settings (perlu SQL manual)
+- Belum ada integrasi bank (OCR / auto-import statement)
+- Belum ada budget carry-over (sisa bulan lalu → bulan ini)
+- Belum ada widget mobile (iOS/Android)
+- AI Chat bergantung pada provider eksternal (DeepSeek) — ada privacy disclosure
 - Cloudflare Managed Challenge dapat memblokir akses API dari script eksternal (solusi: WAF skip rule)
 
 ---
@@ -189,11 +220,13 @@ author: FeverEpidemic
 ## 6. Evolusi Produk (Roadmap)
 
 Lihat `docs/plans/PLAN.md` untuk visi awal & scope MVP.
-Lihat `docs/plans/PLAN_UPGRADE.md` untuk rencana upgrade & backlog.
+Lihat `docs/plan-upgrade.md` untuk rencana upgrade & runbook admin.
 
 Fitur potensial ke depan:
-- Integrasi bank (OCR / manual)
-- Analisis pengeluaran & insight AI
-- Multi-currency
-- Budget carry-over
-- Laporan bulanan PDF
+- Integrasi bank (OCR / auto-import statement)
+- Budget carry-over (sisa bulan lalu → bulan ini)
+- Widget iOS/Android
+- Family dashboard (gabungan view semua wallet keluarga)
+- Notifikasi push (pengingat budget, tagihan)
+- Kategori AI auto-suggest
+- Dark mode scheduler (auto-switch theme)

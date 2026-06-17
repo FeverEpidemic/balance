@@ -64,13 +64,13 @@
 
 - **Modul plan sentral** — Logika penentuan plan (Free/Premium) dipindahkan ke `lib/plan.ts` sebagai sumber kebenaran tunggal. Semua batas pemakaian dibaca dari modul ini.
 
-## [Unreleased] - 2026-06-13
+## [1.8.0] - 2026-06-13
 
 ### Fixed
 
 - **AI Chat lebih akurat saat membaca transaksi per hari** — Pertanyaan seperti "transaksi kemarin berapa" kini tidak lagi terlalu sering dijawab dari rekap ringkas saja. AI akan memaksa pembacaan daftar transaksi saat user meminta jumlah/daftar transaksi atau menyebut tanggal relatif seperti kemarin/hari ini, lalu hasil tool juga membawa `totalMatched` agar jumlah transaksi yang disebut lebih konsisten.
 
-## [Unreleased] - 2026-06-12
+## [1.7.0] - 2026-06-12
 
 ### Changed
 
@@ -121,7 +121,7 @@
 - **Ringkasan finansial Dashboard** — Kolom kanan ringkasan finansial sekarang menampilkan **Pemasukan bulan ini** (`monthIncome`) sebagai pengganti duplikasi `availableBalance` dan `savingBalance` yang sudah ada di kolom kiri. Data pemasukan hanya mencakup transaksi income bulan berjalan.
 - **Form buat wallet lebih rapi** — Form pembuatan wallet kini disembunyikan di balik tombol "Buat wallet baru" untuk pengguna yang sudah punya wallet. Pengguna baru (0 wallet) tetap melihat form langsung terbuka. Form bisa ditutup kembali dengan tombol "Batal".
 
-## [Unreleased] - 2026-06-11
+## [1.6.0] - 2026-06-11
 
 ### Changed
 
@@ -138,8 +138,6 @@
 - **React & React DOM** (`^19.2.7`) — Patch bump.
 - **@tailwindcss/postcss** (`^4.3.0`) — Plugin baru sebagai pengganti `tailwindcss` + `autoprefixer` di PostCSS.
 
-## [Unreleased] - 2026-06-11
-
 ### Added - Indikator Kuota Rate Limit & Daily Chat Limit
 
 - **Daily limit AI Chat** (`lib/env.ts`, `lib/rate-limit.ts`, `app/api/ai/chat/route.ts`): Limit chat per hari default 20/hari (konfigurabel via `AI_CHAT_DAILY_LIMIT_MAX`). Dicek sebelum per-minute rate limit. Kalau habis, user dapat pesan "Kuota chat hari ini sudah habis."
@@ -148,12 +146,6 @@
 - **Indikator kuota per menit di sidebar chat**: Menampilkan sisa pakai AI Chat (misal "15 dari 20") dengan progress bar tipis. Saat kuota habis, muncul countdown mundur "Reset 42dtk" yang update tiap detik.
 - **Client baca header rate limit**: Setiap response chat (termasuk 429) kini dibaca header `X-RateLimit-Limit`, `X-RateLimit-Remaining`, dan `X-RateLimit-Reset` untuk update indikator real-time.
 - **String kuota bilingual**: Label "Kuota AI", sisa pakai, status "Habis", dan format countdown dalam Bahasa Indonesia dan Inggris.
-
-## [Unreleased] - 2026-06-11
-
-### Changed - Insight AI Dashboard Kini Lebih Sigap
-
-## [Unreleased] - 2026-06-11
 
 ### Changed - Insight AI Dashboard Kini Lebih Sigap
 
@@ -178,7 +170,7 @@
 - **Wallet Tabs disederhanakan** (`components/wallet-tabs.tsx`): Tab Members, Settlements, Templates, dan Recurring dikelompokkan dalam dropdown "Pengaturan". Tab utama kini: Overview, Transaksi, Tabungan, Anggaran, Laporan, Pengaturan.
 - **Bottom nav mobile 5 item** (`components/app-shell.tsx`): Dashboard, Wallet, Transaksi, Chat AI, Pengaturan — lebih ringkas untuk layar kecil. Reports dan Changelogs tetap ada di sidebar desktop dan drawer mobile.
 
-## [Unreleased] - 2026-06-10
+## [1.5.0] - 2026-06-10
 
 ### Added - Kelola Kategori Sendiri
 
@@ -348,7 +340,7 @@
 | `app/[locale]/(app)/chat/page.tsx`, `components/features/chat/*` | Tambah halaman chat khusus Asisten AI dengan suggestion chips, selector periode/wallet, streaming bubble, dan panel bantuan. |
 | `components/features/dashboard/dashboard-{content,ai-insight}.tsx`, `components/{app-shell,ui/app-icon}.tsx`, `messages/{id,en}.json`, `lib/changelogs.ts` | Sisipkan panel insight di dashboard, tambah item navigasi baru, ikon chat, copy bilingual, dan entry What's New. |
 
-## [Unreleased] - 2026-06-09
+## [1.4.0] - 2026-06-09
 
 ### Added - Halaman Changelog dan Popup Pembaruan
 
@@ -393,7 +385,7 @@
 | `components/features/transactions/transaction-history-page-content.tsx`, `app/[locale]/(app)/wallets/[walletId]/reports/page.tsx` | Pasang tombol export ke halaman histori transaksi dan reports. |
 | `components/ui/app-icon.tsx`, `messages/{id,en}.json`, `lib/utils.ts` | Tambah ikon download, copy i18n export, dan helper nama file aman. |
 
-## [Unreleased] - 2026-06-08
+## [1.3.0] - 2026-06-08
 
 ### Changed - Dokumentasi Theme Modes di AGENTS
 

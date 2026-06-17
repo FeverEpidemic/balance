@@ -1,7 +1,7 @@
 ---
 title: Balance — Agent Quickstart
-version: 1.0.0
-last_updated: 2026-06-09
+version: 1.1.0
+last_updated: 2026-06-17
 purpose: "Bacaan pertama untuk AI agent baru di repo ini. 5 menit."
 ---
 
@@ -26,6 +26,8 @@ Baca dengan urutan ini untuk pemahaman maksimal:
 | 7 | `docs/SERVER_ACTION_PATTERNS.md` | Pola server action & error handling | 5 menit |
 | 8 | `docs/TESTING_GUIDE.md` | Cara testing & pola umum | 5 menit |
 | 9 | `docs/API_REFERENCE.md` | Dokumentasi chat API | 3 menit |
+| 10 | `docs/TROUBLESHOOTING.md` | Error umum & solusi | 5 menit |
+| 11 | `docs/plan-upgrade.md` | Runbook admin upgrade/downgrade plan | 3 menit |
 
 **Total:** ~66 menit. Tapi sangat penting untuk konteks yang benar.
 

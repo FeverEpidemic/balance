@@ -1,7 +1,7 @@
 ---
 title: Balance — Engineering Architecture
-version: 1.0.0
-last_updated: 2026-06-09
+version: 1.1.0
+last_updated: 2026-06-17
 stack: Next.js 15.3 · React 19 · TypeScript 5.8 · Tailwind 3.4 · Supabase · Redis
 ---
 
@@ -93,9 +93,18 @@ balance/
 │   └── kong.yml            # Kong API gateway config
 │
 ├── docs/                   # Documentation
+│   ├── AGENT_QUICKSTART.md # ← Agent quickstart (read first)
 │   ├── PRD.md              # ← Product Requirements Document
 │   ├── DB_SCHEMA.md        # ← Database Schema & Flow
-│   └── ENGINEERING.md      # ← This document
+│   ├── ENGINEERING.md      # ← This document
+│   ├── SERVER_ACTION_PATTERNS.md  # ← Server action patterns
+│   ├── TESTING_GUIDE.md    # ← Testing guide
+│   ├── API_REFERENCE.md    # ← Chat API reference
+│   ├── TROUBLESHOOTING.md  # ← Troubleshooting guide
+│   ├── plan-upgrade.md     # ← Plan upgrade admin runbook
+│   └── plans/              # Product plans
+│       ├── PLAN.md         # ← Product vision & roadmap
+│       └── AGENT_HANDOFF.md # ← Agent handoff protocol
 │
 ├── docker-compose.yml      # Production Docker stack
 ├── docker-compose.self-hosted.yml  # Self-hosted Supabase stack
@@ -123,17 +132,26 @@ Middleware menangani 3 hal:
 /{locale}/login            → Login page (email + Google OAuth)
 /{locale}/register         → Register page
 /{locale}/dashboard        → Main dashboard (authenticated)
-/{locale}/wallets          → Daftar dompet
+/{locale}/wallets          → Daftar dompet (redirect ke dashboard)
 /{locale}/wallets/[walletId] → Detail dompet (overview, transaksi, budget, member, tabungan)
-/{locale}/settings         → Pengaturan (tema, bahasa, API keys)
+/{locale}/wallets/[walletId]/categories → Manajemen kategori
+/{locale}/settings         → Pengaturan (tema, bahasa, API keys, plan)
+/{locale}/chat             → Asisten AI chat
+/{locale}/changelogs       → Timeline changelog produk
 /{locale}/invite/[token]   → Accept invitation
 /{locale}/auth/callback    → OAuth callback
 /{locale}/auth/confirm     → Email confirmation
 /{locale}/privacy          → Privacy policy
+/{locale}/terms            → Terms of service
+/{locale}/refund-policy    → Refund policy
 /{locale}/offline          → PWA offline page
 
 /api/chat/rekap            → Rekap API (GET)
 /api/chat/transaction      → Input transaksi API (POST)
+/api/ai/chat               → AI Chat streaming (POST)
+/api/ai/insight            → AI Dashboard insight (GET)
+/api/ai/confirm-transaction → Konfirmasi transaksi AI (POST)
+/api/reports/[walletId]/pdf → Export laporan PDF (GET)
 ```
 
 ### 3.3. Layout Tree
@@ -198,18 +216,19 @@ Redis Cache (best-effort read cache)
 
 | File | Fungsi Utama |
 |------|-------------|
-| `transactions.ts` | Create, update, delete transaksi |
+| `transactions.ts` | Create, update, delete transaksi + balance adjustments |
 | `wallets.ts` | Create, update, archive wallet; manage member roles |
 | `budgets.ts` | CRUD budget |
 | `savings.ts` | Create saving, deposit/withdraw |
 | `settlements.ts` | Create settlement |
 | `recurring-transactions.ts` | CRUD recurring + pause/resume |
 | `templates.ts` | CRUD template transaksi |
+| `categories.ts` | CRUD kategori per wallet |
 | `auth.ts` | Update profil |
-| `theme.ts` | Update tema |
-| `api-keys.ts` | Generate API key |
+| `theme.ts` | Update tema & locale preference |
+| `api-keys.ts` | Generate & revoke API key |
 | `onboarding.ts` | Dismiss/selesaikan onboarding |
-| `_shared.ts` | Helpers: redirectWithMessage, revalidateWalletPaths, getActionLocale |
+| `_shared.ts` | Helpers: redirectWithMessage, revalidateWalletPaths, getActionLocale, safeDbError |
 | `action-result.ts` | Action result types (success/error) |
 
 **Pola server action:**

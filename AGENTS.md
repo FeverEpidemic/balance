@@ -6,13 +6,33 @@ Guidance for AI coding agents working in this repository.
 
 `balance` is a mobile-responsive household finance MVP in Bahasa Indonesia. It is built with Next.js App Router, React, TypeScript, Tailwind CSS, Supabase Auth/Postgres/RLS, optional Redis read caching, and Docker deployment support.
 
-Use these docs as source-of-truth context before broad changes:
+## Documentation: Know When to Read
 
-- `README.md` for setup, hosted/self-hosted Supabase notes, Docker usage, and operational details.
-- `docs/plans/PLAN.md` for product scope.
-- `DESIGN.md` for the "Serene Capital" visual direction, tokens, typography, and UI tone.
-- `CHANGELOG.md` for recent feature history.
-- `supabase/migrations/` for database shape and RLS behavior.
+**Small fix ≠ read-everything.** Match the reading effort to the task. Guessing wrong is worse than reading slow.
+
+| Tier | When | What to read |
+|------|------|-------------|
+| **Quick** | Typo, rename, comment, config tweak, single-line fix | The file you're touching. Skip the docs. |
+| **Deep** | New feature, DB schema change, new UI, new API, architecture change | The relevant doc below + the files. |
+
+**If you're unsure which tier it is, read the doc.** Wrong assumptions cost more than extra tokens.
+
+### Per-task reading map
+
+| If the task touches… | Read… |
+|----------------------|-------|
+| **Database schema, RLS, migrations** | `docs/DB_SCHEMA.md` — all tables, policies, data flows, migration history |
+| **Server actions, form mutations** | `docs/SERVER_ACTION_PATTERNS.md` — patterns, error handling, revalidation |
+| **UI, CSS, components, design** | `DESIGN.md` — Serene Capital tokens; Light + Dark mode are both first-class |
+| **API, chat endpoints, integration** | `docs/API_REFERENCE.md` — auth, endpoints, rate limits, Cloudflare notes |
+| **Product features, user flows** | `docs/PRD.md` — feature status, user flows, limitations |
+| **Architecture, routing, data layer** | `docs/ENGINEERING.md` — stack, directories, deployment |
+| **Testing** | `docs/TESTING_GUIDE.md` — Vitest setup, patterns, what to test |
+| **Debugging errors** | `docs/TROUBLESHOOTING.md` — common errors + solutions |
+| **Plan/roadmap** | `docs/plans/PLAN.md` — vision, scope, upgrade path |
+| **Setup, Docker, env vars** | `README.md` — hosted/self-hosted Supabase, migrations, deployment |
+
+For an initial orientation, read `docs/AGENT_QUICKSTART.md` once per session — it covers the golden rules and architecture in 5 minutes.
 
 ## Common Commands
 
@@ -94,11 +114,35 @@ Prefer `npm run typecheck` and `npm run test` before handing off code changes. F
 
 ## Agent Workflow
 
-- Check docs folder first to understand the repo and project
-- Inspect the relevant files before editing; do not rely on assumptions from framework defaults.
-- Make focused changes that fit the existing architecture rather than introducing new abstractions early.
-- Preserve unrelated user work in the git tree. Do not revert files unless explicitly instructed.
-- Before large behavioral changes, check the migrations, data loaders, server actions, and tests together so database, cache, and UI stay aligned.
-- After making changes to the project, update `CHANGELOG.md` with the relevant entry.
-- When adding or changing user-facing product features, also update `lib/changelogs.ts` with a newest-first feature changelog entry so the in-app `/changelogs` page and "What's New" popup stay current. Do not add purely internal refactors, dependency bumps, or invisible code-only maintenance unless they materially affect users.
-- After changes, summarize what changed, what was verified, and any residual risks or follow-up work.
+### 1. Classify the task
+
+- **Quick?** (typo, rename, comment, config) → read the file, make the change.
+- **Deep?** (feature, DB, UI, API, architecture) → read the relevant doc from the [map above](#per-task-reading-map), then inspect the files.
+- **Unsure?** → treat as Deep. Guessing is always more expensive than reading.
+
+### 2. Understand before editing
+
+- Inspect the relevant files. Do not rely on framework-default assumptions.
+- For database changes: read the latest migration + `docs/DB_SCHEMA.md`.
+- For UI changes: open `DESIGN.md` + check both Light and Dark mode.
+- For server actions: follow `docs/SERVER_ACTION_PATTERNS.md` exactly.
+
+### 3. Make changes
+
+- Focused edits that fit existing architecture. No premature abstractions.
+- Do NOT revert or edit unrelated user work unless explicitly asked.
+- Do NOT edit old migrations — add a new one.
+- Do NOT edit generated files (`next-env.d.ts`, `.next/`, `node_modules/`).
+
+### 4. Verify
+
+- `npm run typecheck` → zero errors
+- `npm run test` → all passing
+- For routing/SSR/env/Docker changes: also `npm run build`
+- If Supabase/Docker/SMTP/Redis is needed but unavailable, state it clearly.
+
+### 5. Handoff
+
+- Update `CHANGELOG.md` with changes.
+- If user-facing feature: also update `lib/changelogs.ts`.
+- Summarize: what changed, what was verified, residual risks.

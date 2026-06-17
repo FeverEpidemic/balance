@@ -1,7 +1,7 @@
 ---
 title: Balance — Chat API Reference
-version: 1.0.0
-last_updated: 2026-06-09
+version: 1.1.0
+last_updated: 2026-06-17
 base_url: https://finance.acknowledge.my.id
 ---
 

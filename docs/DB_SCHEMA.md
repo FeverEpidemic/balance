@@ -1,8 +1,8 @@
 ---
 title: Balance — Database Schema & Data Flow
-version: 1.0.0
-last_updated: 2026-06-09
-migrations: 0001–0014
+version: 1.1.0
+last_updated: 2026-06-17
+migrations: 0001–0020
 ---
 
 # Balance — Database Schema & Data Flow
@@ -423,6 +423,13 @@ SELECT public.accept_wallet_invitation_atomic(token, user_id)
 | 0009 | google_oauth_profile_name_fallback | Fallback full_name dari metadata 'name' |
 | 0010 | transaction_balance_adjustments | Kolom source, kategori penyesuaian saldo |
 | 0011 | user_api_keys | Tabel API key + lookup function |
+| 0011 | security_fixes | RPC diamankan, RLS invites owner-only, insert wallet_members dibatasi |
 | 0012 | user_onboarding | Kolom onboarding_state di profiles |
 | 0013 | profile_theme_preference | Kolom theme_preference di profiles |
 | 0014 | profile_preferred_locale | Kolom preferred_locale di profiles |
+| 0015 | user_plan_tier | Kolom plan_type + monthly_transaction_count di profiles |
+| 0016 | profiles_timezone | Kolom timezone di profiles |
+| 0017 | wallets_currency | Kolom currency di wallets |
+| 0018 | wallet_balance_rpc | RPC compute_wallet_available_balance |
+| 0019 | free_trial | Kolom trial_started_at, trial_ends_at, trial_consumed_at di profiles |
+| 0020 | profiles_ai_chat_compliance | Kolom ai_chat_consented_at di profiles |
