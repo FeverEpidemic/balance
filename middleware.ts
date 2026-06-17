@@ -18,6 +18,14 @@ type CookieToSet = {
   options?: Record<string, unknown>;
 };
 
+/** Menambah Cloudflare-friendly cache headers utk halaman publik. */
+function addCacheHeaders(response: NextResponse, ttlSeconds: number) {
+  response.headers.set(
+    "Cache-Control",
+    `public, s-maxage=${ttlSeconds}, max-age=0, stale-while-revalidate=${ttlSeconds * 3}`
+  );
+}
+
 function isPublicPath(pathname: string) {
   const path = stripLocaleFromPath(pathname);
   return (
@@ -51,7 +59,9 @@ export async function middleware(request: NextRequest) {
     });
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = localizePath(detectedLocale, "/");
-    return NextResponse.redirect(redirectUrl, 301);
+    const res = NextResponse.redirect(redirectUrl, 301);
+    addCacheHeaders(res, 86400); // Cloudflare cache 1 day
+    return res;
   }
 
   if (!pathnameLocale && !pathname.startsWith("/api/") && !pathname.startsWith("/auth/")) {
@@ -115,6 +125,16 @@ export async function middleware(request: NextRequest) {
     dashboardUrl.pathname = localizePath(locale, "/dashboard");
     dashboardUrl.search = "";
     return NextResponse.redirect(dashboardUrl);
+  }
+
+  // Cache public pages at Cloudflare edge for faster repeat visits
+  const stripped = stripLocaleFromPath(pathname);
+  if (!user && isPublicPath(pathname)) {
+    if (stripped === "/login" || stripped === "/register") {
+      addCacheHeaders(response, 3600); // 1 hour
+    } else {
+      addCacheHeaders(response, 86400); // 1 day: landing, privacy, terms, offline
+    }
   }
 
   return response;
