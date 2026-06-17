@@ -1146,7 +1146,8 @@
     "transactionNeedsConfirmation": "Transaksi perlu konfirmasi",
     "transactionConfidenceTooLow": "AI kurang yakin. Coba catat manual.",
     "transactionDuplicateDetected": "Transaksi ini mirip dengan yang sudah ada.",
-    "transactionDailyCapExceeded": "Batas pengeluaran harian terlampaui."
+    "transactionDailyCapExceeded": "Batas pengeluaran harian terlampaui.",
+    "loginRateLimited": "Terlalu banyak percobaan login. Coba lagi nanti."
   },
   "actionSuccess": {
     "budgetSaved": "Budget berhasil disimpan.",

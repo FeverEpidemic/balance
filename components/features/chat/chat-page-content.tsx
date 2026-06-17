@@ -105,7 +105,8 @@ export function ChatPageContent({ locale, shell, aiCompliance, wallets }: ChatPa
         selectedPeriod,
         selectedWalletId,
         activeSuggestion,
-        runningSummary
+        runningSummary,
+        savedAt: Date.now()
       })
     );
   }, [activeSuggestion, hasHydratedSession, messages, selectedPeriod, selectedWalletId, runningSummary]);

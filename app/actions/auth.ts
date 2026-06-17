@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { defaultLocale, LOCALE_COOKIE_NAME, localizePath, resolveLocale, translate } from "@/lib/i18n";
@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { sanitizeRedirectPath, withAuthMessage } from "@/lib/auth-flow";
 import { ensureProfileForUser } from "@/lib/profile";
 import { getSiteUrl } from "@/lib/env";
+import { consumeLoginRateLimit } from "@/lib/rate-limit";
 
 export async function login(formData: FormData) {
   const cookieStore = await cookies();
@@ -15,6 +16,13 @@ export async function login(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const next = sanitizeRedirectPath(String(formData.get("next") ?? "/dashboard"));
+
+  // Rate limit: 5 attempts per 15 minutes per IP
+  const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const rateLimit = await consumeLoginRateLimit(ip);
+  if (!rateLimit.allowed) {
+    redirect(withAuthMessage("/login", "error", translate(locale, "actionErrors.loginRateLimited"), next, "/dashboard", locale));
+  }
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });

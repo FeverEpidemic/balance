@@ -147,6 +147,19 @@ export async function consumeAiChatDailyLimit(userId: string, now?: number) {
   });
 }
 
+export async function consumeLoginRateLimit(ip: string, now?: number) {
+  const limit = 5;
+  const windowSeconds = 15 * 60; // 15 minutes
+
+  return consumeRateLimit({
+    namespace: "rate-limit:auth-login",
+    key: ip,
+    limit,
+    windowSeconds,
+    now
+  });
+}
+
 export function applyRateLimitHeaders(response: Response, result: RateLimitResult, now = Date.now()) {
   response.headers.set("X-RateLimit-Limit", String(result.limit));
   response.headers.set("X-RateLimit-Remaining", String(result.remaining));

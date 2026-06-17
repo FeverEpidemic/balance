@@ -89,6 +89,8 @@ export type StoredChatSession = {
   activeSuggestion?: string;
   /** Compact financial summary of what was discussed in previous turns. */
   runningSummary?: string;
+  /** Timestamp (ms) when session was last saved. Used for auto-expiry. */
+  savedAt?: number;
 };
 
 export type OutgoingChatMessage = {
@@ -98,6 +100,7 @@ export type OutgoingChatMessage = {
 };
 
 export const CHAT_STORAGE_KEY = "balance-ai-chat:v1";
+export const CHAT_MAX_AGE_DAYS = 30;
 export const MAX_CHAT_MESSAGES = 24;
 
 /** Number of most recent exchanges (user+assistant pairs) always included. */
@@ -256,11 +259,24 @@ export function sanitizeStoredChatSession(value: unknown): StoredChatSession | n
     }))
     .slice(-MAX_CHAT_MESSAGES);
 
+  const savedAt = typeof candidate.savedAt === "number" && candidate.savedAt > 0
+    ? candidate.savedAt
+    : undefined;
+
+  // Check expiry: if savedAt exists and is older than CHAT_MAX_AGE_DAYS, treat as expired
+  if (savedAt !== undefined) {
+    const maxAgeMs = CHAT_MAX_AGE_DAYS * 24 * 60 * 60 * 1000;
+    if (Date.now() - savedAt > maxAgeMs) {
+      return null;
+    }
+  }
+
   return {
     messages,
     selectedPeriod,
     selectedWalletId,
     activeSuggestion,
-    runningSummary: typeof candidate.runningSummary === "string" ? candidate.runningSummary : undefined
+    runningSummary: typeof candidate.runningSummary === "string" ? candidate.runningSummary : undefined,
+    savedAt
   };
 }

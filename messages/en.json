@@ -1146,7 +1146,8 @@
     "transactionNeedsConfirmation": "Transaction needs confirmation",
     "transactionConfidenceTooLow": "AI is unsure. Try recording manually.",
     "transactionDuplicateDetected": "This transaction is similar to an existing one.",
-    "transactionDailyCapExceeded": "Daily spending limit exceeded."
+    "transactionDailyCapExceeded": "Daily spending limit exceeded.",
+    "loginRateLimited": "Too many login attempts. Please try again later."
   },
   "actionSuccess": {
     "budgetSaved": "Budget saved successfully.",
