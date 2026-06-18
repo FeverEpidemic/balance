@@ -1,13 +1,12 @@
 import { notFound } from "next/navigation";
-import { createWalletInvitation } from "@/app/actions/wallets";
 import { requireUser } from "@/lib/auth";
 import { getWalletBundle, queryInvitationTokens } from "@/lib/data";
 import { AppShell } from "@/components/app-shell";
 import { Badge } from "@/components/ui/badge";
-import { SubmitButton } from "@/components/ui/submit-button";
 import { Notice } from "@/components/ui/notice";
 import { ToastFeedback } from "@/components/ui/toast-feedback";
 import { InvitationShareActions } from "@/components/invitation-share-actions";
+import { CreateInvitationDialogButton } from "@/components/features/wallets/create-invitation-dialog-button";
 import { getSiteUrl } from "@/lib/env";
 import { getLocaleTag, getTranslator, resolveLocale } from "@/lib/i18n";
 import { MAX_WALLET_MEMBERS, summarizeWalletCapacity } from "@/lib/wallet-capacity";
@@ -75,17 +74,7 @@ export default async function MembersPage({
                 <Notice>{t("members.walletFullNotice")}</Notice>
               </div>
             ) : (
-              <form action={createWalletInvitation} className="mt-6 grid gap-4">
-                <input type="hidden" name="wallet_id" value={walletId} />
-                <label className="block">
-                  <span className="mb-2 block font-label text-sm text-muted-foreground">{t("members.accessLabel")}</span>
-                  <select name="role" defaultValue="viewer">
-                    <option value="viewer">{t("members.roleViewer")}</option>
-                    <option value="editor">{t("members.roleEditor")}</option>
-                  </select>
-                </label>
-                <SubmitButton pendingText={t("members.createPending")}>{t("members.createButton")}</SubmitButton>
-              </form>
+              <CreateInvitationDialogButton walletId={walletId} />
             )
           ) : (
             <div className="mt-6">
