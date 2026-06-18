@@ -340,6 +340,8 @@
     "tipsDescription": "Cek koneksi, pindah jaringan, atau buka lagi aplikasi beberapa saat lagi.",
     "statusTitle": "Status v1",
     "statusDescription": "Versi PWA ini fokus ke installability dan fallback yang rapi, belum ke penyimpanan data offline.",
+    "cachedDataTitle": "Data tersimpan",
+    "cachedDataDescription": "Jika sebelumnya Anda membuka dashboard, beberapa ringkasan mungkin masih muncul dari cache browser.",
     "tryAgain": "Coba lagi",
     "openLogin": "Buka login"
   },

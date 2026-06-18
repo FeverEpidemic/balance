@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { Geist, Hanken_Grotesk, Inter } from "next/font/google";
 import type { ReactNode } from "react";
 import { ServiceWorkerRegistration } from "@/components/pwa/service-worker-registration";
+import { SyncManager } from "@/components/pwa/sync-manager";
 import { RouteTransition } from "@/components/ui/route-transition";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { Toaster } from "@/components/ui/shadcn/sonner";
@@ -132,6 +133,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <ToastProvider>
           <RouteTransition />
           <ServiceWorkerRegistration />
+          <SyncManager />
           {children}
         </ToastProvider>
         <Toaster />

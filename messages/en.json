@@ -341,7 +341,9 @@
     "statusTitle": "v1 status",
     "statusDescription": "This PWA version focuses on installability and a tidy fallback, not offline data storage yet.",
     "tryAgain": "Try again",
-    "openLogin": "Open login"
+    "openLogin": "Open login",
+    "cachedDataTitle": "Cached data",
+    "cachedDataDescription": "If you previously opened the dashboard, some summaries may still appear from the browser cache."
   },
   "emptyState": {
     "eyebrow": "Nothing here yet"

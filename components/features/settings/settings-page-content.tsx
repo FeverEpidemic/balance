@@ -13,6 +13,7 @@ import { initialActionResult } from "@/app/actions/action-result";
 import type { SettingsData } from "@/lib/data/types";
 import { getTranslator, type AppLocale } from "@/lib/i18n";
 import { cn, formatDateTime } from "@/lib/utils";
+import { InstallPrompt } from "@/components/pwa/install-prompt";
 
 export function SettingsPageContent({ settings, locale }: { settings: SettingsData; locale: AppLocale }) {
   const [newKeyResult, setNewKeyResult] = useState<string | null>(null);
@@ -383,6 +384,8 @@ export function SettingsPageContent({ settings, locale }: { settings: SettingsDa
             ) : null}
           </div>
         </section>
+
+        <InstallPrompt />
 
         <section className="card">
           <h3 className="headline-sm">{t("settings.apiCreateTitle")}</h3>

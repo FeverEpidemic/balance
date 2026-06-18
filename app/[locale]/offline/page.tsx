@@ -17,7 +17,7 @@ export default async function OfflinePage({
         <p className="mt-4 max-w-xl text-sm leading-7 text-muted-foreground md:text-base">
           {t("offline.description")}
         </p>
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
+        <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <div className="card-muted rounded-[1.5rem] p-5">
             <p className="font-label text-xs uppercase tracking-[0.16em] text-muted-foreground">{t("offline.tipsTitle")}</p>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
@@ -28,6 +28,12 @@ export default async function OfflinePage({
             <p className="font-label text-xs uppercase tracking-[0.16em] text-muted-foreground">{t("offline.statusTitle")}</p>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
               {t("offline.statusDescription")}
+            </p>
+          </div>
+          <div className="card-muted rounded-[1.5rem] p-5">
+            <p className="font-label text-xs uppercase tracking-[0.16em] text-muted-foreground">{t("offline.cachedDataTitle")}</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">
+              {t("offline.cachedDataDescription")}
             </p>
           </div>
         </div>
