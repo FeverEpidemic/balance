@@ -27,7 +27,8 @@ export function ConfirmSubmitButton({
   confirmMessage,
   confirmTitle,
   pendingText,
-  variant = "ghost"
+  variant = "ghost",
+  onClick
 }: {
   cancelLabel?: string;
   children: string;
@@ -37,6 +38,7 @@ export function ConfirmSubmitButton({
   confirmTitle?: string;
   pendingText?: string;
   variant?: "primary" | "ghost" | "soft";
+  onClick?: () => void;
 }) {
   const { pending } = useFormStatus();
   const [isOpen, setIsOpen] = useState(false);
@@ -74,8 +76,12 @@ export function ConfirmSubmitButton({
         }}
         onConfirm={() => {
           setIsOpen(false);
-          formElement?.requestSubmit();
           setFormElement(null);
+          if (onClick) {
+            onClick();
+          } else {
+            formElement?.requestSubmit();
+          }
         }}
       />
     </>
