@@ -24,9 +24,27 @@ type FeatureSet = Record<FeatureFlag, boolean>;
 /**
  * Returns true if running in self-hosted mode.
  * Self-hosted = all features unlocked, no billing checks.
+ *
+ * Detection priority:
+ *   1. Explicit SELF_HOSTED_MODE env var (true/false)
+ *   2. Auto-detect: if Midtrans is not configured, force self-hosted
+ *      This prevents a gimped experience if someone forgets to set it.
  */
 export function isSelfHosted(): boolean {
-  return readBooleanEnv("SELF_HOSTED_MODE", false);
+  // 1. Explicit env var takes precedence
+  const raw = process.env.SELF_HOSTED_MODE?.trim().toLowerCase();
+  if (raw && ["true", "false", "1", "0", "on", "off", "yes", "no"].includes(raw)) {
+    return ["true", "1", "on", "yes"].includes(raw);
+  }
+
+  // 2. Auto-detect: if billing (Midtrans) is not configured, force self-hosted.
+  //    This prevents accidentally getting a limited free tier when self-hosting.
+  const midtransKey = process.env.MIDTRANS_SERVER_KEY?.trim();
+  if (!midtransKey || midtransKey.startsWith("your_")) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
