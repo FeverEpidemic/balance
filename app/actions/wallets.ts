@@ -10,6 +10,8 @@ import { localizePath, translate } from "@/lib/i18n";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentMonthKey } from "@/lib/finance";
 import { getBudgetPresetRows, getStarterCategories, getStarterTemplates, type BudgetPreset, type WalletSetupPreset } from "@/lib/wallet-starter-templates";
+import { isFeatureAvailable } from "@/lib/features";
+import { getPlanPolicy } from "@/lib/plan";
 import {
   MAX_WALLET_MEMBERS,
   getWalletAcceptInvitationFullMessage,
@@ -60,6 +62,14 @@ export async function createWallet(formData: FormData) {
 
   if (!profile) {
     return await redirectWithMessage("/dashboard", "error", translate(locale, "actionErrors.profileNotSynced"));
+  }
+
+  // Gate shared wallet behind premium plan (free-tier SaaS only; self-hosted bypasses).
+  if (kind === "shared") {
+    const planPolicy = await getPlanPolicy(user.id);
+    if (!isFeatureAvailable(planPolicy.planType, "shared_wallets")) {
+      return await redirectWithMessage("/dashboard", "error", translate(locale, "settings.sharedWalletPremiumOnly"));
+    }
   }
 
   const currency = formCurrency || profile.default_currency || "IDR";

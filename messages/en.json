@@ -334,6 +334,7 @@
     "planSelectPeriod": "Choose Premium Plan",
     "planMonthlyLabel": "Premium Monthly",
     "planMonthlyDesc": "Premium access for 30 days",
+    "sharedWalletPremiumOnly": "Shared wallet feature is only available for Premium users.",
     "planAnnualLabel": "Premium Annual",
     "planAnnualDesc": "Only Rp 20,833/month",
     "planAnnualDiscount": "Save 28%",
