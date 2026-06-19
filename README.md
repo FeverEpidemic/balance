@@ -214,6 +214,11 @@ docker buildx build \
 | `SMTP_USER` | Self-hosted | — | SMTP username |
 | `SMTP_PASS` | Self-hosted | — | SMTP password |
 | `SMTP_FROM` | Self-hosted | — | Sender email address |
+| `VISION_ENABLED` | No | `true` (if key set) | Enable receipt OCR scanning |
+| `VISION_API_KEY` | No | — | API key for Sumopod vision proxy |
+| `VISION_BASE_URL` | No | `https://ai.sumopod.com/v1` | Vision AI provider URL |
+| `VISION_MODEL` | No | `gemini/gemini-3.1-flash-lite` | Vision model for OCR |
+| `VISION_DAILY_LIMIT_FREE` | No | `3` | Free user daily OCR scan limit |
 
 ---
 
