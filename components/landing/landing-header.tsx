@@ -7,6 +7,7 @@ import { LandingThemeToggle } from "@/components/landing/landing-theme-toggle";
 import { Button } from "@/components/ui/button";
 import { getTranslator } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/brand/logo";
 
 const navLinks = [
   { href: "#features", key: "landing.navFeatures" },
@@ -73,17 +74,9 @@ export function LandingHeader() {
           <div className="landing-header-shell glass-panel-strong flex items-center justify-between gap-3 rounded-[1.6rem] px-3 py-3 shadow-float md:px-4 lg:px-5">
             <a
               href={`/${locale}`}
-              className="flex items-center gap-3 rounded-full px-3 py-2 text-foreground transition hover:bg-[color:var(--primary-soft)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(89,95,61,0.16)]"
+              className="flex items-center gap-2 rounded-full px-2 py-1.5 text-foreground transition hover:bg-[color:var(--primary-soft)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(89,95,61,0.16)]"
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--primary-soft)] font-display text-lg font-semibold text-primary-strong shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]">
-                B
-              </span>
-              <span className="flex flex-col leading-none">
-                <span className="font-display text-lg font-semibold tracking-[-0.03em] text-foreground md:text-xl">Balance</span>
-                <span className="hidden font-label text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:block">
-                  Serene Capital
-                </span>
-              </span>
+              <Logo variant="wordmark" className="h-9 md:h-10" />
             </a>
 
             <nav className="hidden items-center gap-2 rounded-full border border-[color:var(--soft-border)] bg-[color:var(--surface-container-lowest)]/55 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.22)] lg:flex">
@@ -141,10 +134,7 @@ export function LandingHeader() {
           >
             <div className="flex items-center justify-between border-b border-[color:var(--soft-border)] px-5 py-4">
               <a href={`/${locale}`} onClick={closeMobile}>
-                <p className="font-display text-xl font-semibold tracking-[-0.03em] text-foreground">Balance</p>
-                <p className="mt-1 font-label text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                  Serene Capital
-                </p>
+                <Logo variant="wordmark" className="h-8" />
               </a>
               <button
                 type="button"

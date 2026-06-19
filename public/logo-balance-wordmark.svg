@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="800" height="200">
+  <defs>
+    <linearGradient id="wg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8C936D"/>
+      <stop offset="100%" stop-color="#595f3d"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon (48px scaled) -->
+  <g transform="translate(0,20) scale(1.6875)">
+    <rect x="16" y="16" width="64" height="64" rx="16" ry="16" fill="#fbf9f3" stroke="#e4e2dc" stroke-width="0.8"/>
+    <!-- Left figure sage -->
+    <circle cx="34" cy="38" r="5.5" fill="#8C936D" opacity="0.9"/>
+    <path d="M29,46 Q30,50 31,54 Q32,58 33,62 L35,62 Q36,58 37,54 Q38,50 39,46 Z" fill="#8C936D" opacity="0.9"/>
+    <path d="M30,48 Q36,54 42,56 Q43,56.5 43,55.5 Q43,54.5 42,54 Q37,52 31,48 Z" fill="#717854" opacity="0.85"/>
+    <!-- Right figure cream -->
+    <circle cx="62" cy="38" r="5.5" fill="#dbdad4" opacity="0.9"/>
+    <path d="M59,46 Q58,50 57,54 Q56,58 55,62 L53,62 Q52,58 51,54 Q50,50 49,46 Z" fill="#dbdad4" opacity="0.9"/>
+    <path d="M58,48 Q52,54 46,56 Q45,56.5 45,55.5 Q45,54.5 46,54 Q51,52 57,48 Z" fill="#c7c7ba" opacity="0.85"/>
+    <!-- Wallet -->
+    <rect x="33" y="52" width="22" height="16" rx="4" ry="4" fill="url(#wg)"/>
+    <path d="M35,52 Q38,46 41,52" fill="none" stroke="#fcffe2" stroke-width="0.8" stroke-linecap="round"/>
+    <circle cx="40" cy="56" r="1.5" fill="none" stroke="#fcffe2" stroke-width="0.6" opacity="0.7"/>
+    <line x1="36" y1="60" x2="44" y2="60" stroke="#fcffe2" stroke-width="0.5" opacity="0.4" stroke-linecap="round"/>
+    <line x1="36" y1="64" x2="41" y2="64" stroke="#fcffe2" stroke-width="0.5" opacity="0.3" stroke-linecap="round"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g transform="translate(130, 65)">
+    <!-- Balance -->
+    <text x="0" y="0" font-family="'Hanken Grotesk', system-ui, sans-serif" font-size="48" font-weight="600" letter-spacing="-0.03" fill="#1b1c18">Balance</text>
+    <!-- Serene Capital -->
+    <text x="0" y="32" font-family="'Geist', system-ui, monospace" font-size="13" font-weight="600" letter-spacing="0.22em" fill="#77786d" text-transform="uppercase">SERENE CAPITAL</text>
+  </g>
+</svg>
