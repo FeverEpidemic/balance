@@ -97,7 +97,7 @@ function WordmarkLogo() {
       </g>
       {/* Text */}
       <text x="130" y="68" fontFamily="'Hanken Grotesk', system-ui, sans-serif" fontSize="48" fontWeight="600" letterSpacing="-0.03em" fill="var(--foreground, #1b1c18)">Balance</text>
-      <text x="130" y="100" fontFamily="'Geist', monospace" fontSize="13" fontWeight="600" letterSpacing="0.22em" fill="var(--muted-foreground, #77786d)" textTransform="uppercase">SERENE CAPITAL</text>
+      <text x="130" y="100" fontFamily="'Geist', monospace" fontSize="13" fontWeight="600" letterSpacing="0.22em" fill="var(--muted-foreground, #77786d)" style={{ textTransform: "uppercase" }}>SERENE CAPITAL</text>
     </svg>
   );
 }
