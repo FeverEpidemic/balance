@@ -1,4 +1,22 @@
+<p align="center">
+  <img src="public/logo-balance-wordmark.svg" alt="Balance" width="200"/>
+</p>
+
+<p align="center">
+  <strong>Personal & household finance tracker — in Bahasa Indonesia</strong>
+</p>
+
+<p align="center">
+  <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" alt="License: AGPL v3"/></a>
+  <a href="https://github.com/FeverEpidemic/balance/stargazers"><img src="https://img.shields.io/github/stars/FeverEpidemic/balance" alt="GitHub stars"/></a>
+  <a href="https://mybalance.my.id"><img src="https://img.shields.io/badge/demo-mybalance.my.id-brightgreen" alt="Demo"/></a>
+  <a href="https://github.com/FeverEpidemic/balance/actions"><img src="https://img.shields.io/github/actions/workflow/status/FeverEpidemic/balance/ci.yml" alt="CI"/></a>
+</p>
+
 # balance
+
+> **Self-hosted?** Jump to the [Docker setup](#run-locally).  
+> **Want the hosted version?** Go to [mybalance.my.id](https://mybalance.my.id) — no setup required.
 
 `balance` is a mobile-responsive Next.js MVP for household finance in Bahasa Indonesia. It follows the product scope in [docs/plans/PLAN.md](docs/plans/PLAN.md) and the visual direction in [DESIGN.md](DESIGN.md).
 
