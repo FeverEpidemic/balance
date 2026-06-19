@@ -56,7 +56,7 @@ export function getRedisKeyPrefix() {
   return process.env.REDIS_KEY_PREFIX?.trim() || "balance";
 }
 
-function readBooleanEnv(name: string, defaultValue: boolean) {
+export function readBooleanEnv(name: string, defaultValue: boolean) {
   const rawValue = process.env[name]?.trim().toLowerCase();
 
   if (!rawValue) {
