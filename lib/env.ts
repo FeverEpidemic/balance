@@ -197,3 +197,28 @@ export function getMidtransWebhookSecret() {
 export function getSupportEmail(): string {
   return process.env.SUPPORT_EMAIL?.trim() || "support@mybalance.my.id";
 }
+
+// ── Vision / OCR ────────────────────────────────────────
+
+export function getVisionModel(): string {
+  return process.env.VISION_MODEL?.trim() || "gemini/gemini-3.1-flash-lite";
+}
+
+export function getVisionBaseUrl(): string {
+  return process.env.VISION_BASE_URL?.trim() || "https://ai.sumopod.com/v1";
+}
+
+export function getVisionApiKey(): string | null {
+  return process.env.VISION_API_KEY?.trim() || null;
+}
+
+export function getVisionEnabled(): boolean {
+  const flag = process.env.VISION_ENABLED?.trim().toLowerCase();
+  if (flag === "false" || flag === "0") return false;
+  if (flag === "true" || flag === "1") return true;
+  return Boolean(getVisionApiKey());
+}
+
+export function getVisionDailyLimitFree(): number {
+  return readPositiveIntegerEnv("VISION_DAILY_LIMIT_FREE", 3);
+}
