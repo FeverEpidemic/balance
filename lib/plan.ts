@@ -1,3 +1,4 @@
+import { isSelfHosted } from "@/lib/features";
 import "server-only";
 
 import { getAiChatDailyLimitMax, getAiChatRateLimitMaxRequests } from "@/lib/env";
@@ -111,6 +112,14 @@ const PREMIUM_POLICY: Omit<PlanPolicy, "trialMeta"> = {
  * core functionality.
  */
 export async function getPlanPolicy(userId: string): Promise<PlanPolicy> {
+  if (isSelfHosted()) {
+    return {
+      ...PREMIUM_POLICY,
+      trialMeta: { isTrialActive: false, trialEndsAt: null, trialDaysRemaining: null },
+      planType: "premium",
+    };
+  }
+
   const admin = createAdminClient();
 
   if (!admin) {
