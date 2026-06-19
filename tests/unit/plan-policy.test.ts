@@ -6,6 +6,10 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: vi.fn()
 }));
 
+vi.mock("@/lib/features", () => ({
+  isSelfHosted: () => false
+}));
+
 function createAdminMock(planType: "free" | "premium", trialEndsAt: string | null = null) {
   const maybeSingle = vi.fn(async () => ({
     data: { plan_type: planType, trial_ends_at: trialEndsAt },
