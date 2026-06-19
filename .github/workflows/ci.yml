@@ -35,4 +35,5 @@ jobs:
 
       - name: Build
         run: npm run build
- 	env: NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+        env:
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
