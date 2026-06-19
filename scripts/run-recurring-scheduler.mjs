@@ -35,6 +35,29 @@ async function processBatch() {
   );
 }
 
+async function processExpiredSubscriptions() {
+  const response = await fetch(`${supabaseUrl}/rest/v1/rpc/process_expired_subscriptions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: serverKey,
+      Authorization: `Bearer ${serverKey}`
+    },
+    body: JSON.stringify({})
+  });
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`process_expired_subscriptions RPC failed (${response.status}): ${body}`);
+  }
+
+  const data = await response.json();
+  const count = data?.processed_count ?? 0;
+  if (count > 0) {
+    console.log(`[recurring-scheduler] expired subscriptions processed: ${count} user(s) downgraded`);
+  }
+}
+
 async function main() {
   console.log(`[recurring-scheduler] started interval=${intervalMs}ms batch=${batchSize}`);
 
@@ -42,7 +65,13 @@ async function main() {
     try {
       await processBatch();
     } catch (error) {
-      console.error("[recurring-scheduler] cycle failed", error);
+      console.error("[recurring-scheduler] recurring cycle failed", error);
+    }
+
+    try {
+      await processExpiredSubscriptions();
+    } catch (error) {
+      console.error("[recurring-scheduler] expiry cycle failed", error);
     }
 
     await sleep(intervalMs);

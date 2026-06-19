@@ -13,6 +13,20 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.15.0",
+    date: "2026-06-19",
+    title: "Premium berbayar — integrasi Midtrans",
+    description: "Sekarang kamu bisa langsung berlangganan Premium dari halaman Pengaturan! Pilih paket Bulanan (Rp 29.000) atau Tahunan (Rp 250.000, hemat 28%) dan bayar via Midtrans. Pembayaran diproses aman lewat berbagai metode: GoPay, Bank Transfer, QRIS, dan lainnya.",
+    features: [
+      { icon: "💳", text: "Tombol 'Langganan Premium' baru di halaman Pengaturan untuk memulai pembayaran via Midtrans Snap." },
+      { icon: "📅", text: "Pilih paket: Bulanan Rp 29.000/bln atau Tahunan Rp 250.000/thn (hemat 28%)." },
+      { icon: "🛡️", text: "Pembayaran diproses aman oleh Midtrans dengan verifikasi signature SHA512." },
+      { icon: "🎯", text: "Jika masih dalam masa trial, periode Premium akan dihitung setelah trial berakhir." },
+      { icon: "⏱️", text: "Scheduler otomatis menonaktifkan akses Premium saat langganan habis masa berlaku." },
+      { icon: "🔒", text: "Riwayat pembayaran dan status langganan bisa dilihat kapan saja." }
+    ]
+  },
+  {
     version: "1.14.23",
     date: "2026-06-16",
     title: "Footer legal link kini lebih rapi di mobile dan desktop",

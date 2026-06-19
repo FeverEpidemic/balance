@@ -165,3 +165,29 @@ export function getAiChatDailyLimitEnabled() {
 export function getAiChatDailyLimitMax() {
   return readPositiveIntegerEnv("AI_CHAT_DAILY_LIMIT_MAX", 5);
 }
+
+// ── Midtrans ────────────────────────────────────────
+
+export function getMidtransServerKey() {
+  return readEnv("MIDTRANS_SERVER_KEY");
+}
+
+export function getMidtransClientKey() {
+  const value = process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY;
+  if (!value) {
+    throw new Error("Missing required environment variable: NEXT_PUBLIC_MIDTRANS_CLIENT_KEY");
+  }
+  return value;
+}
+
+export function getMidtransMerchantId() {
+  return readEnv("MIDTRANS_MERCHANT_ID");
+}
+
+export function getMidtransIsProduction() {
+  return readBooleanEnv("MIDTRANS_IS_PRODUCTION", false);
+}
+
+export function getMidtransWebhookSecret() {
+  return readEnv("MIDTRANS_WEBHOOK_SECRET");
+}

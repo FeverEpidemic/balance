@@ -330,7 +330,19 @@
     "planBenefitReportHistoryPremium": "Laporan: 12 bulan terakhir",
     "planBenefitExportFree": "Ekspor PDF: tidak tersedia",
     "planBenefitExportPremium": "Ekspor PDF: tersedia",
-    "planUpgradeCta": "Ingin upgrade ke Premium? Hubungi admin."
+    "planUpgradeCta": "Langganan Premium",
+    "planSelectPeriod": "Pilih Paket Premium",
+    "planMonthlyLabel": "Premium Bulanan",
+    "planMonthlyDesc": "Akses premium selama 30 hari",
+    "planAnnualLabel": "Premium Tahunan",
+    "planAnnualDesc": "Hanya Rp 20.833/bulan",
+    "planAnnualDiscount": "Hemat 28%",
+    "planPaymentSuccess": "Pembayaran berhasil! Langganan Premium kamu akan aktif dalam beberapa saat.",
+    "planPaymentPending": "Pembayaran sedang diproses. Kami akan memperbarui status langganan secara otomatis.",
+    "planPaymentError": "Pembayaran gagal. Silakan coba lagi.",
+    "planPaymentCancelled": "Pembayaran dibatalkan.",
+    "planPaymentProcessing": "Menyiapkan pembayaran...",
+    "planPaymentSecure": "Pembayaran diproses oleh Midtrans. Data kartu aman terenkripsi."
   },
   "offline": {
     "eyebrow": "Mode offline",

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 import { AppShell } from "@/components/app-shell";
 import { updateLocalePreference, updateThemePreference, updateTimezonePreference, updateDefaultCurrency } from "@/app/actions/theme";
 import { disableAiChat } from "@/app/actions/ai-compliance";
@@ -14,9 +14,12 @@ import type { SettingsData } from "@/lib/data/types";
 import { getTranslator, type AppLocale } from "@/lib/i18n";
 import { cn, formatDateTime } from "@/lib/utils";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
+import { MidtransSnapPopup } from "@/components/features/settings/midtrans-snap-popup";
 
 export function SettingsPageContent({ settings, locale }: { settings: SettingsData; locale: AppLocale }) {
   const [newKeyResult, setNewKeyResult] = useState<string | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [upgradeMessage, setUpgradeMessage] = useState<string | null>(null);
   const prevCreateStatusRef = useRef<"idle" | "success" | "error">("idle");
   const t = getTranslator(locale);
   const themeOptions = [
@@ -380,12 +383,32 @@ export function SettingsPageContent({ settings, locale }: { settings: SettingsDa
               <p className="mt-3 text-xs text-muted-foreground">{t("settings.planTrialExpiredNote")}</p>
             ) : null}
             {settings.planType === "free" ? (
-              <p className="mt-3 text-xs text-muted-foreground">{t("settings.planUpgradeCta")}</p>
+              <div className="mt-4">
+                {upgradeMessage && (
+                  <p className="mb-3 text-xs text-success">{upgradeMessage}</p>
+                )}
+                <button
+                  onClick={() => setUpgradeOpen(true)}
+                  className="inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2.5 font-label text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 sm:w-auto"
+                >
+                  {t("settings.planUpgradeCta")}
+                </button>
+              </div>
             ) : null}
           </div>
         </section>
 
         <InstallPrompt />
+
+        <MidtransSnapPopup
+          open={upgradeOpen}
+          onOpenChange={setUpgradeOpen}
+          onComplete={({ success, message }) => {
+            if (success && message) {
+              setUpgradeMessage(message);
+            }
+          }}
+        />
 
         <section className="card">
           <h3 className="headline-sm">{t("settings.apiCreateTitle")}</h3>

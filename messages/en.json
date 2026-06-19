@@ -330,7 +330,19 @@
     "planBenefitReportHistoryPremium": "Reports: last 12 months",
     "planBenefitExportFree": "PDF export: unavailable",
     "planBenefitExportPremium": "PDF export: available",
-    "planUpgradeCta": "Want to upgrade to Premium? Contact the admin."
+    "planUpgradeCta": "Subscribe to Premium",
+    "planSelectPeriod": "Choose Premium Plan",
+    "planMonthlyLabel": "Premium Monthly",
+    "planMonthlyDesc": "Premium access for 30 days",
+    "planAnnualLabel": "Premium Annual",
+    "planAnnualDesc": "Only Rp 20,833/month",
+    "planAnnualDiscount": "Save 28%",
+    "planPaymentSuccess": "Payment successful! Your Premium subscription will be active shortly.",
+    "planPaymentPending": "Payment is being processed. We will update your subscription status automatically.",
+    "planPaymentError": "Payment failed. Please try again.",
+    "planPaymentCancelled": "Payment cancelled.",
+    "planPaymentProcessing": "Preparing payment...",
+    "planPaymentSecure": "Payments processed by Midtrans. Card data is securely encrypted."
   },
   "offline": {
     "eyebrow": "Offline mode",

@@ -2,7 +2,7 @@
 title: Balance — Database Schema & Data Flow
 version: 1.1.0
 last_updated: 2026-06-17
-migrations: 0001–0020
+migrations: 0001–0021
 ---
 
 # Balance — Database Schema & Data Flow
@@ -25,6 +25,8 @@ migrations: 0001–0020
 | `recurring_frequency` | `daily`, `weekly`, `monthly` |
 | `recurring_status` | `active`, `paused`, `ended` |
 | `saving_entry_type` | `deposit`, `withdraw` |
+| `subscription_status` | `pending`, `active`, `expired`, `cancelled` |
+| `subscription_period` | `monthly`, `annual` |
 
 ---
 
@@ -55,6 +57,7 @@ wallets ──── wallet_members ──── wallet_invitations
     ├─── transaction_templates
     ├─── recurring_transactions
     ├─── savings ─────── saving_entries
+    ├─── subscriptions
     │
 user_api_keys (terikat ke auth.users, bukan profiles)
 ```
@@ -76,6 +79,7 @@ user_api_keys (terikat ke auth.users, bukan profiles)
 | onboarding_completed_at | timestamptz? | |
 | theme_preference | text DEFAULT 'system' | 'light', 'dark', 'system' |
 | preferred_locale | text DEFAULT 'id' | 'id', 'en' |
+| subscription_expires_at | timestamptz? | Quick lookup kapan subscription premium berakhir |
 | created_at / updated_at | timestamptz | |
 
 **Trigger:** `on_auth_user_synced` — insert/update dari `auth.users` (termasuk fallback `full_name` dari `raw_user_meta_data->>'name'` untuk Google OAuth).
@@ -317,6 +321,41 @@ user_api_keys (terikat ke auth.users, bukan profiles)
 **Fungsi:** `private.lookup_api_key(hash)` — untuk verifikasi API gateway
 **RLS:** Setiap user hanya bisa lihat/edit/hapus key miliknya sendiri.
 
+### 3.14. subscriptions
+
+| Kolom | Tipe | Keterangan |
+|-------|------|-----------|
+| id | uuid PK | |
+| user_id | uuid FK → profiles | Pemilik langganan |
+| order_id | text UNIQUE | Order ID dari Midtrans (prefix `BAL-`) |
+| period | subscription_period | `monthly` / `annual` |
+| status | subscription_status | `pending`, `active`, `expired`, `cancelled` |
+| amount | numeric(14,2) | > 0 |
+| payment_channel | text? | Metode pembayaran (gopay, bank_transfer, dll) |
+| started_at | timestamptz? | Mulai langganan |
+| expires_at | timestamptz? | Akhir langganan |
+| created_at / updated_at | timestamptz | |
+
+**Index:** `(user_id)`, `(order_id)`, `(status, expires_at)` WHERE `status IN ('active', 'pending')`
+**RLS:** User hanya bisa SELECT milik sendiri; service_role bisa manage semua.
+**Trigger:** `trg_subscriptions_updated_at` — auto-update `updated_at`.
+
+### 3.15. payment_notifications
+
+| Kolom | Tipe | Keterangan |
+|-------|------|-----------|
+| id | uuid PK | |
+| order_id | text | Order ID dari Midtrans |
+| transaction_id | text? | Transaction ID dari Midtrans |
+| payment_status | text | Status dari Midtrans (settlement, pending, dll) |
+| raw_payload | jsonb | Raw webhook JSON dari Midtrans |
+| signature_verified | boolean DEFAULT false | Status verifikasi signature |
+| processed | boolean DEFAULT false | Status proses (cegah duplikat) |
+| created_at | timestamptz | |
+
+**Unique Index:** `(order_id, transaction_id, payment_status)` WHERE `processed = false` — cegah duplikasi notifikasi.
+**RLS:** Hanya service_role yang bisa akses.
+
 ---
 
 ## 4. RLS Strategy
@@ -433,3 +472,4 @@ SELECT public.accept_wallet_invitation_atomic(token, user_id)
 | 0018 | wallet_balance_rpc | RPC compute_wallet_available_balance |
 | 0019 | free_trial | Kolom trial_started_at, trial_ends_at, trial_consumed_at di profiles |
 | 0020 | profiles_ai_chat_compliance | Kolom ai_chat_consented_at di profiles |
+| 0021 | midtrans | Enum subscription_status/period, tabel subscriptions + payment_notifications, kolom subscription_expires_at di profiles, RPC process_expired_subscriptions |

@@ -13,6 +13,7 @@
 
 ### Added
 
+- **Integrasi Midtrans Payment Gateway** — Sekarang kamu bisa langsung berlangganan Premium dari halaman Pengaturan! Pilih paket Bulanan (Rp 29.000/bln) atau Tahunan (Rp 250.000/thn, hemat 28%) dan bayar via Midtrans Snap. Pembayaran diproses aman lewat GoPay, Bank Transfer, QRIS, dan metode lainnya. Verifikasi signature SHA512, webhook handler, dan scheduler otomatis untuk manajemen masa berlaku subscription.
 - **Halaman Refund Policy publik** — Balance sekarang punya halaman `Refund Policy` baru di `/[locale]/refund-policy` untuk kebutuhan compliance Midtrans. Footer landing juga sekarang menautkan `Privacy Policy`, `Terms of Service`, dan `Refund Policy`, sementara middleware mengizinkan route refund policy dibuka tanpa login.
 - **Compliance gate untuk AI Chat DeepSeek** — AI Chat sekarang memerlukan persetujuan eksplisit sebelum bisa dipakai. User mendapat disclosure yang jelas tentang pengiriman pertanyaan, konteks wallet relevan, dan riwayat chat ke DeepSeek, lalu bisa mematikan AI Chat kapan saja dari halaman Settings.
 - **Toggle light/dark di landing page** — Pengunjung landing sekarang bisa langsung mengganti tampilan terang atau gelap dari header tanpa masuk ke aplikasi. Toggle ini memakai mekanisme theme yang sama dengan Balance, jadi preferensinya tetap konsisten di halaman publik lain.
