@@ -21,6 +21,8 @@ ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 COPY package.json package-lock.json ./
 RUN npm ci && npm cache clean --force
 COPY . .
+# Cache-bust: force rebuild when NEXT_PUBLIC_* args change
+RUN echo "Building for site: $NEXT_PUBLIC_SITE_URL" && echo "$NEXT_PUBLIC_SITE_URL" > /tmp/build-env.txt
 RUN npm run build
 
 FROM node:22-alpine AS runner
