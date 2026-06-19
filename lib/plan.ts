@@ -1,7 +1,7 @@
 import { isSelfHosted } from "@/lib/features";
 import "server-only";
 
-import { getAiChatDailyLimitMax, getAiChatRateLimitMaxRequests } from "@/lib/env";
+import { getAiChatDailyLimitMax, getAiChatRateLimitMaxRequests, getVisionDailyLimitFree } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /** The tier a user is on. */
@@ -79,6 +79,8 @@ export type PlanPolicy = {
   aiChatDailyLimit: number | null;
   /** Per-minute rate-limit ceiling (all plans get at least the base). */
   aiChatRateLimitMaxRequests: number;
+  /** Daily OCR scan limit (free users get 3, premium 20, self-hosted null). */
+  ocrScanDailyLimit: number | null;
   /**
    * API key endpoints intentionally bypass plan limits —
    * API integration is always free.
@@ -95,6 +97,7 @@ const FREE_POLICY: Omit<PlanPolicy, "trialMeta"> = {
   planType: "free",
   aiChatDailyLimit: getAiChatDailyLimitMax(),
   aiChatRateLimitMaxRequests: getAiChatRateLimitMaxRequests(),
+  ocrScanDailyLimit: getVisionDailyLimitFree(),
   apiEndpointsBypassPlanLimits: true
 };
 
@@ -102,6 +105,7 @@ const PREMIUM_POLICY: Omit<PlanPolicy, "trialMeta"> = {
   planType: "premium",
   aiChatDailyLimit: null,
   aiChatRateLimitMaxRequests: getAiChatRateLimitMaxRequests() * 3,
+  ocrScanDailyLimit: 20,
   apiEndpointsBypassPlanLimits: true
 };
 

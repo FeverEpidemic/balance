@@ -10,7 +10,8 @@ import {
   getChatApiRateLimitWindowSeconds,
   getTransactionRateLimitEnabled,
   getTransactionRateLimitMaxRequests,
-  getTransactionRateLimitWindowSeconds
+  getTransactionRateLimitWindowSeconds,
+  getVisionDailyLimitFree,
 } from "@/lib/env";
 import { redisCache } from "@/lib/redis";
 
@@ -156,6 +157,32 @@ export async function consumeLoginRateLimit(ip: string, now?: number) {
     key: ip,
     limit,
     windowSeconds,
+    now
+  });
+}
+
+/** Per-user daily OCR scan limit. Keyed on namespace so it's independent of AI chat counters. */
+export async function consumeOcrDailyLimit(userId: string, limit: number, now?: number) {
+  if (limit === Infinity || limit <= 0) {
+    return buildAllowedFallback(Infinity, 86400, now);
+  }
+
+  return consumeRateLimit({
+    namespace: "rate-limit:ocr-daily",
+    key: userId,
+    limit,
+    windowSeconds: 86400,
+    now
+  });
+}
+
+/** Per-user per-minute OCR rate limit (1 scan per 10 seconds = 6 scans/minute). */
+export async function consumeOcrRateLimit(userId: string, now?: number) {
+  return consumeRateLimit({
+    namespace: "rate-limit:ocr",
+    key: userId,
+    limit: 1,
+    windowSeconds: 10,
     now
   });
 }
