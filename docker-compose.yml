@@ -10,7 +10,7 @@ services:
       - .env
     environment:
       NODE_ENV: production
-      SELF_HOSTED_MODE: true
+      SELF_HOSTED_MODE: ${SELF_HOSTED_MODE:-true}
       HOSTNAME: 0.0.0.0
       PORT: 3000
       NEXT_TELEMETRY_DISABLED: 1
