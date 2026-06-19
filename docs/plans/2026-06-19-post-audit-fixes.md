@@ -433,3 +433,32 @@ git push
 | `app/actions/auth.ts` (or similar) | **Modify** | 🟡 Wire up login rate limit |
 
 **Estimated effort:** ~3-4 hours of focused work.
+
+---
+
+### Fix 13 (Done): Remove NEXT_PUBLIC build args from Dockerfile
+
+**Objective:** Docker build should not require explicit build arguments — work out of the box with sensible defaults.
+
+**Already executed in commit `5f0e9f4`.**
+
+**What changed:**
+
+| Before | After |
+|--------|-------|
+| 5 `ARG` declarations for `NEXT_PUBLIC_*` at top of Dockerfile | Removed |
+| `ENV NEXT_PUBLIC_*=$NEXT_PUBLIC_*` (substituted from ARGs) | Direct `ENV` with default values |
+| `build.args` block in docker-compose.yml (both `app` and `scheduler`) | Removed |
+
+**Dockerfile now builds without any args:**
+```bash
+docker compose up --build -d    # Works with defaults
+```
+
+**Runtime override:** Values are still overridable via `env_file: .env` in docker-compose or by setting them in the container environment at runtime.
+
+**Self-hosted flow now:**
+1. `cp .env.example .env`
+2. Edit `.env` — set `SUPABASE_SECRET_KEY`, `DEEPSEEK_API_KEY`, etc.
+3. `docker compose up --build -d` ✅ — no build args needed
+
