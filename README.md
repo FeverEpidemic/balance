@@ -15,7 +15,7 @@
 
 # balance
 
-> **Self-hosted?** Jump to the [Docker setup](#run-locally).  
+> **Self-hosted?** Jump to the [Docker setup](#run-locally) or read the [Self-Hosted Guide](docs/SELFHOSTED_GUIDE.md).  
 > **Want the hosted version?** Go to [mybalance.my.id](https://mybalance.my.id) — no setup required.
 
 `balance` is a mobile-responsive Next.js MVP for household finance in Bahasa Indonesia. It follows the product scope in [docs/plans/PLAN.md](docs/plans/PLAN.md) and the visual direction in [DESIGN.md](DESIGN.md).
