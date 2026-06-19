@@ -1204,5 +1204,12 @@
     "roleLink": "Tautan undangan untuk role {role}",
     "copyButton": "Salin tautan",
     "shareButton": "Bagikan"
+  },
+  "notFound": {
+    "eyebrow": "404",
+    "title": "Halaman tidak ditemukan",
+    "description": "Halaman yang kamu cari tidak ada atau sudah dipindah.",
+    "goHome": "Ke Beranda",
+    "goLogin": "Masuk"
   }
 }
