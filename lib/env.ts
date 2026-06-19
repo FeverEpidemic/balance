@@ -191,3 +191,9 @@ export function getMidtransIsProduction() {
 export function getMidtransWebhookSecret() {
   return readEnv("MIDTRANS_WEBHOOK_SECRET");
 }
+
+// ── Support ────────────────────────────────────────────
+
+export function getSupportEmail(): string {
+  return process.env.SUPPORT_EMAIL?.trim() || "support@mybalance.my.id";
+}

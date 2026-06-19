@@ -51,6 +51,14 @@ export async function signup(formData: FormData) {
     String(formData.get("next") ?? `/wallets?message=${walletReadyMessage}`),
     `/wallets?message=${walletReadyMessage}`
   );
+
+  // Rate limit signup attempts per IP
+  const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const rateLimit = await consumeLoginRateLimit(ip);
+  if (!rateLimit.allowed) {
+    redirect(withAuthMessage("/register", "error", translate(locale, "actionErrors.loginRateLimited"), next, `/wallets?message=${walletReadyMessage}`, locale));
+  }
+
   const origin = getSiteUrl();
   const confirmUrl = new URL("/auth/confirm", origin);
   confirmUrl.searchParams.set("next", next);

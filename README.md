@@ -20,6 +20,31 @@
 
 `balance` is a mobile-responsive Next.js MVP for household finance in Bahasa Indonesia. It follows the product scope in [docs/plans/PLAN.md](docs/plans/PLAN.md) and the visual direction in [DESIGN.md](DESIGN.md).
 
+## 🏠 Self-Hosted Mode
+
+Balance auto-detects whether it's running as self-hosted or SaaS:
+
+1. **Explicit `SELF_HOSTED_MODE` env var** — set `SELF_HOSTED_MODE=true` or `false` to override.
+2. **Auto-detect fallback** — if `MIDTRANS_SERVER_KEY` is not configured (or is a placeholder), it forces self-hosted mode.
+
+| Mode | `SELF_HOSTED_MODE` | Result |
+|------|--------------------|--------|
+| Self-hosted | `true` (or auto-detected) | ✅ All features unlocked, no billing checks |
+| SaaS | `false` + Midtrans keys configured | 🔒 Free tier limited, Premium via subscription |
+
+To explicitly enable self-hosted:
+```env
+SELF_HOSTED_MODE=true
+```
+
+To run as SaaS (requires Midtrans):
+```env
+SELF_HOSTED_MODE=false
+MIDTRANS_SERVER_KEY=your_real_key
+```
+
+The Docker Compose default is `SELF_HOSTED_MODE=true` — override it via `.env` if needed.
+
 ## Included
 
 - Responsive App Router pages for login, register, invite, dashboard, wallets, transactions, budgets, reports, members, settlements, and templates

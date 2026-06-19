@@ -112,23 +112,3 @@ export function isFeatureAvailable(
 
   return getFreeFeatures()[feature];
 }
-
-// ── Helper: read boolean env var ──────────────────────────────────
-
-function readBooleanEnv(name: string, defaultValue: boolean): boolean {
-  const rawValue = process.env[name]?.trim().toLowerCase();
-
-  if (!rawValue) {
-    return defaultValue;
-  }
-
-  if (["1", "true", "on", "yes"].includes(rawValue)) {
-    return true;
-  }
-
-  if (["0", "false", "off", "no"].includes(rawValue)) {
-    return false;
-  }
-
-  return defaultValue;
-}
