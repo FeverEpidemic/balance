@@ -1,7 +1,16 @@
 {
   "name": "balance",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "license": "AGPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FeverEpidemic/balance.git"
+  },
+  "homepage": "https://mybalance.my.id",
+  "bugs": {
+    "url": "https://github.com/FeverEpidemic/balance/issues"
+  },
   "engines": {
     "node": ">=22.0.0"
   },
