@@ -484,7 +484,7 @@ npm run typecheck     # tsc --noEmit
 |-----------|--------|
 | **Server Actions (bukan API routes)** | Mutasi langsung dari form, bundled code di server, tidak perlu endpoint REST untuk CRUD |
 | **React.cache + Redis** | React cache untuk request-scoped caching, Redis untuk cache antar-request (best-effort) |
-| **RLS-based security** | Setiap query terjamin aman oleh database, server action tidak perlu manual check per row |
+| **RLS-based security** | Setiap query terjamin aman oleh database, server action tidak perlu manual check per row. ⚠️ Migration 0001 pake blanket GRANT — semua table harus ada RLS atau bocor |
 | **Supabase migrations** | Schema versioning, rollback support, dokumentasi otomatis |
 | **No ORM (raw Supabase JS)** | Supabase JS sudah mature, transparan, tidak perlu layer abstraksi tambahan |
 | **PostCSS (bukan Turbopack)** | kompatibilitas Tailwind 3 |

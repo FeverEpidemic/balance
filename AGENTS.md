@@ -78,6 +78,11 @@ Prefer `npm run typecheck` and `npm run test` before handing off code changes. F
 ## Data, Auth, and Cache Rules
 
 - Supabase RLS is part of the security model. Do not bypass it from user-facing code unless the change explicitly needs an admin/server key path.
+- **Blanket GRANT risk:** Migration 0001 applies `GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES ... TO authenticated`.
+  This means **any table without RLS enabled is publicly writable/readable by all authenticated users.**
+  When adding a new table: (1) always run `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;`,
+  (2) create at least one RLS policy before any data is inserted,
+  (3) verify with `SELECT relname FROM pg_class WHERE relrowsecurity = false;`.
 - Keep `SUPABASE_SECRET_KEY` and `SUPABASE_SERVICE_ROLE_KEY` server-only. Never expose secret keys through browser components, public env vars, logs, or rendered markup.
 - When adding or changing database tables, policies, RPCs, or triggers, add a new SQL migration in `supabase/migrations/`. Do not rewrite old migrations unless the user explicitly asks.
 - Wallet-scoped reads should validate membership before returning data.
