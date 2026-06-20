@@ -43,6 +43,8 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/scripts ./scripts
+# Copy node_modules so scheduler scripts (e.g. web-push) can resolve
+COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 3000
 
