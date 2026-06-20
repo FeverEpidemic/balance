@@ -248,10 +248,28 @@ export async function queryBudgets(walletIds: string[], month: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("budgets")
-    .select("id, wallet_id, category_id, month_start, amount")
+    .select("id, wallet_id, category_id, month_start, amount, carry_over_enabled")
     .in("wallet_id", walletIds)
     .gte("month_start", range.start)
     .lte("month_start", range.end);
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as BudgetRow[];
+}
+
+export async function queryAllBudgets(walletIds: string[]) {
+  if (walletIds.length === 0) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("budgets")
+    .select("id, wallet_id, category_id, month_start, amount, carry_over_enabled")
+    .in("wallet_id", walletIds);
 
   if (error) {
     throw error;

@@ -64,8 +64,8 @@ const categories: CategoryRow[] = [
 ];
 
 const budgets: BudgetRow[] = [
-  { id: "b1", wallet_id: "w1", category_id: "c1", month_start: "2026-05-01", amount: 500000 },
-  { id: "b2", wallet_id: "w1", category_id: "c3", month_start: "2026-05-01", amount: 1000000 }
+  { id: "b1", wallet_id: "w1", category_id: "c1", month_start: "2026-05-01", amount: 500000, carry_over_enabled: false },
+  { id: "b2", wallet_id: "w1", category_id: "c3", month_start: "2026-05-01", amount: 1000000, carry_over_enabled: false }
 ];
 
 const transactions: TransactionRow[] = [
@@ -716,6 +716,7 @@ describe("data mappers", () => {
       memberships,
       categories: categories.filter((category) => category.wallet_id === "w1"),
       budgets,
+      allBudgets: budgets,
       transactions,
       selectedMonth: "2026-05"
     });

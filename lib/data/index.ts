@@ -42,6 +42,7 @@ import {
   WALLET_OVERVIEW_CACHE_TTL_SECONDS
 } from "@/lib/data/cache";
 import {
+  queryAllBudgets,
   queryBudgets,
   queryCategories,
   queryCurrentUserWalletIds,
@@ -394,12 +395,13 @@ export const getBudgetsPageData = cache(async (userId: string, walletId: string,
       return null;
     }
 
-    const [shell, wallets, categories, budgets, transactions] = await Promise.all([
+    const [shell, wallets, categories, budgets, transactions, allBudgets] = await Promise.all([
       getShellData(userId),
       queryWallets([walletId]),
       queryCategories([walletId]),
       queryBudgets([walletId], selectedMonth),
-      queryTransactions([walletId])
+      queryTransactions([walletId]),
+      queryAllBudgets([walletId])
     ]);
 
     const wallet = wallets[0];
@@ -414,6 +416,7 @@ export const getBudgetsPageData = cache(async (userId: string, walletId: string,
       memberships,
       categories,
       budgets,
+      allBudgets,
       transactions,
       selectedMonth
     });

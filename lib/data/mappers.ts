@@ -57,6 +57,55 @@ function isSameMonth(dateValue: string, month: string) {
   return dateValue.slice(0, 7) === month;
 }
 
+function getPreviousMonth(month: string): string {
+  const [y, m] = month.split("-").map(Number);
+  const d = new Date(y, m - 2, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
+/**
+ * Menghitung carry-over amount untuk kategori budget tertentu.
+ * Rekursif & memoized: sisa budget bulan lalu di-chain ke bulan berikutnya.
+ */
+function calculateCarryOver(
+  categoryId: string,
+  month: string,
+  allBudgets: BudgetRow[],
+  transactions: TransactionRow[],
+  memo: Map<string, number>
+): number {
+  const key = `${categoryId}-${month}`;
+  if (memo.has(key)) return memo.get(key)!;
+
+  const prevMonthStr = getPreviousMonth(month);
+  const prevBudget = allBudgets.find(
+    (b) => b.category_id === categoryId && b.month_start === prevMonthStr
+  );
+
+  // Jika bulan lalu tidak ada budget atau carry-over tidak diaktifkan, sisa = 0
+  if (!prevBudget || !prevBudget.carry_over_enabled) {
+    memo.set(key, 0);
+    return 0;
+  }
+
+  // Hitung sisa budget bulan lalu (termasuk carry-over dari bulan sebelumnya)
+  const prevCarryOver = calculateCarryOver(categoryId, prevMonthStr, allBudgets, transactions, memo);
+  const prevTotalBudget = prevBudget.amount + prevCarryOver;
+
+  const prevSpent = transactions
+    .filter(
+      (t) =>
+        t.kind === "expense" &&
+        t.category_id === categoryId &&
+        t.happened_at.slice(0, 7) === prevMonthStr.slice(0, 7)
+    )
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const prevRemaining = Math.max(0, prevTotalBudget - prevSpent);
+  memo.set(key, prevRemaining);
+  return prevRemaining;
+}
+
 function formatRecurringFrequencyLabel(row: RecurringTransactionRow, locale: AppLocale = defaultLocale) {
   if (row.frequency === "daily") {
     return row.interval_count > 1
@@ -746,14 +795,16 @@ export function buildSavingListItems(args: {
 
 export function buildBudgetProgressItems(args: {
   budgets: BudgetRow[];
+  allBudgets: BudgetRow[];
   transactions: TransactionRow[];
   categories: CategoryRow[];
   month: string;
   locale?: AppLocale;
   currency?: string;
 }) {
-  const { budgets, transactions, categories, month, currency = "IDR" } = args;
+  const { budgets, allBudgets, transactions, categories, month, currency = "IDR" } = args;
   const categoryById = new Map(categories.map((category) => [category.id, category]));
+  const carryOverMemo = new Map<string, number>();
 
   return budgets
     .filter((budget) => isSameMonth(budget.month_start, month))
@@ -762,15 +813,21 @@ export function buildBudgetProgressItems(args: {
         .filter((transaction) => transaction.kind === "expense" && transaction.category_id === budget.category_id && isSameMonth(transaction.happened_at, month))
         .reduce((total, transaction) => total + transaction.amount, 0);
 
+      const carryOverAmount = calculateCarryOver(budget.category_id, month, allBudgets, transactions, carryOverMemo);
+      const totalBudget = budget.amount + carryOverAmount;
+
       return {
         id: budget.id,
         categoryId: budget.category_id,
         categoryName: categoryById.get(budget.category_id)?.name ?? translate(args.locale ?? defaultLocale, "common.noCategory"),
         monthStart: budget.month_start,
         amount: budget.amount,
+        carryOverEnabled: budget.carry_over_enabled,
+        carryOverAmount,
+        totalBudget,
         used,
-        ratio: budget.amount > 0 ? Math.min((used / budget.amount) * 100, 100) : 0,
-        usageLabel: describeBudgetUsage(used, budget.amount, currency)
+        ratio: totalBudget > 0 ? Math.min((used / totalBudget) * 100, 100) : 0,
+        usageLabel: describeBudgetUsage(used, totalBudget, currency)
       } satisfies BudgetProgressItem;
     });
 }
@@ -996,10 +1053,11 @@ export function createBudgetsPageData(args: {
   memberships: WalletMemberRow[];
   categories: CategoryRow[];
   budgets: BudgetRow[];
+  allBudgets: BudgetRow[];
   transactions: TransactionRow[];
   selectedMonth: string;
 }) {
-  const { shell, wallet, memberships, categories, budgets, transactions, selectedMonth } = args;
+  const { shell, wallet, memberships, categories, budgets, allBudgets, transactions, selectedMonth } = args;
   const expenseCategories = categories.filter((category) => category.kind === "expense" && !isBalanceAdjustmentCategory(category));
   const walletTransactions = transactions.filter((transaction) => transaction.wallet_id === wallet.id);
 
@@ -1012,6 +1070,7 @@ export function createBudgetsPageData(args: {
     categories: expenseCategories,
     budgets: buildBudgetProgressItems({
       budgets,
+      allBudgets,
       transactions: walletTransactions,
       categories: expenseCategories,
       month: selectedMonth,
