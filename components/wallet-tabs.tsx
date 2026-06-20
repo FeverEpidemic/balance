@@ -33,6 +33,7 @@ export function WalletTabs({ walletId, active }: { walletId: string; active: str
   ];
 
   const settingsTabs = [
+    { slug: "/debts", label: t("common.debts") },
     { slug: "/members", label: t("common.members") },
     { slug: "/settlements", label: t("common.settlements") },
     { slug: "/templates", label: t("common.templates") },

@@ -46,6 +46,8 @@ import {
   queryBudgets,
   queryCategories,
   queryCurrentUserWalletIds,
+  queryDebtPaymentsByWallet,
+  queryDebts,
   queryHasManualTransaction,
   queryInvitationTokens,
   queryInvitations,
@@ -69,7 +71,8 @@ import type {
   SettingsData,
   SortDirection,
   TransactionHistorySortField,
-  WalletBundle
+  WalletBundle,
+  DebtsPageData
 } from "@/lib/data/types";
 
 export * from "@/lib/data/mappers";
@@ -580,4 +583,32 @@ export const getSavingsPageData = cache(async (userId: string, walletId: string,
       locale
     });
   });
+});
+
+export const getDebtsPageData = cache(async (userId: string, walletId: string) => {
+  const { memberships, walletIds } = await getMembershipContext(userId);
+
+  if (!walletIds.includes(walletId)) {
+    return null;
+  }
+
+  const [shell, wallet, debts, payments] = await Promise.all([
+    getShellData(userId),
+    queryWallets([walletId]).then((w) => w[0]),
+    queryDebts(walletId),
+    queryDebtPaymentsByWallet(walletId)
+  ]);
+
+  if (!wallet) {
+    return null;
+  }
+
+  return {
+    shell,
+    walletId: wallet.id,
+    walletName: wallet.name,
+    currentUserRole: memberships.find((m) => m.wallet_id === walletId)?.role ?? "viewer",
+    debts,
+    payments
+  } satisfies DebtsPageData;
 });

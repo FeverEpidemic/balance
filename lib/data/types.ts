@@ -478,3 +478,44 @@ export type CategoriesPageData = {
   currentUserRole: WalletRole;
   categories: CategoryRow[];
 };
+
+export type DebtDirection = "borrowed" | "lent";
+export type DebtStatus = "unpaid" | "partially_paid" | "settled" | "cancelled";
+
+export type DebtRow = {
+  id: string;
+  wallet_id: string;
+  direction: DebtDirection;
+  person_name: string;
+  amount: number;
+  note: string | null;
+  due_date: string | null;
+  status: DebtStatus;
+  transaction_id: string | null;
+  created_by: string;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+  settled_at: string | null;
+};
+
+export type DebtPaymentRow = {
+  id: string;
+  debt_id: string;
+  wallet_id: string;
+  amount: number;
+  happened_at: string;
+  note: string | null;
+  transaction_id: string | null;
+  created_by: string;
+  created_at: string;
+};
+
+export type DebtsPageData = {
+  shell: ShellData;
+  walletId: string;
+  walletName: string;
+  currentUserRole: WalletRole;
+  debts: DebtRow[];
+  payments: DebtPaymentRow[];
+};

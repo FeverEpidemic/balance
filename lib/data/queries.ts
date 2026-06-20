@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import type {
   BudgetRow,
   CategoryRow,
+  DebtPaymentRow,
+  DebtRow,
   InvitationRow,
   InvitationRowSafe,
   ProfileRow,
@@ -212,6 +214,55 @@ export async function querySavingEntries(walletIds: string[]) {
   }
 
   return (data ?? []) as SavingEntryRow[];
+}
+
+export async function queryDebts(walletId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("debts")
+    .select("*")
+    .eq("wallet_id", walletId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as DebtRow[];
+}
+
+export async function queryDebtPayments(debtIds: string[]) {
+  if (debtIds.length === 0) {
+    return [];
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("debt_payments")
+    .select("*")
+    .in("debt_id", debtIds)
+    .order("happened_at", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as DebtPaymentRow[];
+}
+
+export async function queryDebtPaymentsByWallet(walletId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("debt_payments")
+    .select("*")
+    .eq("wallet_id", walletId)
+    .order("happened_at", { ascending: true });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as DebtPaymentRow[];
 }
 
 export async function queryCategories(walletIds: string[]) {
