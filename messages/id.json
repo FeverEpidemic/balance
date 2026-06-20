@@ -379,6 +379,7 @@
     "availableBalanceDetail": "Saldo semua wallet yang masih siap dipakai di luar tabungan.",
     "availableBudgetLabel": "Sisa Anggaran Bulan Ini",
     "availableBudgetDetail": "Total anggaran aktif bulan ini yang masih tersisa",
+    "budgetProgressLabel": "Terpakai dari total anggaran",
     "savingBalanceLabel": "Saldo tabungan",
     "savingBalanceDetail": "Akumulasi tabungan yang sudah dipisahkan dari seluruh wallet.",
     "totalBalanceLabel": "Total saldo",

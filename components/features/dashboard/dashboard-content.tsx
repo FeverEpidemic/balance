@@ -70,7 +70,7 @@ export function DashboardContent({
       <ToastFeedback error={feedback?.error} message={feedback?.message} />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <StatCard label={t("dashboard.availableBudgetLabel")} value={dashboard.totalAvailableBudget} detail={t("dashboard.availableBudgetDetail")} />
+        <StatCard label={t("dashboard.availableBudgetLabel")} value={dashboard.totalAvailableBudget} detail={t("dashboard.availableBudgetDetail")} progressValue={dashboard.totalExpenseThisMonth} progressMax={dashboard.totalAvailableBudget + dashboard.totalExpenseThisMonth} progressLabel={t("dashboard.budgetProgressLabel")} />
         <StatCard label={t("dashboard.savingBalanceLabel")} value={dashboard.totalSavingBalance} detail={t("dashboard.savingBalanceDetail")} />
         <StatCard label={t("dashboard.outstandingSplitLabel")} value={dashboard.outstandingSplit} detail={t("dashboard.outstandingSplitDetail")} />
         <StatCard label={t("dashboard.monthExpenseLabel")} value={dashboard.totalExpenseThisMonth} detail={t("dashboard.monthExpenseDetail")} />
