@@ -517,7 +517,9 @@ export const getSettingsData = cache(async (userId: string): Promise<SettingsDat
       aiChatConsentVersion: aiCompliance.aiChatConsentVersion,
       planType: effectivePlan,
       trialMeta,
-      aiChatDailyLimit: effectivePlan === "premium" ? null : getAiChatDailyLimitMax()
+      aiChatDailyLimit: effectivePlan === "premium" ? null : getAiChatDailyLimitMax(),
+      dailyReminderEnabled: profile?.daily_reminder_enabled ?? false,
+      dailyReminderTime: profile?.daily_reminder_time ? profile.daily_reminder_time.slice(0, 5) : "20:00"
     };
   });
 });

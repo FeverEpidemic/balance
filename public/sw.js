@@ -118,3 +118,53 @@ async function notifyClientsToSync() {
     client.postMessage({ type: "SYNC_TRIGGERED" });
   }
 }
+
+// ── Push Notifications: show daily reminder when triggered ──────────────────
+self.addEventListener("push", (event) => {
+  if (!event.data) return;
+  
+  let title = "Pengingat Catat Keuangan 📝";
+  let body = "Jangan lupa catat pengeluaran dan pemasukan Anda hari ini di Balance!";
+  let url = "/dashboard";
+
+  try {
+    const data = event.data.json();
+    if (data.title) title = data.title;
+    if (data.body) body = data.body;
+    if (data.url) url = data.url;
+  } catch (err) {
+    // If not JSON, use the raw text if available
+    const text = event.data.text();
+    if (text) body = text;
+  }
+
+  const options = {
+    body,
+    icon: "/icon-192.png",
+    badge: "/favicon-32x32.png",
+    data: { url }
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const urlToOpen = event.notification.data?.url || "/dashboard";
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+      // If a window is already open, focus it
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        if (client.url.includes(urlToOpen) && "focus" in client) {
+          return client.focus();
+        }
+      }
+      // Otherwise open a new window
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});

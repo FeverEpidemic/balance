@@ -343,7 +343,15 @@
     "planPaymentError": "Pembayaran gagal. Silakan coba lagi.",
     "planPaymentCancelled": "Pembayaran dibatalkan.",
     "planPaymentProcessing": "Menyiapkan pembayaran...",
-    "planPaymentSecure": "Pembayaran diproses oleh Midtrans. Data kartu aman terenkripsi."
+    "planPaymentSecure": "Pembayaran diproses oleh Midtrans. Data kartu aman terenkripsi.",
+    "reminderTitle": "Pengingat Harian",
+    "reminderDescription": "Ingatkan saya untuk mencatat pemasukan dan pengeluaran harian melalui notifikasi push.",
+    "reminderEnabledLabel": "Aktifkan Pengingat",
+    "reminderTimeLabel": "Waktu Pengingat",
+    "reminderPermissionDenied": "Izin notifikasi ditolak. Aktifkan izin notifikasi di pengaturan browser Anda untuk menggunakan fitur ini.",
+    "reminderUnsupported": "Browser Anda tidak mendukung push notification.",
+    "reminderSuccessEnabled": "Pengingat harian berhasil diaktifkan.",
+    "reminderSuccessDisabled": "Pengingat harian berhasil dinonaktifkan."
   },
   "offline": {
     "eyebrow": "Mode offline",

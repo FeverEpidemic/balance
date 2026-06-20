@@ -30,6 +30,8 @@ export type ProfileRow = {
   trial_started_at: string | null;
   trial_ends_at: string | null;
   trial_consumed_at: string | null;
+  daily_reminder_enabled: boolean;
+  daily_reminder_time: string;
 };
 
 export type WalletRow = {
@@ -191,6 +193,8 @@ export type SettingsData = {
     trialDaysRemaining: number | null;
   };
   aiChatDailyLimit: number | null;
+  dailyReminderEnabled: boolean;
+  dailyReminderTime: string;
 };
 
 export type ShellData = {

@@ -15,6 +15,9 @@ import { getTranslator, type AppLocale } from "@/lib/i18n";
 import { cn, formatDateTime } from "@/lib/utils";
 import { InstallPrompt } from "@/components/pwa/install-prompt";
 import { MidtransSnapPopup } from "@/components/features/settings/midtrans-snap-popup";
+import { savePushSubscriptionAction, deletePushSubscriptionAction, updateReminderPreferencesAction } from "@/app/actions/reminders";
+import { registerPushSubscription, unsubscribePushNotification } from "@/lib/push-helper";
+import { toast } from "sonner";
 
 export function SettingsPageContent({ settings, locale }: { settings: SettingsData; locale: AppLocale }) {
   const [newKeyResult, setNewKeyResult] = useState<string | null>(null);
@@ -22,6 +25,85 @@ export function SettingsPageContent({ settings, locale }: { settings: SettingsDa
   const [upgradeMessage, setUpgradeMessage] = useState<string | null>(null);
   const prevCreateStatusRef = useRef<"idle" | "success" | "error">("idle");
   const t = getTranslator(locale);
+  const [isReminderEnabled, setIsReminderEnabled] = useState(settings.dailyReminderEnabled);
+  const [reminderTime, setReminderTime] = useState(settings.dailyReminderTime);
+  const [isReminderSubmitting, setIsReminderSubmitting] = useState(false);
+
+  const handleReminderToggle = async (checked: boolean) => {
+    setIsReminderSubmitting(true);
+    try {
+      if (checked) {
+        const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        if (!vapidKey) {
+          toast.error(t("settings.reminderUnsupported"));
+          setIsReminderSubmitting(false);
+          return;
+        }
+
+        const subscription = await registerPushSubscription(vapidKey);
+        
+        const saveResult = await savePushSubscriptionAction(
+          subscription.endpoint,
+          subscription.p256dh,
+          subscription.auth
+        );
+
+        if (saveResult.status === "error") {
+          throw new Error(saveResult.message || "Failed to save subscription");
+        }
+
+        const updateResult = await updateReminderPreferencesAction(true, reminderTime);
+        if (updateResult.status === "error") {
+          throw new Error(updateResult.message || "Failed to update reminder preferences");
+        }
+
+        setIsReminderEnabled(true);
+        toast.success(t("settings.reminderSuccessEnabled"));
+      } else {
+        const endpoint = await unsubscribePushNotification();
+        if (endpoint) {
+          await deletePushSubscriptionAction(endpoint);
+        }
+
+        const updateResult = await updateReminderPreferencesAction(false, reminderTime);
+        if (updateResult.status === "error") {
+          throw new Error(updateResult.message || "Failed to disable reminder preferences");
+        }
+
+        setIsReminderEnabled(false);
+        toast.success(t("settings.reminderSuccessDisabled"));
+      }
+    } catch (error: any) {
+      console.error("[reminders-ui] Error toggling reminder:", error);
+      const message = error.message || t("actionErrors.unexpectedError");
+      if (message.includes("permission denied") || message.includes("Denied")) {
+        toast.error(t("settings.reminderPermissionDenied"));
+      } else {
+        toast.error(message);
+      }
+    } finally {
+      setIsReminderSubmitting(false);
+    }
+  };
+
+  const handleReminderTimeChange = async (newTime: string) => {
+    setReminderTime(newTime);
+    if (!isReminderEnabled) return;
+
+    setIsReminderSubmitting(true);
+    try {
+      const updateResult = await updateReminderPreferencesAction(true, newTime);
+      if (updateResult.status === "error") {
+        throw new Error(updateResult.message || "Failed to update reminder preferences");
+      }
+      toast.success(t("settings.reminderSuccessEnabled") + ` (${newTime})`);
+    } catch (error: any) {
+      console.error("[reminders-ui] Error changing reminder time:", error);
+      toast.error(error.message || t("actionErrors.unexpectedError"));
+    } finally {
+      setIsReminderSubmitting(false);
+    }
+  };
   const themeOptions = [
     {
       value: "system",
@@ -246,6 +328,54 @@ export function SettingsPageContent({ settings, locale }: { settings: SettingsDa
               </>
             )}
           </ActionForm>
+        </section>
+
+        <section className="card">
+          <h3 className="headline-sm">{t("settings.reminderTitle")}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">{t("settings.reminderDescription")}</p>
+
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center justify-between rounded-xl border border-border bg-overlay p-4">
+              <div className="space-y-0.5">
+                <label htmlFor="reminder-toggle" className="text-sm font-medium text-foreground">
+                  {t("settings.reminderEnabledLabel")}
+                </label>
+              </div>
+              <button
+                type="button"
+                id="reminder-toggle"
+                disabled={isReminderSubmitting}
+                onClick={() => handleReminderToggle(!isReminderEnabled)}
+                className={cn(
+                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50",
+                  isReminderEnabled ? "bg-primary" : "bg-muted"
+                )}
+              >
+                <span
+                  className={cn(
+                    "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow-sm ring-0 transition duration-200 ease-in-out",
+                    isReminderEnabled ? "translate-x-5" : "translate-x-0"
+                  )}
+                />
+              </button>
+            </div>
+
+            {isReminderEnabled && (
+              <div className="flex flex-col gap-2 rounded-xl border border-border bg-overlay p-4 transition-all duration-200">
+                <label htmlFor="reminder-time" className="text-sm font-medium text-foreground">
+                  {t("settings.reminderTimeLabel")}
+                </label>
+                <input
+                  type="time"
+                  id="reminder-time"
+                  value={reminderTime}
+                  disabled={isReminderSubmitting}
+                  onChange={(e) => handleReminderTimeChange(e.target.value)}
+                  className="w-full rounded-xl border border-border bg-surface px-4 py-2.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+            )}
+          </div>
         </section>
 
         <section className="card">

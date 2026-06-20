@@ -343,7 +343,15 @@
     "planPaymentError": "Payment failed. Please try again.",
     "planPaymentCancelled": "Payment cancelled.",
     "planPaymentProcessing": "Preparing payment...",
-    "planPaymentSecure": "Payments processed by Midtrans. Card data is securely encrypted."
+    "planPaymentSecure": "Payments processed by Midtrans. Card data is securely encrypted.",
+    "reminderTitle": "Daily Reminder",
+    "reminderDescription": "Remind me to log daily income and expenses via push notifications.",
+    "reminderEnabledLabel": "Enable Reminder",
+    "reminderTimeLabel": "Reminder Time",
+    "reminderPermissionDenied": "Notification permission denied. Enable notification permission in your browser settings to use this feature.",
+    "reminderUnsupported": "Your browser does not support push notifications.",
+    "reminderSuccessEnabled": "Daily reminder enabled successfully.",
+    "reminderSuccessDisabled": "Daily reminder disabled successfully."
   },
   "offline": {
     "eyebrow": "Offline mode",

@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-06-20
+
+### Added
+- **Sistem Pengingat Harian (Daily Reminder)** — Sistem pengingat harian berbasis Web Push Notification (PWA). Sekarang pengguna dapat mengaktifkan reminder dan mengatur jam pengingat harian (misal: setiap jam 8 malam / 20:00) yang menyesuaikan dengan zona waktu lokal user secara dinamis.
+- **Skrip Pembangkit Kunci VAPID** — Menambahkan skrip utilitas `scripts/generate-vapid-keys.mjs` yang otomatis men-generate pasangan kunci VAPID dan menulisnya ke file `.env` jika belum terkonfigurasi.
+- **Pengiriman Notifikasi via Scheduler** — Mengintegrasikan library `web-push` ke background scheduler `run-recurring-scheduler.mjs` untuk memicu notifikasi push secara berkala ke browser, serta otomatis mendeteksi dan menghapus endpoint subscription yang kedaluwarsa (404/410) demi menjaga kebersihan database.
+
 ## [1.16.1] - 2026-06-20
 
 ### Changed

@@ -13,6 +13,18 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.17.0",
+    date: "2026-06-20",
+    title: "Sistem Pengingat Harian — Daily Reminder via Web Push",
+    description: "Kini Anda tidak akan melewatkan pencatatan transaksi keuangan lagi! Kami merilis sistem pengingat harian berbasis Web Push Notification (PWA) yang dapat Anda aktifkan dan jadwalkan langsung dari halaman Pengaturan.",
+    features: [
+      { icon: "📝", text: "Aktifkan pengingat harian (daily reminder) langsung dari halaman Settings." },
+      { icon: "⏰", text: "Kustomisasi waktu pengingat sesuka Anda (misalnya setiap jam 8 malam / 20:00) yang disesuaikan dengan zona waktu lokal Anda." },
+      { icon: "🔔", text: "Notifikasi sistem real-time terintegrasi langsung di HP atau komputer Anda menggunakan Web Push API (PWA)." },
+      { icon: "⚙️", text: "Sistem secara otomatis menghapus langganan notifikasi yang tidak valid jika browser memblokirnya." }
+    ]
+  },
+  {
     version: "1.16.1",
     date: "2026-06-20",
     title: "Visual Upgrade — Desain Logo Premium & Tagline Dinamis",

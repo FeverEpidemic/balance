@@ -137,7 +137,7 @@ function IconLogo() {
 function WordmarkLogo({ tagline }: { tagline: string }) {
   return (
     <svg
-      viewBox="0 0 800 200"
+      viewBox="0 0 640 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className="h-full w-auto"
@@ -160,62 +160,62 @@ function WordmarkLogo({ tagline }: { tagline: string }) {
       </defs>
 
       {/* Mini icon */}
-      <g transform="translate(0,20) scale(1.6875)">
+      <g>
         <rect
-          x="16"
-          y="16"
-          width="64"
-          height="64"
-          rx="16"
+          x="6"
+          y="6"
+          width="108"
+          height="108"
+          rx="24"
           fill="var(--surface, #fbf9f3)"
           stroke="var(--outline-variant, #e4e2dc)"
-          strokeWidth="0.8"
+          strokeWidth="1.2"
         />
 
         {/* Left figure head & body */}
-        <circle cx="40" cy="34" r="5" fill="url(#leftFigGradMini)" />
+        <circle cx="46.5" cy="36.5" r="8.5" fill="url(#leftFigGradMini)" />
         <path
-          d="M48,41.6 C43.2,35.2 32.5,38 32.5,46 C32.5,55 40.5,63 48,68.5Z"
+          d="M60,49.2 C51.9,38.4 33.84,43.1 33.84,56.6 C33.84,71.8 47.3,85.3 60,94.6Z"
           fill="url(#leftFigGradMini)"
         />
 
         {/* Right figure head & body */}
-        <circle cx="56" cy="34" r="5" fill="url(#rightFigGradMini)" />
+        <circle cx="73.5" cy="36.5" r="8.5" fill="url(#rightFigGradMini)" />
         <path
-          d="M48,41.6 C52.8,35.2 63.5,38 63.5,46 C63.5,55 55.5,63 48,68.5Z"
+          d="M60,49.2 C68.1,38.4 86.16,43.1 86.16,56.6 C86.16,71.8 72.7,85.3 60,94.6Z"
           fill="url(#rightFigGradMini)"
         />
 
         {/* Wallet */}
         <rect
-          x="41"
-          y="46.5"
-          width="14"
-          height="10"
-          rx="2.5"
+          x="48"
+          y="57.5"
+          width="24"
+          height="17"
+          rx="4"
           fill="url(#walletGradMini)"
           stroke="#ffffff"
-          strokeWidth="0.8"
+          strokeWidth="1.2"
         />
         <rect
-          x="47.2"
-          y="48.8"
-          width="7.8"
-          height="5.4"
-          rx="1.5"
+          x="58.6"
+          y="61.3"
+          width="13"
+          height="9"
+          rx="2"
           fill="url(#walletGradMini)"
           stroke="#ffffff"
-          strokeWidth="0.8"
+          strokeWidth="1.2"
         />
-        <circle cx="52.2" cy="51.5" r="0.7" fill="#ffffff" />
+        <circle cx="67" cy="65.8" r="1.2" fill="#ffffff" />
       </g>
 
       {/* Text */}
       <text
-        x="130"
-        y="68"
+        x="136"
+        y="64"
         fontFamily="'Hanken Grotesk', system-ui, sans-serif"
-        fontSize="48"
+        fontSize="54"
         fontWeight="600"
         letterSpacing="-0.03em"
         fill="var(--foreground, #1b1c18)"
@@ -223,12 +223,12 @@ function WordmarkLogo({ tagline }: { tagline: string }) {
         Balance
       </text>
       <text
-        x="130"
-        y="100"
+        x="136"
+        y="96"
         fontFamily="'Geist', monospace"
-        fontSize="11"
+        fontSize="15"
         fontWeight="600"
-        letterSpacing="0.14em"
+        letterSpacing="0.12em"
         fill="var(--muted-foreground, #77786d)"
         style={{ textTransform: "uppercase" }}
       >

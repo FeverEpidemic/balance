@@ -84,7 +84,9 @@ describe("getSettingsData", () => {
         plan_type: "free" as const,
         trial_started_at: null,
         trial_ends_at: null,
-        trial_consumed_at: null
+        trial_consumed_at: null,
+        daily_reminder_enabled: false,
+        daily_reminder_time: "20:00:00"
       }
     ]);
     getOrSetMock.mockImplementation(async (key: string, _ttl: number, loader: () => Promise<unknown>) => {
