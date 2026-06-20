@@ -1,4 +1,4 @@
-# OCR Receipt Scanner — Implementation Plan
+# OCR Receipt Scanner — Implementation Plan (v2)
 
 > **For Hermes:** Use `subagent-driven-development` skill to implement this plan task-by-task with two-stage review.
 
@@ -24,6 +24,158 @@ The existing AI chat already does text-based transaction extraction (via tool ca
 
 ---
 
+## Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| Separate vision client from chat | Chat uses DeepSeek; OCR uses Gemini. Different models, base URLs, keys. No coupling. |
+| Direct API call (not server action) | Server actions don't support multipart/form-data natively in Next.js 15. Route handler handles uploads properly. |
+| Return JSON, not SSE | Single request-response. Simpler, no streaming overhead. |
+| Auto-fill existing form | Reuses all existing validation, error handling, and UX. No duplicate form logic. |
+| `capture="environment"` | Opens rear camera on mobile by default — user is scanning physical receipt. |
+| Two buttons: camera + gallery | Camera for live photo, gallery for existing screenshots. More flexible UX. |
+| No separate OCR page | Keeps feature where users already create transactions — low friction, discoverable. |
+| Compress before upload | Resize large camera photos client-side to reduce bandwidth + API costs. |
+| Zero-persist images | Image data processed in-memory only, never written to disk or DB. Cleared after response. |
+| No image in logs | console.error only logs error message, never image/payload. |
+
+---
+
+## 🎯 Free vs Premium Tiering
+
+| Plan | Daily OCR scan limit | Reason |
+|------|---------------------|--------|
+| **Free** | **3 scans/day** | Let them try the feature (conversion hook) |
+| **Premium** | **20 scans/day** | Covers 99.9% real usage — gap 7× from free feels worth upgrading |
+| **Self-hosted** | **Unlimited** (null) | Always unlocked |
+
+**Implementation:** Extend `PlanPolicy` with `ocrScanDailyLimit: number | null`. Reuse `consumeAiChatDailyLimit` pattern in `lib/rate-limit.ts` — add `consumeOcrDailyLimit(userId)` with its own Redis key prefix so counters don't overlap.
+
+Free users who hit the limit see: *"Kamu sudah mencapai batas scan hari ini. Upgrade ke Premium untuk scan unlimited."* with a link to the pricing page.
+
+**Per-minute rate limit (abuse prevention):** Reuse existing `consumeAiChatRateLimit` pattern. Add `consumeOcrRateLimit(userId)` — 1 scan per 10 seconds max for all plans. Protects API budget from accidental spam / rapid retries. Returns 429 with retry-after header.
+
+---
+
+## 🔐 Privacy & Data Retention
+
+**Core principle: zero-persist.** Images are never written to disk, database, or any persistent storage.
+
+| Stage | What happens | Data stored? |
+|-------|-------------|--------------|
+| User snaps receipt | File stays on device | ❌ |
+| Upload to API | base64 in request body (in-memory) | ❌ cleared after request |
+| Server processing | Buffer.from(arrayBuffer) — in-memory | ❌ GC'd after response |
+| Sent to Gemini Vision | data URL via OpenAI SDK | ❌ standard API, no logging |
+| Response to client | JSON only (amount, category, etc.) | ✅ only structured data |
+| User confirms | Transaction saved to Supabase | ✅ transaction record |
+
+**Logging policy:** `console.error("[ocr-scan] Error:", message)` — logs ONLY the error message string, never the image payload or base64 data. No `console.log(imageBase64)` anywhere.
+
+**Scan success monitoring:** Log `[ocr-scan] status=<success|failed|limit_hit> user=<id> duration=<ms>` on each scan. This enables tracking:
+- Success rate over time
+- Average response time (Gemini latency)
+- Daily limit hit frequency per free user (signal for conversion friction)
+
+---
+
+## 🗂️ Category Matching: Fuzzy Fallback
+
+Problem: Gemini might return different text than what's in the user's category list (e.g., `"Belanja"` vs `"Belanja Harian"`, `"Makan"` vs `"Makanan"`).
+
+**Solution:** Use case-insensitive prefix matching and a small synonym map:
+
+```typescript
+const CATEGORY_SYNONYMS: Record<string, string[]> = {
+  "Makanan": ["makan", "makanan", "resto", "restoran", "warung", "makan siang", "dinner", "lunch"],
+  "Belanja Harian": ["belanja", "belanja harian", "minimarket", "supermarket", "indomaret", "alfamart", "alfamidi", "sembako"],
+  "Kopi & Nongkrong": ["kopi", "kafe", "cafe", "nongkrong", "coffee", "boba"],
+  // ... etc for all categories
+};
+```
+
+Match logic:
+1. Try exact match (case-insensitive) → use it
+2. Try synonym map → use mapped category
+3. Try prefix match (e.g., "Belanja" → "Belanja Harian") → use closest
+4. Fallback: `"Lainnya"` → user picks manually
+
+---
+
+## 📸 Image Format Handling
+
+**Problem:** iPhone captures in HEIC (`.heic`), which Gemini Vision may not handle well.
+
+**Solution:** Client-side preprocessing before upload:
+- Accept `image/*` (covers HEIC, JPEG, PNG, WebP)
+- Use `canvas` to resize + convert to JPEG:
+  - Max dimension: 1920px (reduces bandwidth + API cost)
+  - Output format: JPEG (most compatible)
+  - Quality: 0.8 (good enough for OCR, much smaller)
+- This also reduces payload size → faster uploads + cheaper API calls
+
+```typescript
+async function compressImage(file: File): Promise<Blob> {
+  const img = await createImageBitmap(file);
+  const canvas = document.createElement("canvas");
+  const maxDim = 1920;
+  // ... resize logic ...
+  canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+  return new Promise(resolve => canvas.toBlob(b => resolve(b!), "image/jpeg", 0.8));
+}
+```
+
+---
+
+## ⏱️ Timeout & Retry UX
+
+Vision API calls can take 2-10 seconds depending on network and image size.
+
+| State | UI | Behaviour |
+|-------|-----|-----------|
+| **Idle** | Button "📷 Pindai Struk" | Tappable |
+| **Processing** | Button → spinner "Memproses..." | Disabled, shows estimated time |
+| **Success** | Confirmation card appears | Preview amount + kategori, "Pakai" or "✕" |
+| **Error (API)** | Toast error | "Gagal memindai, coba lagi" + retry button |
+| **Error (network)** | Toast error | "Koneksi terputus, periksa internet" + retry |
+| **Timeout (15s)** | Toast error | "Terlalu lama, foto mungkin kurang jelas" + retry |
+| **Daily limit hit** | Toast + upsell | "Batas scan hari ini tercapai. Upgrade Premium" |
+
+**Retry:** Button stays functional after error — user can tap again without page reload.
+
+**Client-side timeout:** `AbortController` with 20s timeout on the fetch call.
+
+---
+
+## 💰 Biaya API Estimate
+
+Gemini 3.1 Flash Lite via Sumopod: ~$0.04/1M input tokens.
+
+Per scan:
+- Image tokens: ~258 tokens (1920px JPEG, auto-detail)
+- Output tokens: ~100 tokens (JSON response)
+- Cost per scan: **~$0.00001** (~Rp150 per 1000 scans)
+
+**At free tier (3 scans/day × 30 days):** ~$0.0009/user/month — negligible.
+**At 100 free users:** ~$0.09/month — essentially free.
+**Buffer:** Set `VISION_DAILY_BUDGET_CENTS` if needed (optional).
+
+---
+
+## 🧪 Testing: Struk Indonesia
+
+Must test with real Indonesian receipt formats:
+
+- [ ] Indomaret / Alfamart struk belanja
+- [ ] QRIS payment confirmation (GoPay, OVO, ShopeePay, DANA)
+- [ ] Mobile BCA / Mandiri / BRI transfer receipt
+- [ ] Email notification (Shopee, Tokopedia, Gojek)
+- [ ] GoFood / GrabFood order receipt
+- [ ] Bensin SPBU receipt
+- [ ] Air/Listrik PDAM/PLN payment confirmation
+
+---
+
 ## Task Breakdown
 
 ### Task 1: Add Vision API env vars to `lib/env.ts`
@@ -33,615 +185,160 @@ The existing AI chat already does text-based transaction extraction (via tool ca
 **Files:**
 - Modify: `lib/env.ts`
 
-**Step 1: Add new env getter functions**
-
-Add these functions near the existing `getDeepseekBaseUrl` / `getAiChatModel` block (~line 138):
-
+**What to add:**
 ```typescript
 export function getVisionModel(): string {
   return process.env.VISION_MODEL?.trim() || "gemini/gemini-3.1-flash-lite";
 }
-
 export function getVisionBaseUrl(): string {
   return process.env.VISION_BASE_URL?.trim() || "https://ai.sumopod.com/v1";
 }
-
 export function getVisionApiKey(): string | null {
   return process.env.VISION_API_KEY?.trim() || null;
 }
-
 export function getVisionEnabled(): boolean {
   const flag = process.env.VISION_ENABLED?.trim().toLowerCase();
   if (flag === "false" || flag === "0") return false;
   if (flag === "true" || flag === "1") return true;
-  // Default: true if API key is set
   return Boolean(getVisionApiKey());
 }
 ```
 
-**Step 2: Run typecheck**
+---
 
-```bash
-npm run typecheck
+### Task 2: Add OCR daily limit to plan policy + rate limiter
+
+**Objective:** Free users get 3 OCR scans/day; premium/self-hosted get unlimited.
+
+**Files:**
+- Modify: `lib/plan.ts` — add `ocrScanDailyLimit: number | null` to `PlanPolicy`
+- Modify: `lib/rate-limit.ts` — add `consumeOcrDailyLimit(userId)` (mirror `consumeAiChatDailyLimit`)
+
+**PlanPolicy changes:**
+```typescript
+export type PlanPolicy = {
+  planType: PlanType;
+  trialMeta: TrialMeta;
+  aiChatDailyLimit: number | null;
+  aiChatRateLimitMaxRequests: number;
+  ocrScanDailyLimit: number | null;   // NEW: null = unlimited (premium/self-hosted)
+  apiEndpointsBypassPlanLimits: true;
+};
+
+const FREE_POLICY = {
+  planType: "free",
+  aiChatDailyLimit: getAiChatDailyLimitMax(),
+  aiChatRateLimitMaxRequests: getAiChatRateLimitMaxRequests(),
+  ocrScanDailyLimit: 3,               // NEW: free = 3 scans/day
+  apiEndpointsBypassPlanLimits: true
+};
+
+const PREMIUM_POLICY = {
+  planType: "premium",
+  aiChatDailyLimit: null,
+  aiChatRateLimitMaxRequests: getAiChatRateLimitMaxRequests() * 3,
+  ocrScanDailyLimit: 20,              // Premium = 20 scans/day (covers 99.9% usage)
+  apiEndpointsBypassPlanLimits: true
+};
 ```
 
-Expected: PASS (no errors introduced)
-
-**Step 3: Commit**
-
-```bash
-git add lib/env.ts
-git commit -m "feat: add vision AI environment variable getters"
+**Rate limiter (in `lib/rate-limit.ts`):**
+```typescript
+const OCR_DAILY_KEY_PREFIX = "ocr:daily";
+export async function consumeOcrDailyLimit(userId: string, now?: number) {
+  // Same logic as consumeAiChatDailyLimit but with OCR_DAILY_KEY_PREFIX
+}
 ```
+
+**Env var:** Optional `VISION_DAILY_LIMIT_FREE` (default 3).
 
 ---
 
-### Task 2: Create Vision AI client (`lib/ai/vision-client.ts`)
+### Task 3: Create Vision AI client (`lib/ai/vision-client.ts`)
 
 **Objective:** Create a dedicated OpenAI client for vision API calls — completely separate from the chat AI client.
 
 **Files:**
 - Create: `lib/ai/vision-client.ts`
 
-**Step 1: Write the client**
-
-```typescript
-import "server-only";
-import OpenAI from "openai";
-import { getVisionEnabled, getVisionApiKey, getVisionBaseUrl, getVisionModel } from "@/lib/env";
-
-let cachedVisionClient: OpenAI | null | undefined;
-
-export function getVisionClient(): OpenAI | null {
-  if (!getVisionEnabled()) return null;
-  const apiKey = getVisionApiKey();
-  if (!apiKey) return null;
-
-  if (cachedVisionClient !== undefined) return cachedVisionClient;
-
-  cachedVisionClient = new OpenAI({
-    apiKey,
-    baseURL: getVisionBaseUrl(),
-  });
-
-  return cachedVisionClient;
-}
-
-export function isVisionAvailable(): boolean {
-  return Boolean(getVisionClient());
-}
-
-export function getVisionModelName(): string {
-  return getVisionModel();
-}
-```
-
-**Step 2: Run typecheck**
-
-```bash
-npm run typecheck
-```
-
-Expected: PASS
-
-**Step 3: Commit**
-
-```bash
-git add lib/ai/vision-client.ts
-git commit -m "feat: add vision AI client for OCR receipt scanning"
-```
+(Dedicated client to avoid any env var collision with DeepSeek chat.)
 
 ---
 
-### Task 3: Create OCR prompt and parser (`lib/ai/ocr-prompt.ts`)
+### Task 4: Create OCR prompt and parser (`lib/ai/ocr-prompt.ts`)
 
 **Objective:** Build the system prompt for the vision LLM and a parser that converts the LLM's response into structured transaction fields.
 
 **Files:**
 - Create: `lib/ai/ocr-prompt.ts`
 
-**Step 1: Write the prompt and parser**
-
-```typescript
-import "server-only";
-
-export const OCR_SYSTEM_PROMPT = `Anda adalah OCR scanner untuk struk/pemberitahuan transaksi Indonesia.
-
-Tugas Anda: Ekstrak informasi transaksi dari gambar yang diberikan.
-
-Aturan:
-1. Jumlah (amount) HARUS dalam angka saja, tanpa "Rp", tanpa "IDR", tanpa titik/koma pemisah ribuan. Contoh: "Rp 38.200" → 38200.
-2. Kategori (category) HARUS salah satu dari daftar ini:
-   - Makanan (makan di resto/warung)
-   - Belanja Harian (minimarket, alfamidi, indomaret, supermarket)
-   - Kopi & Nongkrong (kafe, kopi)
-   - Transportasi / Bensin (bensin, tol, parkir, transport)
-   - Tagihan & Langganan (listrik, air, internet, pulsa)
-   - Hiburan (bioskop, game, liburan)
-   - Kesehatan (obat, dokter)
-   - Transfer / Top Up (kirim uang, top up e-wallet)
-   - Lainnya (tidak ada yang cocok)
-3. Tanggal (date) HARUS format YYYY-MM-DD.
-4. Jenis transaksi (kind): "expense" untuk pengeluaran, "income" untuk pemasukan.
-5. Catatan (note): deskripsi singkat transaksi.
-
-Response HARUS berupa JSON saja, tidak ada teks lain:
-{
-  "amount": 38200,
-  "category": "Belanja Harian",
-  "date": "2026-06-18",
-  "note": "MIDI REGULER D - rokok & air mineral",
-  "kind": "expense",
-  "merchant": "MIDI REGULER D",
-  "paymentMethod": "QRIS"
-}`;
-
-export interface OcrTransactionResult {
-  amount: number;
-  category: string;
-  date: string;
-  note: string;
-  kind: "expense" | "income";
-  merchant: string;
-  paymentMethod: string;
-}
-
-/**
- * Parse the LLM's raw text response into structured OcrTransactionResult.
- * Handles markdown code fences and malformed JSON gracefully.
- */
-export function parseOcrResponse(rawText: string): OcrTransactionResult | null {
-  try {
-    // Strip markdown code fences
-    let cleaned = rawText.trim();
-    if (cleaned.startsWith("```")) {
-      cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
-    }
-
-    const parsed = JSON.parse(cleaned) as Record<string, unknown>;
-
-    return {
-      amount: Math.abs(Number(parsed.amount ?? 0)),
-      category: String(parsed.category ?? "Lainnya"),
-      date: String(parsed.date ?? ""),
-      note: String(parsed.note ?? ""),
-      kind: String(parsed.kind ?? "expense") as "expense" | "income",
-      merchant: String(parsed.merchant ?? ""),
-      paymentMethod: String(parsed.paymentMethod ?? ""),
-    };
-  } catch {
-    return null;
-  }
-}
-```
-
-**Step 2: Run typecheck**
-
-```bash
-npm run typecheck
-```
-
-Expected: PASS
-
-**Step 3: Commit**
-
-```bash
-git add lib/ai/ocr-prompt.ts
-git commit -m "feat: add OCR system prompt and response parser"
-```
+**Key additions vs v1 plan:**
+- Prompt now includes category synonym hints
+- Parser returns `null` cleanly for malformed responses
+- No image data ever logged
 
 ---
 
-### Task 4: Create OCR API endpoint (`app/api/ai/ocr-scan/route.ts`)
+### Task 5: Create OCR API endpoint (`app/api/ai/ocr-scan/route.ts`)
 
 **Objective:** Create the POST endpoint that receives an image, calls the vision LLM, and returns structured transaction data.
 
 **Files:**
 - Create: `app/api/ai/ocr-scan/route.ts`
 
-**Step 1: Write the route handler**
-
-```typescript
-import { NextResponse } from "next/server";
-import { requireUser } from "@/lib/auth";
-import { getVisionClient, getVisionModelName, isVisionAvailable } from "@/lib/ai/vision-client";
-import { OCR_SYSTEM_PROMPT, parseOcrResponse, type OcrTransactionResult } from "@/lib/ai/ocr-prompt";
-
-const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
-
-export async function POST(request: Request) {
-  try {
-    const { user } = await requireUser();
-
-    if (!isVisionAvailable()) {
-      return NextResponse.json(
-        { ok: false, error: "OCR scanning is not available right now." },
-        { status: 503 }
-      );
-    }
-
-    const contentType = request.headers.get("content-type") ?? "";
-    let imageBase64: string;
-
-    if (contentType.includes("multipart/form-data")) {
-      // Browser FormData upload
-      const formData = await request.formData();
-      const file = formData.get("image") as File | null;
-      if (!file) {
-        return NextResponse.json(
-          { ok: false, error: "No image file provided." },
-          { status: 400 }
-        );
-      }
-      if (file.size > MAX_IMAGE_SIZE_BYTES) {
-        return NextResponse.json(
-          { ok: false, error: "Image too large (max 5 MB)." },
-          { status: 400 }
-        );
-      }
-      const buffer = Buffer.from(await file.arrayBuffer());
-      imageBase64 = buffer.toString("base64");
-    } else if (contentType.includes("application/json")) {
-      // JSON with base64 data URL
-      const body = (await request.json()) as { image?: string };
-      const raw = body.image ?? "";
-      // Support both "data:image/...;base64,XXX" and raw base64
-      const dataUrlMatch = raw.match(/^data:image\/[^;]+;base64,(.+)$/);
-      imageBase64 = dataUrlMatch ? dataUrlMatch[1] : raw;
-      if (!imageBase64) {
-        return NextResponse.json(
-          { ok: false, error: "No image data provided." },
-          { status: 400 }
-        );
-      }
-    } else {
-      return NextResponse.json(
-        { ok: false, error: "Unsupported content type. Use multipart/form-data or application/json." },
-        { status: 400 }
-      );
-    }
-
-    const client = getVisionClient()!;
-    const model = getVisionModelName();
-    const dataUrl = `data:image/jpeg;base64,${imageBase64}`;
-
-    const completion = await client.chat.completions.create({
-      model,
-      temperature: 0.1,
-      max_tokens: 500,
-      messages: [
-        { role: "system", content: OCR_SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: [
-            {
-              type: "image_url",
-              image_url: { url: dataUrl, detail: "auto" },
-            },
-          ],
-        },
-      ],
-    });
-
-    const rawResponse = completion.choices[0]?.message?.content?.trim() ?? "";
-    const parsed = parseOcrResponse(rawResponse);
-
-    if (!parsed || !parsed.amount || parsed.amount <= 0) {
-      return NextResponse.json(
-        { ok: false, error: "Could not extract transaction details from image. Try a clearer photo.", raw: rawResponse },
-        { status: 422 }
-      );
-    }
-
-    return NextResponse.json({
-      ok: true,
-      result: parsed satisfies OcrTransactionResult,
-    });
-  } catch (error: unknown) {
-    console.error("[ocr-scan] Error:", (error as Error)?.message ?? error);
-    return NextResponse.json(
-      { ok: false, error: "OCR scan failed. Please try again." },
-      { status: 500 }
-    );
-  }
-}
-```
-
-**Step 2: Run typecheck**
-
-```bash
-npm run typecheck
-```
-
-Expected: PASS
-
-**Step 3: Commit**
-
-```bash
-git add app/api/ai/ocr-scan/route.ts
-git commit -m "feat: add OCR scan API endpoint for receipt image processing"
-```
+**Key additions vs v1 plan:**
+- Plan check: verify user's plan allows OCR scanning
+- Daily limit check using `consumeOcrDailyLimit`
+- Per-minute rate limit check using `consumeOcrRateLimit` (1 scan per 10 seconds)
+- Monitor logging: `[ocr-scan] status=<success|failed|limit_hit|rate_limited> user=<id> duration=<ms>`
+- Clear `imageBase64` variable after use (`imageBase64 = ""`)
+- Proper error responses: daily limit (429), rate limit (429 + Retry-After header)
+- 20s fetch timeout with AbortController
+- `export const maxDuration = 30`
 
 ---
 
-### Task 5: Create `ScanReceiptButton` client component
+### Task 6: Create `ScanReceiptButton` client component
 
-**Objective:** Create the camera/file-picker button that captures an image, calls the OCR endpoint, and returns extracted transaction data to the parent form.
+**Objective:** Create the camera/file-picker button that captures an image, compresses it, calls the OCR endpoint, and returns extracted transaction data.
 
 **Files:**
 - Create: `components/features/transactions/scan-receipt-button.tsx`
 
-**Step 1: Write the component**
-
-```typescript
-"use client";
-
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import type { OcrTransactionResult } from "@/lib/ai/ocr-prompt";
-
-type ScanReceiptButtonProps = {
-  onScanComplete: (result: OcrTransactionResult) => void;
-  disabled?: boolean;
-};
-
-export function ScanReceiptButton({ onScanComplete, disabled }: ScanReceiptButtonProps) {
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  async function handleFileSelected(file: File | null) {
-    if (!file || isProcessing) return;
-
-    // Only accept images
-    if (!file.type.startsWith("image/")) return;
-
-    setIsProcessing(true);
-    try {
-      const formData = new FormData();
-      formData.append("image", file);
-
-      const response = await fetch("/api/ai/ocr-scan", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = (await response.json()) as {
-        ok: boolean;
-        error?: string;
-        result?: OcrTransactionResult;
-      };
-
-      if (data.ok && data.result) {
-        onScanComplete(data.result);
-      } else {
-        // TODO: Show toast notification
-        console.warn("OCR scan failed:", data.error);
-      }
-    } catch {
-      console.warn("OCR scan network error");
-    } finally {
-      setIsProcessing(false);
-    }
-  }
-
-  function handleClick() {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.capture = "environment"; // rear camera on mobile
-    input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0] ?? null;
-      handleFileSelected(file);
-    };
-    input.click();
-  }
-
-  return (
-    <Button
-      type="button"
-      variant="soft"
-      disabled={disabled || isProcessing}
-      onClick={handleClick}
-      className="gap-2"
-    >
-      {isProcessing ? (
-        <>
-          <span className="animate-spin">⏳</span>
-          Memproses...
-        </>
-      ) : (
-        <>
-          📷 Pindai Struk
-        </>
-      )}
-    </Button>
-  );
-}
-```
-
-**Step 2: Run typecheck**
-
-```bash
-npm run typecheck
-```
-
-Expected: PASS
-
-**Step 3: Commit**
-
-```bash
-git add components/features/transactions/scan-receipt-button.tsx
-git commit -m "feat: add scan receipt button component with camera capture"
-```
+**Key additions vs v1 plan:**
+- **Two buttons:** 📷 Pindai Struk (camera with `capture="environment"`) + 🖼️ Upload dari Galeri (file picker without capture)
+- Client-side image compression (resize to 1920px max, JPEG q0.8)
+- 20s AbortController timeout with user-friendly retry
+- Error state with retry — distinct toasts for: API failure, network error, timeout, daily limit hit, rate limited
+- Loading states: "Mengompresi gambar..." → "Memproses..."
+- Toast messages in Bahasa Indonesia
 
 ---
 
-### Task 6: Integrate scan button into `TransactionCreateForm`
+### Task 7: Integrate scan button into `TransactionCreateForm`
 
 **Objective:** Wire the scan button into the existing transaction create form so OCR results auto-fill the fields.
 
 **Files:**
 - Modify: `components/features/transactions/transaction-create-form.tsx`
 
-**Step 1: Add state and scan handler**
-
-Add imports at top:
-```typescript
-import { ScanReceiptButton } from "@/components/features/transactions/scan-receipt-button";
-import type { OcrTransactionResult } from "@/lib/ai/ocr-prompt";
-import { useState, useRef } from "react";
-```
-
-Remove the existing `useState` import from `react` if it exists (it likely does from `"use client"` context — adjust to combine with existing imports).
-
-Add state and refs inside the component, before the return:
-```typescript
-const [scanResult, setScanResult] = useState<OcrTransactionResult | null>(null);
-const [showScanConfirmation, setShowScanConfirmation] = useState(false);
-const formRef = useRef<HTMLFormElement>(null);
-```
-
-**Step 2: Add scan handler function**
-
-```typescript
-function handleScanComplete(result: OcrTransactionResult) {
-  setScanResult(result);
-  setShowScanConfirmation(true);
-}
-```
-
-**Step 3: Add auto-fill handler**
-
-```typescript
-function applyScanResult() {
-  if (!scanResult || !formRef.current) return;
-
-  const form = formRef.current;
-  (form.querySelector<HTMLSelectElement>("select[name='kind']")!).value = scanResult.kind;
-  (form.querySelector<HTMLInputElement>("input[name='amount']")!).value = String(scanResult.amount);
-  (form.querySelector<HTMLInputElement>("input[name='note']")!).value = scanResult.note;
-  (form.querySelector<HTMLInputElement>("input[name='happened_at']")!).value = scanResult.date;
-
-  // Try to match category by name
-  const categorySelect = form.querySelector<HTMLSelectElement>("select[name='category_id']")!;
-  for (let i = 0; i < categorySelect.options.length; i++) {
-    if (categorySelect.options[i].text.toLowerCase() === scanResult.category.toLowerCase()) {
-      categorySelect.value = categorySelect.options[i].value;
-      break;
-    }
-  }
-
-  setScanResult(null);
-  setShowScanConfirmation(false);
-}
-```
-
-**Step 4: Add UI before the first label in the form**
-
-```tsx
-<div className="mb-4 flex items-center gap-3">
-  <ScanReceiptButton onScanComplete={handleScanComplete} />
-
-  {showScanConfirmation && scanResult && (
-    <div className="flex items-center gap-2 rounded-full bg-primary-container px-4 py-2 text-sm text-on-primary-container dark:bg-primary-container/20">
-      <span>Rp {scanResult.amount.toLocaleString("id-ID")} — {scanResult.category}</span>
-      <button
-        type="button"
-        onClick={applyScanResult}
-        className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-on-primary hover:opacity-90"
-      >
-        Pakai
-      </button>
-      <button
-        type="button"
-        onClick={() => { setScanResult(null); setShowScanConfirmation(false); }}
-        className="ml-1 text-xs text-muted-foreground hover:text-foreground"
-      >
-        ✕
-      </button>
-    </div>
-  )}
-</div>
-```
-
-**Step 5: Add formRef to the form**
-
-Change the `<ActionForm ...>` line to include a ref:
-
-```tsx
-<ActionForm
-  ref={formRef}
-  action={createTransaction}
-  ...
-```
-
-> **⚠️ Note:** `ActionForm` wraps `form` and uses `forwardRef` — verify it passes `ref` through. If not, the plan's Task 7 handles that.
-
-**Step 6: Run typecheck**
-
-```bash
-npm run typecheck
-```
-
-Expected: PASS
-
-**Step 7: Commit**
-
-```bash
-git add components/features/transactions/transaction-create-form.tsx
-git commit -m "feat: integrate OCR scan button into transaction create form"
-```
+**Key additions vs v1 plan:**
+- Category fuzzy matching using synonym map
+- Confirmation card shows amount + merchant + category
+- User can edit before applying
 
 ---
 
-### Task 7: Add `forwardRef` support to `ActionForm` (if missing)
+### Task 8: Add `forwardRef` support to `ActionForm` (if missing)
 
 **Objective:** Ensure `ActionForm` passes a ref to the underlying `<form>` element so we can auto-fill fields programmatically.
 
 **Files:**
 - Check: `components/ui/action-form.tsx`
 
-**Step 1: Check if forwardRef is already supported**
-
-Read the file at `components/ui/action-form.tsx`. If it already uses `forwardRef`, skip this task.
-
-**Step 2: If not, add forwardRef**
-
-```typescript
-"use client";
-
-import { type ComponentPropsWithoutRef, forwardRef, useRef } from "react";
-// ... existing imports ...
-
-export const ActionForm = forwardRef<HTMLFormElement, ActionFormProps>(
-  function ActionForm({ action, onSuccess, resetOnSuccess, children, className, ...props }, ref) {
-    // ... existing logic, but replace <form ...> with:
-    return (
-      <form ref={ref} action={formAction} className={className} {...props}>
-        {children}
-      </form>
-    );
-  }
-);
-```
-
-**Step 3: Run typecheck**
-
-```bash
-npm run typecheck
-```
-
-Expected: PASS (fix any type errors — adjust `ActionFormProps` if needed)
-
-**Step 4: Commit**
-
-```bash
-git add components/ui/action-form.tsx
-git commit -m "feat: add forwardRef support to ActionForm for OCR auto-fill"
-```
-
 ---
 
-### Task 8: Add env vars to `.env.example` and `README.md`
+### Task 9: Add env vars to `.env.example` and `README.md`
 
 **Objective:** Document the new environment variables.
 
@@ -649,80 +346,85 @@ git commit -m "feat: add forwardRef support to ActionForm for OCR auto-fill"
 - Modify: `.env.example`
 - Modify: `README.md`
 
-**Step 1: Add to `.env.example`**
-
 ```bash
 # ── Vision / OCR (for receipt scanning) ────────────────────────────
 # Using Sumopod proxy with Gemini 3.1 Flash Lite
 # Leave blank to disable receipt scanning
 VISION_ENABLED=true
-VISION_API_KEY=sk-your-sumopod-key
+VISION_API_KEY=sk-you...-key
 VISION_BASE_URL=https://ai.sumopod.com/v1
 VISION_MODEL=gemini/gemini-3.1-flash-lite
-```
-
-**Step 2: Add to README.md** — in the environment variables section, add:
-
-```
-| `VISION_ENABLED` | Enable/disable receipt OCR scanning (`true`/`false`) | `true` |
-| `VISION_API_KEY` | API key for the vision AI provider (Sumopod) | — |
-| `VISION_BASE_URL` | Vision AI provider base URL | `https://ai.sumopod.com/v1` |
-| `VISION_MODEL` | Vision model to use | `gemini/gemini-3.1-flash-lite` |
-```
-
-**Step 3: Commit**
-
-```bash
-git add .env.example README.md
-git commit -m "docs: add vision/OCR environment variable documentation"
+# Optional: daily scan limit for free users (default 3)
+VISION_DAILY_LIMIT_FREE=3
 ```
 
 ---
 
 ## Summary
 
-| Task | What | Files |
-|------|------|-------|
-| 1 | Env vars | `lib/env.ts` |
-| 2 | Vision client | `lib/ai/vision-client.ts` (NEW) |
-| 3 | OCR prompt & parser | `lib/ai/ocr-prompt.ts` (NEW) |
-| 4 | API endpoint | `app/api/ai/ocr-scan/route.ts` (NEW) |
-| 5 | Scan button component | `components/features/transactions/scan-receipt-button.tsx` (NEW) |
-| 6 | Form integration | `components/features/transactions/transaction-create-form.tsx` |
-| 7 | ActionForm ref support | `components/ui/action-form.tsx` (conditional) |
-| 8 | Documentation | `.env.example`, `README.md` |
+| # | Task | Files | New? | Plan-aware? |
+|---|------|-------|------|-------------|
+| 1 | Env vars | `lib/env.ts` | Modify | — |
+| 2 | Plan + rate limit | `lib/plan.ts`, `lib/rate-limit.ts` | Modify | ✅ Yes |
+| 3 | Vision client | `lib/ai/vision-client.ts` | **NEW** | — |
+| 4 | OCR prompt + parser | `lib/ai/ocr-prompt.ts` | **NEW** | — |
+| 5 | API endpoint | `app/api/ai/ocr-scan/route.ts` | **NEW** | ✅ Checks plan |
+| 6 | Scan button + compress | `components/features/transactions/scan-receipt-button.tsx` | **NEW** | — |
+| 7 | Form integration + fuzzy match | `components/features/transactions/transaction-create-form.tsx` | Modify | — |
+| 8 | ActionForm ref | `components/ui/action-form.tsx` | Conditional | — |
+| 9 | Docs | `.env.example`, `README.md` | Modify | — |
+| 10 | **Deploy** | VPS: pull image + restart compose | Manual after CI | — |
+| ← | **New in v2** | **Camera + Gallery buttons** | **Task 6** | — |
+| ← | **New in v2** | **Per-minute rate limit (1/10s)** | **Task 2 + 5** | ✅ All plans |
+| ← | **New in v2** | **Scan success monitoring logs** | **Task 5** | — |
 
-**Total files:** 4 new, 2-3 modified, 1 docs update.
+**Total:** 4 new files, 3-5 modified.
 
 ---
 
-## Design Decisions & Rationale
+## Deployment Workflow
 
-| Decision | Rationale |
-|----------|-----------|
-| Separate vision client from chat client | Chat uses DeepSeek; OCR uses Gemini. Different models, different base URLs, different keys. No coupling. |
-| Direct API call from client (not server action) | Server actions don't support multipart/form-data natively in Next.js 15. Route handler handles file upload properly. |
-| Return JSON, not SSE | OCR is a single request-response (not streaming). Simpler and faster. |
-| Auto-fill existing form | Reuses all existing validation, error handling, and UX. No duplicate form logic. |
-| `input.capture = "environment"` | Opens rear camera on mobile by default — user is scanning physical receipt. |
-| Optional category match fallback | If the LLM returns a category name not in the user's wallet, the form's select stays untouched (user picks manually). |
-| No separate OCR page | Keeps the feature where users already create transactions — the `TransactionCreateForm`. Discoverable, low friction. |
+After all tasks are implemented and pushed:
+
+1. **Push to `main`** → triggers:
+   - GitHub Actions **CI** (lint + typecheck + test)
+   - GitHub Actions **Docker Publish** (build multi-arch image + push to Docker Hub)
+2. **Wait for CI green + Docker Publish success**
+3. **VPS deploy:**
+   ```bash
+   ssh balance-vps "cd ~/balance && docker compose pull app && docker compose up -d app scheduler"
+   ```
+4. **Verify:** Hit `https://mybalance.my.id/id/login` → callback URL should use `mybalance.my.id`, not localhost.
+
+---
 
 ## Pitfalls to Watch
 
-- **Base64 size limit:** 5MB file cap, but Next.js body parser has its own `bodySizeLimit`. Set `export const maxDuration = 30` in the route if needed.
-- **Vision model speed:** Gemini Flash Lite is fast (~1-2s) but still slower than text. Show a spinner on the button during processing.
-- **Dark mode:** The scan confirmation chip uses theme tokens (`primary-container`, `on-primary-container`) — verify in both light and dark themes.
-- **iOS Safari camera:** `capture="environment"` works on iOS Safari, but on some Android browsers it shows both camera + gallery. Acceptable UX.
-- **JSON parsing fragility:** The vision model sometimes wraps JSON in markdown code fences. The parser handles this, but test with real BCA/Mandiri/etc screenshots.
+- **HEIC on iOS:** Client-side canvas compression converts to JPEG — handles HEIC transparently ✅
+- **Category mismatch:** Synonym map + fuzzy match prevents `"Belanja"` → not found
+- **Base64 size + timeout:** 5MB file cap + 1920px client resize + 20s AbortController + `maxDuration = 30`
+- **Dark mode:** Confirmation chip uses theme tokens — verify in both themes
+- **iOS Safari camera:** `capture="environment"` works on iOS; Android may show camera+gallery — acceptable
+- **JSON parsing:** Gemini sometimes wraps JSON in markdown fences — parser handles it
+- **Log leakage:** No image data in logs; `console.error` only error message
+
+---
 
 ## Verification Checklist
 
-- [ ] `VISION_ENABLED=false` → scan button hidden, endpoint returns 503
-- [ ] `VISION_ENABLED=true` + valid key → button visible, scan works
-- [ ] Upload BCA email screenshot → fields auto-filled with correct amount, date, merchant
-- [ ] Upload QRIS receipt photo → fields auto-filled
+- [ ] Free user (<3 scans today) → scan succeeds, counter increments
+- [ ] Free user (≥3 scans today) → returns 429 with upsell message
+- [ ] Premium user → unlimited scans
+- [ ] Rapid scan (2nd scan within 10s) → rate limited 429 with Retry-After
+- [ ] `VISION_ENABLED=false` → button hidden, endpoint 503
+- [ ] No API key → button hidden, graceful degradation
+- [ ] Upload iPhone HEIC photo → auto-converted, scan works
+- [ ] Upload BCA email screenshot → fields auto-filled with correct amount + date + merchant
+- [ ] Upload QRIS receipt → category matches "Belanja Harian" or similar
+- [ ] Upload blurry photo → friendly error "Foto kurang jelas, coba lagi"
 - [ ] Click "Pakai" → form populated, user edits, saves → transaction in DB
 - [ ] Click ✕ → confirmation dismissed, form unchanged
-- [ ] No API key → button not rendered (graceful degradation)
-- [ ] Both light and dark themes render correctly
+- [ ] Retry after error → button works without page reload
+- [ ] Both light and dark themes render confirmation card correctly
+- [ ] Server logs contain NO base64 image data
+- [ ] `imageBase64` variable cleared after each request

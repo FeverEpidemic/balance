@@ -28,6 +28,7 @@ export function TransactionCreateForm({
   const t = getTranslator(locale);
   const [scanResult, setScanResult] = useState<OcrTransactionResult | null>(null);
   const [showScanConfirmation, setShowScanConfirmation] = useState(false);
+  const [scanAmountDefault, setScanAmountDefault] = useState<number | null>(null);
 
   function handleScanComplete(result: OcrTransactionResult) {
     setScanResult(result);
@@ -40,13 +41,14 @@ export function TransactionCreateForm({
     const form = document.querySelector<HTMLFormElement>("#transaction-create-form");
     if (!form) return;
     const kindSelect = form.querySelector<HTMLSelectElement>("select[name='kind']");
-    const amountInput = form.querySelector<HTMLInputElement>("input[name='amount']");
     const noteInput = form.querySelector<HTMLInputElement>("input[name='note']");
     const dateInput = form.querySelector<HTMLInputElement>("input[name='happened_at']");
     const categorySelect = form.querySelector<HTMLSelectElement>("select[name='category_id']");
 
+    // CurrencyInput is a React-controlled component — use state instead of DOM manipulation
+    setScanAmountDefault(scanResult.amount);
+
     if (kindSelect) kindSelect.value = scanResult.kind;
-    if (amountInput) amountInput.value = String(scanResult.amount);
     if (noteInput) noteInput.value = scanResult.note;
     if (dateInput && scanResult.date) dateInput.value = scanResult.date;
 
@@ -67,7 +69,13 @@ export function TransactionCreateForm({
 
   function dismissScanResult() {
     setScanResult(null);
+    setScanAmountDefault(null);
     setShowScanConfirmation(false);
+  }
+
+  function handleFormSuccess() {
+    setScanAmountDefault(null);
+    onSuccess?.();
   }
 
   return (
@@ -101,7 +109,7 @@ export function TransactionCreateForm({
         )}
       </div>
 
-      <ActionForm action={createTransaction} className={className} onSuccess={onSuccess} resetOnSuccess id="transaction-create-form" {...props}>
+      <ActionForm action={createTransaction} className={className} onSuccess={handleFormSuccess} resetOnSuccess id="transaction-create-form" {...props}>
         <input type="hidden" name="wallet_id" value={context.walletId} />
         <label className="block">
           <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.quickInputKindLabel")}</span>
@@ -117,6 +125,7 @@ export function TransactionCreateForm({
             name="amount"
             placeholder={formatCurrency(0, locale, context.walletCurrency)}
             required
+            defaultValue={scanAmountDefault}
           />
         </label>
         <label className="block">
