@@ -13,6 +13,18 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.18.0",
+    date: "2026-06-20",
+    title: "Budget Carry-Over — Bawa Sisa Budget ke Bulan Depan",
+    description: "Sisa budget yang tidak terpakai dari bulan sebelumnya kini bisa dibawa ke bulan berikutnya. Aktifkan toggle 'Bawa sisa budget' per kategori — sisa budget akan otomatis ditambahkan ke budget bulan ini, dan perhitungannya dirantai secara rekursif ke bulan-bulan sebelumnya.",
+    features: [
+      { icon: "🔄", text: "Toggle 'Bawa sisa budget' per kategori — aktifkan hanya untuk kategori yang diinginkan." },
+      { icon: "📊", text: "Carry-over amount ditampilkan sebagai informasi tambahan di daftar budget." },
+      { icon: "⛓️", text: "Perhitungan rekursif: sisa budget di-chain berbulan-bulan, bukan cuma 1 bulan ke belakang." },
+      { icon: "🛡️", text: "Overspent tidak mengurangi budget bulan berikutnya — carry-over minimal 0." }
+    ]
+  },
+  {
     version: "1.17.0",
     date: "2026-06-20",
     title: "Sistem Pengingat Harian — Daily Reminder via Web Push",

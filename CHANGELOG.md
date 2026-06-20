@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- **Budget Carry-Over** — Sisa budget yang tidak terpakai dari bulan sebelumnya bisa dibawa ke bulan berikutnya. Fitur ini bersifat opsional per kategori (toggle "Bawa sisa budget"). Perhitungan carry-over bersifat rekursif dan memoized, mendukung rantai carry-over berbulan-bulan. Carry-over amount ditampilkan sebagai informasi tambahan di daftar budget.
+
 ## [1.17.0] - 2026-06-20
 
 ### Added
