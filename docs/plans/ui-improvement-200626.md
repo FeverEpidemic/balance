@@ -344,6 +344,117 @@ git commit -m "ui: add spending by category donut chart to dashboard"
 
 ---
 
+## Task 4: Pull-to-Refresh for Mobile Pages
+
+**Objective:** Add a simple touch-based pull-to-refresh gesture on mobile so users can refresh dashboard/transaction data without navigating away or hard-refreshing the page.
+
+**Files:**
+- Create: `components/ui/pull-to-refresh.tsx`
+- Modify: `components/features/dashboard/dashboard-content.tsx`
+- Modify: `components/features/transactions/transactions-page-content.tsx`
+
+**Why:** On mobile web, users expect to pull down to refresh data. Currently they'd have to navigate away and back, or hard refresh. Standard pattern for any finance app.
+
+**Step 1: Create PullToRefresh component**
+
+`components/ui/pull-to-refresh.tsx` — touch gesture wrapper with rubber-band pull indicator and spinner. On release past 80px threshold, calls `router.refresh()`. Desktop unaffected (no touch events).
+
+**Step 2: Wrap mobile content**
+
+In `dashboard-content.tsx` and `transactions-page-content.tsx`, wrap the main content area with `<PullToRefresh>` on mobile only.
+
+**Step 3: Verify**
+- Pull down on mobile dashboard → spinner + refresh
+- Does NOT interfere with normal scrolling
+- Desktop = no effect
+
+**Step 4: Commit**
+```bash
+git add components/ui/pull-to-refresh.tsx components/features/dashboard/dashboard-content.tsx components/features/transactions/transactions-page-content.tsx
+git commit -m "ui: add pull-to-refresh gesture on mobile for dashboard and transactions"
+```
+
+---
+
+## Task 5: Animated Number Transitions on Stat Cards
+
+**Objective:** Smoothly animate stat card values (balance, budget, savings) when they change — count up/down instead of instant jump.
+
+**Files:**
+- Create: `components/ui/animated-number.tsx`
+- Modify: `components/ui/stat-card.tsx`
+
+**Why:** Numbers jumping instantly feels jarring, especially in a finance app. A subtle 400ms count-up/down animation makes the app feel premium (like Linear, Revolut, etc.).
+
+**Step 1: Create AnimatedNumber component**
+
+`components/ui/animated-number.tsx` — React hook using `requestAnimationFrame` with ease-out cubic curve. Renders the animated value while maintaining the real value in DOM for accessibility.
+
+```tsx
+"use client";
+import { useEffect, useRef, useState } from "react";
+import { cn } from "@/lib/utils";
+
+export function AnimatedNumber({
+  value,
+  formatter = (v) => String(v),
+  className,
+  duration = 400,
+}: {
+  value: number;
+  formatter?: (value: number) => string;
+  className?: string;
+  duration?: number;
+}) {
+  const [displayValue, setDisplayValue] = useState(value);
+  const prevValue = useRef(value);
+  const rafId = useRef<number>();
+
+  useEffect(() => {
+    const startValue = prevValue.current;
+    const diff = value - startValue;
+    if (diff === 0) return;
+
+    const startTime = performance.now();
+    function animate(currentTime: number) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      const current = Math.round(startValue + diff * eased);
+      setDisplayValue(current);
+      if (progress < 1) {
+        rafId.current = requestAnimationFrame(animate);
+      } else {
+        setDisplayValue(value);
+        prevValue.current = value;
+      }
+    }
+    rafId.current = requestAnimationFrame(animate);
+    return () => { if (rafId.current) cancelAnimationFrame(rafId.current); };
+  }, [value, duration]);
+
+  return <span className={cn("tabular-nums", className)}>{formatter(displayValue)}</span>;
+}
+```
+
+**Step 2: Use in StatCard**
+
+Replace `{formatCurrency(value, "id", currency)}` with `<AnimatedNumber value={value} formatter={(v) => formatCurrency(v, "id", currency)} />`.
+
+**Step 3: Verify**
+- Dashboard numbers animate smoothly on page load (count up from 0)
+- 400ms ease-out curve, not distracting
+- Works with and without currency formatting
+- Screen readers read the real DOM value
+
+**Step 4: Commit**
+```bash
+git add components/ui/animated-number.tsx components/ui/stat-card.tsx
+git commit -m "ui: add smooth animated number transitions to stat cards"
+```
+
+---
+
 ## Quick Wins (Optional — Pick & Choose)
 
 ### Quick Win A: Dynamic Greeting on Dashboard Header
@@ -426,6 +537,10 @@ ssh balance-vps "cd /home/ilham827/balance && docker compose pull app && docker 
 | 1 | FAB Quick-Add | 2-3h | ⭐⭐⭐ | app-shell, dialog-button |
 | 2 | Budget Progress Bar | 1-2h | ⭐⭐⭐ | stat-card, dashboard, data layer |
 | 3 | Category Donut Chart | 2-3h | ⭐⭐⭐ | new component, dashboard, data layer |
+| 4 | Pull-to-Refresh Mobile | 1-2h | ⭐⭐⭐ | pull-to-refresh, dashboard, transactions |
+| 5 | Animated Number Transitions | 1h | ⭐⭐⭐ | animated-number, stat-card |
 | A | Dynamic Greeting | 15min | ⭐⭐ | app-shell |
 | B | Empty State Illustrations | 30min | ⭐⭐ | empty-state |
 | C | Page Transitions | 1h | ⭐⭐ | route-transition, globals.css |
+
+**Recommendation:** Execute in order 1→2→3→4→5 for max impact. Quick wins (A/B/C) can be sprinkled between tasks.
