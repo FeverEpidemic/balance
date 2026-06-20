@@ -8,6 +8,8 @@
 
 **Architecture:** All changes are client-side React components and CSS. No database changes, no new API endpoints, no new dependencies. Each improvement is self-contained in one or two component files.
 
+**Dark mode:** Both light and dark mode are first-class surfaces per `DESIGN.md`. Every task MUST verify both themes. Use theme CSS variables (`--primary`, `--surface`, `--border`, etc.) — never hardcoded colors. Static colors like `#d4a72c` (amber) for progress bars are acceptable only when they work on both cream and dark moss backgrounds.
+
 **Tech Stack:** Next.js 16, React, TypeScript, Tailwind CSS, Recharts (existing), shadcn/ui primitives
 
 ---
@@ -86,7 +88,8 @@ In `components/features/transactions/transaction-create-dialog-button.tsx`, add 
 - FAB appears at bottom-right, above the nav bar
 - Clicking opens the transaction dialog
 - FAB doesn't appear on desktop
-- FAB has proper dark mode styling
+- FAB has proper dark mode styling (uses `--primary` and `--button-primary-text` CSS vars → auto-adapt)
+- FAB icon visible on dark backgrounds (inherits button color)
 
 **Step 5: Commit**
 
@@ -157,23 +160,24 @@ In `dashboard-content.tsx`, the "Available Budget" StatCard currently renders:
 />
 ```
 
-The `dashboard.totalAvailableBudget` is the remaining budget. Need to also pass the original budget total. Check `DashboardData` type — if `totalBudgetAmount` (the cap) is available, pass it:
+The budget cap can be computed from existing fields in `DashboardData`:
+- `totalAvailableBudget` = remaining (sum of `budgetThisMonth - spentThisMonth` across wallets)
+- `totalExpenseThisMonth` = total spent
+
+**Budget cap = `totalAvailableBudget + totalExpenseThisMonth`** (approximate — accurate when all spending was against budgets). No new data layer fields needed.
 
 ```tsx
 <StatCard
   label={t("dashboard.availableBudgetLabel")}
   value={dashboard.totalAvailableBudget}
   detail={t("dashboard.availableBudgetDetail")}
-  progressValue={dashboard.totalSpentThisMonth}  // amount spent
-  progressMax={dashboard.totalBudgetAmount}       // budget cap
+  progressValue={dashboard.totalExpenseThisMonth}
+  progressMax={dashboard.totalAvailableBudget + dashboard.totalExpenseThisMonth}
   progressLabel={t("dashboard.budgetProgressLabel")}
 />
 ```
 
-**Note:** If `DashboardData` doesn't include `totalBudgetAmount` or `totalSpentThisMonth`, need to add those fields in the data layer:
-- `lib/data/queries.ts` — add query for total budget and total spending
-- `lib/data/index.ts` — add fields to `DashboardData` type
-- `lib/data/mappers.ts` — map DB results
+**Note:** The cap is approximate because `totalAvailableBudget` only sums wallets with `budgetThisMonth > 0`. If some spending happened outside budgeted wallets, the cap will be slightly higher than the true budget cap. This is acceptable for a visual indicator — the progress bar communicates "you're at X% of your budget" which the approximation handles well.
 
 **Step 3: Verify**
 
@@ -186,7 +190,7 @@ The `dashboard.totalAvailableBudget` is the remaining budget. Need to also pass 
 **Step 4: Commit**
 
 ```bash
-git add components/ui/stat-card.tsx components/features/dashboard/dashboard-content.tsx lib/data/
+git add components/ui/stat-card.tsx components/features/dashboard/dashboard-content.tsx
 git commit -m "ui: add budget progress bar to dashboard stat card"
 ```
 
@@ -194,46 +198,15 @@ git commit -m "ui: add budget progress bar to dashboard stat card"
 
 ## Task 3: Spending by Category — Donut Chart
 
-**Objective:** Add a donut/ring chart below the daily expense chart on the dashboard, showing spending breakdown by category for the current month.
+**Objective:** Add a donut/ring chart on the dashboard showing spending breakdown by category for the current month, using the existing `dashboard.categorySpend` data.
 
 **Files:**
 - Create: `components/features/dashboard/dashboard-category-breakdown.tsx`
 - Modify: `components/features/dashboard/dashboard-content.tsx` (add the new section)
-- Modify: `lib/data/queries.ts` (add query for category spend)
-- Modify: `lib/data/types.ts` (add category spend type)
 
-**Step 1: Create data query**
+**Important:** `DashboardData` already has `categorySpend: DashboardCategorySpend[]` with `{name, value, color}` — populated from actual category data in the DB. **No new query, no data layer changes needed.** The mapper (`lib/data/mappers.ts` line 855) calls `buildCategorySpend()` which aggregates transactions by category with their real colors.
 
-In `lib/data/queries.ts`, add a function to get spending by category for the current month:
-
-```tsx
-export async function getCategorySpending(walletIds: string[], userId: string) {
-  const supabase = createClient();
-  const now = new Date();
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-
-  const { data, error } = await supabase
-    .from("transactions")
-    .select("category_id, amount, categories(name)")
-    .in("wallet_id", walletIds)
-    .eq("kind", "expense")
-    .gte("happened_at", startOfMonth)
-    .throwOnError();
-
-  // Aggregate by category
-  const categoryMap = new Map<string, number>();
-  for (const tx of data ?? []) {
-    const name = (tx.categories as { name: string } | null)?.name ?? "Lainnya";
-    categoryMap.set(name, (categoryMap.get(name) ?? 0) + Number(tx.amount));
-  }
-
-  return Array.from(categoryMap.entries())
-    .map(([name, amount]) => ({ name, amount }))
-    .sort((a, b) => b.amount - a.amount);
-}
-```
-
-**Step 2: Create donut chart component**
+**Step 1: Create donut chart component**
 
 `components/features/dashboard/dashboard-category-breakdown.tsx`:
 
@@ -241,35 +214,25 @@ export async function getCategorySpending(walletIds: string[], userId: string) {
 "use client";
 
 import { useLocale } from "@/components/providers/locale-provider";
+import { getTranslator } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/utils";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-
-const COLORS = [
-  "var(--primary)",     // sage
-  "#d4a72c",            // amber
-  "var(--danger)",      // muted red
-  "#5b8f62",            // green
-  "#8b7e74",            // brown
-  "#6b8e9e",            // steel blue
-  "#b88a6b",            // tan
-  "#7a8a6a",            // olive
-];
-
-type CategoryItem = { name: string; amount: number };
+import type { DashboardCategorySpend } from "@/lib/data";
 
 export function DashboardCategoryBreakdown({
   categories,
 }: {
-  categories: CategoryItem[];
+  categories: DashboardCategorySpend[];
 }) {
   const locale = useLocale();
+  const t = getTranslator(locale);
 
   if (categories.length === 0) return null;
 
   return (
     <div className="card">
-      <p className="eyebrow">{/* t("dashboard.categoryEyebrow") */}</p>
-      <h3 className="headline-md mt-2">{/* t("dashboard.categoryTitle") */}</h3>
+      <p className="eyebrow">{t("dashboard.categoryEyebrow")}</p>
+      <h3 className="headline-md mt-2">{t("dashboard.categoryTitle")}</h3>
       <div className="mt-4 grid gap-6 md:grid-cols-2">
         <div className="flex items-center justify-center">
           <ResponsiveContainer width="100%" height={220}>
@@ -281,31 +244,29 @@ export function DashboardCategoryBreakdown({
                 innerRadius={55}
                 outerRadius={85}
                 paddingAngle={2}
-                dataKey="amount"
+                dataKey="value"
+                nameKey="name"
               >
-                {categories.map((_, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
+                {categories.map((cat, index) => (
+                  <Cell key={`cell-${cat.name}`} fill={cat.color} />
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: number) => formatCurrency(value)}
+                formatter={(value: number) => formatCurrency(value, locale)}
               />
             </PieChart>
           </ResponsiveContainer>
         </div>
         <div className="flex flex-col gap-2">
-          {categories.map((cat, i) => (
+          {categories.map((cat) => (
             <div key={cat.name} className="flex items-center gap-2 text-sm">
               <span
                 className="h-3 w-3 shrink-0 rounded-full"
-                style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                style={{ backgroundColor: cat.color }}
               />
               <span className="flex-1 truncate">{cat.name}</span>
               <span className="font-medium tabular-nums">
-                {formatCurrency(cat.amount, locale)}
+                {formatCurrency(cat.value, locale)}
               </span>
             </div>
           ))}
@@ -316,29 +277,39 @@ export function DashboardCategoryBreakdown({
 }
 ```
 
-**Step 3: Add to dashboard**
+**Key design decisions:**
+- Uses `cat.color` from the data (not hardcoded palette) — works in both light and dark mode because category colors are chosen by the user/seed from a palette that's visible on both backgrounds.
+- Uses `dataKey="value"` and `nameKey="name"` to map directly to `DashboardCategorySpend` fields.
+- The `Cell` key uses `cat.name` for stable React identity.
 
-In `dashboard-content.tsx`, after the daily expense chart section, add:
+**Step 2: Add to dashboard**
+
+In `dashboard-content.tsx`, after the daily expense chart section:
 
 ```tsx
-<DashboardCategoryBreakdown categories={dashboard.categorySpending} />
+<DashboardCategoryBreakdown categories={dashboard.categorySpend} />
 ```
 
-Add `categorySpending` to `DashboardData` type and populate it in the data layer.
+**Step 3: Add i18n keys**
+
+Add to translation files:
+- `dashboard.categoryEyebrow` → "Pengeluaran Bulan Ini"
+- `dashboard.categoryTitle` → "Berdasarkan Kategori"
 
 **Step 4: Verify**
 
 - Dashboard shows a donut chart with category breakdown
 - Hover shows tooltip with formatted currency
-- Legend shows all categories with color dots
-- Works in both light and dark mode (colors use CSS variables)
+- Legend uses category colors from the database
+- Works in both light and dark mode (colors from DB)
 - Donut has a hole in the center (ring style)
-- Empty state handled (no categories = no chart shown)
+- Empty state handled (`categories.length === 0` → no chart shown)
+- **Dark mode check:** Category colors visible on dark background, tooltip text legible
 
 **Step 5: Commit**
 
 ```bash
-git add components/features/dashboard/dashboard-category-breakdown.tsx components/features/dashboard/dashboard-content.tsx lib/data/
+git add components/features/dashboard/dashboard-category-breakdown.tsx components/features/dashboard/dashboard-content.tsx
 git commit -m "ui: add spending by category donut chart to dashboard"
 ```
 
@@ -354,6 +325,17 @@ git commit -m "ui: add spending by category donut chart to dashboard"
 - Modify: `components/features/transactions/transactions-page-content.tsx`
 
 **Why:** On mobile web, users expect to pull down to refresh data. Currently they'd have to navigate away and back, or hard refresh. Standard pattern for any finance app.
+
+**How it works:** Wraps content in a touch gesture handler. When the page is scrolled to top and user pulls down > 80px, calls `router.refresh()` which triggers Next.js Server Component re-render, fetching fresh data from the server.
+
+**Pitfalls & design notes:**
+- `router.refresh()` re-renders the entire Server Component tree (full data refresh). This may cause a brief flash of loading state — acceptable trade-off for clean data refresh without a custom state management layer.
+- Only activates when `window.scrollY <= 0` (at the top of the page) — won't interfere with normal scrolling.
+- Desktop completely unaffected (no touch events fire).
+- Spinner uses Tailwind's built-in `animate-spin` — no custom CSS needed.
+- **Dark mode:** The spinner uses `border-primary` + `border-t-transparent` — works on both light and dark backgrounds since `--primary` is theme-aware.
+- **Accessibility:** Touch event only, no keyboard equivalent needed (desktop has no refresh gesture).
+- If the page content doesn't fill the viewport, the pull gesture may feel awkward — test on pages with few transactions.
 
 **Step 1: Create PullToRefresh component**
 
@@ -395,6 +377,14 @@ git commit -m "ui: add pull-to-refresh gesture on mobile for dashboard and trans
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
+/**
+ * Animates a number from its CURRENT displayed value to the target value.
+ * Handles mid-animation value changes gracefully by aborting the old animation
+ * and starting fresh from the current display value.
+ *
+ * Uses requestAnimationFrame with ease-out cubic curve (~400ms).
+ * Respects prefers-reduced-motion: skips animation entirely.
+ */
 export function AnimatedNumber({
   value,
   formatter = (v) => String(v),
@@ -407,11 +397,23 @@ export function AnimatedNumber({
   duration?: number;
 }) {
   const [displayValue, setDisplayValue] = useState(value);
-  const prevValue = useRef(value);
   const rafId = useRef<number>();
+  // Track the CURRENT display value to use as animation start point
+  const currentDisplayRef = useRef(value);
 
   useEffect(() => {
-    const startValue = prevValue.current;
+    // Respect reduced-motion preference
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      setDisplayValue(value);
+      currentDisplayRef.current = value;
+      return;
+    }
+
+    // Abort any in-flight animation
+    if (rafId.current) cancelAnimationFrame(rafId.current);
+
+    const startValue = currentDisplayRef.current;
     const diff = value - startValue;
     if (diff === 0) return;
 
@@ -419,18 +421,22 @@ export function AnimatedNumber({
     function animate(currentTime: number) {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
       const current = Math.round(startValue + diff * eased);
       setDisplayValue(current);
+      currentDisplayRef.current = current;
       if (progress < 1) {
         rafId.current = requestAnimationFrame(animate);
       } else {
         setDisplayValue(value);
-        prevValue.current = value;
+        currentDisplayRef.current = value;
       }
     }
     rafId.current = requestAnimationFrame(animate);
-    return () => { if (rafId.current) cancelAnimationFrame(rafId.current); };
+    return () => {
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+    };
   }, [value, duration]);
 
   return <span className={cn("tabular-nums", className)}>{formatter(displayValue)}</span>;
@@ -444,8 +450,10 @@ Replace `{formatCurrency(value, "id", currency)}` with `<AnimatedNumber value={v
 **Step 3: Verify**
 - Dashboard numbers animate smoothly on page load (count up from 0)
 - 400ms ease-out curve, not distracting
+- Changing values mid-animation starts fresh from current display (no jump)
+- Respects `prefers-reduced-motion: reduce` — numbers appear instantly with no animation
 - Works with and without currency formatting
-- Screen readers read the real DOM value
+- Screen readers read the real DOM value (displayValue is the final number after animation)
 
 **Step 4: Commit**
 ```bash
@@ -488,32 +496,92 @@ Add optional `illustration` prop that renders a simple inline SVG. Create 3 reus
 
 **Effort:** 30 minutes
 
-### Quick Win C: Animated Page Transitions
+### Quick Win C: Animated Page Transitions (CSS-only)
 
-**Files:** `components/ui/route-transition.tsx` (check if it exists), `components/app-shell.tsx`
+**Files:** `app/globals.css` (add keyframe), `components/ui/route-transition.tsx` (check if it exists)
 
-Wrap `<main>` content in a simple fade-in animation on route change:
+Wrap `<main>` content in a simple fade-in animation on route change using pure CSS (no extra dependency):
 
 ```tsx
 "use client";
-import { motion } from "framer-motion"; // or use CSS animation
-
-export function RouteTransition({ children, key }: { children: React.ReactNode; key: string }) {
+export function RouteTransition({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      key={key}
-      className="animate-fadeIn"
-      style={{ animation: "fadeIn 200ms ease-out" }}
-    >
+    <div className="animate-page-fade-in">
       {children}
     </div>
   );
 }
 ```
 
-Add `@keyframes fadeIn` to `globals.css`.
+Add to `app/globals.css`:
+```css
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-**Effort:** 1 hour (skip if framer-motion not already a dep)
+.animate-page-fade-in {
+  animation: page-fade-in 200ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-fade-in {
+    animation: none;
+  }
+}
+```
+
+**Effort:** 30 minutes (CSS-only, no new dependency)
+
+---
+
+## Testing Guidance
+
+Per `AGENTS.md` and `docs/TESTING_GUIDE.md`: pure functions and helpers should have unit tests.
+
+**Testable pure functions in this plan:**
+
+- `getProgressColor` from Task 2 — color thresholds (0→50→80→100%)
+- `AnimatedNumber` — skips animation when `prefers-reduced-motion`, formats via callback
+
+**Test file:** `tests/unit/ui-improvements.test.ts`
+
+```tsx
+import { describe, it, expect } from "vitest";
+
+// Extract getProgressColor as export for testing
+function getProgressColor(current: number, max: number): string {
+  const ratio = current / max;
+  if (ratio <= 0.5) return "var(--success)";
+  if (ratio <= 0.8) return "#d4a72c";
+  return "var(--danger)";
+}
+
+describe("getProgressColor", () => {
+  it("returns success when under 50%", () => {
+    expect(getProgressColor(25, 100)).toBe("var(--success)");
+  });
+  it("returns amber between 50-80%", () => {
+    expect(getProgressColor(60, 100)).toBe("#d4a72c");
+  });
+  it("returns danger above 80%", () => {
+    expect(getProgressColor(90, 100)).toBe("var(--danger)");
+  });
+  it("returns success at exactly 50%", () => {
+    expect(getProgressColor(50, 100)).toBe("var(--success)");
+  });
+});
+```
+
+**Run:** `npm run test`
+
+For component-level tests (Task 3, 5), verify manually via the UI — the interaction complexity (touch gestures, chart rendering, animations) doesn't justify the test overhead for this phase.
 
 ---
 
@@ -536,7 +604,7 @@ ssh balance-vps "cd /home/ilham827/balance && docker compose pull app && docker 
 |---|---------|--------|--------|---------------|
 | 1 | FAB Quick-Add | 2-3h | ⭐⭐⭐ | app-shell, dialog-button |
 | 2 | Budget Progress Bar | 1-2h | ⭐⭐⭐ | stat-card, dashboard, data layer |
-| 3 | Category Donut Chart | 2-3h | ⭐⭐⭐ | new component, dashboard, data layer |
+| 3 | Category Donut Chart | 1-2h | ⭐⭐⭐ | new component, dashboard only |
 | 4 | Pull-to-Refresh Mobile | 1-2h | ⭐⭐⭐ | pull-to-refresh, dashboard, transactions |
 | 5 | Animated Number Transitions | 1h | ⭐⭐⭐ | animated-number, stat-card |
 | A | Dynamic Greeting | 15min | ⭐⭐ | app-shell |
