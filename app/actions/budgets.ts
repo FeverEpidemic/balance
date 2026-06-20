@@ -20,12 +20,13 @@ function readBudgetForm(formData: FormData) {
     budgetId: getStringValue(formData, "budget_id"),
     categoryId: getStringValue(formData, "category_id"),
     monthStart: getStringValue(formData, "month_start"),
-    amount: getNumericValue(formData, "amount")
+    amount: getNumericValue(formData, "amount"),
+    carryOverEnabled: formData.get("carry_over_enabled") === "true"
   };
 }
 
 export async function createBudget(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
-  const { walletId, categoryId, monthStart, amount } = readBudgetForm(formData);
+  const { walletId, categoryId, monthStart, amount, carryOverEnabled } = readBudgetForm(formData);
   const { supabase, user } = await requireUser();
   const t = await getActionTranslator();
 
@@ -39,6 +40,7 @@ export async function createBudget(_prevState: ActionResult, formData: FormData)
       category_id: categoryId,
       month_start: `${monthStart}-01`,
       amount,
+      carry_over_enabled: carryOverEnabled,
       created_by: user.id,
       updated_by: user.id
     },
@@ -65,7 +67,7 @@ export async function createBudget(_prevState: ActionResult, formData: FormData)
 }
 
 export async function updateBudget(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
-  const { walletId, budgetId, categoryId, monthStart, amount } = readBudgetForm(formData);
+  const { walletId, budgetId, categoryId, monthStart, amount, carryOverEnabled } = readBudgetForm(formData);
   const { supabase, user } = await requireUser();
   const t = await getActionTranslator();
 
@@ -83,6 +85,7 @@ export async function updateBudget(_prevState: ActionResult, formData: FormData)
       category_id: categoryId,
       month_start: `${monthStart}-01`,
       amount,
+      carry_over_enabled: carryOverEnabled,
       updated_by: user.id
     })
     .eq("id", budgetId)

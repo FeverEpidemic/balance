@@ -35,6 +35,11 @@ function BudgetItem({
         <div className={`h-2 rounded-full ${budget.ratio > 85 ? "bg-danger" : "bg-primary"}`} style={{ width: `${budget.ratio}%` }} />
       </div>
       <p className="mt-3 text-sm text-muted-foreground">{budget.usageLabel}</p>
+      {budget.carryOverAmount > 0 && (
+        <p className="mt-1 text-xs text-primary/70">
+          +{formatCurrency(budget.carryOverAmount)} carry-over dari bulan lalu
+        </p>
+      )}
       <ActionForm action={updateBudget} className="mt-4">
         {({ state }) => (
           <InlineEditPanel
@@ -65,6 +70,10 @@ function BudgetItem({
                 <CurrencyInput name="amount" defaultValue={budget.amount} required />
               </label>
               <div className="flex min-w-0 items-end gap-2">
+                <label className="flex items-center gap-2 text-xs whitespace-nowrap">
+                  <input name="carry_over_enabled" type="checkbox" value="true" defaultChecked={budget.carryOverEnabled} className="h-3.5 w-3.5 rounded border-muted-foreground" />
+                  <span className="text-muted-foreground">{t("budgets.carryOverLabel")}</span>
+                </label>
                 <SubmitButton className="w-full md:w-auto" pendingText={t("budgets.updatePending")} variant="soft">
                   {t("budgets.updateButton")}
                 </SubmitButton>
@@ -124,6 +133,10 @@ export function BudgetsPageContent({ data }: { data: BudgetsPageData }) {
             <label className="block">
               <span className="mb-2 block font-label text-sm text-muted-foreground">{t("budgets.limitLabel")}</span>
               <CurrencyInput name="amount" defaultValue={2500000} required />
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input name="carry_over_enabled" type="checkbox" value="true" className="h-4 w-4 rounded border-muted-foreground" />
+              <span className="text-muted-foreground">{t("budgets.carryOverLabel")}</span>
             </label>
             <SubmitButton pendingText={t("budgets.savePending")}>{t("budgets.saveButton")}</SubmitButton>
           </ActionForm>

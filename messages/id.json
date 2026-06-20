@@ -731,6 +731,7 @@
     "deleteConfirm": "Hapus anggaran ini?",
     "deletePending": "Menghapus...",
     "deleteButton": "Hapus anggaran",
+    "carryOverLabel": "Bawa sisa budget dari bulan lalu",
     "emptyTitle": "Belum ada anggaran aktif",
     "emptyDescription": "Setelah anggaran dibuat, progress kategori akan dihitung dari transaksi pengeluaran pada wallet ini."
   },
