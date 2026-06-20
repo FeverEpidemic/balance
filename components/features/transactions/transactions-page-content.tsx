@@ -7,6 +7,7 @@ import { TransactionCreateForm } from "@/components/features/transactions/transa
 import { useLocale } from "@/components/providers/locale-provider";
 import { useTimezone } from "@/components/providers/timezone-provider";
 import { AppIcon, CategoryIcon } from "@/components/ui/app-icon";
+import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { ActionForm } from "@/components/ui/action-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -268,6 +269,7 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
         ) : null
       }
     >
+      <PullToRefresh>
       {/* View toggle */}
       <div className="mb-4">
         <div className="glass-panel inline-flex gap-1 rounded-2xl p-1.5">
@@ -386,6 +388,7 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
           ) : null}
         </div>
       </section>
+      </PullToRefresh>
     </AppShell>
   );
 }

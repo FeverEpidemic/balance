@@ -11,6 +11,7 @@ import { AppIcon, CategoryIcon } from "@/components/ui/app-icon";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { StatCard } from "@/components/ui/stat-card";
 import { ToastFeedback } from "@/components/ui/toast-feedback";
 
@@ -70,7 +71,8 @@ export function DashboardContent({
 
       <ToastFeedback error={feedback?.error} message={feedback?.message} />
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <PullToRefresh>
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <StatCard label={t("dashboard.availableBudgetLabel")} value={dashboard.totalAvailableBudget} detail={t("dashboard.availableBudgetDetail")} progressValue={dashboard.totalExpenseThisMonth} progressMax={dashboard.totalAvailableBudget + dashboard.totalExpenseThisMonth} progressLabel={t("dashboard.budgetProgressLabel")} />
         <StatCard label={t("dashboard.savingBalanceLabel")} value={dashboard.totalSavingBalance} detail={t("dashboard.savingBalanceDetail")} />
         <StatCard label={t("dashboard.outstandingSplitLabel")} value={dashboard.outstandingSplit} detail={t("dashboard.outstandingSplitDetail")} />
@@ -291,6 +293,7 @@ export function DashboardContent({
           <DashboardHeroCount label={t("common.members")} value={dashboard.shell.memberCount} />
         </div>
       </section>
+      </PullToRefresh>
     </AppShell>
   );
 }
