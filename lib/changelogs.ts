@@ -15,11 +15,12 @@ export const changelogs: ChangelogEntry[] = [
   {
     version: "1.18.0",
     date: "2026-06-20",
-    title: "Batch Input & Budget Carry-Over",
-    description: "Dua fitur baru: input banyak transaksi sekaligus dengan tombol 'Tambah baris', dan bawa sisa budget yang tidak terpakai ke bulan berikutnya.",
+    title: "Batch Input & Budget Carry-Over & Debt Tracker",
+    description: "Tiga fitur baru: input banyak transaksi sekaligus, bawa sisa budget ke bulan berikutnya, dan catat utang/piutang dengan siapapun.",
     features: [
       { icon: "📝", text: "Batch Transaction Input: Klik 'Tambah baris' untuk input banyak transaksi sekaligus — submit sekali untuk semua." },
       { icon: "🔄", text: "Budget Carry-Over: Toggle per kategori untuk membawa sisa budget ke bulan berikutnya." },
+      { icon: "💰", text: "Debt Tracker: Catat utang/piutang dengan siapapun (nama text bebas). Dukung cicilan, auto-update status, dan link ke wallet." },
       { icon: "⛓️", text: "Carry-over rekursif: sisa budget dichain berbulan-bulan, bukan cuma 1 bulan." },
       { icon: "🛡️", text: "Overspent tidak mengurangi budget bulan berikutnya — carry-over minimal 0." }
     ]
