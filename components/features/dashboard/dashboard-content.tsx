@@ -3,6 +3,7 @@
 import { AppShell } from "@/components/app-shell";
 import { DashboardAiInsight } from "@/components/features/dashboard/dashboard-ai-insight";
 import { DashboardDailyExpenseChart } from "@/components/features/dashboard/dashboard-daily-expense-chart";
+import { DashboardCategoryBreakdown } from "@/components/features/dashboard/dashboard-category-breakdown";
 import { DashboardOnboardingCard } from "@/components/features/dashboard/dashboard-onboarding-card";
 import { DashboardWalletCreate } from "@/components/features/dashboard/dashboard-wallet-create";
 import { TransactionCreateDialogButton } from "@/components/features/transactions/transaction-create-dialog-button";
@@ -90,6 +91,8 @@ export function DashboardContent({
           </div>
         )}
       </section>
+
+      <DashboardCategoryBreakdown categories={dashboard.categorySpend} />
 
       <DashboardWalletCreate walletCount={dashboard.shell.walletCount} locale={locale} />
 

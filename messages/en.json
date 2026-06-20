@@ -380,6 +380,8 @@
     "availableBudgetLabel": "This Month's Remaining Budget",
     "availableBudgetDetail": "Total active budgets for the current month that remain.",
     "budgetProgressLabel": "Used out of total budget",
+    "categoryEyebrow": "This Month's Spending",
+    "categoryTitle": "By Category",
     "savingBalanceLabel": "Savings balance",
     "savingBalanceDetail": "Accumulated savings set aside from all wallets.",
     "totalBalanceLabel": "Total balance",
