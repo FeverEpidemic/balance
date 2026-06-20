@@ -54,19 +54,19 @@ CREATE POLICY "Select debts in member wallets" ON debts
 CREATE POLICY "Insert debts in member wallets" ON debts
   FOR INSERT WITH CHECK (
     private.is_wallet_member(wallet_id) AND
-    private.has_wallet_role(wallet_id, ARRAY['owner', 'editor'])
+    private.has_wallet_role(wallet_id, ARRAY['owner'::wallet_role, 'editor'::wallet_role])
   );
 
 CREATE POLICY "Update debts in member wallets" ON debts
   FOR UPDATE USING (
     private.is_wallet_member(wallet_id) AND
-    private.has_wallet_role(wallet_id, ARRAY['owner', 'editor'])
+    private.has_wallet_role(wallet_id, ARRAY['owner'::wallet_role, 'editor'::wallet_role])
   );
 
 CREATE POLICY "Delete debts in member wallets" ON debts
   FOR DELETE USING (
     private.is_wallet_member(wallet_id) AND
-    private.has_wallet_role(wallet_id, ARRAY['owner', 'editor'])
+    private.has_wallet_role(wallet_id, ARRAY['owner'::wallet_role, 'editor'::wallet_role])
   );
 
 CREATE POLICY "Select payments in member wallets" ON debt_payments
@@ -75,19 +75,19 @@ CREATE POLICY "Select payments in member wallets" ON debt_payments
 CREATE POLICY "Insert payments in member wallets" ON debt_payments
   FOR INSERT WITH CHECK (
     private.is_wallet_member(wallet_id) AND
-    private.has_wallet_role(wallet_id, ARRAY['owner', 'editor'])
+    private.has_wallet_role(wallet_id, ARRAY['owner'::wallet_role, 'editor'::wallet_role])
   );
 
 CREATE POLICY "Update payments in member wallets" ON debt_payments
   FOR UPDATE USING (
     private.is_wallet_member(wallet_id) AND
-    private.has_wallet_role(wallet_id, ARRAY['owner', 'editor'])
+    private.has_wallet_role(wallet_id, ARRAY['owner'::wallet_role, 'editor'::wallet_role])
   );
 
 CREATE POLICY "Delete payments in member wallets" ON debt_payments
   FOR DELETE USING (
     private.is_wallet_member(wallet_id) AND
-    private.has_wallet_role(wallet_id, ARRAY['owner', 'editor'])
+    private.has_wallet_role(wallet_id, ARRAY['owner'::wallet_role, 'editor'::wallet_role])
   );
 
 -- 7. Trigger: auto-update debt status on payment changes
