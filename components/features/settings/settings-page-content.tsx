@@ -33,7 +33,14 @@ export function SettingsPageContent({ settings, locale }: { settings: SettingsDa
     setIsReminderSubmitting(true);
     try {
       if (checked) {
-        const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+        const resp = await fetch("/api/vapid-key");
+        if (!resp.ok) {
+          toast.error(t("settings.reminderUnsupported"));
+          setIsReminderSubmitting(false);
+          return;
+        }
+        const data = await resp.json();
+        const vapidKey = data.publicKey as string;
         if (!vapidKey) {
           toast.error(t("settings.reminderUnsupported"));
           setIsReminderSubmitting(false);
