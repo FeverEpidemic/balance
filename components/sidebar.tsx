@@ -19,6 +19,52 @@ export type NavItem = {
 };
 
 export const SIDEBAR_STORAGE_KEY = "sidebar-collapsed";
+export const SIDEBAR_GROUPS_STORAGE_KEY = "sidebar-groups-collapsed";
+
+export function useCollapsedGroups(): [Record<string, boolean>, (group: string) => void] {
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {};
+    try {
+      const stored = localStorage.getItem(SIDEBAR_GROUPS_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  const toggleGroup = useCallback((group: string) => {
+    setCollapsedGroups((prev) => {
+      const next = { ...prev, [group]: !prev[group] };
+      try {
+        localStorage.setItem(SIDEBAR_GROUPS_STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        // localStorage unavailable — silently ignore
+      }
+      return next;
+    });
+  }, []);
+
+  return [collapsedGroups, toggleGroup];
+}
+
+function ChevronIcon({ collapsed }: { collapsed: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      className={cn(
+        "h-3.5 w-3.5 shrink-0 stroke-current transition-transform duration-200",
+        collapsed ? "-rotate-90" : "rotate-0"
+      )}
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
 
 export function useSidebarState(): [boolean, (collapsed: boolean) => void] {
   const [collapsed, setCollapsed] = useState(() => {
@@ -334,6 +380,7 @@ function SidebarSections({
   onNavClick?: () => void;
 }) {
   const t = getTranslator(locale);
+  const [collapsedGroups, toggleGroup] = useCollapsedGroups();
 
   const renderLink = (item: NavItem) => {
     const itemKey = getNavItemKey(item);
@@ -418,14 +465,22 @@ function SidebarSections({
         {groupOrder.map(({ key, labelKey }) => {
           const items = grouped[key];
           if (!items || items.length === 0) return null;
+          const isCollapsed = !!collapsedGroups[key];
           return (
             <div key={key} className="mt-6 first:mt-0">
-              <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                {t(labelKey)}
-              </p>
-              <div className="mt-3 space-y-2">
-                {items.map(renderLink)}
-              </div>
+              <button
+                type="button"
+                onClick={() => toggleGroup(key)}
+                className="flex w-full items-center justify-between text-left font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground hover:text-foreground transition-colors duration-150"
+              >
+                <span>{t(labelKey)}</span>
+                <ChevronIcon collapsed={isCollapsed} />
+              </button>
+              {!isCollapsed && (
+                <div className="mt-3 space-y-2">
+                  {items.map(renderLink)}
+                </div>
+              )}
             </div>
           );
         })}
@@ -483,14 +538,22 @@ function SidebarSections({
         {mobileGroupOrder.map(({ key, labelKey }) => {
           const items = mobileGrouped[key];
           if (!items || items.length === 0) return null;
+          const isCollapsed = !!collapsedGroups[key];
           return (
             <div key={key}>
-              <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                {t(labelKey)}
-              </p>
-              <nav className="mt-3 space-y-2">
-                {items.map((item) => renderMobileLink(item, "primary"))}
-              </nav>
+              <button
+                type="button"
+                onClick={() => toggleGroup(key)}
+                className="flex w-full items-center justify-between text-left font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground hover:text-foreground transition-colors duration-150"
+              >
+                <span>{t(labelKey)}</span>
+                <ChevronIcon collapsed={isCollapsed} />
+              </button>
+              {!isCollapsed && (
+                <nav className="mt-3 space-y-2">
+                  {items.map((item) => renderMobileLink(item, "primary"))}
+                </nav>
+              )}
             </div>
           );
         })}
