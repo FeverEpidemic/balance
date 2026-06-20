@@ -9,10 +9,13 @@ import { cn } from "@/lib/utils";
 import { logout } from "@/app/actions/auth";
 import type { ReactNode } from "react";
 
+export type NavItemGroup = "keuangan" | "perencanaan" | "pengaturan" | "lainnya";
+
 export type NavItem = {
   href: string;
   label: string;
-  icon: "dashboard" | "wallet" | "transactions" | "chat" | "settings" | "savings" | "budgets" | "reports" | "members" | "settlements" | "templates" | "changelog" | "overview" | "category";
+  icon: "dashboard" | "wallet" | "transactions" | "chat" | "settings" | "savings" | "budgets" | "reports" | "members" | "settlements" | "templates" | "changelog" | "overview" | "category" | "debt";
+  group?: NavItemGroup;
 };
 
 export const SIDEBAR_STORAGE_KEY = "sidebar-collapsed";
@@ -58,19 +61,27 @@ function SidebarToggleIcon({ collapsed }: { collapsed: boolean }) {
 
 function buildNavItems(t: ReturnType<typeof getTranslator>, walletId: string | null): NavItem[] {
   return [
-    { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" },
-    { href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet" },
-    { href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions" },
-    { href: walletId ? `/wallets/${walletId}/savings` : "/dashboard", label: t("common.savings"), icon: "savings" },
-    { href: walletId ? `/wallets/${walletId}/budgets` : "/dashboard", label: t("common.budgets"), icon: "budgets" },
-    { href: walletId ? `/wallets/${walletId}/categories` : "/dashboard", label: t("common.categories"), icon: "category" },
-    { href: walletId ? `/wallets/${walletId}/reports` : "/dashboard", label: t("common.reports"), icon: "reports" },
-    { href: walletId ? `/wallets/${walletId}/members` : "/dashboard", label: t("common.members"), icon: "members" },
-    { href: walletId ? `/wallets/${walletId}/settlements` : "/dashboard", label: t("common.settlements"), icon: "settlements" },
-    { href: walletId ? `/wallets/${walletId}/templates` : "/dashboard", label: t("common.templates"), icon: "templates" },
-    { href: "/changelogs", label: t("common.changelogs"), icon: "changelog" },
-    { href: "/settings", label: t("common.settings"), icon: "settings" },
-    { href: "/chat", label: t("common.aiAssistant"), icon: "chat" },
+    // Keuangan
+    { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard", group: "keuangan" },
+    { href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet", group: "keuangan" },
+    { href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions", group: "keuangan" },
+
+    // Perencanaan
+    { href: walletId ? `/wallets/${walletId}/savings` : "/dashboard", label: t("common.savings"), icon: "savings", group: "perencanaan" },
+    { href: walletId ? `/wallets/${walletId}/budgets` : "/dashboard", label: t("common.budgets"), icon: "budgets", group: "perencanaan" },
+    { href: walletId ? `/wallets/${walletId}/debts` : "/dashboard", label: t("common.debts"), icon: "debt", group: "perencanaan" },
+    { href: walletId ? `/wallets/${walletId}/reports` : "/dashboard", label: t("common.reports"), icon: "reports", group: "perencanaan" },
+
+    // Pengaturan
+    { href: walletId ? `/wallets/${walletId}/categories` : "/dashboard", label: t("common.categories"), icon: "category", group: "pengaturan" },
+    { href: walletId ? `/wallets/${walletId}/templates` : "/dashboard", label: t("common.templates"), icon: "templates", group: "pengaturan" },
+    { href: walletId ? `/wallets/${walletId}/members` : "/dashboard", label: t("common.members"), icon: "members", group: "pengaturan" },
+    { href: walletId ? `/wallets/${walletId}/settlements` : "/dashboard", label: t("common.settlements"), icon: "settlements", group: "pengaturan" },
+    { href: "/settings", label: t("common.settings"), icon: "settings", group: "pengaturan" },
+
+    // Lainnya
+    { href: "/changelogs", label: t("common.changelogs"), icon: "changelog", group: "lainnya" },
+    { href: "/chat", label: t("common.aiAssistant"), icon: "chat", group: "lainnya" },
   ];
 }
 
@@ -131,8 +142,9 @@ export function UnifiedSidebar({
     { href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions" },
     { href: walletId ? `/wallets/${walletId}/savings` : "/dashboard", label: t("common.savings"), icon: "savings" },
     { href: walletId ? `/wallets/${walletId}/budgets` : "/dashboard", label: t("common.budgets"), icon: "budgets" },
-    { href: walletId ? `/wallets/${walletId}/categories` : "/dashboard", label: t("common.categories"), icon: "category" },
+    { href: walletId ? `/wallets/${walletId}/debts` : "/dashboard", label: t("common.debts"), icon: "debt" },
     { href: walletId ? `/wallets/${walletId}/reports` : "/dashboard", label: t("common.reports"), icon: "reports" },
+    { href: walletId ? `/wallets/${walletId}/categories` : "/dashboard", label: t("common.categories"), icon: "category" },
     { href: walletId ? `/wallets/${walletId}/members` : "/dashboard", label: t("common.members"), icon: "members" },
     { href: walletId ? `/wallets/${walletId}/settlements` : "/dashboard", label: t("common.settlements"), icon: "settlements" },
     { href: walletId ? `/wallets/${walletId}/templates` : "/dashboard", label: t("common.templates"), icon: "templates" },
@@ -297,7 +309,7 @@ export function UnifiedSidebar({
 
 /**
  * Reusable navigation sections used by both desktop and mobile sidebar.
- * Shows "Navigasi Utama" + "Aktif Wallet" groups when expanded.
+ * Shows grouped sections when expanded.
  */
 function SidebarSections({
   navItems,
@@ -379,17 +391,37 @@ function SidebarSections({
 
   // ── Expanded: show grouped sections ──────────────────────────────
   if (!collapsed && !onNavClick) {
+    // Group nav items by their group field
+    const groupOrder: { key: NavItemGroup; labelKey: string }[] = [
+      { key: "keuangan", labelKey: "app.navigationMain" },
+      { key: "perencanaan", labelKey: "app.navigationPlanning" },
+      { key: "pengaturan", labelKey: "common.settings" },
+      { key: "lainnya", labelKey: "app.navigationOther" },
+    ];
+
+    const grouped: Partial<Record<NavItemGroup, NavItem[]>> = {};
+    for (const item of navItems) {
+      const g = item.group ?? "lainnya";
+      if (!grouped[g]) grouped[g] = [];
+      grouped[g].push(item);
+    }
+
     return (
       <nav className="mt-4 flex-1 overflow-y-auto px-4 pb-4">
-        {/* Navigasi Utama */}
-        <div>
-          <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            {t("app.navigationMain")}
-          </p>
-          <div className="mt-3 space-y-2">
-            {navItems.map(renderLink)}
-          </div>
-        </div>
+        {groupOrder.map(({ key, labelKey }) => {
+          const items = grouped[key];
+          if (!items || items.length === 0) return null;
+          return (
+            <div key={key} className="mt-6 first:mt-0">
+              <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                {t(labelKey)}
+              </p>
+              <div className="mt-3 space-y-2">
+                {items.map(renderLink)}
+              </div>
+            </div>
+          );
+        })}
 
         {/* Aktif Wallet */}
         {walletShortcuts.length > 0 && (

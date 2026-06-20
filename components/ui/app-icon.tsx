@@ -25,7 +25,8 @@ type AppIconName =
   | "plus"
   | "edit"
   | "download"
-  | "category";
+  | "category"
+  | "debt";
 
 type CategoryIconName =
   | "food"
@@ -254,6 +255,15 @@ export function AppIcon({
           <path d="M12 4.5v10" />
           <path d="m8.5 11.5 3.5 3.5 3.5-3.5" />
           <path d="M5 18.5h14" />
+        </StrokeIcon>
+      );
+    case "debt":
+      return (
+        <StrokeIcon className={className} tone={tone}>
+          <path d="M6 7.5h12v11H6z" />
+          <path d="M8 5.5h8v2H8z" />
+          <path d="M8 11h8" />
+          <path d="M8 14h5" />
         </StrokeIcon>
       );
     default:

@@ -11,7 +11,9 @@
     "navigationMain": "Utama",
     "navigationActiveWallet": "Wallet aktif",
     "sidebarCollapse": "Ciutkan sidebar",
-    "sidebarExpand": "Perluas sidebar"
+    "sidebarExpand": "Perluas sidebar",
+    "navigationPlanning": "Perencanaan",
+    "navigationOther": "Lainnya"
   },
   "common": {
     "user": "Pengguna",

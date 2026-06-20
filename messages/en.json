@@ -11,7 +11,9 @@
     "navigationMain": "Main",
     "navigationActiveWallet": "Active wallet",
     "sidebarCollapse": "Collapse sidebar",
-    "sidebarExpand": "Expand sidebar"
+    "sidebarExpand": "Expand sidebar",
+    "navigationPlanning": "Planning",
+    "navigationOther": "Other"
   },
   "common": {
     "user": "User",
