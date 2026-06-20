@@ -45,6 +45,7 @@ export function DashboardContent({
       memberCount={dashboard.shell.memberCount}
       primaryWalletId={dashboard.shell.primaryWalletId}
       hideDefaultHeaderStats
+      fabTransactionContext={dashboard.createTransactionContext ?? undefined}
       headerBody={
         <div className="max-w-3xl">
           <p className="font-label text-xs font-semibold uppercase tracking-[0.16em] text-primary-strong">

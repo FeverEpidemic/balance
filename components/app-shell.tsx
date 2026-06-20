@@ -15,6 +15,8 @@ import {
 } from "@/lib/mobile-nav";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
+import type { TransactionCreateContext } from "@/lib/data";
+import { TransactionCreateDialogButton } from "@/components/features/transactions/transaction-create-dialog-button";
 
 type MobileNavItem = {
   href: string;
@@ -41,7 +43,8 @@ export function AppShell({
   subtitleClassName,
   headerBody,
   headerFooter,
-  hideDefaultHeaderStats = false
+  hideDefaultHeaderStats = false,
+  fabTransactionContext,
 }: {
   children: ReactNode;
   currentPath: string;
@@ -58,6 +61,7 @@ export function AppShell({
   headerBody?: ReactNode;
   headerFooter?: ReactNode;
   hideDefaultHeaderStats?: boolean;
+  fabTransactionContext?: TransactionCreateContext;
 }) {
   const locale = useLocale();
   const t = getTranslator(locale);
@@ -196,7 +200,7 @@ export function AppShell({
               <div>
                 <div className="flex items-center justify-between gap-3">
                   <h2 className={cn("headline-lg", subtitleClassName)}>{subtitle}</h2>
-                  {headerAction ? <div className="shrink-0 md:hidden">{headerAction}</div> : null}
+                  {headerAction && !fabTransactionContext ? <div className="shrink-0 md:hidden">{headerAction}</div> : null}
                 </div>
                 <p className="mt-2 max-w-2xl text-[15px] leading-7 text-muted-foreground sm:text-sm">
                   {t("app.shellHeaderDescription")}
@@ -290,6 +294,17 @@ export function AppShell({
             </div>
           </div>
         </nav>
+
+        {/* FAB — replaces mobile header button */}
+        {!isDesktop && fabTransactionContext ? (
+          <div className="fixed bottom-24 right-5 z-40 lg:hidden">
+            <TransactionCreateDialogButton
+              context={fabTransactionContext}
+              label=""
+              iconOnly
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );

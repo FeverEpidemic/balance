@@ -11,10 +11,12 @@ import { TransactionCreateForm } from "@/components/features/transactions/transa
 
 export function TransactionCreateDialogButton({
   context,
-  label
+  label,
+  iconOnly
 }: {
   context: TransactionCreateContext;
   label: string;
+  iconOnly?: boolean;
 }) {
   const locale = useLocale();
   const t = getTranslator(locale);
@@ -24,14 +26,24 @@ export function TransactionCreateDialogButton({
     <>
       <Button
         onClick={() => setOpen(true)}
-        variant="soft"
-        className="min-h-[2.75rem] gap-2 rounded-full border border-border bg-overlay px-3 shadow-none hover:shadow-none"
+        variant={iconOnly ? "primary" : "soft"}
+        className={iconOnly
+          ? "flex h-14 w-14 items-center justify-center rounded-full bg-primary text-[var(--button-primary-text)] shadow-float transition hover:bg-primary-hover active:scale-95"
+          : "min-h-[2.75rem] gap-2 rounded-full border border-border bg-overlay px-3 shadow-none hover:shadow-none"
+        }
+        aria-label={label}
       >
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-card ring-1 ring-inset ring-border">
-          <AppIcon name="plus" className="h-4 w-4" tone="primary" />
-        </span>
-        <span className="hidden sm:inline">{label}</span>
-        <span className="sr-only sm:hidden">{label}</span>
+        {iconOnly ? (
+          <AppIcon name="plus" className="h-6 w-6" tone="inherit" />
+        ) : (
+          <>
+            <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-card ring-1 ring-inset ring-border">
+              <AppIcon name="plus" className="h-4 w-4" tone="primary" />
+            </span>
+            <span className="hidden sm:inline">{label}</span>
+            <span className="sr-only sm:hidden">{label}</span>
+          </>
+        )}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[88vh] overflow-y-auto">

@@ -261,6 +261,7 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
       memberCount={data.shell.memberCount}
       primaryWalletId={data.shell.primaryWalletId}
       currentWalletId={data.walletId}
+      fabTransactionContext={canMutate ? createTransactionContext : undefined}
       headerAction={
         canMutate ? (
           <TransactionCreateDialogButton context={createTransactionContext} label={t("dashboard.addTransaction")} />
