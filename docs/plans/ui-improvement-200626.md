@@ -20,35 +20,30 @@
 - Modify: `components/app-shell.tsx` (add FAB after mobile nav)
 - No new components needed — reuse `TransactionCreateDialogButton`
 
-**Step 1: Add FAB to AppShell**
+**Design decision:** The FAB replaces the mobile header "Tambah Transaksi" button — not both visible at once. On desktop, the header button remains as-is (no FAB on desktop).
 
-In `components/app-shell.tsx`, after the mobile `<nav>` block (line 292), add:
+Current state in `app-shell.tsx`:
+- Line 199 — Mobile header button (`md:hidden`): visible on <768px
+- Line 208 — Desktop header button (`hidden md:flex`): visible on ≥768px
+
+**Changes needed in AppShell:**
+1. Add optional `fabTransactionContext?: TransactionCreateContext` prop
+2. When FAB is active → **hide** the mobile header button (line 199) by adding a check
+3. Keep desktop header button unchanged
+4. Render FAB below the nav on mobile
+
+**Step 1a: Add `fabTransactionContext` prop + FAB rendering**
+
+In `components/app-shell.tsx`, add to props:
 
 ```tsx
-{/* Mobile FAB — quick-add from anywhere */}
-{!isDesktop ? (
-  <div className="fixed bottom-24 right-5 z-40 lg:hidden">
-    <TransactionCreateDialogButton
-      context={/* need wallet context */}
-      label=""
-      className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-[var(--button-primary-text)] shadow-float transition hover:bg-primary-hover active:scale-95"
-      iconOnly
-    />
-  </div>
-) : null}
+fabTransactionContext?: TransactionCreateContext;
 ```
 
-**Issue:** `AppShell` doesn't currently have access to `createTransactionContext`. Need to either:
-- Pass it as an optional prop to `AppShell`
-- Or render the FAB in each page that has the context
-
-**Recommended approach:** Add optional `fabTransactionContext` prop to `AppShell`, render FAB only when context is available. Each page passes it from its data.
+After the mobile `<nav>` block, add:
 
 ```tsx
-// In AppShell props:
-fabTransactionContext?: TransactionCreateContext;
-
-// In render:
+{/* FAB — replaces mobile header button */}
 {!isDesktop && fabTransactionContext ? (
   <div className="fixed bottom-24 right-5 z-40 lg:hidden">
     <TransactionCreateDialogButton
@@ -60,6 +55,19 @@ fabTransactionContext?: TransactionCreateContext;
   </div>
 ) : null}
 ```
+
+**Step 1b: Hide mobile header button when FAB is active**
+
+Change line 199 from:
+```tsx
+{headerAction ? <div className="shrink-0 md:hidden">{headerAction}</div> : null}
+```
+To:
+```tsx
+{headerAction && !fabTransactionContext ? <div className="shrink-0 md:hidden">{headerAction}</div> : null}
+```
+
+This ensures the mobile add-transaction button is removed from the header when the FAB is present, while the desktop button remains untouched (line 208).
 
 **Step 2: Update `TransactionCreateDialogButton` to support `iconOnly` mode**
 
