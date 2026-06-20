@@ -26,6 +26,7 @@ import {
   type ActionResult
 } from "@/app/actions/_shared";
 import { combineDateAndTime, dateStringToISO, isValidDateString } from "@/lib/utils";
+import { parseNumberInput } from "@/lib/finance";
 
 function readTransactionForm(formData: FormData) {
   return {
@@ -421,4 +422,78 @@ export async function deleteTransaction(_prevState: ActionResult, formData: Form
     sections: ["transactions", "budgets", "reports"]
   });
   return successResult(t("actionSuccess.transactionDeleted"));
+}
+
+export async function createBatchTransactions(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
+  const { supabase, user } = await requireUser();
+  const t = await getActionTranslator();
+
+  const walletId = getStringValue(formData, "wallet_id");
+  if (!walletId) {
+    return errorResult("Wallet harus dipilih");
+  }
+
+  const rowCount = Number(formData.get("row_count") || 1);
+  if (rowCount === 0) {
+    return errorResult("Minimal harus ada 1 transaksi");
+  }
+
+  const rateLimit = await consumeTransactionRateLimit(user.id);
+  if (!rateLimit.allowed) {
+    return errorResult(t("actionErrors.transactionRateLimited"));
+  }
+
+  const timezone = await getActionTimezone();
+  const insertRows: Record<string, unknown>[] = [];
+
+  for (let i = 0; i < rowCount; i++) {
+    const kind = (formData.get(`kind_${i}`) as string) || "expense";
+    const categoryId = formData.get(`category_id_${i}`) as string;
+    const note = (formData.get(`note_${i}`) as string)?.trim() || null;
+    const amountStr = formData.get(`amount_${i}`) as string;
+    const happenedAt = formData.get(`happened_at_${i}`) as string;
+    const happenedAtTime = formData.get(`happened_at_time_${i}`) as string;
+
+    const amount = amountStr ? parseNumberInput(amountStr) : null;
+
+    if (!happenedAt || !isValidDateString(happenedAt)) {
+      return errorResult(`Baris ke-${i + 1}: ${t("actionErrors.transactionDateInvalid")}`);
+    }
+    if (!amount || amount <= 0) {
+      return errorResult(`Baris ke-${i + 1}: ${t("actionErrors.transactionAmountInvalid")}`);
+    }
+
+    const happenedAtISO = dateStringToISO(combineDateAndTime(happenedAt, happenedAtTime || null, timezone));
+
+    insertRows.push({
+      wallet_id: walletId,
+      category_id: categoryId || null,
+      kind,
+      amount,
+      note,
+      happened_at: happenedAtISO,
+      source: "manual",
+      created_by: user.id,
+      updated_by: user.id
+    });
+  }
+
+  const { error } = await supabase.from("transactions").insert(insertRows);
+
+  if (error) {
+    return errorResult(safeDbError(error, "actionErrors.unexpectedError", t));
+  }
+
+  const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
+  await invalidateWalletReadCaches(walletId, {
+    targets: ["overview", "transactions", "budgets"],
+    dashboardUserIds
+  });
+  await invalidateAiInsightCache(dashboardUserIds);
+  await revalidateWalletPaths(walletId, {
+    includeDashboard: true,
+    includeOverview: true,
+    sections: ["transactions", "budgets"]
+  });
+  return successResult(t("actionSuccess.transactionSaved"), { resetForm: true });
 }

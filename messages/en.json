@@ -533,6 +533,8 @@
     "quickInputNotePlaceholder": "Monthly supermarket shopping",
     "quickInputSavePending": "Saving transaction...",
     "quickInputSave": "Save transaction",
+    "addRowButton": "Add row",
+    "batchSave": "Save {count} transactions",
     "savingLinkedNotice": "This transaction was created automatically from the Savings tab and cannot be edited or deleted here.",
     "editButton": "Edit transaction",
     "editCardTitle": "This transaction can be edited",

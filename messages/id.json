@@ -533,6 +533,8 @@
     "quickInputNotePlaceholder": "Belanja bulanan supermarket",
     "quickInputSavePending": "Menyimpan transaksi...",
     "quickInputSave": "Simpan transaksi",
+    "addRowButton": "Tambah baris",
+    "batchSave": "Simpan {count} transaksi",
     "savingLinkedNotice": "Transaksi ini dibuat otomatis dari tab Tabungan dan tidak bisa diedit atau dihapus dari sini.",
     "editButton": "Ubah transaksi",
     "editCardTitle": "Transaksi ini bisa diedit",
