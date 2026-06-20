@@ -1,52 +1,64 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <!-- Serene Capital palette -->
+    <linearGradient id="leftFigGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a3c4ad" />
+      <stop offset="100%" stop-color="#7ba387" />
+    </linearGradient>
+    <linearGradient id="rightFigGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a5c4d4" />
+      <stop offset="100%" stop-color="#7da2b8" />
+    </linearGradient>
     <linearGradient id="walletGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#8C936D"/>
-      <stop offset="100%" stop-color="#595f3d"/>
+      <stop offset="0%" stop-color="#8cb296" />
+      <stop offset="100%" stop-color="#7298af" />
     </linearGradient>
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#fbf9f3"/>
-      <stop offset="100%" stop-color="#f5f4ed"/>
+      <stop offset="0%" stop-color="#fbf9f3" />
+      <stop offset="100%" stop-color="#f5f4ed" />
     </linearGradient>
   </defs>
 
   <!-- Background rounded square -->
-  <rect x="16" y="16" width="480" height="480" rx="104" ry="104" fill="url(#bgGrad)" stroke="#e4e2dc" stroke-width="1.5"/>
+  <rect x="16" y="16" width="480" height="480" rx="104" ry="104" fill="url(#bgGrad)" stroke="#e4e2dc" stroke-width="1.5" />
 
-  <!-- Left figure (sage green) -->
-  <g transform="translate(0,0)">
-    <!-- Head -->
-    <circle cx="168" cy="204" r="36" fill="#8C936D" opacity="0.9"/>
-    <!-- Body leaning toward center -->
-    <path d="M142,260 Q150,280 156,310 Q160,340 164,370 L176,370 Q180,340 184,310 Q190,280 198,260 Z" fill="#8C936D" opacity="0.9"/>
-    <!-- Arm reaching toward center -->
-    <path d="M155,278 Q180,300 210,312 Q215,314 215,310 Q215,306 210,304 Q185,292 162,274 Z" fill="#717854" opacity="0.85"/>
-  </g>
+  <!-- Left figure — Green/Teal -->
+  <circle cx="196" cy="150" r="38" fill="url(#leftFigGrad)" />
+  <path
+    d="M256,208 C220,160 140,180 140,240 C140,310 200,370 256,410 L256,208Z"
+    fill="url(#leftFigGrad)"
+  />
 
-  <!-- Right figure (warm beige/cream) -->
-  <g transform="translate(0,0)">
-    <!-- Head -->
-    <circle cx="344" cy="204" r="36" fill="#dbdad4" opacity="0.9"/>
-    <!-- Body leaning toward center -->
-    <path d="M336,260 Q330,280 326,310 Q322,340 318,370 L306,370 Q302,340 298,310 Q294,280 288,260 Z" fill="#dbdad4" opacity="0.9"/>
-    <!-- Arm reaching toward center -->
-    <path d="M329,278 Q304,300 274,312 Q269,314 269,310 Q269,306 274,304 Q299,292 322,274 Z" fill="#c7c7ba" opacity="0.85"/>
-  </g>
+  <!-- Right figure — Blue/Slate -->
+  <circle cx="316" cy="150" r="38" fill="url(#rightFigGrad)" />
+  <path
+    d="M256,208 C292,160 372,180 372,240 C372,310 312,370 256,410 L256,208Z"
+    fill="url(#rightFigGrad)"
+  />
 
-  <!-- Central wallet -->
-  <g transform="translate(256,288)">
-    <!-- Wallet body -->
-    <rect x="-52" y="-38" width="104" height="76" rx="18" ry="18" fill="url(#walletGrad)"/>
-    <!-- Wallet flap/closure -->
-    <path d="M-30,-38 Q0,-52 30,-38" fill="none" stroke="#fcffe2" stroke-width="4" stroke-linecap="round"/>
-    <!-- Wallet coin/circle accent -->
-    <circle cx="0" cy="-4" r="8" fill="none" stroke="#fcffe2" stroke-width="3" opacity="0.7"/>
-    <!-- Wallet lines (card slots) -->
-    <line x1="-30" y1="10" x2="30" y2="10" stroke="#fcffe2" stroke-width="2.5" opacity="0.4" stroke-linecap="round"/>
-    <line x1="-30" y1="24" x2="20" y2="24" stroke="#fcffe2" stroke-width="2.5" opacity="0.3" stroke-linecap="round"/>
-  </g>
+  <!-- Central wallet with white border to pop -->
+  <rect
+    x="204"
+    y="244"
+    width="104"
+    height="76"
+    rx="18"
+    fill="url(#walletGrad)"
+    stroke="#ffffff"
+    stroke-width="4"
+  />
+  <rect
+    x="250"
+    y="262"
+    width="58"
+    height="40"
+    rx="10"
+    fill="url(#walletGrad)"
+    stroke="#ffffff"
+    stroke-width="4"
+  />
+  <circle cx="288" cy="282" r="5" fill="#ffffff" />
 
   <!-- Subtle outer glow -->
-  <rect x="16" y="16" width="480" height="480" rx="104" ry="104" fill="none" stroke="#8C936D" stroke-width="2" opacity="0.15"/>
+  <rect x="16" y="16" width="480" height="480" rx="104" ry="104" fill="none" stroke="#8C936D" stroke-width="2" opacity="0.12" />
 </svg>
+

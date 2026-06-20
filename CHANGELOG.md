@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+## [1.16.1] - 2026-06-20
+
+### Changed
+- **Pembaruan Desain Logo & Tagline Header** — Mengganti ikon lama di header dan wordmark dengan logo representatif baru (dua sosok figur hijau & biru membentuk kontur hati dengan dompet bergaris tepi putih di tengah). Selain itu, tagline di bawah logo "Balance" kini dinamis mengikuti lokalisasi bahasa (Bahasa Indonesia: "KEUANGAN YANG LEBIH TENANG", English: "CALMER HOUSEHOLD FINANCE") dengan font Geist Monospace yang disesuaikan ukuran dan letter-spacing agar terbaca tajam dan rapi di semua ukuran layar (tanpa terpotong/menumpuk).
+
+### Fixed
+- **Perbaikan Bug Gradient Dompet** — Memperbaiki bug SVG `url(--walletGrad)` menjadi referensi gradien yang valid `url(#walletGrad)` sehingga dompet tidak lagi berwarna hitam solid dan gradien warna dapat ter-render dengan sempurna.
+
 ## [1.16.0] - 2026-06-20
 
 ### Added

@@ -13,6 +13,18 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.16.1",
+    date: "2026-06-20",
+    title: "Visual Upgrade — Desain Logo Premium & Tagline Dinamis",
+    description: "Kami mendesain ulang logo header dan tagline agar tampil lebih elegan, tajam, dan representatif. Ikon lama kini diganti dengan simbol dua sosok figur (hijau & biru) membentuk hati dengan dompet bergaris tepi putih yang kontras. Tagline di bawah logo kini dinamis menyesuaikan lokalisasi bahasa dengan keterbacaan yang dioptimalkan.",
+    features: [
+      { icon: "🎨", text: "Logo header baru menggunakan simbol dua figur (hijau & biru) yang membentuk hati dengan dompet di tengah, melambangkan keuangan rumah tangga/bersama." },
+      { icon: "🌐", text: "Tagline di bawah logo kini dinamis mengikuti bahasa aktif (Bahasa Indonesia: 'KEUANGAN YANG LEBIH TENANG', English: 'CALMER HOUSEHOLD FINANCE')." },
+      { icon: "✨", text: "Ukuran font dan letter-spacing tagline disesuaikan agar tetap tajam, rapi, dan tidak saling menumpuk di semua ukuran layar." },
+      { icon: "🐛", text: "Perbaikan bug referensi linearGradient SVG yang sebelumnya salah (url(--walletGrad) menjadi url(#walletGrad)) sehingga dompet tidak lagi berwarna hitam." }
+    ]
+  },
+  {
     version: "1.16.0",
     date: "2026-06-20",
     title: "Revamp Landing Page — Estetika Premium & Animasi Scroll",
