@@ -15,12 +15,12 @@ export const changelogs: ChangelogEntry[] = [
   {
     version: "1.18.0",
     date: "2026-06-20",
-    title: "Budget Carry-Over — Bawa Sisa Budget ke Bulan Depan",
-    description: "Sisa budget yang tidak terpakai dari bulan sebelumnya kini bisa dibawa ke bulan berikutnya. Aktifkan toggle 'Bawa sisa budget' per kategori — sisa budget akan otomatis ditambahkan ke budget bulan ini, dan perhitungannya dirantai secara rekursif ke bulan-bulan sebelumnya.",
+    title: "Batch Input & Budget Carry-Over",
+    description: "Dua fitur baru: input banyak transaksi sekaligus dengan tombol 'Tambah baris', dan bawa sisa budget yang tidak terpakai ke bulan berikutnya.",
     features: [
-      { icon: "🔄", text: "Toggle 'Bawa sisa budget' per kategori — aktifkan hanya untuk kategori yang diinginkan." },
-      { icon: "📊", text: "Carry-over amount ditampilkan sebagai informasi tambahan di daftar budget." },
-      { icon: "⛓️", text: "Perhitungan rekursif: sisa budget di-chain berbulan-bulan, bukan cuma 1 bulan ke belakang." },
+      { icon: "📝", text: "Batch Transaction Input: Klik 'Tambah baris' untuk input banyak transaksi sekaligus — submit sekali untuk semua." },
+      { icon: "🔄", text: "Budget Carry-Over: Toggle per kategori untuk membawa sisa budget ke bulan berikutnya." },
+      { icon: "⛓️", text: "Carry-over rekursif: sisa budget dichain berbulan-bulan, bukan cuma 1 bulan." },
       { icon: "🛡️", text: "Overspent tidak mengurangi budget bulan berikutnya — carry-over minimal 0." }
     ]
   },

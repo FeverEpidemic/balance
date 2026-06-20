@@ -4,6 +4,7 @@
 
 ### Added
 - **Budget Carry-Over** — Sisa budget yang tidak terpakai dari bulan sebelumnya bisa dibawa ke bulan berikutnya. Fitur ini bersifat opsional per kategori (toggle "Bawa sisa budget"). Perhitungan carry-over bersifat rekursif dan memoized, mendukung rantai carry-over berbulan-bulan. Carry-over amount ditampilkan sebagai informasi tambahan di daftar budget.
+- **Batch Transaction Input** — Input banyak transaksi sekaligus dalam satu form. Klik "Tambah baris" untuk menambahkan baris transaksi baru, isi semua field, dan submit sekali untuk semua baris. Insert bersifat atomic (all-or-nothing) dengan rate limit 1 token untuk seluruh batch.
 
 ## [1.17.0] - 2026-06-20
 
