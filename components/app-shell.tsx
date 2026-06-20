@@ -24,6 +24,14 @@ type MobileNavItem = {
   label: string;
 };
 
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 11) return "Selamat pagi";
+  if (hour < 15) return "Selamat siang";
+  if (hour < 18) return "Selamat sore";
+  return "Selamat malam";
+}
+
 function getNavItemKey(item: MobileNavItem) {
   return `${item.icon}:${item.href}`;
 }
@@ -188,7 +196,9 @@ export function AppShell({
         <main className="page-wrap section-gap">
           <header className="glass-panel mb-4 rounded-[1.25rem] px-4 py-4 backdrop-blur md:px-6 lg:mt-0">
             <div className="mb-3 flex items-center justify-between gap-3 lg:hidden">
-              <p className="pl-14 text-sm text-muted-foreground">{userName}</p>
+              <p className="pl-14 text-sm text-muted-foreground">
+                {getGreeting()}, {userName} ☀️
+              </p>
               <div className="flex items-center gap-2">
                 <form action={logout}>
                   <button className={logoutButtonClassName}>{t("common.logout")}</button>
