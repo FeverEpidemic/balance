@@ -137,20 +137,27 @@ export function UnifiedSidebar({
   const navItems = buildNavItems(t, walletId);
 
   const mobileNavItems: NavItem[] = [
-    { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard" },
-    { href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet" },
-    { href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions" },
-    { href: walletId ? `/wallets/${walletId}/savings` : "/dashboard", label: t("common.savings"), icon: "savings" },
-    { href: walletId ? `/wallets/${walletId}/budgets` : "/dashboard", label: t("common.budgets"), icon: "budgets" },
-    { href: walletId ? `/wallets/${walletId}/debts` : "/dashboard", label: t("common.debts"), icon: "debt" },
-    { href: walletId ? `/wallets/${walletId}/reports` : "/dashboard", label: t("common.reports"), icon: "reports" },
-    { href: walletId ? `/wallets/${walletId}/categories` : "/dashboard", label: t("common.categories"), icon: "category" },
-    { href: walletId ? `/wallets/${walletId}/members` : "/dashboard", label: t("common.members"), icon: "members" },
-    { href: walletId ? `/wallets/${walletId}/settlements` : "/dashboard", label: t("common.settlements"), icon: "settlements" },
-    { href: walletId ? `/wallets/${walletId}/templates` : "/dashboard", label: t("common.templates"), icon: "templates" },
-    { href: "/changelogs", label: t("common.changelogs"), icon: "changelog" },
-    { href: "/settings", label: t("common.settings"), icon: "settings" },
-    { href: "/chat", label: t("common.aiAssistant"), icon: "chat" },
+    // Keuangan
+    { href: "/dashboard", label: t("common.dashboard"), icon: "dashboard", group: "keuangan" },
+    { href: walletId ? `/wallets/${walletId}` : "/dashboard", label: t("common.wallet"), icon: "wallet", group: "keuangan" },
+    { href: walletId ? `/wallets/${walletId}/transactions` : "/dashboard", label: t("common.transactions"), icon: "transactions", group: "keuangan" },
+
+    // Perencanaan
+    { href: walletId ? `/wallets/${walletId}/savings` : "/dashboard", label: t("common.savings"), icon: "savings", group: "perencanaan" },
+    { href: walletId ? `/wallets/${walletId}/budgets` : "/dashboard", label: t("common.budgets"), icon: "budgets", group: "perencanaan" },
+    { href: walletId ? `/wallets/${walletId}/debts` : "/dashboard", label: t("common.debts"), icon: "debt", group: "perencanaan" },
+    { href: walletId ? `/wallets/${walletId}/reports` : "/dashboard", label: t("common.reports"), icon: "reports", group: "perencanaan" },
+
+    // Pengaturan
+    { href: walletId ? `/wallets/${walletId}/categories` : "/dashboard", label: t("common.categories"), icon: "category", group: "pengaturan" },
+    { href: walletId ? `/wallets/${walletId}/templates` : "/dashboard", label: t("common.templates"), icon: "templates", group: "pengaturan" },
+    { href: walletId ? `/wallets/${walletId}/members` : "/dashboard", label: t("common.members"), icon: "members", group: "pengaturan" },
+    { href: walletId ? `/wallets/${walletId}/settlements` : "/dashboard", label: t("common.settlements"), icon: "settlements", group: "pengaturan" },
+    { href: "/settings", label: t("common.settings"), icon: "settings", group: "pengaturan" },
+
+    // Lainnya
+    { href: "/changelogs", label: t("common.changelogs"), icon: "changelog", group: "lainnya" },
+    { href: "/chat", label: t("common.aiAssistant"), icon: "chat", group: "lainnya" },
   ];
 
   const mobileWalletShortcuts: NavItem[] = walletId
@@ -457,16 +464,36 @@ function SidebarSections({
 
   // ── Mobile overlay ───────────────────────────────────────────────
   if (onNavClick) {
+    const mobileGroupOrder: { key: NavItemGroup; labelKey: string }[] = [
+      { key: "keuangan", labelKey: "app.navigationMain" },
+      { key: "perencanaan", labelKey: "app.navigationPlanning" },
+      { key: "pengaturan", labelKey: "common.settings" },
+      { key: "lainnya", labelKey: "app.navigationOther" },
+    ];
+
+    const mobileGrouped: Partial<Record<NavItemGroup, NavItem[]>> = {};
+    for (const item of navItems) {
+      const g = item.group ?? "lainnya";
+      if (!mobileGrouped[g]) mobileGrouped[g] = [];
+      mobileGrouped[g].push(item);
+    }
+
     return (
       <div className="mt-6 flex-1 space-y-6 overflow-y-auto px-5 pb-4">
-        <div>
-          <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            {t("app.navigationMain")}
-          </p>
-          <nav className="mt-3 space-y-2">
-            {navItems.map((item) => renderMobileLink(item, "primary"))}
-          </nav>
-        </div>
+        {mobileGroupOrder.map(({ key, labelKey }) => {
+          const items = mobileGrouped[key];
+          if (!items || items.length === 0) return null;
+          return (
+            <div key={key}>
+              <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                {t(labelKey)}
+              </p>
+              <nav className="mt-3 space-y-2">
+                {items.map((item) => renderMobileLink(item, "primary"))}
+              </nav>
+            </div>
+          );
+        })}
 
         {walletShortcuts.length > 0 && (
           <div>
