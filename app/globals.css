@@ -883,7 +883,64 @@ textarea {
   animation: chat-spin 600ms linear infinite;
 }
 
+/* --- Landing Page Revamp Custom Styles --- */
+.fade-in-section {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 800ms cubic-bezier(0.215, 0.61, 0.355, 1), transform 800ms cubic-bezier(0.215, 0.61, 0.355, 1);
+  will-change: opacity, transform;
+}
+
+.fade-in-section.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.card-interactive-glow {
+  transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 300ms ease, border-color 300ms ease;
+}
+
+.card-interactive-glow:hover {
+  transform: translateY(-4px) scale(1.015);
+  border-color: var(--primary);
+  box-shadow: 0 20px 40px -12px rgba(45, 54, 39, 0.12);
+}
+
+:root[data-theme="dark"] .card-interactive-glow:hover {
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.45);
+}
+
+.glass-pricing-card {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(89, 95, 61, 0.15) !important;
+}
+
+:root[data-theme="dark"] .glass-pricing-card {
+  background: rgba(45, 56, 44, 0.35);
+  border: 1px solid rgba(120, 142, 102, 0.25) !important;
+}
+
+.glow-ambient-bg {
+  position: absolute;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(140, 147, 109, 0.12) 0%, rgba(251, 249, 243, 0) 70%);
+  filter: blur(40px);
+  z-index: -1;
+}
+
+:root[data-theme="dark"] .glow-ambient-bg {
+  background: radial-gradient(circle, rgba(209, 216, 175, 0.08) 0%, rgba(30, 38, 29, 0) 70%);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .fade-in-section {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
   .page-enter,
   .wallet-card-enter,
   .skeleton-block,

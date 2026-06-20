@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [1.16.0] - 2026-06-20
+
+### Added
+- **Landing Page Scroll Observer** — Komponen klien baru untuk mengaktifkan animasi scroll reveal fade-in-up otomatis pada setiap bagian landing page menggunakan IntersectionObserver.
+
+### Changed
+- **Revamp Landing Page dengan Desain Premium** — Tata letak grid di bagian Features dan Cara Kerja disempurnakan dengan visual card yang lebih bersih dan hover micro-interactions (hover scale & border glow).
+- **Mockup Browser 3D yang Mengambang** — Sasis mockup browser di Hero dipercantik dengan efek bayangan ambient 3D, border glassmorphic, dan glowing background untuk memperkuat kesan modern dan premium.
+- **Section Pricing Glassmorphism** — Layout kartu paket Free dan Premium didesain ulang dengan gaya glassmorphic, memberikan diferensiasi visual yang tebal dan menonjolkan fitur Premium secara elegan.
+- **Penerapan Kelas CSS Kustom** — Menambahkan kelas `.fade-in-section`, `.card-interactive-glow`, dan `.glass-pricing-card` di globals.css untuk konsistensi token Serene Capital.
+
+## [Unreleased-Older]
+
 ### Changed
 
 - **Spacing footer legal link dirapikan** — Footer landing sekarang punya jarak yang lebih seimbang untuk tautan `Privacy Policy`, `Terms of Service`, dan `Refund Policy`, dengan wrap mobile yang lebih rapi dan kelompok link yang tidak terlalu melebar di desktop.

@@ -13,6 +13,18 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.16.0",
+    date: "2026-06-20",
+    title: "Revamp Landing Page — Estetika Premium & Animasi Scroll",
+    description: "Kami melakukan pembenahan visual pada Landing Page Balance. Sekarang tampilannya jauh lebih premium, elegan, dan dinamis dengan tata letak grid modern, efek glassmorphism, sasis mockup browser 3D, serta efek transisi scroll fade-in-up yang halus.",
+    features: [
+      { icon: "✨", text: "Peningkatan layout grid pada Features dan Cara Kerja dengan visual card yang lebih bersih dan hover micro-interactions." },
+      { icon: "💻", text: "Mockup browser di Hero dipercantik dengan efek bayangan ambient 3D, border glassmorphic, dan glowing background." },
+      { icon: "🔮", text: "Section Pricing didesain ulang menggunakan gaya glassmorphic, membedakan secara visual paket Free dengan paket Premium." },
+      { icon: "🌊", text: "Penerapan efek animasi fade-in-up otomatis pada setiap section menggunakan scroll observer." }
+    ]
+  },
+  {
     version: "1.15.0",
     date: "2026-06-19",
     title: "Premium berbayar — integrasi Midtrans",

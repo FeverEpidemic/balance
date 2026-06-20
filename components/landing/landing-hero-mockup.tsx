@@ -284,24 +284,23 @@ export function LandingHeroMockup() {
       <div aria-hidden="true" className="relative">
         {/* Background glow */}
         <div className="absolute inset-x-8 top-4 h-40 rounded-full bg-primary-soft/60 blur-3xl" />
-        <div
-          className="absolute right-10 top-10 h-24 w-24 rounded-full blur-3xl"
-          style={{ background: "rgba(232, 188, 103, 0.18)" }}
-        />
+        <div className="glow-ambient-bg -inset-10 opacity-70" />
         {/* Browser frame */}
         <div
-          className="relative overflow-hidden rounded-[1.5rem] border bg-card shadow-float"
-          style={{ boxShadow: "var(--shadow-float), 0 0 0 1px rgba(232, 188, 103, 0.06)" }}
+          className="relative overflow-hidden rounded-[1.5rem] border bg-card/90 backdrop-blur-md shadow-float"
+          style={{
+            boxShadow: "var(--shadow-float), 0 0 0 1px rgba(232, 188, 103, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.15)",
+          }}
         >
           {/* Chrome bar */}
-          <div className="flex h-9 items-center gap-2 border-b bg-card px-4">
+          <div className="flex h-9 items-center gap-2 border-b bg-muted/30 px-4">
             <div className="flex gap-1.5">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#e15a5a" }} />
-              <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#e8b84b" }} />
-              <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#5baf5b" }} />
+              <span className="h-2.5 w-2.5 rounded-full bg-red-400/80" />
+              <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
+              <span className="h-2.5 w-2.5 rounded-full bg-green-400/80" />
             </div>
-            <div className="mx-auto rounded-full bg-muted px-4 py-1">
-              <span className="text-[10px] text-muted-foreground">app.balance.id/dashboard</span>
+            <div className="mx-auto rounded-full bg-card/65 px-4 py-0.5 border border-border/25">
+              <span className="text-[10px] text-muted-foreground font-label">app.balance.id/dashboard</span>
             </div>
           </div>
           {/* Viewport – slide 1 only */}
@@ -314,19 +313,18 @@ export function LandingHeroMockup() {
   }
 
   return (
-    <div aria-hidden="true" className="relative">
-      {/* Background glow */}
-      <div className="absolute inset-x-8 top-4 h-40 rounded-full bg-primary-soft/60 blur-3xl" />
-      <div
-        className="absolute right-10 top-10 h-24 w-24 rounded-full blur-3xl"
-        style={{ background: "rgba(232, 188, 103, 0.18)" }}
-      />
-
+    <div aria-hidden="true" className="relative group">
+      {/* Background glow with transition */}
+      <div className="absolute inset-x-8 top-4 h-48 rounded-full bg-primary-soft/60 blur-3xl transition-all duration-500 group-hover:scale-110 group-hover:bg-primary-soft/80" />
+      <div className="glow-ambient-bg -inset-12 opacity-80 transition-all duration-500 group-hover:scale-105" />
+      
       {/* Browser frame */}
       <div
         ref={containerRef}
-        className="relative overflow-hidden rounded-[1.5rem] border bg-card shadow-float"
-        style={{ boxShadow: "var(--shadow-float), 0 0 0 1px rgba(232, 188, 103, 0.06)" }}
+        className="relative overflow-hidden rounded-[1.5rem] border bg-card/90 backdrop-blur-md transition-all duration-500 hover:scale-[1.015] hover:border-primary/30"
+        style={{
+          boxShadow: "var(--shadow-float), 0 0 0 1px rgba(232, 188, 103, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.15)",
+        }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onFocus={handleFocus}
@@ -335,14 +333,14 @@ export function LandingHeroMockup() {
         role="presentation"
       >
         {/* Chrome bar */}
-        <div className="flex h-9 items-center gap-2 border-b bg-card px-4">
+        <div className="flex h-9 items-center gap-2 border-b bg-muted/30 px-4">
           <div className="flex gap-1.5">
-            <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#e15a5a" }} />
-            <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#e8b84b" }} />
-            <span className="h-2.5 w-2.5 rounded-full" style={{ background: "#5baf5b" }} />
+            <span className="h-2.5 w-2.5 rounded-full bg-red-400/80" />
+            <span className="h-2.5 w-2.5 rounded-full bg-amber-400/80" />
+            <span className="h-2.5 w-2.5 rounded-full bg-green-400/80" />
           </div>
-          <div className="mx-auto rounded-full bg-muted px-4 py-1">
-            <span className="text-[10px] text-muted-foreground">app.balance.id/dashboard</span>
+          <div className="mx-auto rounded-full bg-card/65 px-4 py-0.5 border border-border/25">
+            <span className="text-[10px] text-muted-foreground font-label">app.balance.id/dashboard</span>
           </div>
         </div>
 
@@ -353,23 +351,23 @@ export function LandingHeroMockup() {
             const isPrev = index === (currentIndex - 1 + slideCount) % slideCount;
             const isNext = index === (currentIndex + 1) % slideCount;
 
-            let positionClass = "opacity-0";
+            let positionClass = "opacity-0 scale-95 pointer-events-none";
             if (isActive) {
-              positionClass = "opacity-100 translate-x-0";
+              positionClass = "opacity-100 translate-x-0 scale-100";
             } else if (direction === "next" && isPrev) {
-              positionClass = "opacity-0 -translate-x-6";
+              positionClass = "opacity-0 -translate-x-6 scale-95 pointer-events-none";
             } else if (direction === "next" && isNext) {
-              positionClass = "opacity-0 translate-x-6";
+              positionClass = "opacity-0 translate-x-6 scale-95 pointer-events-none";
             } else if (direction === "prev" && isPrev) {
-              positionClass = "opacity-0 -translate-x-6";
+              positionClass = "opacity-0 -translate-x-6 scale-95 pointer-events-none";
             } else if (direction === "prev" && isNext) {
-              positionClass = "opacity-0 translate-x-6";
+              positionClass = "opacity-0 translate-x-6 scale-95 pointer-events-none";
             }
 
             return (
               <div
                 key={slide.id}
-                className={`absolute inset-0 transition-all duration-500 ease-out ${positionClass}`}
+                className={`absolute inset-0 transition-all duration-500 cubic-bezier(0.16, 1, 0.3, 1) ${positionClass}`}
                 aria-hidden={!isActive}
               >
                 {slide.render()}
@@ -379,7 +377,7 @@ export function LandingHeroMockup() {
         </div>
 
         {/* Slide indicator dots */}
-        <div className="flex items-center justify-center gap-1.5 border-t bg-card px-4 py-2">
+        <div className="flex items-center justify-center gap-1.5 border-t bg-muted/15 px-4 py-2.5">
           {SLIDES.map((_, index) => (
             <span
               key={index}

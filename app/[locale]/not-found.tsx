@@ -1,14 +1,31 @@
+import { cookies } from "next/headers";
 import { Button } from "@/components/ui/button";
-import { getTranslator, resolveLocale } from "@/lib/i18n";
+import { getTranslator, resolveLocale, LOCALE_COOKIE_NAME } from "@/lib/i18n";
 
-export default async function NotFoundPage({
-  params
-}: {
-  params: Promise<{ locale: string }>;
+export default async function NotFoundPage(props: {
+  params?: Promise<{ locale?: string }>;
 }) {
-  const { locale: localeParam } = await params;
+  let localeParam: string | undefined;
+
+  try {
+    const resolvedParams = props.params ? await props.params : undefined;
+    localeParam = resolvedParams?.locale;
+  } catch {
+    // Abaikan jika gagal membaca params
+  }
+
+  if (!localeParam) {
+    try {
+      const cookieStore = await cookies();
+      localeParam = cookieStore.get(LOCALE_COOKIE_NAME)?.value;
+    } catch {
+      // Abaikan jika cookies() dipanggil saat static generation
+    }
+  }
+
   const locale = resolveLocale(localeParam);
   const t = getTranslator(locale);
+
 
   return (
     <main className="page-wrap flex min-h-screen items-center py-10">
