@@ -63,6 +63,7 @@ export type BudgetRow = {
   category_id: string;
   month_start: string;
   amount: number;
+  carry_over_enabled: boolean;
 };
 
 export type TransactionRow = {
@@ -452,6 +453,9 @@ export type BudgetProgressItem = {
   categoryName: string;
   monthStart: string;
   amount: number;
+  carryOverEnabled: boolean;
+  carryOverAmount: number;
+  totalBudget: number;
   used: number;
   ratio: number;
   usageLabel: string;
