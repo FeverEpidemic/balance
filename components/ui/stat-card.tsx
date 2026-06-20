@@ -1,3 +1,4 @@
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { formatCurrency } from "@/lib/utils";
 
 function getProgressColor(current: number, max: number): string {
@@ -29,7 +30,9 @@ export function StatCard({
       <div className="flex min-h-full flex-col justify-between gap-4">
         <div>
           <p className="eyebrow">{label}</p>
-          <p className="metric mt-3 text-[1.3rem] leading-none sm:text-[1.7rem] md:text-3xl">{formatCurrency(value, "id", currency)}</p>
+          <p className="metric mt-3 text-[1.3rem] leading-none sm:text-[1.7rem] md:text-3xl">
+            <AnimatedNumber value={value} formatter={(v) => formatCurrency(v, "id", currency)} />
+          </p>
 
           {progressMax !== undefined && progressMax > 0 && progressValue !== undefined ? (
             <div className="mt-3">
