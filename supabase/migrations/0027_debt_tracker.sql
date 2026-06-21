@@ -1,4 +1,4 @@
--- Migration 0025: Debt Tracker (Utang-Piutang)
+-- Migration 0027: Debt Tracker (Utang-Piutang)
 -- Mencatat utang/piutang informal dengan person_name text bebas (bisa orang luar wallet)
 -- Mendukung cicilan (partial payment) dengan trigger auto-update status
 

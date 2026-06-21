@@ -2,7 +2,7 @@
 title: Balance — Database Schema & Data Flow
 version: 1.2.0
 last_updated: 2026-06-21
-migrations: 0001–0026
+migrations: 0001–0027
 ---
 
 # Balance — Database Schema & Data Flow
@@ -528,19 +528,19 @@ SELECT public.accept_wallet_invitation_atomic(token, user_id)
 | 0009 | google_oauth_profile_name_fallback | Fallback full_name dari metadata 'name' |
 | 0010 | transaction_balance_adjustments | Kolom source, kategori penyesuaian saldo |
 | 0011 | user_api_keys | Tabel API key + lookup function |
-| 0011 | security_fixes | RPC diamankan, RLS invites owner-only, insert wallet_members dibatasi |
-| 0012 | user_onboarding | Kolom onboarding_state di profiles |
-| 0013 | profile_theme_preference | Kolom theme_preference di profiles |
-| 0014 | profile_preferred_locale | Kolom preferred_locale di profiles |
-| 0015 | user_plan_tier | Kolom plan_type + monthly_transaction_count di profiles |
-| 0016 | profiles_timezone | Kolom timezone di profiles |
-| 0017 | wallets_currency | Kolom currency di wallets |
-| 0018 | wallet_balance_rpc | RPC compute_wallet_available_balance |
-| 0019 | free_trial | Kolom trial_started_at, trial_ends_at, trial_consumed_at di profiles |
-| 0020 | profiles_ai_chat_compliance | Kolom ai_chat_consented_at di profiles |
-| 0021 | midtrans | Enum subscription_status/period, tabel subscriptions + payment_notifications, kolom subscription_expires_at di profiles, RPC process_expired_subscriptions |
-| 0022 | fix_wallet_balance_rpc_membership | Tambah membership check di `get_wallet_balances` agar hanya member wallet yang bisa query balance |
-| 0023 | cleanup_stale_rpc_functions | Hapus fungsi `ensure_balance_adjustment_category` 3-parameter yang deprecated |
-| 0024 | push_notifications | Kolom daily_reminder_* di profiles, tabel push_subscriptions, RPC get_due_push_reminders/mark_reminders_sent/delete_push_subscription_by_endpoint |
-| 0025 | budget_carry_over | Kolom carry_over_enabled di budgets untuk toggle carry-over per kategori |
-| 0026 | debt_tracker | Enum debt_direction/debt_status, tabel debts + debt_payments, trigger auto-update status, RLS wallet-scoped |
+| 0012 | security_fixes | RPC diamankan, RLS invites owner-only, insert wallet_members dibatasi |
+| 0013 | user_onboarding | Kolom onboarding_state di profiles |
+| 0014 | profile_theme_preference | Kolom theme_preference di profiles |
+| 0015 | profile_preferred_locale | Kolom preferred_locale di profiles |
+| 0016 | user_plan_tier | Kolom plan_type + monthly_transaction_count di profiles |
+| 0017 | profiles_timezone | Kolom timezone di profiles |
+| 0018 | wallets_currency | Kolom currency di wallets |
+| 0019 | wallet_balance_rpc | RPC compute_wallet_available_balance |
+| 0020 | free_trial | Kolom trial_started_at, trial_ends_at, trial_consumed_at di profiles |
+| 0021 | profiles_ai_chat_compliance | Kolom ai_chat_consented_at di profiles |
+| 0022 | midtrans | Enum subscription_status/period, tabel subscriptions + payment_notifications, kolom subscription_expires_at di profiles, RPC process_expired_subscriptions |
+| 0023 | fix_wallet_balance_rpc_membership | Tambah membership check di `get_wallet_balances` agar hanya member wallet yang bisa query balance |
+| 0024 | cleanup_stale_rpc_functions | Hapus fungsi `ensure_balance_adjustment_category` 3-parameter yang deprecated |
+| 0025 | push_notifications | Kolom daily_reminder_* di profiles, tabel push_subscriptions, RPC get_due_push_reminders/mark_reminders_sent/delete_push_subscription_by_endpoint |
+| 0026 | budget_carry_over | Kolom carry_over_enabled di budgets untuk toggle carry-over per kategori |
+| 0027 | debt_tracker | Enum debt_direction/debt_status, tabel debts + debt_payments, trigger auto-update status, RLS wallet-scoped |

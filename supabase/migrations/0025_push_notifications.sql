@@ -1,4 +1,4 @@
--- supabase/migrations/0024_push_notifications.sql
+-- supabase/migrations/0025_push_notifications.sql
 -- Add daily reminder columns to profiles and create push_subscriptions table for PWA web push notifications.
 
 -- 1. Alter profiles table

@@ -1,4 +1,4 @@
--- supabase/migrations/0022_fix_wallet_balance_rpc_membership.sql
+-- supabase/migrations/0023_fix_wallet_balance_rpc_membership.sql
 -- Fix get_wallet_balances to verify wallet membership before returning data.
 -- Previously, any authenticated user could query any wallet's balance.
 
