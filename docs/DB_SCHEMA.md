@@ -1,8 +1,8 @@
 ---
 title: Balance — Database Schema & Data Flow
-version: 1.1.0
-last_updated: 2026-06-17
-migrations: 0001–0021
+version: 1.2.0
+last_updated: 2026-06-21
+migrations: 0001–0026
 ---
 
 # Balance — Database Schema & Data Flow
@@ -27,6 +27,8 @@ migrations: 0001–0021
 | `saving_entry_type` | `deposit`, `withdraw` |
 | `subscription_status` | `pending`, `active`, `expired`, `cancelled` |
 | `subscription_period` | `monthly`, `annual` |
+| `debt_direction` | `borrowed`, `lent` |
+| `debt_status` | `unpaid`, `partially_paid`, `settled`, `cancelled` |
 
 ---
 
@@ -58,7 +60,9 @@ wallets ──── wallet_members ──── wallet_invitations
     ├─── recurring_transactions
     ├─── savings ─────── saving_entries
     ├─── subscriptions
+    ├─── debts ────────── debt_payments
     │
+push_subscriptions (terikat ke profiles)
 user_api_keys (terikat ke auth.users, bukan profiles)
 ```
 
@@ -80,6 +84,10 @@ user_api_keys (terikat ke auth.users, bukan profiles)
 | theme_preference | text DEFAULT 'system' | 'light', 'dark', 'system' |
 | preferred_locale | text DEFAULT 'id' | 'id', 'en' |
 | subscription_expires_at | timestamptz? | Quick lookup kapan subscription premium berakhir |
+| timezone | text DEFAULT 'Asia/Jakarta' | Zona waktu user |
+| daily_reminder_enabled | boolean DEFAULT false | Flag pengingat harian |
+| daily_reminder_time | time DEFAULT '20:00:00' | Jam pengingat (waktu lokal user) |
+| daily_reminder_last_sent_date | date? | Tanggal terakhir pengingat terkirim |
 | created_at / updated_at | timestamptz | |
 
 **Trigger:** `on_auth_user_synced` — insert/update dari `auth.users` (termasuk fallback `full_name` dari `raw_user_meta_data->>'name'` untuk Google OAuth).
@@ -170,6 +178,7 @@ user_api_keys (terikat ke auth.users, bukan profiles)
 | category_id | uuid FK → categories | |
 | month_start | date | Awal bulan budget |
 | amount | numeric(14,2) | >= 0 |
+| carry_over_enabled | boolean DEFAULT false | Bawa sisa budget bulan sebelumnya |
 | created_by / updated_by | uuid? | |
 | created_at / updated_at | timestamptz | |
 | **UNIQUE** | (wallet_id, category_id, month_start) | |
@@ -356,6 +365,58 @@ user_api_keys (terikat ke auth.users, bukan profiles)
 **Unique Index:** `(order_id, transaction_id, payment_status)` WHERE `processed = false` — cegah duplikasi notifikasi.
 **RLS:** Hanya service_role yang bisa akses.
 
+### 3.16. push_subscriptions
+
+| Kolom | Tipe | Keterangan |
+|-------|------|-----------|
+| id | uuid PK | gen_random_uuid() |
+| user_id | uuid FK → profiles (ON DELETE CASCADE) | Pemilik subscription |
+| endpoint | text UNIQUE | Web Push endpoint URL |
+| p256dh | text | Public key untuk enkripsi |
+| auth | text | Authentication secret |
+| created_at / updated_at | timestamptz | |
+
+**RLS:**
+- SELECT: user sendiri (`user_id = auth.uid()`)
+- INSERT: user sendiri
+- DELETE: user sendiri
+
+### 3.17. debts
+
+| Kolom | Tipe | Keterangan |
+|-------|------|-----------|
+| id | uuid PK | gen_random_uuid() |
+| wallet_id | uuid FK → wallets (ON DELETE CASCADE) | Dompet |
+| direction | debt_direction | `borrowed` (utang) / `lent` (piutang) |
+| person_name | text | Nama orang (teks bebas, tidak perlu user Balance) |
+| amount | numeric(14,2) | > 0, jumlah utang/piutang |
+| note | text? | Catatan |
+| due_date | date? | Jatuh tempo |
+| status | debt_status DEFAULT 'unpaid' | unpaid, partially_paid, settled, cancelled |
+| transaction_id | uuid? FK → transactions (ON DELETE SET NULL) | Link ke transaksi wallet (opsional) |
+| created_by / updated_by | uuid FK → profiles | |
+| created_at / updated_at | timestamptz | |
+| settled_at | timestamptz? | Waktu pelunasan |
+
+**RLS:** SELECT semua member; mutasi hanya owner/editor (`private.has_wallet_role(wallet_id, ARRAY['owner','editor'])`).
+
+### 3.18. debt_payments
+
+| Kolom | Tipe | Keterangan |
+|-------|------|-----------|
+| id | uuid PK | gen_random_uuid() |
+| debt_id | uuid FK → debts (ON DELETE CASCADE) | Utang yang dicicil |
+| wallet_id | uuid FK → wallets (ON DELETE CASCADE) | Dompet |
+| amount | numeric(14,2) | > 0, jumlah cicilan |
+| happened_at | timestamptz DEFAULT now() | Tanggal pembayaran |
+| note | text? | Catatan |
+| transaction_id | uuid? FK → transactions (ON DELETE SET NULL) | Link ke transaksi wallet (opsional) |
+| created_by | uuid FK → profiles | |
+| created_at | timestamptz | |
+
+**Trigger:** `trg_update_debt_status` — auto-update `debts.status` berdasarkan total pembayaran (unpaid → partially_paid → settled).
+**RLS:** SELECT semua member; mutasi owner/editor.
+
 ---
 
 ## 4. RLS Strategy
@@ -444,6 +505,11 @@ SELECT public.accept_wallet_invitation_atomic(token, user_id)
 | saving_entries | (wallet_id, member_user_id) | Per member |
 | user_api_keys | (user_id) | Key management |
 | user_api_keys | (key_hash) | API gateway lookup |
+| push_subscriptions | (user_id) | Query subscription per user |
+| debts | (wallet_id) | Daftar utang per wallet |
+| debts | (direction) | Filter utang vs piutang |
+| debts | (status) | Filter status |
+| debt_payments | (debt_id) | Riwayat cicilan per utang |
 
 ---
 
@@ -473,3 +539,8 @@ SELECT public.accept_wallet_invitation_atomic(token, user_id)
 | 0019 | free_trial | Kolom trial_started_at, trial_ends_at, trial_consumed_at di profiles |
 | 0020 | profiles_ai_chat_compliance | Kolom ai_chat_consented_at di profiles |
 | 0021 | midtrans | Enum subscription_status/period, tabel subscriptions + payment_notifications, kolom subscription_expires_at di profiles, RPC process_expired_subscriptions |
+| 0022 | fix_wallet_balance_rpc_membership | Tambah membership check di `get_wallet_balances` agar hanya member wallet yang bisa query balance |
+| 0023 | cleanup_stale_rpc_functions | Hapus fungsi `ensure_balance_adjustment_category` 3-parameter yang deprecated |
+| 0024 | push_notifications | Kolom daily_reminder_* di profiles, tabel push_subscriptions, RPC get_due_push_reminders/mark_reminders_sent/delete_push_subscription_by_endpoint |
+| 0025 | budget_carry_over | Kolom carry_over_enabled di budgets untuk toggle carry-over per kategori |
+| 0026 | debt_tracker | Enum debt_direction/debt_status, tabel debts + debt_payments, trigger auto-update status, RLS wallet-scoped |
