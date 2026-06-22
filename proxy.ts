@@ -44,7 +44,7 @@ function isPublicPath(pathname: string) {
   );
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const pathnameLocale = getLocaleFromPathname(pathname);
   const locale = pathnameLocale ?? defaultLocale;
