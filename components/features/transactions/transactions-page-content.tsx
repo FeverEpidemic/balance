@@ -9,6 +9,7 @@ import { useTimezone } from "@/components/providers/timezone-provider";
 import { AppIcon, CategoryIcon } from "@/components/ui/app-icon";
 import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { ActionForm } from "@/components/ui/action-form";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/shadcn/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CategorySelect } from "@/components/ui/category-select";
@@ -21,7 +22,7 @@ import { useToast } from "@/components/ui/toast-provider";
 import type { TransactionsPageData } from "@/lib/data";
 import { getTranslator } from "@/lib/i18n";
 import { formatCurrency, formatShortDate, formatTimeOfDay, getCurrentTimeString, getTodayDateString, toDateInputValue, toTimeInputValue } from "@/lib/utils";
-import { useOptimistic, useCallback, startTransition, useRef } from "react";
+import { useOptimistic, useCallback, startTransition, useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -44,6 +45,8 @@ function TransactionItem({ canMutate, categories, transaction, walletId, t, onDe
   const canEditTransaction = canMutate && !transaction.isSavingLinked;
   const meta = buildTransactionMetaLine(transaction);
   const hasStateBadges = transaction.isRecurring || transaction.isSavingLinked || transaction.isBalanceAdjustment;
+  const [editOpen, setEditOpen] = useState(false);
+  const closeSignalRef = useRef<unknown>(null);
 
   return (
     <div className="list-card">
