@@ -13,6 +13,17 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.18.1",
+    date: "2026-06-23",
+    title: "Halaman Transaksi disederhanakan + Sesuaikan Saldo pindah",
+    description: "Tab Quick Input dihapus, Transaksi Terbaru jadi default. Form balance adjustment pindah ke Ringkasan Wallet sebagai section collapsible.",
+    features: [
+      { icon: "🧹", text: "Tab 'Quick Input' dihapus. Transaksi Terbaru jadi tampilan default penuh." },
+      { icon: "➕", text: "Form input transaksi tetap bisa diakses via tombol 'Tambah Transaksi' di header atau FAB '+'." },
+      { icon: "🎯", text: "Sesuaikan Saldo pindah ke halaman Ringkasan Wallet — collapsible section di bawah kartu saldo. Lebih intuitif dan gak makan tempat." }
+    ]
+  },
+  {
     version: "1.18.0",
     date: "2026-06-20",
     title: "Batch Input & Budget Carry-Over & Debt Tracker",

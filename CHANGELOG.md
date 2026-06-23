@@ -2,11 +2,16 @@
 
 ## [Unreleased]
 
+### Changed
+- **Halaman Transaksi disederhanakan** — Tab "Quick Input" dihapus. Transaksi Terbaru jadi tampilan default penuh. Form input transaksi bisa diakses via tombol "Tambah Transaksi" di header atau FAB "+".
+- **Sesuaikan Saldo dipindah ke Ringkasan Wallet** — Form balance adjustment sekarang ada di halaman Ringkasan Wallet sebagai section collapsible di bawah kartu saldo. Lebih intuitif karena terkait langsung dengan saldo wallet.
+
 ### Added
 - **Sitemap XML untuk SEO** — Menambahkan sitemap.xml otomatis via Next.js App Router (`app/sitemap.ts`) yang mendaftarkan semua halaman publik (landing, login, register, privacy, terms, refund-policy) dalam dua bahasa (id/en) untuk membantu Google Search Console mengindeks konten Balance. Juga mengecualikan `/sitemap.xml` dari middleware redirect biar bisa di-crawl dengan benar.
 - **Budget Carry-Over** — Sisa budget yang tidak terpakai dari bulan sebelumnya bisa dibawa ke bulan berikutnya. Fitur ini bersifat opsional per kategori (toggle "Bawa sisa budget"). Perhitungan carry-over bersifat rekursif dan memoized, mendukung rantai carry-over berbulan-bulan. Carry-over amount ditampilkan sebagai informasi tambahan di daftar budget.
 - **Batch Transaction Input** — Input banyak transaksi sekaligus dalam satu form. Klik "Tambah baris" untuk menambahkan baris transaksi baru, isi semua field, dan submit sekali untuk semua baris. Insert bersifat atomic (all-or-nothing) dengan rate limit 1 token untuk seluruh batch.
 - **Debt Tracker (Utang-Piutang)** — Fitur baru untuk mencatat utang/piutang informal dengan siapapun (nama text bebas, tidak perlu terdaftar di Balance). Mendukung cicilan (partial payment) dengan trigger database yang auto-update status (unpaid → partially_paid → settled). Bisa dihubungkan ke saldo wallet untuk auto-create transaksi. Ringkasan total utang, piutang, dan selisih ditampilkan di halaman Utang-Piutang per wallet.
+
 
 ## [1.17.0] - 2026-06-20
 
