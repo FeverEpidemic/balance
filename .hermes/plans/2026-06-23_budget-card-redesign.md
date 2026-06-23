@@ -1,21 +1,81 @@
-"use client";
+# Budget Card — Redesign ke Style Transaction Card
 
-import { createBudget, deleteBudget, updateBudget } from "@/app/actions/budgets";
-import { AppShell } from "@/components/app-shell";
-import { useLocale } from "@/components/providers/locale-provider";
-import { ActionForm } from "@/components/ui/action-form";
-import { CategoryIcon } from "@/components/ui/app-icon";
-import { Button } from "@/components/ui/button";
-import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
-import { CurrencyInput } from "@/components/ui/currency-input";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SubmitButton } from "@/components/ui/submit-button";
+> **For Hermes:** Use subagent-driven-development skill to implement this plan task-by-task.
+
+**Goal:** Redesign tampilan budget item di page Budgets agar mirip dengan card transaksi (icon kategori + warna, layout kiri-kanan, progress bar, tombol edit/delete compact).
+
+**Architecture:** Ganti `BudgetItem` component di `budgets-page-content.tsx`. Pakai layout yang sama dengan `TransactionItem` di `transactions-page-content.tsx`. Tidak perlu server/data changes.
+
+**Tech Stack:** React, Tailwind CSS, shadcn Collapsible.
+
+---
+
+## Layout Target
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  (●)  Makanan & Minuman               Rp 3.000.000      │
+│       Rp 2.500.000 / bulan             83%             │
+│       ████████████████░░░░  83%                        │
+│       Terpakai Rp 2.500.000 dari Rp 3.000.000          │
+│       +Rp 500.000 carry-over (kalau ada)               │
+│  ─────────────────────────────────────────────────────  │
+│       [Hapus]                          [Edit]           │
+└──────────────────────────────────────────────────────────┘
+```
+
+Elemen per card:
+- **Kiri**: CategoryIcon circle (pakai warna dari `budget.categoryId` → cari di `data.categories`)
+- **Atas kanan**: Nama kategori (title) + amount budget di kanan
+- **Progress bar**: gradient primary, dengan persentase di kanan
+- **Detail**: usage label + carry-over label
+- **Separator**: border-t tipis
+- **Bawah**: tombol hapus (kiri, ghost danger) + tombol edit (kanan, collapsible)
+
+---
+
+## Task 1: Redesign `BudgetItem` component
+
+**Objective:** Ganti tampilan budget item jadi match dengan transaction card style.
+
+**Files:**
+- Modify: `components/features/budgets/budgets-page-content.tsx`
+
+**Step 1: Import tambahan**
+
+Di bagian import, tambah `Collapsible`, `CategoryIcon` (dari `@/components/ui/app-icon`):
+
+```tsx
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/shadcn/collapsible";
-import type { BudgetsPageData } from "@/lib/data";
-import { getTranslator } from "@/lib/i18n";
-import { formatCurrency } from "@/lib/utils";
-import { useState } from "react";
+// Pastikan CategoryIcon sudah di-import dari app-icon
+```
 
+Cek: `AppIcon` udah di-import? Belum. Tambah:
+
+```tsx
+import { AppIcon, CategoryIcon } from "@/components/ui/app-icon";
+```
+
+Dan tambah `useState`:
+
+```tsx
+import { useState } from "react";
+```
+
+**Step 2: Bikin helper untuk lookup category color**
+
+Di dalam `BudgetItem`, tambah:
+
+```tsx
+  const category = categories.find((c) => c.id === budget.categoryId);
+  const categoryColor = category?.color ?? "#595f3d";
+```
+
+**Step 3: Redesign JSX**
+
+Ganti seluruh return `BudgetItem` dengan layout baru:
+
+```tsx
 function BudgetItem({
   budget,
   categories,
@@ -84,7 +144,7 @@ function BudgetItem({
           </div>
         </div>
 
-        {/* Right side: total budget amount (desktop only) */}
+        {/* Right side: total amount (desktop only, hidden on mobile since it's inline above) */}
         <div className="hidden lg:block lg:text-right">
           <p className="metric text-base text-foreground">
             {formatCurrency(budget.totalBudget)}
@@ -168,108 +228,96 @@ function BudgetItem({
     </Collapsible>
   );
 }
+```
 
-export function BudgetsPageContent({ data }: { data: BudgetsPageData }) {
-  const locale = useLocale();
-  const t = getTranslator(locale);
-  const active = `/wallets/${data.walletId}/budgets`;
+**Step 4: Hapus `InlineEditPanel` — tidak lagi dipakai**
 
-  const totalBudget = data.budgets.reduce((sum, b) => sum + b.amount, 0);
-  const totalUsed = data.budgets.reduce((sum, b) => sum + b.used, 0);
-  const usagePercent = totalBudget > 0 ? Math.min(Math.round((totalUsed / totalBudget) * 100), 100) : 0;
+Setelah redesign di atas, import `InlineEditPanel` bisa dihapus (tidak digunakan lagi di BudgetItem).
 
-  return (
-    <AppShell
-      currentPath={active}
-      title={t("budgets.pageTitle")}
-      subtitle={t("budgets.pageSubtitle", { walletName: data.walletName })}
-      userName={data.shell.userName}
-      walletCount={data.shell.walletCount}
-      budgetCount={data.shell.budgetCount}
-      memberCount={data.shell.memberCount}
-      primaryWalletId={data.shell.primaryWalletId}
-      currentWalletId={data.walletId}
-      headerBody={
-        data.budgets.length > 0 ? (
-          <div className="rounded-xl bg-card p-4 shadow-serene border border-[color:var(--soft-border)]">
-            <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-strong">
-              {t("budgets.totalBudgetLabel")}
-            </p>
-            <p className="metric mt-2 text-2xl text-foreground">
-              {formatCurrency(totalBudget)}
-            </p>
-            <div className="mt-3 h-2.5 rounded-full bg-muted">
-              <div
-                className="h-2.5 rounded-full bg-[linear-gradient(90deg,var(--primary),var(--primary-soft-strong))]"
-                style={{ width: `${usagePercent}%` }}
-              />
-            </div>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t("budgets.totalUsedDetail", {
-                used: formatCurrency(totalUsed),
-                total: formatCurrency(totalBudget)
-              })}
-            </p>
-          </div>
-        ) : undefined
-      }
-    >
-      <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
-        <div className="card">
-          <p className="eyebrow">{t("budgets.createEyebrow")}</p>
-          <h3 className="headline-md mt-2">{t("budgets.createTitle")}</h3>
-          <ActionForm action={createBudget} className="mt-6 grid min-w-0 gap-4" resetOnSuccess>
-            <input type="hidden" name="wallet_id" value={data.walletId} />
-            <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("budgets.monthLabel")}</span>
-              <input name="month_start" defaultValue={data.selectedMonth} type="month" required />
-            </label>
-            <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("budgets.categoryLabel")}</span>
-              <select name="category_id" defaultValue={data.categories[0]?.id ?? ""} required>
-                {data.categories.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("budgets.limitLabel")}</span>
-              <CurrencyInput name="amount" defaultValue={2500000} required />
-            </label>
-            <label className="flex items-center gap-2 text-sm">
-              <input name="carry_over_enabled" type="checkbox" value="true" className="h-4 w-4 rounded border-muted-foreground" />
-              <span className="text-muted-foreground">{t("budgets.carryOverLabel")}</span>
-            </label>
-            <SubmitButton pendingText={t("budgets.savePending")}>{t("budgets.saveButton")}</SubmitButton>
-          </ActionForm>
-        </div>
-        <div className="card">
-          <p className="eyebrow">{t("budgets.usageEyebrow")}</p>
-          <h3 className="headline-md mt-2">{t("budgets.usageTitle")}</h3>
-          <form method="get" className="mt-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-            <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.historyMonthFilter")}</span>
-              <input name="month" type="month" defaultValue={data.selectedMonth} />
-            </label>
-            <Button variant="soft" className="w-full sm:w-auto">
-              {t("common.apply")}
-            </Button>
-            <Button href={`/wallets/${data.walletId}/budgets`} variant="ghost" className="w-full sm:w-auto">
-              {t("common.reset")}
-            </Button>
-          </form>
-          <div className="mt-6 stack-list">
-            {data.budgets.length === 0 ? (
-              <EmptyState title={t("budgets.emptyTitle")} description={t("budgets.emptyDescription")} />
-            ) : null}
-            {data.budgets.map((budget) => (
-              <BudgetItem key={budget.id} budget={budget} categories={data.categories} walletId={data.walletId} t={t} />
-            ))}
-          </div>
-        </div>
-      </section>
-    </AppShell>
-  );
-}
+**Step 5: Commit**
+
+```bash
+git add components/features/budgets/budgets-page-content.tsx
+git commit -m "feat: redesign budget card to match transaction card style"
+```
+
+---
+
+## Task 2: Tambah i18n key `budgets.perMonth`
+
+**Objective:** Label "/ bulan" untuk display amount.
+
+**Files:**
+- Modify: `messages/id.json`
+- Modify: `messages/en.json`
+
+**Step 1: Tambah key**
+
+`messages/id.json`:
+```json
+"perMonth": "/ bulan",
+```
+
+`messages/en.json`:
+```json
+"perMonth": "/ month",
+```
+
+**Step 2: Commit**
+
+```bash
+git add messages/id.json messages/en.json
+git commit -m "feat: add budgets.perMonth i18n key"
+```
+
+---
+
+## Task 3: Typecheck, test, build
+
+**Objective:** Verifikasi.
+
+**Step 1: Typecheck**
+
+```bash
+npm run typecheck
+```
+Expected: 0 errors.
+
+**Step 2: Build**
+
+```bash
+npm run build
+```
+Expected: build success.
+
+**Step 3: Manual visual check**
+
+- [ ] Budget card dengan progress 50% → bar setengah, warna primary
+- [ ] Budget card 100% → bar penuh
+- [ ] Budget card dengan carry-over → label carry-over muncul
+- [ ] Category icon circle → warna sesuai warna kategori
+- [ ] Klik Edit → form expand, tombol jadi "Tutup editor"
+- [ ] Edit form → category, month, amount, carry-over checkbox tetap berfungsi
+- [ ] Klik Hapus → confirm dialog muncul
+- [ ] Dark mode → semua tetap readable
+- [ ] Mobile → layout stack vertical, tetap oke
+- [ ] Belum ada budget → empty state tetap muncul (tidak berubah)
+
+---
+
+## Summary
+
+| File | Change | Line delta |
+|------|--------|------------|
+| `components/features/budgets/budgets-page-content.tsx` | Redesign BudgetItem: +Collapsible, +CategoryIcon, layout baru, hapus InlineEditPanel | ~+60 / -30 |
+| `messages/id.json` | +1 key `budgets.perMonth` | +1 |
+| `messages/en.json` | +1 key `budgets.perMonth` | +1 |
+
+**Total: ~32 lines net change across 3 files. 3 tasks.**
+
+### Yang TIDAK berubah:
+- Create budget form (kiri) tidak berubah
+- Month filter tidak berubah
+- Empty state tidak berubah
+- Header total budget (Task 2 dari plan sebelumnya) tetap ada
+- Server actions (create, update, delete) tidak berubah

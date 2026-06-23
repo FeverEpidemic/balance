@@ -13,6 +13,18 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.18.2",
+    date: "2026-06-23",
+    title: "Tampilan Budget Card diperbarui",
+    description: "Budget cards sekarang tampil dengan layout seperti transaction card: ada lingkaran warna kategori, progress bar gradient, serta tombol edit dan hapus yang lebih compact.",
+    features: [
+      { icon: "🎨", text: "Lingkaran warna kategori dengan icon di samping nama budget — warna menyesuaikan kategori yang dipilih." },
+      { icon: "📊", text: "Progress bar gradient dengan persentase di samping, dan label pemakaian di bawahnya." },
+      { icon: "✏️", text: "Tombol Edit di collapsible panel, dan tombol Hapus dengan ghost button — lebih compact dan tidak makan tempat." },
+      { icon: "💻", text: "Desktop menampilkan total budget (termasuk carry-over) di sisi kanan card." }
+    ]
+  },
+  {
     version: "1.18.1",
     date: "2026-06-23",
     title: "Halaman Transaksi disederhanakan + Sesuaikan Saldo pindah",

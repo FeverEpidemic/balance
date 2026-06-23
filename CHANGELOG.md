@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Changed
+- **Tampilan Budget Card didesain ulang** — Sekarang tampilannya mirip dengan card transaksi: ada lingkaran warna kategori dengan icon di kiri, nama kategori di atas, progress bar gradient, dan jumlah total budget di kanan (desktop). Tombol edit ada di dalam collapsible panel, dan tombol hapus lebih compact dengan ghost variant. Desktop menampilkan total budget (termasuk carry-over) di sisi kanan. 
 - **Halaman Transaksi disederhanakan** — Tab "Quick Input" dihapus. Transaksi Terbaru jadi tampilan default penuh. Form input transaksi bisa diakses via tombol "Tambah Transaksi" di header atau FAB "+".
 - **Sesuaikan Saldo dipindah ke Ringkasan Wallet** — Form balance adjustment sekarang ada di halaman Ringkasan Wallet sebagai section collapsible di bawah kartu saldo. Lebih intuitif karena terkait langsung dengan saldo wallet.
 
