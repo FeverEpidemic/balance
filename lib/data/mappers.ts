@@ -962,11 +962,10 @@ export function createTransactionsPageData(args: {
   memberships: WalletMemberRow[];
   categories: CategoryRow[];
   transactions: TransactionRow[];
-  currentAvailableBalance: number;
   selectedMonth: string;
   locale?: AppLocale;
 }) {
-  const { shell, wallet, memberships, categories, transactions, currentAvailableBalance, selectedMonth, locale = defaultLocale } = args;
+  const { shell, wallet, memberships, categories, transactions, selectedMonth, locale = defaultLocale } = args;
   const formCategories = buildTransactionCreateCategories(categories, wallet.id);
   const walletTransactions = transactions.filter((transaction) => transaction.wallet_id === wallet.id);
   const filteredTransactions = filterTransactionsByMonth(walletTransactions, selectedMonth);
@@ -976,7 +975,6 @@ export function createTransactionsPageData(args: {
     walletId: wallet.id,
     walletName: wallet.name,
     walletCurrency: wallet.currency,
-    currentAvailableBalance,
     currentUserRole: getCurrentUserRole(memberships, wallet.id),
     selectedMonth,
     categories: formCategories,

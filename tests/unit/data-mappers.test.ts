@@ -552,12 +552,11 @@ describe("data mappers", () => {
 
   it("creates filtered transactions page data", () => {
     const pageData = createTransactionsPageData({
-      shell,
+      shell: shell,
       wallet: wallets[0],
       memberships,
       categories: categories.filter((category) => category.wallet_id === "w1"),
       transactions,
-      currentAvailableBalance: 960000,
       selectedMonth: "2026-05"
     });
 

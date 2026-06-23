@@ -394,7 +394,6 @@ export type TransactionsPageData = {
   walletId: string;
   walletName: string;
   walletCurrency: string;
-  currentAvailableBalance: number;
   currentUserRole: WalletRole;
   selectedMonth: string;
   categories: CategoryRow[];
