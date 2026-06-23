@@ -98,6 +98,10 @@ export function BudgetsPageContent({ data }: { data: BudgetsPageData }) {
   const t = getTranslator(locale);
   const active = `/wallets/${data.walletId}/budgets`;
 
+  const totalBudget = data.budgets.reduce((sum, b) => sum + b.amount, 0);
+  const totalUsed = data.budgets.reduce((sum, b) => sum + b.used, 0);
+  const usagePercent = totalBudget > 0 ? Math.min(Math.round((totalUsed / totalBudget) * 100), 100) : 0;
+
   return (
     <AppShell
       currentPath={active}
@@ -109,6 +113,30 @@ export function BudgetsPageContent({ data }: { data: BudgetsPageData }) {
       memberCount={data.shell.memberCount}
       primaryWalletId={data.shell.primaryWalletId}
       currentWalletId={data.walletId}
+      headerBody={
+        data.budgets.length > 0 ? (
+          <div className="rounded-xl bg-card p-4 shadow-serene border border-[color:var(--soft-border)]">
+            <p className="font-label text-[11px] font-semibold uppercase tracking-[0.14em] text-primary-strong">
+              {t("budgets.totalBudgetLabel")}
+            </p>
+            <p className="metric mt-2 text-2xl text-foreground">
+              {formatCurrency(totalBudget)}
+            </p>
+            <div className="mt-3 h-2.5 rounded-full bg-muted">
+              <div
+                className="h-2.5 rounded-full bg-[linear-gradient(90deg,var(--primary),var(--primary-soft-strong))]"
+                style={{ width: `${usagePercent}%` }}
+              />
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {t("budgets.totalUsedDetail", {
+                used: formatCurrency(totalUsed),
+                total: formatCurrency(totalBudget)
+              })}
+            </p>
+          </div>
+        ) : undefined
+      }
     >
       <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="card">
