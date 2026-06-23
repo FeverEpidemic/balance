@@ -386,6 +386,7 @@
     "tabDompet": "Dompet",
     "tabAktivitas": "Aktivitas",
     "addTransaction": "Tambah transaksi",
+    "selectWallet": "Pilih dompet",
     "availableBalanceLabel": "Saldo tersedia",
     "availableBalanceDetail": "Saldo semua wallet yang masih siap dipakai di luar tabungan.",
     "availableBudgetLabel": "Sisa Anggaran Bulan Ini",

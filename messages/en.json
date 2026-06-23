@@ -386,6 +386,7 @@
     "tabDompet": "Wallets",
     "tabAktivitas": "Activity",
     "addTransaction": "Add transaction",
+    "selectWallet": "Select wallet",
     "availableBalanceLabel": "Available balance",
     "availableBalanceDetail": "Balance across all wallets that is still ready to use outside savings.",
     "availableBudgetLabel": "This Month's Remaining Budget",
