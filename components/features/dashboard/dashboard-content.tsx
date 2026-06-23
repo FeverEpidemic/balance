@@ -19,7 +19,16 @@ import { useTimezone } from "@/components/providers/timezone-provider";
 import type { DashboardData } from "@/lib/data";
 import { getTranslator, type AppLocale } from "@/lib/i18n";
 import { formatCurrency, formatShortDate } from "@/lib/utils";
-import type { CSSProperties } from "react";
+import { useState, useMemo, type CSSProperties } from "react";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectItemText,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/shadcn/select";
 
 export function DashboardContent({
   dashboard,
@@ -34,6 +43,13 @@ export function DashboardContent({
   const timezone = useTimezone();
   const transactionsHref = dashboard.shell.primaryWalletId ? `/wallets/${dashboard.shell.primaryWalletId}/transactions` : "/dashboard";
   const hasDailyExpenses = dashboard.dailyExpenses.some((item) => item.amount > 0);
+  const [selectedWalletId, setSelectedWalletId] = useState<string | null>(
+    dashboard.shell.primaryWalletId
+  );
+  const selectedCreateContext = useMemo(() => {
+    if (!selectedWalletId) return null;
+    return dashboard.allWalletContexts[selectedWalletId] ?? null;
+  }, [selectedWalletId, dashboard.allWalletContexts]);
 
   return (
     <AppShell
@@ -47,9 +63,29 @@ export function DashboardContent({
       memberCount={dashboard.shell.memberCount}
       primaryWalletId={dashboard.shell.primaryWalletId}
       hideDefaultHeaderStats
-      fabTransactionContext={dashboard.createTransactionContext ?? undefined}
+      fabTransactionContext={selectedCreateContext ?? undefined}
       headerBody={
         <div className="max-w-3xl">
+          {dashboard.wallets.length > 0 ? (
+            <div className="mb-4">
+              <Select
+                value={selectedWalletId ?? undefined}
+                onValueChange={(value) => setSelectedWalletId(value)}
+              >
+                <SelectTrigger className="w-full max-w-xs h-9 px-3 text-sm font-medium rounded-lg border border-[color:var(--soft-border)] bg-muted text-foreground hover:bg-muted/80 transition-colors">
+                  <SelectValue placeholder={t("dashboard.selectWallet")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {dashboard.wallets.map((wallet) => (
+                    <SelectItem key={wallet.id} value={wallet.id}>
+                      <SelectItemText>{wallet.name}</SelectItemText>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
+
           <p className="font-label text-xs font-semibold uppercase tracking-[0.16em] text-primary-strong">
             {t("dashboard.availableBalanceLabel")}
           </p>
@@ -62,8 +98,8 @@ export function DashboardContent({
         </div>
       }
       headerAction={
-        dashboard.createTransactionContext ? (
-          <TransactionCreateDialogButton context={dashboard.createTransactionContext} label={t("dashboard.addTransaction")} />
+        selectedCreateContext ? (
+          <TransactionCreateDialogButton context={selectedCreateContext} label={t("dashboard.addTransaction")} />
         ) : null
       }
     >
