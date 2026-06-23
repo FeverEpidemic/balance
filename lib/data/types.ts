@@ -283,6 +283,7 @@ export type DashboardData = {
   shell: ShellData;
   onboarding: DashboardOnboarding;
   createTransactionContext: TransactionCreateContext | null;
+  allWalletContexts: Record<string, TransactionCreateContext>;
   totalAvailableBalance: number;
   totalAvailableBudget: number;
   totalSavingBalance: number;
