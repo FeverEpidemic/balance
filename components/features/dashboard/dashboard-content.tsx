@@ -98,8 +98,8 @@ export function DashboardContent({
 
       <DashboardWalletCreate walletCount={dashboard.shell.walletCount} locale={locale} />
 
-      <section className="grid gap-4 2xl:grid-cols-12">
-        <div className="card 2xl:col-span-7">
+      <section>
+        <div className="card">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="eyebrow">{t("dashboard.activeWalletEyebrow")}</p>
@@ -202,38 +202,6 @@ export function DashboardContent({
           </div>
         </div>
 
-        <div className="card 2xl:col-span-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="eyebrow">{t("dashboard.categoryEyebrow")}</p>
-              <h3 className="headline-md mt-2">{t("dashboard.categoryTitle")}</h3>
-            </div>
-            {dashboard.categorySpend.length > 0 ? <BadgeLike>{dashboard.categorySpend.length}</BadgeLike> : null}
-          </div>
-          <div className="mt-6 stack-list">
-            {dashboard.categorySpend.length === 0 ? (
-              <EmptyState title={t("dashboard.emptyCategoryTitle")} description={t("dashboard.emptyCategoryDescription")} />
-            ) : null}
-            {dashboard.categorySpend.map((item) => (
-              <div key={item.name} className="list-card">
-                <div className="flex items-center gap-3">
-                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-card" style={{ borderColor: `${item.color}33`, color: item.color }}>
-                    <CategoryIcon categoryName={item.name} kind="expense" className="h-4.5 w-4.5" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                      <span className="truncate">{item.name}</span>
-                      <span className="metric">{formatCurrency(item.value)}</span>
-                    </div>
-                    <div className="h-3 rounded-full bg-muted">
-                      <div className="h-3 rounded-full" style={{ width: `${Math.max((item.value / dashboard.categorySpend[0].value) * 100, 18)}%`, backgroundColor: item.color }} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
       </section>
 
       <section className="mt-4 card">
@@ -311,8 +279,4 @@ function DashboardHeroCount({
       <p className="mt-1 metric text-sm">{value}</p>
     </div>
   );
-}
-
-function BadgeLike({ children }: { children: number }) {
-  return <span className="theme-primary-pill inline-flex rounded-full px-3 py-1 font-label text-[11px] font-semibold uppercase tracking-[0.12em]">{children}</span>;
 }
