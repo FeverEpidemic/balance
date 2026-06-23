@@ -1,9 +1,8 @@
 "use client";
 
-import { createBalanceAdjustment, deleteTransaction, updateTransaction } from "@/app/actions/transactions";
+import { deleteTransaction, updateTransaction } from "@/app/actions/transactions";
 import { AppShell } from "@/components/app-shell";
 import { TransactionCreateDialogButton } from "@/components/features/transactions/transaction-create-dialog-button";
-import { TransactionCreateForm } from "@/components/features/transactions/transaction-create-form";
 import { useLocale } from "@/components/providers/locale-provider";
 import { useTimezone } from "@/components/providers/timezone-provider";
 import { CategoryIcon } from "@/components/ui/app-icon";
@@ -20,7 +19,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { useToast } from "@/components/ui/toast-provider";
 import type { TransactionsPageData } from "@/lib/data";
 import { getTranslator } from "@/lib/i18n";
-import { formatCurrency, formatShortDate, formatTimeOfDay, getCurrentTimeString, getTodayDateString, toDateInputValue, toTimeInputValue } from "@/lib/utils";
+import { formatCurrency, formatShortDate, formatTimeOfDay, toDateInputValue, toTimeInputValue } from "@/lib/utils";
 import { useOptimistic, useCallback, startTransition, useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -330,123 +329,52 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
       }
     >
       <PullToRefresh>
-      {/* View toggle */}
-      <div className="mb-4">
-        <div className="glass-panel inline-flex gap-1 rounded-2xl p-1.5">
-          <Button
-            href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}`}
-            variant="soft"
-            className="rounded-xl px-4 py-2 font-label text-xs font-semibold uppercase tracking-[0.12em] shadow-none"
-          >
-            {t("transactions.quickInputTab")}
-          </Button>
-          <Button
-            href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}&view=history`}
-            variant="ghost"
-            className="rounded-xl px-4 py-2 font-label text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground"
-          >
-            {t("transactions.fullHistoryTab")}
+      <section className="card">
+        <p className="eyebrow">{t("transactions.recentEyebrow")}</p>
+        <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h3 className="headline-md">{t("transactions.recentTitle")}</h3>
+            <p className="mt-2 text-sm text-muted-foreground">{t("transactions.recentDescription")}</p>
+          </div>
+          <Button href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}&view=history`} variant="ghost" className="w-full sm:w-auto">
+            {t("transactions.viewFullHistory")}
           </Button>
         </div>
-      </div>
-
-      <section className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-        <div className="card">
-          <p className="eyebrow">{t("transactions.quickInputEyebrow")}</p>
-          <h3 className="headline-md mt-2">{t("transactions.quickInputTitle")}</h3>
-          <TransactionCreateForm context={createTransactionContext} className="mt-6 grid min-w-0 gap-4" />
-
-          {canMutate ? (
-            <div className="mt-8 border-t border-border pt-6">
-              <p className="eyebrow">{t("transactions.balanceAdjustmentEyebrow")}</p>
-              <h3 className="headline-md mt-2">{t("transactions.balanceAdjustmentTitle")}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{t("transactions.balanceAdjustmentDescription")}</p>
-              <ActionForm action={createBalanceAdjustment} className="mt-6 grid min-w-0 gap-4" resetOnSuccess>
-                <input type="hidden" name="wallet_id" value={data.walletId} />
-                <div className="glass-panel rounded-2xl p-4">
-                  <p className="font-label text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                    {t("transactions.balanceAdjustmentRecordedBalanceLabel")}
-                  </p>
-                  <p className="metric mt-3 text-xl text-foreground">
-                    {formatCurrency(data.currentAvailableBalance, locale, data.walletCurrency)}
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">{t("transactions.balanceAdjustmentAutoDirectionHint")}</p>
-                </div>
-                <label className="block">
-                  <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.balanceAdjustmentActualBalanceLabel")}</span>
-                  <CurrencyInput
-                    allowNegative
-                    name="actual_balance"
-                    placeholder="Rp0"
-                    required
-                    currency={data.walletCurrency}
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.balanceAdjustmentReasonLabel")}</span>
-                  <input name="note" placeholder={t("transactions.balanceAdjustmentReasonPlaceholder")} required />
-                </label>
-                <label className="block">
-                  <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.balanceAdjustmentDateLabel")}</span>
-                  <input name="happened_at" type="date" defaultValue={getTodayDateString()} required />
-                </label>
-                <label className="block">
-                  <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.balanceAdjustmentTimeLabel")}</span>
-                  <input name="happened_at_time" type="time" defaultValue={getCurrentTimeString()} />
-                </label>
-                <SubmitButton pendingText={t("transactions.balanceAdjustmentSavePending")}>{t("transactions.balanceAdjustmentSave")}</SubmitButton>
-              </ActionForm>
-            </div>
+        <form method="get" className="mt-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+          <label className="block">
+            <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.historyMonthFilter")}</span>
+            <input name="month" type="month" defaultValue={data.selectedMonth} />
+          </label>
+          <Button variant="soft" className="w-full sm:w-auto">
+            {t("common.apply")}
+          </Button>
+          <Button href={`/wallets/${data.walletId}/transactions`} variant="ghost" className="w-full sm:w-auto">
+            {t("common.reset")}
+          </Button>
+        </form>
+        <div className="mt-6 stack-list">
+          {optimisticTransactions.length === 0 ? (
+            <EmptyState title={t("transactions.emptyRecentCardTitle")} description={t("transactions.emptyRecentCardDescription")} />
           ) : null}
+          {optimisticTransactions.map((transaction) => (
+            <TransactionItem
+              key={transaction.id}
+              canMutate={canMutate}
+              categories={data.categories}
+              transaction={transaction}
+              walletId={data.walletId}
+              t={t}
+              onDelete={handleDelete}
+            />
+          ))}
         </div>
-
-        <div className="card">
-          <p className="eyebrow">{t("transactions.recentEyebrow")}</p>
-          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h3 className="headline-md">{t("transactions.recentTitle")}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{t("transactions.recentDescription")}</p>
-            </div>
-            <Button href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}&view=history`} variant="ghost" className="w-full sm:w-auto">
-              {t("transactions.viewFullHistory")}
+        {optimisticTransactions.length > 0 ? (
+          <div className="mt-6 flex justify-start">
+            <Button href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}&view=history`} variant="soft" className="w-full sm:w-auto">
+              {t("transactions.openHistory")}
             </Button>
           </div>
-          <form method="get" className="mt-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
-            <label className="block">
-              <span className="mb-2 block font-label text-sm text-muted-foreground">{t("transactions.historyMonthFilter")}</span>
-              <input name="month" type="month" defaultValue={data.selectedMonth} />
-            </label>
-            <Button variant="soft" className="w-full sm:w-auto">
-              {t("common.apply")}
-            </Button>
-            <Button href={`/wallets/${data.walletId}/transactions`} variant="ghost" className="w-full sm:w-auto">
-              {t("common.reset")}
-            </Button>
-          </form>
-          <div className="mt-6 stack-list">
-            {optimisticTransactions.length === 0 ? (
-              <EmptyState title={t("transactions.emptyRecentCardTitle")} description={t("transactions.emptyRecentCardDescription")} />
-            ) : null}
-            {optimisticTransactions.map((transaction) => (
-              <TransactionItem
-                key={transaction.id}
-                canMutate={canMutate}
-                categories={data.categories}
-                transaction={transaction}
-                walletId={data.walletId}
-                t={t}
-                onDelete={handleDelete}
-              />
-            ))}
-          </div>
-          {optimisticTransactions.length > 0 ? (
-            <div className="mt-6 flex justify-start">
-              <Button href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}&view=history`} variant="soft" className="w-full sm:w-auto">
-                {t("transactions.openHistory")}
-              </Button>
-            </div>
-          ) : null}
-        </div>
+        ) : null}
       </section>
       </PullToRefresh>
     </AppShell>
