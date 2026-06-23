@@ -317,12 +317,12 @@ describe("data mappers", () => {
     expect(dashboard.onboarding).toMatchObject({
       isVisible: true,
       state: "active",
-      completedSteps: 1,
+      completedSteps: 2,
       totalSteps: 4
     });
     expect(dashboard.onboarding.steps[0]?.isComplete).toBe(true);
     expect(dashboard.onboarding.steps[1]?.isComplete).toBe(false);
-    expect(dashboard.onboarding.steps[2]?.isComplete).toBe(false);
+    expect(dashboard.onboarding.steps[2]?.isComplete).toBe(true);
     expect(dashboard.onboarding.steps[3]?.isComplete).toBe(false);
   });
 
@@ -426,7 +426,7 @@ describe("data mappers", () => {
     expect(budgetOnlyDashboard.onboarding.steps[2]).toMatchObject({
       id: "organize_wallet",
       isComplete: true,
-      href: "/wallets/w1/categories"
+      href: "/wallets/w1/budgets"
     });
   });
 

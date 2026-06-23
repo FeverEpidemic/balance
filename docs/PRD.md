@@ -1,7 +1,7 @@
 ---
 title: Balance — Product Requirements Document
-version: 1.1.0
-last_updated: 2026-06-17
+version: 1.2.0
+last_updated: 2026-06-22
 author: FeverEpidemic
 ---
 
@@ -18,7 +18,7 @@ author: FeverEpidemic
 
 - **Target pengguna:** Individu dan keluarga Indonesia yang ingin mencatat pemasukan & pengeluaran harian.
 - **Bahasa:** Indonesia (default) dan Inggris.
-- **Mata uang:** IDR (default, bisa dikustom per profil).
+- **Mata uang:** Multi-currency (IDR default, bisa dikustom per wallet).
 - **Platform:** Web (mobile-responsive, PWA-enabled).
 
 ---
@@ -37,6 +37,7 @@ author: FeverEpidemic
 | Tema (light, dark, system) via pengaturan profil | ✅ Selesai |
 | Lokalisasi (id/en) via pengaturan profil | ✅ Selesai |
 | API keys untuk integrasi eksternal | ✅ Selesai |
+| Timezone auto-detect | ✅ Selesai |
 
 ### 2.2. Manajemen Dompet (Wallet)
 
@@ -48,6 +49,7 @@ author: FeverEpidemic
 | Arsip dompet | ✅ Selesai |
 | Batas kapasitas member per dompet (default: 5) | ✅ Selesai |
 | Undangan via token + email | ✅ Selesai |
+| Multi-currency per wallet (IDR, USD, dll) | ✅ Selesai |
 
 ### 2.3. Transaksi
 
@@ -60,6 +62,9 @@ author: FeverEpidemic
 | Settlement (pelunasan utang antar member) | ✅ Selesai |
 | Sumber transaksi (manual, saving_adjustment, balance_adjustment) | ✅ Selesai |
 | Riwayat transaksi dengan filter & pagination | ✅ Selesai |
+| **Batch input** — input banyak transaksi sekaligus dalam satu form | ✅ Selesai |
+| **Debt tracker** — catat utang/piutang dengan siapapun (text bebas), dukung cicilan & auto-update status | ✅ Selesai |
+| **OCR scan struk** — foto struk → auto-fill transaksi via Gemini Vision | ✅ Selesai |
 
 ### 2.4. Anggaran (Budget)
 
@@ -67,6 +72,7 @@ author: FeverEpidemic
 |-------|--------|
 | Budget per kategori per bulan | ✅ Selesai |
 | Progres budget vs realisasi di dashboard | ✅ Selesai |
+| **Carry-over toggle** — bawa sisa budget bulan sebelumnya ke bulan ini (opsional per kategori, rekursif antar bulan) | ✅ Selesai |
 
 ### 2.5. Tabungan (Saving)
 
@@ -94,8 +100,10 @@ author: FeverEpidemic
 | Ringkasan saldo per dompet | ✅ Selesai |
 | Grafik pengeluaran harian (area chart) | ✅ Selesai |
 | Progres budget bulan ini | ✅ Selesai |
+| Kartu Available Budget (sisa anggaran aktif) | ✅ Selesai |
 | Transaksi terbaru | ✅ Selesai |
 | Kartu onboarding untuk user baru | ✅ Selesai |
+| Insight AI di dashboard | ✅ Selesai |
 
 ### 2.8. Asisten AI (Chat)
 
@@ -107,6 +115,7 @@ author: FeverEpidemic
 | Pengelolaan anggaran via AI | ✅ Selesai |
 | Deteksi duplikat + konfirmasi transaksi | ✅ Selesai |
 | Insight AI di dashboard | ✅ Selesai |
+| Panduan cepat AI di header chat | ✅ Selesai |
 | Compliance gate (opt-in AI, privacy notice) | ✅ Selesai |
 | Token budgeting & sliding window history | ✅ Selesai |
 | Rate limiting AI Chat + daily limit | ✅ Selesai |
@@ -126,7 +135,7 @@ author: FeverEpidemic
 | Fitur | Status |
 |-------|--------|
 | Export Excel (.xlsx) untuk transaksi | ✅ Selesai |
-| Export PDF laporan bulanan | ✅ Selesai |
+| Export PDF laporan bulanan (premium-only) | ✅ Selesai |
 | Changelog page + popup "Yang Baru" | ✅ Selesai |
 
 ### 2.11. PWA
@@ -137,6 +146,29 @@ author: FeverEpidemic
 | Install prompt | ✅ Selesai |
 | App manifest | ✅ Selesai |
 | Offline page | ✅ Selesai |
+| Background sync queue (offline transactions) | ✅ Selesai |
+
+### 2.12. Push Notification & Daily Reminder
+
+| Fitur | Status |
+|-------|--------|
+| **Web Push subscription** — dari halaman Settings | ✅ Selesai |
+| **Daily reminder** — notifikasi harian untuk catat transaksi | ✅ Selesai |
+| **Kustomisasi waktu** — pilih jam pengingat (timezone-aware) | ✅ Selesai |
+| **Auto-cleanup** — hapus subscription invalid jika browser blokir | ✅ Selesai |
+
+### 2.13. Premium & Midtrans
+
+| Fitur | Status |
+|-------|--------|
+| Midtrans Snap payment integration | ✅ Selesai |
+| Paket Bulanan (Rp 29.000/bln) | ✅ Selesai |
+| Paket Tahunan (Rp 250.000/thn, hemat 28%) | ✅ Selesai |
+| Multi metode pembayaran (GoPay, Bank Transfer, QRIS, dll) | ✅ Selesai |
+| Verifikasi signature SHA512 | ✅ Selesai |
+| Riwayat pembayaran & status langganan | ✅ Selesai |
+| Scheduler auto-expire saat langganan habis | ✅ Selesai |
+| Periode Premium dihitung setelah trial berakhir | ✅ Selesai |
 
 ---
 
@@ -149,6 +181,8 @@ author: FeverEpidemic
 3. Pilih jenis (income/expense), kategori, nominal, catatan
 4. Simpan → transaksi langsung masuk, budget & grafik terupdate
 5. (Opsional) Input cepat via template
+6. (Opsional) Input batch — tambah baris untuk transaksi multiple
+7. (Opsional) Scan struk — foto → AI auto-fill
 
 ### 3.2. Alur Dompet Bersama
 
@@ -175,7 +209,15 @@ author: FeverEpidemic
 3. Panggil process_due_recurring_transactions() stored procedure
 4. Generate transaksi baru untuk yang sudah jatuh tempo
 
-### 3.5. Alur AI Chat
+### 3.5. Alur Debt Tracker
+
+1. User buka tab "Utang/Piutang" di detail dompet
+2. Catat utang atau piutang dengan pihak eksternal (nama text bebas)
+3. Atur nominal, cicilan (opsional), dan status awal
+4. Saat ada pembayaran, record payment → auto-update status
+5. Status: active → (sebagian/settled/cancelled)
+
+### 3.6. Alur AI Chat
 
 1. User buka halaman `/chat` → compliance gate (opt-in pertama kali)
 2. User pilih periode & wallet, lalu ketik pertanyaan natural
@@ -183,12 +225,30 @@ author: FeverEpidemic
 4. Untuk mutasi: AI deteksi intent → confidence check → auto-save atau minta konfirmasi
 5. Rivayat chat disimpan di localStorage browser
 
-### 3.6. Alur API Chat
+### 3.7. Alur API Chat
 
 1. User generate API key dari halaman Settings
 2. Gunakan Bearer token di header Authorization
 3. GET /api/chat/rekap?period=month → lihat rekap
 4. POST /api/chat/transaction → input transaksi baru
+
+### 3.8. Alur Push Notification
+
+1. User buka Settings → aktifkan daily reminder
+2. Pilih jam pengingat (contoh: 20:00 WIB)
+3. Browser minta izin notifikasi → user allow
+4. Subscription dikirim ke server → simpan di DB
+5. Scheduler kirim notifikasi setiap jam yang dipilih
+6. User klik notifikasi → buka dashboard
+
+### 3.9. Alur Premium Payment
+
+1. User buka Settings → "Langganan Premium"
+2. Pilih paket: Bulanan (Rp 29.000) atau Tahunan (Rp 250.000)
+3. Redirect ke Midtrans Snap → pilih metode bayar
+4. Bayar → Midtrans kirim notifikasi ke server
+5. Server verifikasi signature → update plan_type user
+6. Jika masih trial → Premium mulai setelah trial habis
 
 ---
 
@@ -200,20 +260,24 @@ author: FeverEpidemic
 | **Keamanan** | RLS di semua tabel; semua mutasi via server actions; API key di-hash SHA256 |
 | **Responsif** | Mobile-first, breakpoint Tailwind, PWA-enabled |
 | **Dukungan tema** | Light mode + Dark mode (keduanya first-class) |
-| **Lokalisasi** | next-intl via middleware, support id/en |
+| **Lokalisasi** | i18n manual via messages/{id,en}.json |
 | **Deployment** | Docker (Next standalone + Caddy + Redis) |
 | **ARM64** | Platform default produksi |
+| **Premium** | Midtrans payment + scheduler auto-expire |
 
 ---
 
 ## 5. Batasan Produk (Saat Ini)
 
-- Belum ada notifikasi push atau reminder
-- Belum ada integrasi bank (OCR / auto-import statement)
-- Belum ada budget carry-over (sisa bulan lalu → bulan ini)
-- Belum ada widget mobile (iOS/Android)
+- ~~Belum ada notifikasi push atau reminder~~ ✅ **Sudah ada** (daily reminder via Web Push)
+- ~~Belum ada integrasi bank (OCR / auto-import statement)~~ ✅ **OCR sudah ada** (scan struk via Gemini), tapi **auto-import statement bank via API** belum
+- ~~Belum ada budget carry-over (sisa bulan lalu → bulan ini)~~ ✅ **Sudah ada** (toggle per kategori, rekursif)
+- Belum ada widget mobile (iOS/Android) — PWA sudah, tapi widget native belum
 - AI Chat bergantung pada provider eksternal (DeepSeek) — ada privacy disclosure
 - Cloudflare Managed Challenge dapat memblokir akses API dari script eksternal (solusi: WAF skip rule)
+- Belum ada anomaly detection (pola pengeluaran tidak wajar)
+- Belum ada cash flow forecast (prediksi saldo bulan depan)
+- Belum ada CSV mass import (upload file bank statement)
 
 ---
 
@@ -222,11 +286,23 @@ author: FeverEpidemic
 Lihat `docs/plans/PLAN.md` untuk visi awal & scope MVP.
 Lihat `docs/plan-upgrade.md` untuk rencana upgrade & runbook admin.
 
-Fitur potensial ke depan:
-- Integrasi bank (OCR / auto-import statement)
-- Budget carry-over (sisa bulan lalu → bulan ini)
-- Widget iOS/Android
+### ✅ Sudah Terealisasi (di luar scope MVP awal)
+- Push notification & daily reminder
+- Budget carry-over (rekursif, per kategori)
+- OCR scan struk (via Gemini Vision)
+- Debt tracker (utang/piutang dengan pihak eksternal)
+- Batch transaction input
+- Midtrans payment integration (Premium)
+- Multi-currency wallet
+- Timezone auto-detect
+
+### 🔮 Fitur Potensial ke Depan
+- Integrasi bank auto-import (via API partner / scraping)
+- Widget iOS/Android (home screen widget)
 - Family dashboard (gabungan view semua wallet keluarga)
-- Notifikasi push (pengingat budget, tagihan)
 - Kategori AI auto-suggest
-- Dark mode scheduler (auto-switch theme)
+- Spending anomaly detection
+- Cash flow forecast
+- CSV mass import (manual upload bank statement)
+- Monthly AI narrative report
+- Dark mode scheduler (auto-switch theme based on schedule)

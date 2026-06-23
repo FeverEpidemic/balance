@@ -25,10 +25,6 @@ function kindLabel(kind: CategoriesPageData["categories"][number]["kind"], t: Re
 
 function sortCategories(categories: CategoriesPageData["categories"]) {
   return [...categories].sort((left, right) => {
-    if (left.is_system !== right.is_system) {
-      return left.is_system ? -1 : 1;
-    }
-
     if (left.kind !== right.kind) {
       return left.kind === "income" ? -1 : 1;
     }
@@ -48,7 +44,7 @@ function CategoryItem({
   walletId: string;
   t: ReturnType<typeof getTranslator>;
 }) {
-  const isEditable = canMutate && !category.is_system;
+  const isEditable = canMutate;
 
   return (
     <div className="list-card">
@@ -65,14 +61,13 @@ function CategoryItem({
               <div className="flex flex-wrap items-center gap-2">
                 <p className="truncate font-medium text-foreground">{category.name}</p>
                 <Badge tone={kindTone(category.kind)}>{kindLabel(category.kind, t)}</Badge>
-                {category.is_system ? <Badge>{t("categories.systemBadge")}</Badge> : null}
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                 <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 font-label text-[11px] uppercase tracking-[0.12em]">
                   <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: category.color }} />
                   <span>{category.color}</span>
                 </span>
-                {!isEditable ? <span>{category.is_system ? t("categories.systemReadonly") : t("common.readOnly")}</span> : null}
+                {!isEditable ? <span>{t("common.readOnly")}</span> : null}
               </div>
             </div>
           </div>

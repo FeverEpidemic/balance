@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   CATEGORY_COLOR_PALETTE,
-  isSystemManagedCategory,
   isValidCategoryColor,
   isValidCategoryKind,
   normalizeCategoryName
@@ -19,10 +18,5 @@ describe("category helpers", () => {
     expect(isValidCategoryColor(CATEGORY_COLOR_PALETTE[0])).toBe(true);
     expect(isValidCategoryColor("#123abc")).toBe(true);
     expect(isValidCategoryColor("sage")).toBe(false);
-  });
-
-  it("marks system-managed categories as readonly", () => {
-    expect(isSystemManagedCategory({ is_system: true })).toBe(true);
-    expect(isSystemManagedCategory({ is_system: false })).toBe(false);
   });
 });

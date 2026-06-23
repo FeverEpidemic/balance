@@ -1,4 +1,4 @@
-import type { CategoryRow, TransactionKind } from "@/lib/data/types";
+import type { TransactionKind } from "@/lib/data/types";
 
 export const DEFAULT_CATEGORY_COLOR = "#595f3d";
 
@@ -32,8 +32,4 @@ export function isValidCategoryKind(value: string): value is TransactionKind {
 
 export function isValidCategoryColor(color: string) {
   return HEX_COLOR_PATTERN.test(color);
-}
-
-export function isSystemManagedCategory(category: Pick<CategoryRow, "is_system">) {
-  return category.is_system;
 }

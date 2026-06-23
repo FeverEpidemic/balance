@@ -389,7 +389,7 @@ export function buildDashboardOnboarding(args: {
   const budgetsHref = shell.primaryWalletId ? `/wallets/${shell.primaryWalletId}/budgets` : "/dashboard";
   const savingsHref = shell.primaryWalletId ? `/wallets/${shell.primaryWalletId}/savings` : "/dashboard";
 
-  const hasCustomCategory = categories.some((category) => !category.is_system);
+  const hasCustomCategory = categories.length > 0;
   const hasBudget = budgets.length > 0;
   const hasSaving = savings.length > 0;
   const organizeComplete = hasCustomCategory || hasBudget;

@@ -1,7 +1,7 @@
 "use server";
 
 import { requireUser } from "@/lib/auth";
-import { DEFAULT_CATEGORY_COLOR, isSystemManagedCategory, isValidCategoryColor, isValidCategoryKind, normalizeCategoryName } from "@/lib/categories";
+import { DEFAULT_CATEGORY_COLOR, isValidCategoryColor, isValidCategoryKind, normalizeCategoryName } from "@/lib/categories";
 import { invalidateWalletReadCaches } from "@/lib/data/cache";
 import type { CategoryRow } from "@/lib/data/types";
 import {
@@ -181,10 +181,6 @@ export async function updateCategory(_prevState: ActionResult, formData: FormDat
     return errorResult(t("actionErrors.categoryNotFound"));
   }
 
-  if (isSystemManagedCategory(existingCategory)) {
-    return errorResult(t("actionErrors.categoryDeleteSystemWarning"));
-  }
-
   if (await findDuplicateCategory(supabase, { walletId, kind: parsedKind, name, excludeCategoryId: categoryId })) {
     return errorResult(t("actionErrors.categoryNameDuplicate"));
   }
@@ -232,10 +228,6 @@ export async function deleteCategory(_prevState: ActionResult, formData: FormDat
 
   if (!existingCategory) {
     return errorResult(t("actionErrors.categoryNotFound"));
-  }
-
-  if (isSystemManagedCategory(existingCategory)) {
-    return errorResult(t("actionErrors.categoryDeleteSystemWarning"));
   }
 
   const { error } = await supabase.from("categories").delete().eq("id", categoryId).eq("wallet_id", walletId);

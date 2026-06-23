@@ -54,8 +54,8 @@ export function resolveBalanceAdjustment(recordedBalance: number, actualBalance:
   };
 }
 
-export function isBalanceAdjustmentCategory(category: Pick<CategoryRow, "kind" | "name" | "is_system">) {
-  return category.is_system && category.name === BALANCE_ADJUSTMENT_CATEGORY_NAMES[category.kind];
+export function isBalanceAdjustmentCategory(category: Pick<CategoryRow, "kind" | "name">) {
+  return category.name === BALANCE_ADJUSTMENT_CATEGORY_NAMES[category.kind];
 }
 
 export function isBalanceAdjustmentSource(source: TransactionSource) {

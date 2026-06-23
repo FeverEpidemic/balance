@@ -19,15 +19,13 @@ describe("balance adjustment helpers", () => {
     expect(
       isBalanceAdjustmentCategory({
         kind: "income",
-        name: "Penyesuaian Saldo Masuk",
-        is_system: true
+        name: "Penyesuaian Saldo Masuk"
       })
     ).toBe(true);
     expect(
       isBalanceAdjustmentCategory({
         kind: "expense",
-        name: "Belanja Harian",
-        is_system: false
+        name: "Belanja Harian"
       })
     ).toBe(false);
   });
