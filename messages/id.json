@@ -457,7 +457,9 @@
     "onboardingStep4Title": "Mulai menabung",
     "onboardingStep4Description": "Buka tabungan pertama di wallet utamamu supaya ada pemisah jelas antara saldo harian dan dana yang sedang kamu kumpulkan.",
     "onboardingStep4CtaCreate": "Buka tabungan",
-    "onboardingStep4CtaView": "Lihat tabungan"
+    "onboardingStep4CtaView": "Lihat tabungan",
+    "allWallets": "Semua Dompet",
+    "openWallet": "Buka dompet"
   },
   "transactions": {
     "kindExpense": "Pengeluaran",

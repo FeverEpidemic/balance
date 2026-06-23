@@ -34,6 +34,7 @@ import type {
   TransactionHistorySortField,
   TransactionCreateContext,
   TransactionsPageData,
+  WalletDashboardBreakdown,
   WalletMemberRow,
   WalletOverviewData,
   WalletRole,
@@ -320,7 +321,7 @@ export function buildCategorySpend(
   return [...categorySpendMap.entries()]
     .map(([name, item]) => ({ name, value: item.value, color: item.color }))
     .sort((left, right) => right.value - left.value)
-    .slice(0, 4) satisfies DashboardCategorySpend[];
+    .slice(0, 4) satisfies Omit<DashboardCategorySpend, "walletId">[];
 }
 
 export function buildDailyExpenses(transactions: TransactionRow[], month: string) {
@@ -347,7 +348,7 @@ export function buildDailyExpenses(transactions: TransactionRow[], month: string
       amount: expenseByDay.get(date) ?? 0,
       isToday: date === today
     };
-  }) satisfies DailyExpenseItem[];
+  }) satisfies Omit<DailyExpenseItem, "walletId">[];
 }
 
 export function buildDashboardOnboarding(args: {
@@ -517,6 +518,97 @@ function buildAllWalletContexts(args: {
   }
 
   return result;
+}
+
+function buildWalletBreakdown(args: {
+  walletId: string;
+  memberships: WalletMemberRow[];
+  wallets: WalletRow[];
+  memberRows: WalletMemberRow[];
+  budgets: BudgetRow[];
+  monthTransactions: TransactionRow[];
+  recentTransactions: TransactionRow[];
+  savings: SavingRow[];
+  savingEntries: SavingEntryRow[];
+  categories: CategoryRow[];
+  splits: TransactionSplitRow[];
+  balancesByWallet?: Map<string, number>;
+  month: string;
+  locale: AppLocale;
+}): WalletDashboardBreakdown {
+  const {
+    walletId,
+    memberships,
+    wallets,
+    memberRows,
+    budgets,
+    monthTransactions,
+    recentTransactions,
+    savings,
+    savingEntries,
+    categories,
+    splits,
+    balancesByWallet,
+    month,
+    locale
+  } = args;
+
+  const wallet = wallets.find((w) => w.id === walletId);
+  if (!wallet) {
+    return {
+      totalAvailableBalance: 0,
+      totalAvailableBudget: 0,
+      totalSavingBalance: 0,
+      totalBalance: 0,
+      totalExpenseThisMonth: 0,
+      totalIncomeThisMonth: 0,
+      outstandingSplit: 0,
+      categorySpend: [],
+      dailyExpenses: [],
+      recentTransactions: []
+    };
+  }
+
+  const walletMonthTransactions = monthTransactions.filter((tx) => tx.wallet_id === walletId);
+  const walletRecentTransactions = recentTransactions.filter((tx) => tx.wallet_id === walletId);
+  const walletSplits = splits.filter((s) => s.wallet_id === walletId);
+  const walletBudgets = budgets.filter((b) => b.wallet_id === walletId);
+  const walletCategories = categories.filter((c) => c.wallet_id === walletId);
+  const walletSavings = savings.filter((s) => s.wallet_id === walletId);
+  const walletSavingEntries = savingEntries.filter((s) => s.wallet_id === walletId);
+  const walletMemberRows = memberRows.filter((m) => m.wallet_id === walletId);
+
+  const [summary] = buildWalletSummaries({
+    memberships,
+    wallets: [wallet],
+    memberRows: walletMemberRows,
+    transactions: walletMonthTransactions,
+    savings: walletSavings,
+    savingEntries: walletSavingEntries,
+    budgets: walletBudgets,
+    balancesByWallet,
+    month,
+    locale
+  });
+
+  return {
+    totalAvailableBalance: summary.availableBalance,
+    totalAvailableBudget: summary.budgetThisMonth > 0 ? summary.budgetThisMonth - summary.spentThisMonth : 0,
+    totalSavingBalance: summary.savingBalance,
+    totalBalance: summary.totalBalance,
+    totalExpenseThisMonth: walletMonthTransactions.filter((tx) => tx.kind === "expense").reduce((sum, tx) => sum + tx.amount, 0),
+    totalIncomeThisMonth: walletMonthTransactions.filter((tx) => tx.kind === "income").reduce((sum, tx) => sum + tx.amount, 0),
+    outstandingSplit: walletSplits.reduce((sum, s) => sum + Math.max(s.owed_amount - s.paid_amount, 0), 0),
+    categorySpend: buildCategorySpend(walletMonthTransactions, walletCategories, locale).map((cs) => ({
+      ...cs,
+      walletId
+    })),
+    dailyExpenses: buildDailyExpenses(walletMonthTransactions, month).map((de) => ({
+      ...de,
+      walletId
+    })),
+    recentTransactions: buildRecentTransactions(walletRecentTransactions, walletCategories, [wallet], locale)
+  };
 }
 
 export function buildTransactionListItems(
@@ -924,6 +1016,27 @@ export function createDashboardData(args: {
       memberships,
       categories
     }),
+    walletBreakdowns: Object.fromEntries(
+      wallets.map((wallet) => [
+        wallet.id,
+        buildWalletBreakdown({
+          walletId: wallet.id,
+          memberships,
+          wallets,
+          memberRows,
+          budgets,
+          monthTransactions,
+          recentTransactions,
+          savings,
+          savingEntries,
+          categories,
+          splits,
+          balancesByWallet,
+          month,
+          locale
+        })
+      ])
+    ),
     totalAvailableBalance: walletSummaries.reduce((total, wallet) => total + wallet.availableBalance, 0),
     totalAvailableBudget: walletSummaries.reduce(
       (total, wallet) => total + (wallet.budgetThisMonth > 0 ? wallet.budgetThisMonth - wallet.spentThisMonth : 0),
@@ -936,8 +1049,14 @@ export function createDashboardData(args: {
     outstandingSplit: splits.reduce((total, row) => total + Math.max(row.owed_amount - row.paid_amount, 0), 0),
     wallets: walletSummaries,
     recentTransactions: buildRecentTransactions(recentTransactions, categories, wallets, locale),
-    categorySpend: buildCategorySpend(currentMonthTransactions, categories, locale),
-    dailyExpenses: buildDailyExpenses(currentMonthTransactions, month)
+    categorySpend: buildCategorySpend(currentMonthTransactions, categories, locale).map((cs) => ({
+      ...cs,
+      walletId: ""
+    })),
+    dailyExpenses: buildDailyExpenses(currentMonthTransactions, month).map((de) => ({
+      ...de,
+      walletId: ""
+    }))
   } satisfies DashboardData;
 }
 

@@ -42,7 +42,6 @@ export function DashboardContent({
   const t = getTranslator(locale);
   const timezone = useTimezone();
   const transactionsHref = dashboard.shell.primaryWalletId ? `/wallets/${dashboard.shell.primaryWalletId}/transactions` : "/dashboard";
-  const hasDailyExpenses = dashboard.dailyExpenses.some((item) => item.amount > 0);
   const [selectedWalletId, setSelectedWalletId] = useState<string | null>(
     dashboard.shell.primaryWalletId
   );
@@ -50,6 +49,37 @@ export function DashboardContent({
     if (!selectedWalletId) return null;
     return dashboard.allWalletContexts[selectedWalletId] ?? null;
   }, [selectedWalletId, dashboard.allWalletContexts]);
+
+  const activeData = useMemo(() => {
+    if (!selectedWalletId || !dashboard.walletBreakdowns[selectedWalletId]) {
+      return {
+        totalAvailableBalance: dashboard.totalAvailableBalance,
+        totalAvailableBudget: dashboard.totalAvailableBudget,
+        totalSavingBalance: dashboard.totalSavingBalance,
+        totalBalance: dashboard.totalBalance,
+        totalExpenseThisMonth: dashboard.totalExpenseThisMonth,
+        totalIncomeThisMonth: dashboard.totalIncomeThisMonth,
+        outstandingSplit: dashboard.outstandingSplit,
+        recentTransactions: dashboard.recentTransactions,
+        categorySpend: dashboard.categorySpend,
+        dailyExpenses: dashboard.dailyExpenses,
+      };
+    }
+    const bd = dashboard.walletBreakdowns[selectedWalletId];
+    return {
+      totalAvailableBalance: bd.totalAvailableBalance,
+      totalAvailableBudget: bd.totalAvailableBudget,
+      totalSavingBalance: bd.totalSavingBalance,
+      totalBalance: bd.totalBalance,
+      totalExpenseThisMonth: bd.totalExpenseThisMonth,
+      totalIncomeThisMonth: bd.totalIncomeThisMonth,
+      outstandingSplit: bd.outstandingSplit,
+      recentTransactions: bd.recentTransactions,
+      categorySpend: bd.categorySpend,
+      dailyExpenses: bd.dailyExpenses,
+    };
+  }, [selectedWalletId, dashboard]);
+  const hasDailyExpenses = activeData.dailyExpenses.some((item) => item.amount > 0);
 
   return (
     <AppShell
@@ -67,15 +97,18 @@ export function DashboardContent({
       headerBody={
         <div className="max-w-3xl">
           {dashboard.wallets.length > 0 ? (
-            <div className="mb-4">
+            <div className="mb-4 flex items-center gap-3">
               <Select
-                value={selectedWalletId ?? undefined}
-                onValueChange={(value) => setSelectedWalletId(value)}
+                value={selectedWalletId ?? "__all__"}
+                onValueChange={(value) => setSelectedWalletId(value === "__all__" ? null : value)}
               >
                 <SelectTrigger className="w-full max-w-xs h-9 px-3 text-sm font-medium rounded-lg border border-[color:var(--soft-border)] bg-muted text-foreground hover:bg-muted/80 transition-colors">
                   <SelectValue placeholder={t("dashboard.selectWallet")} />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="__all__">
+                    <SelectItemText>{t("dashboard.allWallets")}</SelectItemText>
+                  </SelectItem>
                   {dashboard.wallets.map((wallet) => (
                     <SelectItem key={wallet.id} value={wallet.id}>
                       <SelectItemText>{wallet.name}</SelectItemText>
@@ -83,6 +116,16 @@ export function DashboardContent({
                   ))}
                 </SelectContent>
               </Select>
+              {selectedWalletId ? (
+                <Button
+                  href={`/wallets/${selectedWalletId}`}
+                  variant="ghost"
+                  size="sm"
+                  className="shrink-0 rounded-full text-xs"
+                >
+                  {t("dashboard.openWallet")} →
+                </Button>
+              ) : null}
             </div>
           ) : null}
 
@@ -90,7 +133,7 @@ export function DashboardContent({
             {t("dashboard.availableBalanceLabel")}
           </p>
           <p className="metric mt-3 text-[2.15rem] leading-none text-foreground sm:text-[2.8rem] md:text-[3.4rem]">
-            {formatCurrency(dashboard.totalAvailableBalance)}
+            {formatCurrency(activeData.totalAvailableBalance)}
           </p>
           <p className="mt-3 max-w-xl text-[15px] leading-7 text-muted-foreground sm:text-sm">
             {t("dashboard.availableBalanceDetail")}
@@ -109,11 +152,11 @@ export function DashboardContent({
 
       <PullToRefresh>
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <StatCard label={t("dashboard.availableBudgetLabel")} value={dashboard.totalAvailableBudget} detail={t("dashboard.availableBudgetDetail")} progressValue={dashboard.totalExpenseThisMonth} progressMax={dashboard.totalAvailableBudget + dashboard.totalExpenseThisMonth} progressLabel={t("dashboard.budgetProgressLabel")} />
-        <StatCard label={t("dashboard.savingBalanceLabel")} value={dashboard.totalSavingBalance} detail={t("dashboard.savingBalanceDetail")} />
-        <StatCard label={t("dashboard.outstandingSplitLabel")} value={dashboard.outstandingSplit} detail={t("dashboard.outstandingSplitDetail")} />
-        <StatCard label={t("dashboard.monthExpenseLabel")} value={dashboard.totalExpenseThisMonth} detail={t("dashboard.monthExpenseDetail")} />
-        <StatCard label={t("dashboard.monthIncomeLabel")} value={dashboard.totalIncomeThisMonth} detail={t("dashboard.monthIncomeDetail")} />
+        <StatCard label={t("dashboard.availableBudgetLabel")} value={activeData.totalAvailableBudget} detail={t("dashboard.availableBudgetDetail")} progressValue={activeData.totalExpenseThisMonth} progressMax={activeData.totalAvailableBudget + activeData.totalExpenseThisMonth} progressLabel={t("dashboard.budgetProgressLabel")} />
+        <StatCard label={t("dashboard.savingBalanceLabel")} value={activeData.totalSavingBalance} detail={t("dashboard.savingBalanceDetail")} />
+        <StatCard label={t("dashboard.outstandingSplitLabel")} value={activeData.outstandingSplit} detail={t("dashboard.outstandingSplitDetail")} />
+        <StatCard label={t("dashboard.monthExpenseLabel")} value={activeData.totalExpenseThisMonth} detail={t("dashboard.monthExpenseDetail")} />
+        <StatCard label={t("dashboard.monthIncomeLabel")} value={activeData.totalIncomeThisMonth} detail={t("dashboard.monthIncomeDetail")} />
       </section>
 
       <DashboardAiInsight locale={locale} />
@@ -122,7 +165,7 @@ export function DashboardContent({
         <p className="eyebrow">{t("dashboard.dailyExpenseEyebrow")}</p>
         <h3 className="headline-md mt-2">{t("dashboard.dailyExpenseTitle")}</h3>
         {hasDailyExpenses ? (
-          <DashboardDailyExpenseChart dailyExpenses={dashboard.dailyExpenses} locale={locale} />
+          <DashboardDailyExpenseChart dailyExpenses={activeData.dailyExpenses} locale={locale} />
         ) : (
           <div className="mt-6">
             <EmptyState title={t("dashboard.dailyExpenseEmptyTitle")} description={t("dashboard.dailyExpenseEmptyDescription")} />
@@ -130,19 +173,21 @@ export function DashboardContent({
         )}
       </section>
 
-      <DashboardCategoryBreakdown categories={dashboard.categorySpend} />
+      <DashboardCategoryBreakdown categories={activeData.categorySpend} />
 
       <DashboardWalletCreate walletCount={dashboard.shell.walletCount} locale={locale} />
 
-      <section>
-        <div className="card">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="eyebrow">{t("dashboard.activeWalletEyebrow")}</p>
-              <h3 className="headline-md mt-2">{t("dashboard.activeWalletTitle")}</h3>
+      {/* Wallet cards — only show when "Semua Dompet" is selected */}
+      {!selectedWalletId ? (
+        <section>
+          <div className="card">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="eyebrow">{t("dashboard.activeWalletEyebrow")}</p>
+                <h3 className="headline-md mt-2">{t("dashboard.activeWalletTitle")}</h3>
+              </div>
             </div>
-          </div>
-          <div className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(17rem,1fr))] gap-4">
+            <div className="mt-6 grid grid-cols-[repeat(auto-fit,minmax(17rem,1fr))] gap-4">
             {dashboard.wallets.length === 0 ? (
               <div>
                 <EmptyState title={t("dashboard.emptyWalletTitle")} description={t("dashboard.emptyWalletDescription")} />
@@ -239,6 +284,7 @@ export function DashboardContent({
         </div>
 
       </section>
+      ) : null}
 
       <section className="mt-4 card">
         <div className="flex items-center justify-between gap-3">
@@ -251,10 +297,10 @@ export function DashboardContent({
           </Button>
         </div>
         <div className="mt-6 space-y-3">
-          {dashboard.recentTransactions.length === 0 ? (
+          {activeData.recentTransactions.length === 0 ? (
             <EmptyState title={t("dashboard.emptyRecentTitle")} description={t("dashboard.emptyRecentDescription")} />
           ) : null}
-          {dashboard.recentTransactions.map((transaction) => (
+          {activeData.recentTransactions.map((transaction) => (
             <div key={transaction.id} className="list-card">
               <div className="flex items-start gap-3">
                 <span

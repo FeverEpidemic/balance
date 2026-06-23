@@ -259,6 +259,7 @@ export type DashboardRecentTransaction = {
 };
 
 export type DashboardCategorySpend = {
+  walletId: string;
   name: string;
   value: number;
   color: string;
@@ -272,6 +273,7 @@ export type TransactionCreateContext = {
 };
 
 export type DailyExpenseItem = {
+  walletId: string;
   day: number;
   dayLabel: string;
   date: string;
@@ -279,11 +281,25 @@ export type DailyExpenseItem = {
   isToday: boolean;
 };
 
+export type WalletDashboardBreakdown = {
+  totalAvailableBalance: number;
+  totalAvailableBudget: number;
+  totalSavingBalance: number;
+  totalBalance: number;
+  totalExpenseThisMonth: number;
+  totalIncomeThisMonth: number;
+  outstandingSplit: number;
+  categorySpend: DashboardCategorySpend[];
+  dailyExpenses: DailyExpenseItem[];
+  recentTransactions: DashboardRecentTransaction[];
+};
+
 export type DashboardData = {
   shell: ShellData;
   onboarding: DashboardOnboarding;
   createTransactionContext: TransactionCreateContext | null;
   allWalletContexts: Record<string, TransactionCreateContext>;
+  walletBreakdowns: Record<string, WalletDashboardBreakdown>;
   totalAvailableBalance: number;
   totalAvailableBudget: number;
   totalSavingBalance: number;

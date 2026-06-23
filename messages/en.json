@@ -457,7 +457,9 @@
     "onboardingStep4Title": "Start saving",
     "onboardingStep4Description": "Open your first savings inside the primary wallet so there's a clear line between daily balance and the money you're setting aside.",
     "onboardingStep4CtaCreate": "Open savings",
-    "onboardingStep4CtaView": "View savings"
+    "onboardingStep4CtaView": "View savings",
+    "allWallets": "All Wallets",
+    "openWallet": "Open wallet"
   },
   "transactions": {
     "kindExpense": "Expense",
