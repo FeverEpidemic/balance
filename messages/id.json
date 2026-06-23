@@ -739,7 +739,9 @@
     "deleteButton": "Hapus anggaran",
     "carryOverLabel": "Bawa sisa budget dari bulan lalu",
     "emptyTitle": "Belum ada anggaran aktif",
-    "emptyDescription": "Setelah anggaran dibuat, progress kategori akan dihitung dari transaksi pengeluaran pada wallet ini."
+    "emptyDescription": "Setelah anggaran dibuat, progress kategori akan dihitung dari transaksi pengeluaran pada wallet ini.",
+    "totalBudgetLabel": "Total anggaran bulan ini",
+    "totalUsedDetail": "Terpakai {used} dari {total}"
   },
   "categories": {
     "pageTitle": "Kategori",

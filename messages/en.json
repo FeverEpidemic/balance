@@ -739,7 +739,9 @@
     "deleteButton": "Delete budget",
     "carryOverLabel": "Carry over unused budget from last month",
     "emptyTitle": "No active budgets yet",
-    "emptyDescription": "Once a budget is created, category progress will be calculated from expense transactions in this wallet."
+    "emptyDescription": "Once a budget is created, category progress will be calculated from expense transactions in this wallet.",
+    "totalBudgetLabel": "Total budget this month",
+    "totalUsedDetail": "Used {used} of {total}"
   },
   "categories": {
     "pageTitle": "Categories",
