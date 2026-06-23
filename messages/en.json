@@ -727,6 +727,7 @@
     "limitLabel": "Limit",
     "savePending": "Saving budget...",
     "saveButton": "Save budget",
+    "perMonth": "/ month",
     "usageEyebrow": "Usage",
     "usageTitle": "Current budget progress",
     "editButton": "Edit budget",
