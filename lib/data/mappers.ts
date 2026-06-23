@@ -497,6 +497,28 @@ function buildTransactionCreateContext(args: {
   } satisfies TransactionCreateContext;
 }
 
+function buildAllWalletContexts(args: {
+  wallets: WalletRow[];
+  memberships: WalletMemberRow[];
+  categories: CategoryRow[];
+}): Record<string, TransactionCreateContext> {
+  const { wallets, memberships, categories } = args;
+  const result: Record<string, TransactionCreateContext> = {};
+
+  for (const wallet of wallets) {
+    const role = getCurrentUserRole(memberships, wallet.id);
+    if (role !== "owner" && role !== "editor") continue;
+    result[wallet.id] = {
+      walletId: wallet.id,
+      walletName: wallet.name,
+      walletCurrency: wallet.currency,
+      categories: buildTransactionCreateCategories(categories, wallet.id),
+    };
+  }
+
+  return result;
+}
+
 export function buildTransactionListItems(
   transactions: TransactionRow[],
   categories: CategoryRow[],
@@ -893,6 +915,11 @@ export function createDashboardData(args: {
     }),
     createTransactionContext: buildTransactionCreateContext({
       shell,
+      wallets,
+      memberships,
+      categories
+    }),
+    allWalletContexts: buildAllWalletContexts({
       wallets,
       memberships,
       categories
