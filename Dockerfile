@@ -43,8 +43,9 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/scripts ./scripts
-# Copy node_modules so scheduler scripts (e.g. web-push) can resolve
-COPY --from=builder /app/node_modules ./node_modules
+# Install only production deps — devDependencies (TS, Vitest, ESLint) aren't needed at runtime
+COPY --from=builder /app/package-lock.json ./
+RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
 
 EXPOSE 3000
 
