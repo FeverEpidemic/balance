@@ -16,13 +16,10 @@ import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { useToast } from "@/components/ui/toast-provider";
 import type { TransactionsPageData } from "@/lib/data";
 import { getTranslator } from "@/lib/i18n";
 import { formatCurrency, formatShortDate, formatTimeOfDay, toDateInputValue, toTimeInputValue } from "@/lib/utils";
-import { useOptimistic, useCallback, startTransition, useRef, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { useRef, useState } from "react";
 
 type TransactionItemProps = {
   canMutate: boolean;
@@ -30,14 +27,13 @@ type TransactionItemProps = {
   transaction: TransactionsPageData["transactions"][number];
   walletId: string;
   t: ReturnType<typeof getTranslator>;
-  onDelete: (transactionId: string) => void;
 };
 
 function buildTransactionMetaLine(transaction: TransactionsPageData["transactions"][number]) {
   return [transaction.categoryName, transaction.splitLabel && transaction.splitLabel !== "-" ? transaction.splitLabel : null].filter(Boolean).join(" / ");
 }
 
-function TransactionItem({ canMutate, categories, transaction, walletId, t, onDelete }: TransactionItemProps) {
+function TransactionItem({ canMutate, categories, transaction, walletId, t }: TransactionItemProps) {
   const locale = useLocale();
   const timezone = useTimezone();
   const canEditTransaction = canMutate && !transaction.isSavingLinked;
@@ -91,15 +87,18 @@ function TransactionItem({ canMutate, categories, transaction, walletId, t, onDe
         <div className="mt-3 border-t border-border" />
 
         <div className="flex items-center justify-between pt-3">
-          <ConfirmSubmitButton
-            className="min-h-[2.5rem] rounded-lg px-3 font-label text-xs font-medium text-muted-foreground transition-colors hover:text-danger"
-            confirmMessage={t("transactions.deleteConfirm")}
-            pendingText={t("transactions.deletePending")}
-            variant="ghost"
-            onClick={() => onDelete(transaction.id)}
-          >
-            {t("transactions.deleteButton")}
-          </ConfirmSubmitButton>
+          <ActionForm action={deleteTransaction}>
+            <input type="hidden" name="wallet_id" value={walletId} />
+            <input type="hidden" name="transaction_id" value={transaction.id} />
+            <ConfirmSubmitButton
+              className="min-h-[2.5rem] rounded-lg px-3 font-label text-xs font-medium text-muted-foreground transition-colors hover:text-danger"
+              confirmMessage={t("transactions.deleteConfirm")}
+              pendingText={t("transactions.deletePending")}
+              variant="ghost"
+            >
+              {t("transactions.deleteButton")}
+            </ConfirmSubmitButton>
+          </ActionForm>
           <CollapsibleTrigger asChild>
             <Button
               type="button"
@@ -113,6 +112,7 @@ function TransactionItem({ canMutate, categories, transaction, walletId, t, onDe
 
         <CollapsibleContent>
           <ActionForm
+            key={`edit-${transaction.id}-${editOpen}`}
             action={updateTransaction}
             onSuccess={() => undefined}
             className="mt-3"
@@ -231,8 +231,6 @@ function TransactionItem({ canMutate, categories, transaction, walletId, t, onDe
 export function TransactionsPageContent({ data }: { data: TransactionsPageData }) {
   const locale = useLocale();
   const t = getTranslator(locale);
-  const router = useRouter();
-  const { pushToast } = useToast();
   const active = `/wallets/${data.walletId}/transactions`;
   const canMutate = data.currentUserRole === "owner" || data.currentUserRole === "editor";
   const createTransactionContext = {
@@ -241,74 +239,6 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
     walletCurrency: data.walletCurrency,
     categories: data.categories
   };
-
-  const [optimisticTransactions, removeOptimisticTransaction] = useOptimistic(
-    data.transactions,
-    (state, deletedId: string) => state.filter((t) => t.id !== deletedId)
-  );
-
-  const deletedTransactionRef = useRef<TransactionsPageData["transactions"][number] | null>(null);
-
-  const handleDelete = useCallback((transactionId: string) => {
-    const transaction = data.transactions.find((t) => t.id === transactionId);
-    if (!transaction) return;
-
-    deletedTransactionRef.current = transaction;
-
-    startTransition(() => {
-      removeOptimisticTransaction(transactionId);
-    });
-
-    const formData = new FormData();
-    formData.set("wallet_id", data.walletId);
-    formData.set("transaction_id", transactionId);
-
-    deleteTransaction({ status: "idle" }, formData).then((result) => {
-      if (result.status === "error") {
-        pushToast({ tone: "error", description: result.message || "Gagal menghapus transaksi" });
-        router.refresh();
-        return;
-      }
-
-      // Show undo toast
-      const deletedTx = deletedTransactionRef.current;
-      toast.success("Transaksi dihapus", {
-        description: "Kamu bisa batalkan dalam 5 detik",
-        duration: 5000,
-        action: {
-          label: "Batalkan",
-          onClick: async () => {
-            // Re-create the transaction via the create endpoint
-            if (!deletedTx) return;
-            const createFormData = new FormData();
-            createFormData.set("wallet_id", data.walletId);
-            createFormData.set("kind", deletedTx.kind);
-            createFormData.set("category_id", deletedTx.categoryId || "");
-            createFormData.set("note", deletedTx.note || "");
-            createFormData.set("amount", String(deletedTx.amount));
-            const happenedAtStr = deletedTx.happenedAt.split("T")[0];
-            const happenedAtTimeStr = deletedTx.happenedAt.includes("T")
-              ? deletedTx.happenedAt.split("T")[1]?.slice(0, 5) || ""
-              : "";
-            createFormData.set("happened_at", happenedAtStr);
-            createFormData.set("happened_at_time", happenedAtTimeStr);
-
-            const { createTransaction } = await import("@/app/actions/transactions");
-            const restoreResult = await createTransaction({ status: "idle" }, createFormData);
-            if (restoreResult.status === "success") {
-              toast.success("Transaksi dikembalikan");
-            } else {
-              pushToast({ tone: "error", description: restoreResult.message || "Gagal mengembalikan transaksi" });
-            }
-            router.refresh();
-          },
-        },
-      });
-
-      // Refresh after undo window closes
-      setTimeout(() => router.refresh(), 5500);
-    });
-  }, [data.transactions, data.walletId, removeOptimisticTransaction, pushToast, router]);
 
   return (
     <AppShell
@@ -353,10 +283,10 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
           </Button>
         </form>
         <div className="mt-6 stack-list">
-          {optimisticTransactions.length === 0 ? (
+          {data.transactions.length === 0 ? (
             <EmptyState title={t("transactions.emptyRecentCardTitle")} description={t("transactions.emptyRecentCardDescription")} />
           ) : null}
-          {optimisticTransactions.map((transaction) => (
+          {data.transactions.map((transaction) => (
             <TransactionItem
               key={transaction.id}
               canMutate={canMutate}
@@ -364,11 +294,10 @@ export function TransactionsPageContent({ data }: { data: TransactionsPageData }
               transaction={transaction}
               walletId={data.walletId}
               t={t}
-              onDelete={handleDelete}
             />
           ))}
         </div>
-        {optimisticTransactions.length > 0 ? (
+        {data.transactions.length > 0 ? (
           <div className="mt-6 flex justify-start">
             <Button href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}&view=history`} variant="soft" className="w-full sm:w-auto">
               {t("transactions.openHistory")}

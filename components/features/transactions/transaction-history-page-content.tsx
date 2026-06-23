@@ -83,7 +83,7 @@ function TransactionEditDialog({
           <DialogTitle>{t("transactions.editTitle")}</DialogTitle>
           <DialogDescription>{t("transactions.editDescription")}</DialogDescription>
         </DialogHeader>
-        <ActionForm action={updateTransaction} className="mt-5 grid min-w-0 gap-4" onSuccess={() => setOpen(false)}>
+        <ActionForm key={`edit-tx-${transaction.id}-${open}`} action={updateTransaction} className="mt-5 grid min-w-0 gap-4" onSuccess={() => setOpen(false)}>
           <input type="hidden" name="wallet_id" value={walletId} />
           <input type="hidden" name="transaction_id" value={transaction.id} />
           <label className="block">
@@ -154,7 +154,7 @@ function TransactionActions({
   return (
     <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
       <TransactionEditDialog categories={categories} transaction={transaction} walletId={walletId} t={t} />
-      <ActionForm action={deleteTransaction} className="w-full sm:w-auto">
+      <ActionForm key={`delete-tx-${transaction.id}`} action={deleteTransaction} className="w-full sm:w-auto">
         <input type="hidden" name="wallet_id" value={walletId} />
         <input type="hidden" name="transaction_id" value={transaction.id} />
         <ConfirmSubmitButton

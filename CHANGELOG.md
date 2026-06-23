@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- **Delete & edit transaksi sekarang 1 action** — Bug di mana delete dan edit (ganti kategori) perlu dilakukan dua kali sebelum perubahan tersimpan. Perbaikan: delete di halaman utama sekarang pakai `ActionForm` (konsisten dengan history page), dan semua form edit/delete dikasih `key` biar `useActionState` diremount tiap kali dibuka, fresh tiap submit.
+
 ### Changed
 - **Tampilan Budget Card didesain ulang** — Sekarang tampilannya mirip dengan card transaksi: ada lingkaran warna kategori dengan icon di kiri, nama kategori di atas, progress bar gradient, dan jumlah total budget di kanan (desktop). Tombol edit ada di dalam collapsible panel, dan tombol hapus lebih compact dengan ghost variant. Desktop menampilkan total budget (termasuk carry-over) di sisi kanan. 
 - **Halaman Transaksi disederhanakan** — Tab "Quick Input" dihapus. Transaksi Terbaru jadi tampilan default penuh. Form input transaksi bisa diakses via tombol "Tambah Transaksi" di header atau FAB "+".
