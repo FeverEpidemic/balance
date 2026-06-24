@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LandingHeader } from "@/components/landing/landing-header";
 import { LandingHeroMockup } from "@/components/landing/landing-hero-mockup";
+import { LandingAppPreview } from "@/components/landing/landing-app-preview";
 import { LandingScrollObserver } from "@/components/landing/landing-scroll-observer";
 import { AppIcon } from "@/components/ui/app-icon";
 import { localizePath, resolveLocale, getTranslator } from "@/lib/i18n";
@@ -117,6 +118,50 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
         </section>
 
+        {/* App Preview Section */}
+        <section className="fade-in-section section-gap">
+          <div className="max-w-2xl">
+            <p className="eyebrow">{t("landing.previewEyebrow")}</p>
+            <h2 className="headline-lg mt-3">{t("landing.previewTitle")}</h2>
+            <p className="mt-4 text-base leading-7 text-muted-foreground md:text-lg">
+              {t("landing.previewDescription")}
+            </p>
+          </div>
+          <div className="mt-10">
+            <LandingAppPreview />
+          </div>
+        </section>
+
+        {/* Trust Metrics */}
+        <section className="fade-in-section section-gap">
+          <div className="overflow-hidden rounded-[2rem] bg-card-elevated px-6 py-10 md:px-12 md:py-12 border border-border/30">
+            <div className="max-w-2xl">
+              <p className="eyebrow">{t("landing.metricsEyebrow")}</p>
+              <h2 className="headline-lg mt-3">{t("landing.metricsTitle")}</h2>
+            </div>
+            <div className="mt-10 grid gap-8 text-center sm:grid-cols-3">
+              <div>
+                <p className="metric text-4xl font-bold text-primary md:text-5xl">
+                  {t("landing.metric1Value")}
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">{t("landing.metric1Label")}</p>
+              </div>
+              <div>
+                <p className="metric text-4xl font-bold text-primary md:text-5xl">
+                  {t("landing.metric2Value")}
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">{t("landing.metric2Label")}</p>
+              </div>
+              <div>
+                <p className="metric text-4xl font-bold text-primary md:text-5xl">
+                  {t("landing.metric3Value")}
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">{t("landing.metric3Label")}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Steps Section */}
         <section id="how-it-works" className="fade-in-section section-gap">
           <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
@@ -147,6 +192,37 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 <p className="eyebrow">{t("landing.useCaseEyebrow")}</p>
                 <h2 className="headline-md mt-3 font-semibold">{useCase.title}</h2>
                 <p className="mt-3 text-sm leading-7 text-muted-foreground md:text-base">{useCase.description}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* Testimonials */}
+        <section className="fade-in-section section-gap">
+          <div className="max-w-2xl">
+            <p className="eyebrow">{t("landing.testimonialsEyebrow")}</p>
+            <h2 className="headline-lg mt-3">{t("landing.testimonialsTitle")}</h2>
+          </div>
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
+            {[
+              { quote: t("landing.testimonial1Quote"), name: t("landing.testimonial1Name"), role: t("landing.testimonial1Role") },
+              { quote: t("landing.testimonial2Quote"), name: t("landing.testimonial2Name"), role: t("landing.testimonial2Role") },
+              { quote: t("landing.testimonial3Quote"), name: t("landing.testimonial3Name"), role: t("landing.testimonial3Role") },
+            ].map((tItem) => (
+              <article key={tItem.name} className="card card-interactive-glow flex flex-col border border-border/40 p-6">
+                {/* Quote icon */}
+                <svg className="mb-4 h-6 w-6 text-primary/40" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M9.983 3v7.391c0 5.704-3.731 9.57-8.983 10.609l-.995-2.151c2.432-.917 3.995-3.638 3.995-5.849h-4v-10h9.983zm14.017 0v7.391c0 5.704-3.748 9.571-9 10.609l-.996-2.151c2.433-.917 3.996-3.638 3.996-5.849h-3.983v-10h9.983z" />
+                </svg>
+                <blockquote className="flex-1 text-sm leading-7 text-muted-foreground">
+                  {tItem.quote}
+                </blockquote>
+                <div className="mt-6 border-t border-border/30 pt-4">
+                  <p className="font-label text-xs font-semibold uppercase tracking-[0.12em] text-foreground">
+                    {tItem.name}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">{tItem.role}</p>
+                </div>
               </article>
             ))}
           </div>
@@ -217,6 +293,46 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                     {t("landing.pricingPremiumCta")}
                   </Button>
                 </div>
+              </div>
+            </div>
+
+            {/* Pricing Comparison Table */}
+            <div className="mt-12 fade-in-section">
+              <h3 className="headline-md font-semibold text-center mb-8">{t("landing.pricingCompareTitle")}</h3>
+              <div className="overflow-hidden rounded-[1.5rem] border border-border/40 bg-card p-1">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border/30">
+                      <th className="px-5 py-4 text-left font-label text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                        {t("landing.pricingCompareFeature")}
+                      </th>
+                      <th className="px-5 py-4 text-center font-label text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                        {t("landing.pricingCompareFree")}
+                      </th>
+                      <th className="px-5 py-4 text-center font-label text-xs uppercase tracking-[0.14em] bg-primary-soft/40 rounded-t-lg">
+                        <span className="text-primary-strong">{t("landing.pricingComparePremium")}</span>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { feature: t("landing.pricingCompareWalletCount"), free: t("landing.pricingCompareWalletCountFree"), premium: t("landing.pricingCompareWalletCountPremium") },
+                      { feature: t("landing.pricingCompareMembers"), free: t("landing.pricingCompareMembersFree"), premium: t("landing.pricingCompareMembersPremium") },
+                      { feature: t("landing.pricingCompareAiDaily"), free: t("landing.pricingCompareAiDailyFree"), premium: t("landing.pricingCompareAiDailyPremium") },
+                      { feature: t("landing.pricingCompareReportHistory"), free: t("landing.pricingCompareReportHistoryFree"), premium: t("landing.pricingCompareReportHistoryPremium") },
+                      { feature: t("landing.pricingCompareExport"), free: t("landing.pricingCompareExportFree"), premium: t("landing.pricingCompareExportPremium") },
+                      { feature: t("landing.pricingCompareSharedWallets"), free: t("landing.pricingCompareSharedWalletsFree"), premium: t("landing.pricingCompareSharedWalletsPremium") },
+                    ].map((row, i) => (
+                      <tr key={row.feature} className={i % 2 === 0 ? "bg-muted/40" : ""}>
+                        <td className="px-5 py-3 text-sm font-medium text-foreground">{row.feature}</td>
+                        <td className="px-5 py-3 text-center text-sm text-muted-foreground">{row.free}</td>
+                        <td className="px-5 py-3 text-center text-sm font-medium text-primary-strong bg-primary-soft/20">
+                          {row.premium}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
