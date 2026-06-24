@@ -162,7 +162,6 @@ export function LandingHeader() {
                     onClick={() => handleAnchorClick(link.href)}
                   >
                     <span>{t(link.key)}</span>
-                    <span className="font-label text-[11px] uppercase tracking-[0.16em] text-muted-foreground">Section</span>
                   </a>
                 );
               })}
