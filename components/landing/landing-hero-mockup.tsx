@@ -222,7 +222,7 @@ const SLIDES: HeroMockupSlide[] = [
   { id: "overview-dark", render: () => <SlideDarkOverview /> },
 ];
 
-const SLIDE_INTERVAL_MS = 4000;
+const SLIDE_INTERVAL_MS = 7000;
 
 /* ------------------------------------------------------------------ */
 /*  Browser-frame mockup with autoplay carousel                        */
