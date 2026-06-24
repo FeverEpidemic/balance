@@ -831,10 +831,12 @@
     "roleLabel": "{role}"
   },
   "landing": {
-    "eyebrow": "Balance | Chat, instantly recorded.",
-    "title": "Chat, and it's recorded. Manual entries stay free forever.",
-    "description": "Balance automatically records transactions from your AI chat. Prefer manual entry? Unlimited. All tidy in one wallet.",
-    "registerButton": "Sign up free",
+    "eyebrow": "Balance",
+    "titleLine1": "Your money, clear.",
+    "titleLine2": "Your mind, calm.",
+    "title": "Your money, clear.\nYour mind, calm.",
+    "description": "Track spending, set budgets, and split bills — solo or with your partner. Everything tidy, nothing overwhelming.",
+    "registerButton": "Start free",
     "loginButton": "Sign in",
     "badgeLanguage": "Bahasa Indonesia",
     "badgeWallets": "Personal & shared wallets",
@@ -893,6 +895,7 @@
     "pricingDescription": "Start free, upgrade anytime for more features.",
     "pricingFreeTitle": "Free",
     "pricingFreePrice": "Rp0",
+    "pricingFreeCta": "Start free",
     "pricingFreeBullet1": "Manual transactions: unlimited",
     "pricingFreeBullet2": "AI Chat: 5 messages/day",
     "pricingFreeBullet3": "Reports: last 3 months",
@@ -900,6 +903,7 @@
     "pricingPremiumTitle": "Premium",
     "pricingPremiumPrice": "Rp29,000/month",
     "pricingPremiumBadge": "Popular",
+    "pricingPremiumCta": "Try Premium",
     "pricingAnnualHighlight": "Rp250,000/year — save vs monthly",
     "pricingPremiumBullet1": "AI Chat: unlimited",
     "pricingPremiumBullet2": "Reports: last 12 months",
@@ -917,8 +921,8 @@
     "faq2Answer": "Yes. You can create a shared wallet and invite your partner, family, or housemates as members. Each member can have a different role — editor to record transactions, or viewer to see only.",
     "faq3Question": "Is there a cost?",
     "faq3Answer": "Balance has a Free plan that you can use indefinitely at no cost. There is also a Premium plan at Rp29,000/month (or Rp250,000/year) that unlocks additional features like unlimited AI Chat, 12-month reports, and PDF export. All core features remain free.",
-    "faq4Question": "Can I access it from my phone?",
-    "faq4Answer": "Yes. Balance is designed to be responsive on both desktop and mobile. You can also install Balance as a PWA (Progressive Web App) directly from your phone's browser. Please note that Balance does not currently support full offline mode — an internet connection is still required to access your data."
+    "faq4Question": "Why Balance over other apps?",
+    "faq4Answer": "Balance focuses on one thing: making household finances feel calm. No ads, no confusing investment features, no gamification — just clean records, budgets, and reports. Plus, AI Chat helps you understand your finances in plain language, not confusing tables."
   },
   "privacy": {
     "title": "Privacy Policy",

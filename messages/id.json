@@ -831,10 +831,12 @@
     "roleLabel": "{role}"
   },
   "landing": {
-    "eyebrow": "Balance | Chat, langsung tercatat.",
-    "title": "Chat, langsung tercatat. Transaksi manual tetap gratis selamanya.",
-    "description": "Balance mencatat transaksi dari obrolan AI-mu secara otomatis. Mau catat manual? Tidak terbatas. Semua rapi dalam satu wallet.",
-    "registerButton": "Daftar gratis",
+    "eyebrow": "Balance",
+    "titleLine1": "Uangmu jelas.",
+    "titleLine2": "Pikiranmu tenang.",
+    "title": "Uangmu jelas.\nPikiranmu tenang.",
+    "description": "Catat pengeluaran, atur anggaran, dan bagi tagihan — sendiri atau bareng pasangan. Semua rapi tanpa bikin pusing.",
+    "registerButton": "Mulai gratis",
     "loginButton": "Masuk",
     "badgeLanguage": "Bahasa Indonesia",
     "badgeWallets": "Wallet pribadi & bersama",
@@ -893,6 +895,7 @@
     "pricingDescription": "Mulai gratis, upgrade kapan saja untuk fitur lebih lengkap.",
     "pricingFreeTitle": "Free",
     "pricingFreePrice": "Rp0",
+    "pricingFreeCta": "Mulai gratis",
     "pricingFreeBullet1": "Transaksi manual: tidak terbatas",
     "pricingFreeBullet2": "AI Chat: 5 pesan/hari",
     "pricingFreeBullet3": "Laporan: 3 bulan terakhir",
@@ -900,6 +903,7 @@
     "pricingPremiumTitle": "Premium",
     "pricingPremiumPrice": "Rp29.000/bulan",
     "pricingPremiumBadge": "Populer",
+    "pricingPremiumCta": "Coba Premium",
     "pricingAnnualHighlight": "Rp250.000/tahun — hemat vs bulanan",
     "pricingPremiumBullet1": "AI Chat: tanpa batas",
     "pricingPremiumBullet2": "Laporan: 12 bulan terakhir",
@@ -917,8 +921,8 @@
     "faq2Answer": "Bisa. Anda bisa membuat wallet bersama dan mengundang pasangan, keluarga, atau teman serumah sebagai anggota. Tiap anggota bisa punya peran yang berbeda — editor untuk mencatat transaksi, atau viewer untuk melihat saja.",
     "faq3Question": "Ada biayanya?",
     "faq3Answer": "Balance punya paket Free yang bisa dipakai gratis tanpa batas waktu. Ada juga paket Premium sebesar Rp29.000/bulan (atau Rp250.000/tahun) yang membuka fitur tambahan seperti AI Chat tanpa batas, laporan 12 bulan, dan ekspor PDF. Semua fitur dasar tetap gratis.",
-    "faq4Question": "Bisa akses dari HP?",
-    "faq4Answer": "Bisa. Balance dirancang responsive untuk desktop dan mobile. Anda juga bisa memasang Balance sebagai aplikasi PWA (Progressive Web App) langsung dari browser HP Anda. Perlu diingat bahwa Balance saat ini belum mendukung mode offline penuh — koneksi internet tetap diperlukan untuk mengakses data."
+    "faq4Question": "Kenapa pakai Balance, bukan aplikasi lain?",
+    "faq4Answer": "Balance fokus ke satu hal: bikin keuangan rumah tangga terasa lebih tenang. Tidak ada iklan, tidak ada fitur investasi yang bikin bingung, tidak ada gamifikasi — hanya catatan, anggaran, dan laporan yang rapi. Plus, AI Chat bantu kamu baca kondisi keuangan pakai bahasa sehari-hari, bukan tabel yang bikin pusing."
   },
   "privacy": {
     "title": "Kebijakan Privasi",

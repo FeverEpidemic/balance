@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { LandingHeader } from "@/components/landing/landing-header";
 import { LandingHeroMockup } from "@/components/landing/landing-hero-mockup";
 import { LandingScrollObserver } from "@/components/landing/landing-scroll-observer";
+import { AppIcon } from "@/components/ui/app-icon";
 import { localizePath, resolveLocale, getTranslator } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
 
@@ -29,6 +30,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   if (user) {
     redirect(localizePath(locale, "/dashboard"));
   }
+
+  // Icon mapping for feature cards — matches AppIcon "name" prop type
+  const featureIcons = [
+    "transactions" as const,
+    "budgets" as const,
+    "settlements" as const,
+    "savings" as const,
+  ];
 
   const featureCards = [
     { title: t("landing.feature1Title"), description: t("landing.feature1Description") },
@@ -63,7 +72,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         <section className="fade-in-section grid gap-10 py-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center lg:py-14">
           <div>
             <p className="eyebrow">{t("landing.eyebrow")}</p>
-            <h1 className="headline-xl mt-4 max-w-3xl leading-tight">{t("landing.title")}</h1>
+            <h1 className="headline-xl mt-4 max-w-3xl leading-tight whitespace-pre-line">
+              {t("landing.titleLine1")}
+              <br />
+              {t("landing.titleLine2")}
+            </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground md:text-lg">
               {t("landing.description")}
             </p>
@@ -72,20 +85,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <Button href="/login" variant="ghost">{t("landing.loginButton")}</Button>
             </div>
             <InstallPrompt />
-            <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              <div className="card-muted rounded-xl border border-border/10 p-4 transition duration-300 hover:border-primary/20">
-                <p className="font-label text-xs uppercase tracking-[0.14em] text-muted-foreground">{t("landing.card1Label")}</p>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">{t("landing.card1Description")}</p>
-              </div>
-              <div className="card-muted rounded-xl border border-border/10 p-4 transition duration-300 hover:border-primary/20">
-                <p className="font-label text-xs uppercase tracking-[0.14em] text-muted-foreground">{t("landing.card2Label")}</p>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">{t("landing.card2Description")}</p>
-              </div>
-              <div className="card-muted rounded-xl border border-border/10 p-4 transition duration-300 hover:border-primary/20">
-                <p className="font-label text-xs uppercase tracking-[0.14em] text-muted-foreground">{t("landing.card3Label")}</p>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">{t("landing.card3Description")}</p>
-              </div>
-            </div>
           </div>
 
           <LandingHeroMockup />
@@ -104,8 +103,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             <Badge>{t("landing.badgeAiAssistant")}</Badge>
           </div>
           <div className="mt-8 grid gap-5 lg:grid-cols-2">
-            {featureCards.map((feature) => (
+            {featureCards.map((feature, index) => (
               <article key={feature.title} className="card card-interactive-glow border border-border/40 p-6">
+                <AppIcon
+                  name={featureIcons[index]}
+                  className="mb-4 h-8 w-8"
+                  tone="primary"
+                />
                 <p className="headline-md font-semibold text-foreground">{feature.title}</p>
                 <p className="mt-3 text-sm leading-7 text-muted-foreground md:text-base">{feature.description}</p>
               </article>
@@ -177,6 +181,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                     <span className="text-primary font-bold">✓</span> {t("landing.pricingFreeBullet4")}
                   </li>
                 </ul>
+                <div className="mt-8">
+                  <Button href="/register" variant="soft" className="w-full rounded-full">
+                    {t("landing.pricingFreeCta")}
+                  </Button>
+                </div>
               </div>
             </div>
 
@@ -203,6 +212,11 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                     <span className="text-primary font-bold">✓</span> {t("landing.pricingPremiumBullet4")}
                   </li>
                 </ul>
+                <div className="mt-8">
+                  <Button href="/register" className="w-full rounded-full">
+                    {t("landing.pricingPremiumCta")}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
