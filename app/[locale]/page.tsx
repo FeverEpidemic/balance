@@ -8,6 +8,7 @@ import { LandingHeader } from "@/components/landing/landing-header";
 import { LandingHeroMockup } from "@/components/landing/landing-hero-mockup";
 import { LandingAppPreview } from "@/components/landing/landing-app-preview";
 import { LandingScrollObserver } from "@/components/landing/landing-scroll-observer";
+import { LandingFooter } from "@/components/landing/landing-footer";
 import { AppIcon } from "@/components/ui/app-icon";
 import { localizePath, resolveLocale, getTranslator } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/server";
@@ -373,28 +374,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         </section>
 
         {/* Footer */}
-        <footer className="mt-12 border-t border-border pt-6 text-center sm:pt-8">
-          <div className="mx-auto flex max-w-xl flex-wrap items-center justify-center gap-x-4 gap-y-2 px-4 sm:gap-x-6 sm:gap-y-3">
-            <Link
-              href={localizePath(locale, "/privacy")}
-              className="inline-flex text-sm text-muted-foreground transition hover:text-foreground"
-            >
-              {t("common.privacy")}
-            </Link>
-            <Link
-              href={localizePath(locale, "/terms")}
-              className="inline-flex text-sm text-muted-foreground transition hover:text-foreground"
-            >
-              {t("common.terms")}
-            </Link>
-            <Link
-              href={localizePath(locale, "/refund-policy")}
-              className="inline-flex text-sm text-muted-foreground transition hover:text-foreground"
-            >
-              {t("common.refundPolicy")}
-            </Link>
-          </div>
-        </footer>
+        <LandingFooter />
       </main>
     </>
   );

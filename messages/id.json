@@ -969,7 +969,14 @@
     "pricingCompareExportPremium": "Excel + PDF",
     "pricingCompareSharedWallets": "Wallet bersama",
     "pricingCompareSharedWalletsFree": "1",
-    "pricingCompareSharedWalletsPremium": "Tak terbatas"
+    "pricingCompareSharedWalletsPremium": "Tak terbatas",
+    "footerNavTitle": "Navigasi",
+    "footerContactTitle": "Kontak",
+    "footerTrustTitle": "Kepercayaan",
+    "footerEncrypted": "Data terenkripsi",
+    "footerMadeIn": "Made in Indonesia",
+    "footerCopyright": "© {year} Balance · Hak cipta dilindungi",
+    "footerSocialLabel": "{platform}: {handle}"
   },
   "privacy": {
     "title": "Kebijakan Privasi",
