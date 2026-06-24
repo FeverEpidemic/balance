@@ -49,4 +49,8 @@ RUN npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
 
 EXPOSE 3000
 
+# Healthcheck — /api/health tiap 30s, 3 retries, 20s startup grace
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3000}/api/health || exit 1
+
 CMD ["node", "server.js"]
