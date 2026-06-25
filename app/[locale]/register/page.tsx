@@ -6,6 +6,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { ToastFeedback } from "@/components/ui/toast-feedback";
 import { getSiteUrl } from "@/lib/env";
 import { getTranslator, resolveLocale } from "@/lib/i18n";
+import { LandingLocaleSwitcher } from "@/components/landing/landing-locale-switcher";
 
 export default async function RegisterPage({
   params,
@@ -26,6 +27,11 @@ export default async function RegisterPage({
   callbackUrl.searchParams.set("locale", locale);
 
   return (
+    <>
+      <div className="fixed top-4 right-4 z-50 md:top-6 md:right-10">
+        <LandingLocaleSwitcher />
+      </div>
+
     <main className="page-wrap section-gap">
       <ToastFeedback error={query.error} message={query.message} />
       <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[0.95fr_1.05fr]">
@@ -91,5 +97,6 @@ export default async function RegisterPage({
         </section>
       </div>
     </main>
+    </>
   );
 }
