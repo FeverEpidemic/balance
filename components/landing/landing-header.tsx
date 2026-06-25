@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useLocale } from "@/components/providers/locale-provider";
 import { LandingThemeToggle } from "@/components/landing/landing-theme-toggle";
+import { LandingLocaleSwitcher } from "@/components/landing/landing-locale-switcher";
 import { Button } from "@/components/ui/button";
 import { getTranslator } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -98,6 +99,7 @@ export function LandingHeader() {
             </nav>
 
             <div className="hidden items-center gap-2 lg:flex">
+              <LandingLocaleSwitcher />
               <LandingThemeToggle />
               <Button href="/login" variant="ghost" size="sm" className="rounded-full px-4">
                 {t("landing.navLogin")}
@@ -169,6 +171,7 @@ export function LandingHeader() {
 
             <div className="border-t border-[color:var(--soft-border)] bg-[color:var(--surface-container-lowest)]/42 px-4 py-4">
               <div className="flex flex-col gap-3">
+                <LandingLocaleSwitcher />
                 <LandingThemeToggle mobile />
                 <Button href="/login" variant="ghost" className="rounded-full">
                   {t("landing.navLogin")}
