@@ -299,9 +299,6 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
             </div>
             <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
               <ExportExcelButton transactions={data.transactions} walletName={data.walletName} selectedMonth={data.selectedMonth} />
-              <Button href={`/wallets/${data.walletId}/transactions?month=${data.selectedMonth}`} variant="ghost" className="w-full sm:w-auto">
-                {t("transactions.historyBackToInput")}
-              </Button>
             </div>
           </div>
 
