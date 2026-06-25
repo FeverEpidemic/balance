@@ -40,6 +40,7 @@ export type WalletRow = {
   kind: WalletKind;
   owner_user_id: string;
   currency: string;
+  salary_cycle_day: number;
 };
 
 export type WalletMemberRow = {
@@ -485,6 +486,7 @@ export type BudgetsPageData = {
   selectedMonth: string;
   categories: CategoryRow[];
   budgets: BudgetProgressItem[];
+  salaryCycleDay: number;
 };
 
 export type CategoriesPageData = {

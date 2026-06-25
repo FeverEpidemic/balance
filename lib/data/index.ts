@@ -394,11 +394,10 @@ export const getBudgetsPageData = cache(async (userId: string, walletId: string,
       return null;
     }
 
-    const [shell, wallets, categories, budgets, transactions, allBudgets] = await Promise.all([
+    const [shell, wallets, categories, transactions, allBudgets] = await Promise.all([
       getShellData(userId),
       queryWallets([walletId]),
       queryCategories([walletId]),
-      queryBudgets([walletId], selectedMonth),
       queryTransactions([walletId]),
       queryAllBudgets([walletId])
     ]);
@@ -409,6 +408,9 @@ export const getBudgetsPageData = cache(async (userId: string, walletId: string,
       return null;
     }
 
+    const cycleDay = wallet.salary_cycle_day ?? 1;
+    const budgets = await queryBudgets([walletId], selectedMonth, cycleDay);
+
     return createBudgetsPageData({
       shell,
       wallet,
@@ -417,7 +419,8 @@ export const getBudgetsPageData = cache(async (userId: string, walletId: string,
       budgets,
       allBudgets,
       transactions,
-      selectedMonth
+      selectedMonth,
+      cycleDay
     });
   });
 });

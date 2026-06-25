@@ -1,6 +1,8 @@
 "use client";
 
 import { createBudget, deleteBudget, updateBudget } from "@/app/actions/budgets";
+import { updateWalletSettings } from "@/app/actions/wallets";
+import { initialActionResult } from "@/app/actions/action-result";
 import { AppShell } from "@/components/app-shell";
 import { useLocale } from "@/components/providers/locale-provider";
 import { ActionForm } from "@/components/ui/action-form";
@@ -12,6 +14,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { SubmitButton } from "@/components/ui/submit-button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/shadcn/collapsible";
 import type { BudgetsPageData } from "@/lib/data";
+import { formatSalaryPeriodLabel } from "@/lib/finance";
 import { getTranslator } from "@/lib/i18n";
 import { formatCurrency } from "@/lib/utils";
 import { useState } from "react";
@@ -177,6 +180,8 @@ export function BudgetsPageContent({ data }: { data: BudgetsPageData }) {
   const totalBudget = data.budgets.reduce((sum, b) => sum + b.amount, 0);
   const totalUsed = data.budgets.reduce((sum, b) => sum + b.used, 0);
   const usagePercent = totalBudget > 0 ? Math.min(Math.round((totalUsed / totalBudget) * 100), 100) : 0;
+  const canMutate = data.currentUserRole === "owner" || data.currentUserRole === "editor";
+  const isSalaryPeriod = data.salaryCycleDay > 1;
 
   return (
     <AppShell
@@ -214,6 +219,36 @@ export function BudgetsPageContent({ data }: { data: BudgetsPageData }) {
         ) : undefined
       }
     >
+      {canMutate && (
+        <section className="card mb-4">
+          <h3 className="headline-sm">{t("budgets.salaryPeriodLabel")}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t("budgets.salaryPeriodDescription")}
+          </p>
+          <ActionForm action={updateWalletSettings} initialState={initialActionResult} className="mt-4">
+            <input type="hidden" name="wallet_id" value={data.walletId} />
+            <div className="flex items-center gap-3">
+              <label className="text-sm">{t("budgets.salaryCycleDayLabel")}:</label>
+              <select name="salary_cycle_day" defaultValue={data.salaryCycleDay} className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm">
+                <option value="1">{t("budgets.salaryCycleDayDefault")}</option>
+                {Array.from({ length: 28 }, (_, i) => i + 1).map((day) => (
+                  <option key={day} value={day}>Tanggal {day}</option>
+                ))}
+              </select>
+              <SubmitButton pendingText={t("common.save")}>{t("common.save")}</SubmitButton>
+            </div>
+          </ActionForm>
+        </section>
+      )}
+
+      {isSalaryPeriod && (
+        <section className="card mb-4 border border-primary/20 bg-primary/5">
+          <p className="text-sm text-primary-strong">
+            Budget di-reset setiap periode gaji (tanggal {data.salaryCycleDay}). Sisa budget tidak dibawa ke periode berikutnya.
+          </p>
+        </section>
+      )}
+
       <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="card">
           <p className="eyebrow">{t("budgets.createEyebrow")}</p>

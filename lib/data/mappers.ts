@@ -1,4 +1,4 @@
-import { describeBudgetUsage, getMonthDateRange } from "@/lib/finance";
+import { describeBudgetUsage, getMonthDateRange, getPreviousSalaryPeriod, getSalaryPeriodRange } from "@/lib/finance";
 import {
   isBalanceAdjustmentCategory,
   isBalanceAdjustmentSource,
@@ -54,14 +54,14 @@ function deduplicateById<T extends { id: string }>(): (item: T) => boolean {
   };
 }
 
-function isSameMonth(dateValue: string, month: string) {
-  return dateValue.slice(0, 7) === month;
+function isSamePeriod(dateValue: string, periodKey: string, cycleDay: number = 1): boolean {
+  if (cycleDay <= 1) return dateValue.slice(0, 7) === periodKey;
+  const { start, end } = getSalaryPeriodRange(periodKey, cycleDay);
+  return dateValue >= start && dateValue <= end;
 }
 
-function getPreviousMonth(month: string): string {
-  const [y, m] = month.split("-").map(Number);
-  const d = new Date(y, m - 2, 1);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`;
+function getPreviousPeriod(periodKey: string, cycleDay: number = 1): string {
+  return getPreviousSalaryPeriod(periodKey, cycleDay);
 }
 
 /**
@@ -70,17 +70,21 @@ function getPreviousMonth(month: string): string {
  */
 function calculateCarryOver(
   categoryId: string,
-  month: string,
+  periodKey: string,
   allBudgets: BudgetRow[],
   transactions: TransactionRow[],
-  memo: Map<string, number>
+  memo: Map<string, number>,
+  cycleDay: number = 1
 ): number {
-  const key = `${categoryId}-${month}`;
+  // Salary period = always reset, no carry-over
+  if (cycleDay > 1) return 0;
+
+  const key = `${categoryId}-${periodKey}`;
   if (memo.has(key)) return memo.get(key)!;
 
-  const prevMonthStr = getPreviousMonth(month);
+  const prevPeriodKey = getPreviousPeriod(periodKey, cycleDay);
   const prevBudget = allBudgets.find(
-    (b) => b.category_id === categoryId && b.month_start === prevMonthStr
+    (b) => b.category_id === categoryId && b.month_start === prevPeriodKey
   );
 
   // Jika bulan lalu tidak ada budget atau carry-over tidak diaktifkan, sisa = 0
@@ -90,7 +94,7 @@ function calculateCarryOver(
   }
 
   // Hitung sisa budget bulan lalu (termasuk carry-over dari bulan sebelumnya)
-  const prevCarryOver = calculateCarryOver(categoryId, prevMonthStr, allBudgets, transactions, memo);
+  const prevCarryOver = calculateCarryOver(categoryId, prevPeriodKey, allBudgets, transactions, memo, cycleDay);
   const prevTotalBudget = prevBudget.amount + prevCarryOver;
 
   const prevSpent = transactions
@@ -98,7 +102,7 @@ function calculateCarryOver(
       (t) =>
         t.kind === "expense" &&
         t.category_id === categoryId &&
-        t.happened_at.slice(0, 7) === prevMonthStr.slice(0, 7)
+        isSamePeriod(t.happened_at, prevPeriodKey, cycleDay)
     )
     .reduce((sum, t) => sum + t.amount, 0);
 
@@ -452,8 +456,8 @@ export function buildDashboardOnboarding(args: {
   } satisfies DashboardOnboarding;
 }
 
-export function filterTransactionsByMonth(transactions: TransactionRow[], month: string) {
-  return transactions.filter((transaction) => isSameMonth(transaction.happened_at, month));
+export function filterTransactionsByMonth(transactions: TransactionRow[], month: string, cycleDay: number = 1) {
+  return transactions.filter((transaction) => isSamePeriod(transaction.happened_at, month, cycleDay));
 }
 
 function buildTransactionCreateCategories(categories: CategoryRow[], walletId: string) {
@@ -913,21 +917,28 @@ export function buildBudgetProgressItems(args: {
   transactions: TransactionRow[];
   categories: CategoryRow[];
   month: string;
+  cycleDay?: number;
   locale?: AppLocale;
   currency?: string;
 }) {
-  const { budgets, allBudgets, transactions, categories, month, currency = "IDR" } = args;
+  const { budgets, allBudgets, transactions, categories, month, cycleDay = 1, currency = "IDR" } = args;
   const categoryById = new Map(categories.map((category) => [category.id, category]));
   const carryOverMemo = new Map<string, number>();
 
   return budgets
-    .filter((budget) => isSameMonth(budget.month_start, month))
+    .filter((budget) => isSamePeriod(budget.month_start, month, cycleDay))
     .map((budget) => {
       const used = transactions
-        .filter((transaction) => transaction.kind === "expense" && transaction.category_id === budget.category_id && isSameMonth(transaction.happened_at, month))
+        .filter((transaction) =>
+          transaction.kind === "expense" &&
+          transaction.category_id === budget.category_id &&
+          isSamePeriod(transaction.happened_at, month, cycleDay)
+        )
         .reduce((total, transaction) => total + transaction.amount, 0);
 
-      const carryOverAmount = calculateCarryOver(budget.category_id, month, allBudgets, transactions, carryOverMemo);
+      const carryOverAmount = calculateCarryOver(
+        budget.category_id, month, allBudgets, transactions, carryOverMemo, cycleDay
+      );
       const totalBudget = budget.amount + carryOverAmount;
 
       return {
@@ -1200,8 +1211,9 @@ export function createBudgetsPageData(args: {
   allBudgets: BudgetRow[];
   transactions: TransactionRow[];
   selectedMonth: string;
+  cycleDay?: number;
 }) {
-  const { shell, wallet, memberships, categories, budgets, allBudgets, transactions, selectedMonth } = args;
+  const { shell, wallet, memberships, categories, budgets, allBudgets, transactions, selectedMonth, cycleDay = 1 } = args;
   const expenseCategories = categories.filter((category) => category.kind === "expense" && !isBalanceAdjustmentCategory(category));
   const walletTransactions = transactions.filter((transaction) => transaction.wallet_id === wallet.id);
 
@@ -1212,12 +1224,14 @@ export function createBudgetsPageData(args: {
     currentUserRole: getCurrentUserRole(memberships, wallet.id),
     selectedMonth,
     categories: expenseCategories,
+    salaryCycleDay: cycleDay,
     budgets: buildBudgetProgressItems({
       budgets,
       allBudgets,
       transactions: walletTransactions,
       categories: expenseCategories,
       month: selectedMonth,
+      cycleDay,
       currency: wallet.currency
     })
   } satisfies BudgetsPageData;

@@ -41,8 +41,8 @@ const memberships: WalletMemberRow[] = [
 ];
 
 const wallets: WalletRow[] = [
-  { id: "w1", name: "Rumah Utama", kind: "shared", owner_user_id: "u1", currency: "IDR" },
-  { id: "w2", name: "Dompet Pribadi", kind: "personal", owner_user_id: "u1", currency: "IDR" }
+  { id: "w1", name: "Rumah Utama", kind: "shared", owner_user_id: "u1", currency: "IDR", salary_cycle_day: 1 },
+  { id: "w2", name: "Dompet Pribadi", kind: "personal", owner_user_id: "u1", currency: "IDR", salary_cycle_day: 1 }
 ];
 
 const memberRows: WalletMemberRow[] = [

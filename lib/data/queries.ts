@@ -1,4 +1,4 @@
-import { getMonthDateRange } from "@/lib/finance";
+import { getMonthDateRange, getSalaryPeriodRange } from "@/lib/finance";
 import { createClient } from "@/lib/supabase/server";
 import type {
   BudgetRow,
@@ -43,7 +43,7 @@ export async function queryWallets(walletIds: string[]) {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("wallets").select("id, name, kind, owner_user_id, currency").in("id", walletIds);
+  const { data, error } = await supabase.from("wallets").select("id, name, kind, owner_user_id, currency, salary_cycle_day").in("id", walletIds);
 
   if (error) {
     throw error;
@@ -290,12 +290,12 @@ export async function queryCategories(walletIds: string[]) {
   });
 }
 
-export async function queryBudgets(walletIds: string[], month: string) {
+export async function queryBudgets(walletIds: string[], month: string, cycleDay?: number) {
   if (walletIds.length === 0) {
     return [];
   }
 
-  const range = getMonthDateRange(month);
+  const range = getSalaryPeriodRange(month, cycleDay ?? 1);
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("budgets")

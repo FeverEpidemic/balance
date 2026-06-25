@@ -741,7 +741,11 @@
     "emptyTitle": "No active budgets yet",
     "emptyDescription": "Once a budget is created, category progress will be calculated from expense transactions in this wallet.",
     "totalBudgetLabel": "Total budget this month",
-    "totalUsedDetail": "Used {used} of {total}"
+    "totalUsedDetail": "Used {used} of {total}",
+    "salaryPeriodLabel": "Salary Period",
+    "salaryPeriodDescription": "Set budget cycle to follow your payday",
+    "salaryCycleDayLabel": "Payday date",
+    "salaryCycleDayDefault": "Start of month (default)"
   },
   "categories": {
     "pageTitle": "Categories",
@@ -1266,7 +1270,8 @@
     "walletInvitationCreated": "Invitation link for role {role} was created successfully.",
     "walletInvitationAccepted": "Invitation accepted successfully.",
     "apiKeyRevoked": "API key revoked successfully.",
-    "apiKeyDeleted": "API key was deleted permanently."
+    "apiKeyDeleted": "API key was deleted permanently.",
+    "settingsSaved": "Settings saved successfully."
   },
   "inviteShare": {
     "copied": "Invitation link copied.",

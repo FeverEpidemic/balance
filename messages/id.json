@@ -741,7 +741,11 @@
     "emptyTitle": "Belum ada anggaran aktif",
     "emptyDescription": "Setelah anggaran dibuat, progress kategori akan dihitung dari transaksi pengeluaran pada wallet ini.",
     "totalBudgetLabel": "Total anggaran bulan ini",
-    "totalUsedDetail": "Terpakai {used} dari {total}"
+    "totalUsedDetail": "Terpakai {used} dari {total}",
+    "salaryPeriodLabel": "Periode Gaji",
+    "salaryPeriodDescription": "Atur siklus budget mengikuti tanggal gajian",
+    "salaryCycleDayLabel": "Tanggal gajian",
+    "salaryCycleDayDefault": "Awal bulan (default)"
   },
   "categories": {
     "pageTitle": "Kategori",
@@ -1266,7 +1270,8 @@
     "walletInvitationCreated": "Tautan undangan {role} berhasil dibuat.",
     "walletInvitationAccepted": "Undangan berhasil diterima.",
     "apiKeyRevoked": "API key berhasil dicabut.",
-    "apiKeyDeleted": "API key berhasil dihapus permanen."
+    "apiKeyDeleted": "API key berhasil dihapus permanen.",
+    "settingsSaved": "Pengaturan berhasil disimpan."
   },
   "inviteShare": {
     "copied": "Tautan undangan disalin.",

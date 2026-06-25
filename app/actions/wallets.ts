@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { ensureProfileForUser } from "@/lib/profile";
 import { invalidateDashboardCache } from "@/lib/data/cache";
+import { invalidateWalletReadCaches } from "@/lib/data/cache";
 import { localizePath, translate } from "@/lib/i18n";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentMonthKey } from "@/lib/finance";
@@ -17,7 +18,8 @@ import {
   getWalletAcceptInvitationFullMessage,
   getWalletCapacityReachedMessage
 } from "@/lib/wallet-capacity";
-import { getActionLocale, getLocalizedPath, getStringValue, getTrimmedValue, getWalletMemberUserIds, redirectWithMessage, withMessage } from "@/app/actions/_shared";
+import type { ActionResult } from "@/app/actions/action-result";
+import { getActionLocale, getActionTranslator, getLocalizedPath, getNumericValue, getStringValue, getTrimmedValue, getWalletMemberUserIds, errorResult, redirectWithMessage, revalidateWalletPaths, safeDbError, successResult, withMessage } from "@/app/actions/_shared";
 
 function readWalletForm(formData: FormData) {
   return {
@@ -363,4 +365,28 @@ export async function acceptWalletInvitation(formData: FormData) {
   
   revalidatePath(await getLocalizedPath(membersPath(acceptedWalletId)));
   redirect(withMessage(await getLocalizedPath(`/wallets/${acceptedWalletId}`), "message", translate(locale, "actionSuccess.walletInvitationAccepted")));
+}
+
+export async function updateWalletSettings(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
+  const walletId = getStringValue(formData, "wallet_id");
+  const salaryCycleDay = getNumericValue(formData, "salary_cycle_day");
+  const { supabase, user } = await requireUser();
+  const t = await getActionTranslator();
+
+  if (!walletId) return errorResult(t("actionErrors.walletNotFound"));
+  if (salaryCycleDay === null || salaryCycleDay < 1 || salaryCycleDay > 28) {
+    return errorResult("Tanggal gajian harus antara 1-28");
+  }
+
+  const { error } = await supabase
+    .from("wallets")
+    .update({ salary_cycle_day: salaryCycleDay, updated_by: user.id })
+    .eq("id", walletId);
+
+  if (error) return errorResult(safeDbError(error, "actionErrors.unexpectedError", t));
+
+  const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
+  await invalidateWalletReadCaches(walletId, { targets: ["overview", "budgets"], dashboardUserIds });
+  await revalidateWalletPaths(walletId, { includeDashboard: true, includeOverview: true, sections: ["budgets"] });
+  return successResult(t("actionSuccess.settingsSaved"));
 }
