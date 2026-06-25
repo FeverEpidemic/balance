@@ -1,25 +1,21 @@
 "use client";
 
-import { deleteTransaction, updateTransaction } from "@/app/actions/transactions";
+import { deleteTransaction } from "@/app/actions/transactions";
 import { AppShell } from "@/components/app-shell";
 import { TransactionCreateDialogButton } from "@/components/features/transactions/transaction-create-dialog-button";
+import { TransactionEditDialog } from "@/components/features/transactions/transaction-edit-dialog";
 import { useLocale } from "@/components/providers/locale-provider";
 import { useTimezone } from "@/components/providers/timezone-provider";
 import { CategoryIcon } from "@/components/ui/app-icon";
 import { PullToRefresh } from "@/components/ui/pull-to-refresh";
 import { ActionForm } from "@/components/ui/action-form";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/shadcn/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CategorySelect } from "@/components/ui/category-select";
 import { ConfirmSubmitButton } from "@/components/ui/confirm-submit-button";
-import { CurrencyInput } from "@/components/ui/currency-input";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SubmitButton } from "@/components/ui/submit-button";
 import type { TransactionsPageData } from "@/lib/data";
 import { getTranslator } from "@/lib/i18n";
-import { formatCurrency, formatShortDate, formatTimeOfDay, toDateInputValue, toTimeInputValue } from "@/lib/utils";
-import { useRef, useState } from "react";
+import { formatCurrency, formatShortDate, formatTimeOfDay } from "@/lib/utils";
 
 type TransactionItemProps = {
   canMutate: boolean;
@@ -39,12 +35,10 @@ function TransactionItem({ canMutate, categories, transaction, walletId, t }: Tr
   const canEditTransaction = canMutate && !transaction.isSavingLinked;
   const meta = buildTransactionMetaLine(transaction);
   const hasStateBadges = transaction.isRecurring || transaction.isSavingLinked || transaction.isBalanceAdjustment;
-  const [editOpen, setEditOpen] = useState(false);
-  const closeSignalRef = useRef<unknown>(null);
 
   if (canEditTransaction) {
     return (
-      <Collapsible open={editOpen} onOpenChange={setEditOpen} className="list-card">
+      <div className="list-card">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 flex-1">
             <div className="flex items-start gap-3">
@@ -79,7 +73,9 @@ function TransactionItem({ canMutate, categories, transaction, walletId, t }: Tr
               <p className={`metric text-base lg:text-lg ${transaction.kind === "expense" ? "text-danger" : "text-success"}`}>
                 {formatCurrency(transaction.kind === "expense" ? -transaction.amount : transaction.amount)}
               </p>
-              <p className="mt-1 text-xs text-muted-foreground">{formatShortDate(transaction.happenedAt, locale, timezone)} • {formatTimeOfDay(transaction.happenedAt, locale, timezone) || "00:00"}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {formatShortDate(transaction.happenedAt, locale, timezone)} • {formatTimeOfDay(transaction.happenedAt, locale, timezone) || "00:00"}
+              </p>
             </div>
           </div>
         </div>
@@ -99,88 +95,9 @@ function TransactionItem({ canMutate, categories, transaction, walletId, t }: Tr
               {t("transactions.deleteButton")}
             </ConfirmSubmitButton>
           </ActionForm>
-          <CollapsibleTrigger asChild>
-            <Button
-              type="button"
-              variant="soft"
-              className="rounded-xl px-4 py-2 font-label text-sm font-medium"
-            >
-              {editOpen ? t("common.closeEditor") : t("transactions.editButton")}
-            </Button>
-          </CollapsibleTrigger>
+          <TransactionEditDialog categories={categories} transaction={transaction} walletId={walletId} t={t} />
         </div>
-
-        <CollapsibleContent>
-          <ActionForm
-            key={`edit-${transaction.id}-${editOpen}`}
-            action={updateTransaction}
-            onSuccess={() => undefined}
-            className="mt-3"
-          >
-            {({ state }) => {
-              // Auto-close on successful save (closeSignal pattern dari InlineEditPanel)
-              if (closeSignalRef.current !== state && state.status === "success") {
-                closeSignalRef.current = state;
-                // Use setTimeout to avoid state update during render
-                setTimeout(() => setEditOpen(false), 0);
-              }
-
-              return (
-                <div className="border-t border-border pt-4">
-                  <input type="hidden" name="wallet_id" value={walletId} />
-                  <input type="hidden" name="transaction_id" value={transaction.id} />
-                  <div className="grid min-w-0 gap-3 md:grid-cols-2">
-                    <label className="block">
-                      <span className="mb-2 block font-label text-xs text-muted-foreground">{t("transactions.kindLabel")}</span>
-                      <select name="kind" defaultValue={transaction.kind}>
-                        <option value="expense">{t("transactions.kindExpense")}</option>
-                        <option value="income">{t("transactions.kindIncome")}</option>
-                      </select>
-                    </label>
-                    {transaction.isBalanceAdjustment ? (
-                      <div className="glass-panel rounded-xl p-3 text-sm text-muted-foreground">
-                        {t("transactions.adjustmentCategoryManaged")}
-                      </div>
-                    ) : (
-                      <label className="block">
-                        <span className="mb-2 block font-label text-xs text-muted-foreground">{t("transactions.categoryLabel")}</span>
-                        <CategorySelect
-                          name="category_id"
-                          categories={categories}
-                          defaultValue={transaction.categoryId ?? ""}
-                          includeEmptyOption
-                          emptyLabel={t("common.noCategory")}
-                        />
-                      </label>
-                    )}
-                    <label className="block">
-                      <span className="mb-2 block font-label text-xs text-muted-foreground">{t("transactions.amountLabel")}</span>
-                      <CurrencyInput name="amount" defaultValue={transaction.amount} required />
-                    </label>
-                    <label className="block">
-                      <span className="mb-2 block font-label text-xs text-muted-foreground">{t("transactions.noteLabel")}</span>
-                      <input name="note" defaultValue={transaction.note ?? ""} placeholder={t("transactions.notePlaceholder")} />
-                    </label>
-                    <label className="block">
-                      <span className="mb-2 block font-label text-xs text-muted-foreground">{t("transactions.dateLabel")}</span>
-                      <input name="happened_at" type="date" defaultValue={toDateInputValue(transaction.happenedAt)} required />
-                    </label>
-                    <label className="block">
-                      <span className="mb-2 block font-label text-xs text-muted-foreground">{t("transactions.timeLabel")}</span>
-                      <input name="happened_at_time" type="time" defaultValue={toTimeInputValue(transaction.happenedAt, timezone)} />
-                    </label>
-                    <div className="flex min-w-0 flex-col gap-2 md:col-span-2 sm:flex-row sm:flex-wrap">
-                      <SubmitButton className="w-full sm:w-auto" pendingText={t("transactions.savePending")} variant="soft">
-                        {t("transactions.updateButton")}
-                      </SubmitButton>
-                    </div>
-                  </div>
-                </div>
-              );
-            }}
-          </ActionForm>
-        </CollapsibleContent>
-      </Collapsible>
+      </div>
     );
   }
 
