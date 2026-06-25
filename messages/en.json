@@ -471,7 +471,7 @@
     "metaAdjustment": "Adjustment",
     "edit": "Edit",
     "editTitle": "Edit transaction",
-    "editDescription": "Update the type, category, amount, note, or date without leaving the history page.",
+    "editDescription": "Update the type, category, amount, note, or date for this transaction.",
     "kindLabel": "Type",
     "categoryLabel": "Category",
     "amountLabel": "Amount",
