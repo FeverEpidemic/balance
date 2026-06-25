@@ -366,7 +366,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <h2 className="headline-lg mt-3 text-white font-semibold leading-snug">{t("landing.ctaTitle")}</h2>
               <p className="mt-4 text-base leading-7 text-white/80 md:text-lg">{t("landing.ctaDescription")}</p>
               <div className="mt-8 flex flex-col gap-3.5 sm:flex-row">
-                <Button href="/register" className="bg-white text-primary-strong hover:bg-[#f4f1e5] px-6 py-3 font-semibold">{t("landing.ctaRegister")}</Button>
+                <Button href="/register" className="bg-white text-black hover:bg-[#f4f1e5] px-6 py-3 font-semibold">{t("landing.ctaRegister")}</Button>
                 <Button href="/login" variant="ghost" className="border-2 border-white/50 text-white hover:bg-white/10 hover:border-white/70 px-6 py-3 font-semibold">{t("landing.ctaLogin")}</Button>
               </div>
             </div>
