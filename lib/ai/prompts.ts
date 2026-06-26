@@ -35,7 +35,10 @@ export function buildAiSystemPrompt(input: {
 }) {
   const detailTier = resolvePromptDetailTier(input.period, input.compact);
   const walletListLimit = detailTier === "minimal" ? 4 : detailTier === "medium" ? 8 : input.wallets.length;
-  const walletListEntries = input.wallets.slice(0, walletListLimit).map((wallet) => `- ${wallet.name} (ID: ${wallet.id}, ${wallet.kind})`);
+  const walletListEntries = input.wallets.slice(0, walletListLimit).map((wallet) => {
+    const salaryInfo = wallet.salaryCycleDay > 1 ? `, gajian tgl ${wallet.salaryCycleDay}` : "";
+    return `- ${wallet.name} (ID: ${wallet.id}, ${wallet.kind}${salaryInfo})`;
+  });
 
   if (input.wallets.length > walletListLimit) {
     walletListEntries.push(`- ${input.wallets.length - walletListLimit} wallet lain tetap bisa diakses user`);
@@ -127,7 +130,9 @@ Pertanyaan user saat ini:
 Rekap aktif:
 - Periode: ${input.period}
 - Cakupan wallet: ${input.recap.walletLabel}
-- Rentang UTC: ${input.recap.range.start} sampai ${input.recap.range.end}
+- Rentang UTC: ${input.recap.range.start} sampai ${input.recap.range.end}${input.recap.isSalaryPeriod && input.recap.salaryPeriodLabel ? `
+- Periode gaji: ${input.recap.salaryPeriodLabel}
+- Catatan: Budget dan rekap menggunakan siklus gaji, bukan bulan kalender.` : ""}
 - Total pemasukan: ${formatCurrency(input.recap.totalIncome)}
 - Total pengeluaran: ${formatCurrency(input.recap.totalExpense)}
 - Net: ${formatCurrency(input.recap.net)}
@@ -166,6 +171,7 @@ Aturan saat mengelola anggaran:
 - Jika user minta "naikin budget transport jadi 1 juta", cek dulu via getBudgetStatus, lalu update dengan updateBudget.
 - Jika user minta "hapus budget hiburan", konfirmasi dulu sebelum memanggil deleteBudget.
 - Setelah berhasil, konfirmasi ringkas: nominal, kategori, wallet, dan bulan.
+- Budget selalu dibuat per bulan kalender (month_start = YYYY-MM-01), tapi pengeluaran dihitung berdasarkan siklus gaji wallet jika ada. Jelaskan ke user bahwa "bulan ini" artinya periode gaji mereka, bukan kalender.
 
 Aturan saat mencatat transaksi:
 - Jika user belum menyebut wallet dan ada lebih dari satu wallet yang mungkin dipakai, tanyakan wallet mana yang dimaksud sebelum mencatat.

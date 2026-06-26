@@ -1,5 +1,5 @@
 import "server-only";
-import { getCurrentMonthKey } from "@/lib/finance";
+import { getCurrentMonthKey, getSalaryPeriodRange, formatSalaryPeriodLabel } from "@/lib/finance";
 import { invalidateAiInsightCache, invalidateWalletReadCaches } from "@/lib/data/cache";
 import { invalidateAiReadCache } from "@/lib/ai/cache";
 import { getPeriodRange, getPreviousPeriodRange, type RekapPeriod } from "@/lib/chat-auth";
@@ -14,6 +14,7 @@ export type AiWalletOption = {
   id: string;
   name: string;
   kind: WalletRow["kind"];
+  salaryCycleDay: number;
 };
 
 export type AiFinancialRecap = {
@@ -27,6 +28,8 @@ export type AiFinancialRecap = {
   transactionCount: number;
   topExpenseCategories: Array<{ categoryId: string | null; categoryName: string; total: number }>;
   perWallet: Array<{ walletId: string; walletName: string; totalIncome: number; totalExpense: number; net: number; transactionCount: number }>;
+  isSalaryPeriod: boolean;
+  salaryPeriodLabel: string | null;
 };
 
 export type AiBudgetStatus = {
@@ -211,7 +214,8 @@ export async function getAiWalletOptions(userId: string): Promise<AiWalletOption
   return wallets.map((wallet) => ({
     id: wallet.id,
     name: wallet.name,
-    kind: wallet.kind
+    kind: wallet.kind,
+    salaryCycleDay: wallet.salary_cycle_day ?? 1
   }));
 }
 
@@ -225,7 +229,22 @@ export async function getFinancialRecapForUser(userId: string, period: RekapPeri
     queryCategories(targetWalletIds)
   ]);
 
-  const range = getPeriodRange(period);
+  let isSalaryPeriod = false;
+  let salaryPeriodLabel: string | null = null;
+  let range: { start: string; end: string };
+
+  if (period === "month" && walletId) {
+    // Gunakan salary period ketika wallet spesifik
+    const targetWallet = wallets.find((w) => w.id === walletId);
+    const cycleDay = targetWallet?.salary_cycle_day ?? 1;
+    const monthKey = getCurrentMonthKey();
+    range = getSalaryPeriodRange(monthKey, cycleDay);
+    isSalaryPeriod = cycleDay > 1;
+    salaryPeriodLabel = isSalaryPeriod ? formatSalaryPeriodLabel(monthKey, cycleDay) : null;
+  } else {
+    range = getPeriodRange(period);
+  }
+
   const startAt = Date.parse(range.start);
   const endAt = Date.parse(range.end);
   const periodTransactions = allTransactions.filter((transaction) => {
@@ -305,8 +324,10 @@ export async function getFinancialRecapForUser(userId: string, period: RekapPeri
         net: value.totalIncome - value.totalExpense,
         transactionCount: value.transactionCount
       }))
-      .sort((a, b) => b.transactionCount - a.transactionCount)
-  };
+      .sort((a, b) => b.transactionCount - a.transactionCount),
+  isSalaryPeriod,
+  salaryPeriodLabel
+};
 }
 
 export async function getCategoriesForWallets(userId: string, walletIds?: string[] | null): Promise<AiCategoryOption[]> {
@@ -718,6 +739,12 @@ export async function getBudgetStatusForUser(userId: string, walletId: string): 
   const { walletIds, wallets } = await getAccessibleWallets(userId);
   assertAccessibleWallet(walletIds, walletId);
   const month = getCurrentMonthKey();
+
+  // Gunakan salary period untuk filter transaksi
+  const targetWallet = wallets.find((w) => w.id === walletId);
+  const cycleDay = targetWallet?.salary_cycle_day ?? 1;
+  const range = getSalaryPeriodRange(month, cycleDay);
+
   const [budgets, categories, transactions] = await Promise.all([
     queryBudgets([walletId], month),
     queryCategories([walletId]),
@@ -725,7 +752,10 @@ export async function getBudgetStatusForUser(userId: string, walletId: string): 
   ]);
 
   const spendByCategory = groupSpentByCategory(
-    transactions.filter((transaction) => transaction.happened_at.startsWith(month))
+    transactions.filter((transaction) => {
+      const happenedAt = transaction.happened_at.slice(0, 10);
+      return happenedAt >= range.start && happenedAt <= range.end;
+    })
   );
   const categoriesWithUsage = buildBudgetCategories(budgets, categories, spendByCategory);
   const totalBudget = budgets.reduce((sum, budget) => sum + budget.amount, 0);

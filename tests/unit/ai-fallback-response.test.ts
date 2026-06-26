@@ -15,6 +15,8 @@ function createRecap(overrides: Partial<AiFinancialRecap> = {}): AiFinancialReca
     totalExpense: 800000,
     net: 400000,
     transactionCount: 6,
+    isSalaryPeriod: false,
+    salaryPeriodLabel: null,
     topExpenseCategories: [{ categoryId: "cat-1", categoryName: "Cicilan", total: 500000 }],
     perWallet: [
       {

@@ -14,6 +14,8 @@ const recap: AiFinancialRecap = {
   totalExpense: 1000000,
   net: 5000000,
   transactionCount: 8,
+  isSalaryPeriod: false,
+  salaryPeriodLabel: null,
   topExpenseCategories: [{ categoryId: "expense-1", categoryName: "Makan", total: 300000 }],
   perWallet: [
     {

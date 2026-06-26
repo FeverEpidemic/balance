@@ -27,7 +27,9 @@ function createRecap(overrides: Partial<AiFinancialRecap> = {}): AiFinancialReca
         transactionCount: 12
       }
     ],
-    ...overrides
+    ...overrides,
+    isSalaryPeriod: false,
+    salaryPeriodLabel: null
   };
 }
 
@@ -35,7 +37,7 @@ describe("buildAiSystemPrompt", () => {
   it("includes guidance for transaction recording tools", () => {
     const prompt = buildAiSystemPrompt({
       recap: createRecap(),
-      wallets: [{ id: "wallet-1", name: "Dompet Utama", kind: "personal" }],
+      wallets: [{ id: "wallet-1", name: "Dompet Utama", kind: "personal", salaryCycleDay: 1 }],
       period: "month",
       latestUserMessage: "Tolong bantu catat pengeluaran makan saya",
       categoryFocus: null
@@ -59,9 +61,9 @@ describe("buildAiSystemPrompt compact mode", () => {
         ]
       }),
       wallets: [
-        { id: "w1", name: "Dompet A", kind: "personal" },
-        { id: "w2", name: "Dompet B", kind: "personal" },
-        { id: "w3", name: "Dompet C", kind: "personal" }
+        { id: "w1", name: "Dompet A", kind: "personal", salaryCycleDay: 1 },
+        { id: "w2", name: "Dompet B", kind: "personal", salaryCycleDay: 1 },
+        { id: "w3", name: "Dompet C", kind: "personal", salaryCycleDay: 1 }
       ],
       period: "day",
       latestUserMessage: "Analisis pengeluaran",
@@ -87,7 +89,7 @@ describe("buildAiSystemPrompt compact mode", () => {
 
     const promptCompact = buildAiSystemPrompt({
       recap: createRecap({ topExpenseCategories: categories }),
-      wallets: [{ id: "w1", name: "Dompet", kind: "personal" }],
+      wallets: [{ id: "w1", name: "Dompet", kind: "personal", salaryCycleDay: 1 }],
       period: "month",
       latestUserMessage: "Rekap",
       categoryFocus: null,
@@ -96,7 +98,7 @@ describe("buildAiSystemPrompt compact mode", () => {
 
     const promptFull = buildAiSystemPrompt({
       recap: createRecap({ topExpenseCategories: categories }),
-      wallets: [{ id: "w1", name: "Dompet", kind: "personal" }],
+      wallets: [{ id: "w1", name: "Dompet", kind: "personal", salaryCycleDay: 1 }],
       period: "month",
       latestUserMessage: "Rekap",
       categoryFocus: null
@@ -131,7 +133,7 @@ describe("buildAiSystemPrompt compact mode", () => {
 
     const prompt = buildAiSystemPrompt({
       recap: createRecap(),
-      wallets: [{ id: "w1", name: "Dompet", kind: "personal" }],
+      wallets: [{ id: "w1", name: "Dompet", kind: "personal", salaryCycleDay: 1 }],
       period: "day",
       latestUserMessage: "Berapa makan hari ini?",
       categoryFocus,
@@ -157,9 +159,9 @@ describe("buildAiSystemPrompt compact mode", () => {
     const prompt = buildAiSystemPrompt({
       recap: createRecap(),
       wallets: [
-        { id: "w1", name: "Dompet A", kind: "personal" },
-        { id: "w2", name: "Dompet B", kind: "personal" },
-        { id: "w3", name: "Dompet C", kind: "personal" }
+        { id: "w1", name: "Dompet A", kind: "personal", salaryCycleDay: 1 },
+        { id: "w2", name: "Dompet B", kind: "personal", salaryCycleDay: 1 },
+        { id: "w3", name: "Dompet C", kind: "personal", salaryCycleDay: 1 }
       ],
       period: "day",
       latestUserMessage: "Analisis",
@@ -185,9 +187,9 @@ describe("buildAiSystemPrompt compact mode", () => {
         ]
       }),
       wallets: [
-        { id: "w1", name: "Dompet A", kind: "personal" as const },
-        { id: "w2", name: "Dompet B", kind: "personal" as const },
-        { id: "w3", name: "Dompet C", kind: "shared" as const }
+        { id: "w1", name: "Dompet A", kind: "personal" as const, salaryCycleDay: 1 },
+        { id: "w2", name: "Dompet B", kind: "personal" as const, salaryCycleDay: 1 },
+        { id: "w3", name: "Dompet C", kind: "shared" as const, salaryCycleDay: 1 }
       ],
       latestUserMessage: "Analisis pengeluaran saya",
       categoryFocus: null
@@ -207,7 +209,7 @@ describe("buildAiSystemPrompt compact mode", () => {
   it("describes income category focus without expense wording", () => {
     const prompt = buildAiSystemPrompt({
       recap: createRecap(),
-      wallets: [{ id: "w1", name: "Dompet", kind: "personal" }],
+      wallets: [{ id: "w1", name: "Dompet", kind: "personal", salaryCycleDay: 1 }],
       period: "month",
       latestUserMessage: "Gaji bulan ini berapa?",
       categoryFocus: {
