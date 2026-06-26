@@ -13,6 +13,16 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.18.3",
+    date: "2026-06-26",
+    title: "DSML leak guard di AI Chat",
+    description: "AI Chat kadang menampilkan kode DSML mentah saat model gagal membuat tool call yang proper. Sekarang sistem otomatis mendeteksi dan me-retry atau fallback ke jawaban finansial biasa.",
+    features: [
+      { icon: "🛡️", text: "Guard di tool loop: DSML terdeteksi → loop retry dengan temperature escalation (mutasi punya 3 iterasi)." },
+      { icon: "⚡", text: "Safety net di final reply: kalau DSML masih lolos, ganti ke fallback answer otomatis." },
+    ]
+  },
+  {
     version: "1.18.2",
     date: "2026-06-23",
     title: "Tampilan Budget Card diperbarui",

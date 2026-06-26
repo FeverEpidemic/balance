@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Fixed
+- **DSML leak guard di AI Chat** — Model `deepseek-v4-flash` kadang ngeluarin DSML syntax (`< | | DSML | | invoke name="..." >`) sebagai teks biasa alih-alih OpenAI `tool_calls` yang proper. Guard baru ngedeteksi DSML pattern di tool loop → `continue` biar loop retry. Safety net di final reply ganti ke fallback kalo masih lolos.
 - **Delete & edit transaksi sekarang 1 action** — Bug di mana delete dan edit (ganti kategori) perlu dilakukan dua kali sebelum perubahan tersimpan. Perbaikan: delete di halaman utama sekarang pakai `ActionForm` (konsisten dengan history page), dan semua form edit/delete dikasih `key` biar `useActionState` diremount tiap kali dibuka, fresh tiap submit.
 
 ### Changed

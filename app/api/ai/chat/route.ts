@@ -3,6 +3,7 @@ import type { ChatCompletionMessageToolCall } from "openai/resources/chat/comple
 import { validateChatMessage } from "@/lib/ai/guard";
 import { getAiChatComplianceState } from "@/lib/ai/compliance";
 import { createAiChatCompletion, getAiClient, getAiModel, isAiChatAvailable, AiUpstreamRateLimitedError } from "@/lib/ai/client";
+import { containsDSMLMarkup } from "@/lib/ai/dsml-guard";
 import { shouldReturnDirectAiReply } from "@/lib/ai/chat-response";
 import {
   buildBudgetedConversation,
@@ -306,6 +307,14 @@ export async function POST(request: Request) {
               hasToolCalls: Boolean(assistantMessage.tool_calls?.length)
             })
           ) {
+            // DSML guard: model kadang ngeluarin DSML syntax sebagai teks, bukan tool_calls
+            if (containsDSMLMarkup(assistantMessage.content)) {
+              conversationMessages.push({
+                role: "assistant",
+                content: assistantMessage.content ?? ""
+              });
+              continue; // retry — biar loop lanjut (mutasi punya 3 iterasi)
+            }
             finalAssistantContent = assistantMessage.content?.trim() ?? "";
             shouldStreamFinalReply = false;
             conversationMessages.push({
@@ -405,9 +414,12 @@ export async function POST(request: Request) {
     }
 
     if (!shouldStreamFinalReply && finalAssistantContent) {
-      const responseText = isLowSignalAiReply(finalAssistantContent)
+      // Safety net: DSML yang lolos dari tool loop — ganti ke fallback
+      const responseText = containsDSMLMarkup(finalAssistantContent)
         ? buildFallbackFinanceAnswer(latestUserMessage, recap, categoryFocus)
-        : finalAssistantContent;
+        : isLowSignalAiReply(finalAssistantContent)
+          ? buildFallbackFinanceAnswer(latestUserMessage, recap, categoryFocus)
+          : finalAssistantContent;
       const directSummary = buildRunningSummary(recap, action);
 
       return applyDailyLimitHeaders(applyRateLimitHeaders(createFriendlyFallbackStream(responseText, undefined, directSummary), aiRateLimit), aiDailyLimit);
