@@ -511,6 +511,7 @@
     "importSavePending": "Importing transactions...",
     "importSuccess": "Successfully imported {count} transactions.",
     "importNoTransactionsSelected": "Please select at least one transaction to import.",
+    "importTooManyRows": "Maximum {max} transactions per import.",
     "importCreateCategoryOption": "+ Create Category: \"{name}\"",
     "historySearchLabel": "Search transactions in this month",
     "historySearchPlaceholder": "Search notes, categories, or type",

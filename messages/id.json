@@ -511,6 +511,7 @@
     "importSavePending": "Mengimpor transaksi...",
     "importSuccess": "Berhasil mengimpor {count} transaksi.",
     "importNoTransactionsSelected": "Harap centang minimal satu transaksi untuk diimpor.",
+    "importTooManyRows": "Maksimal {max} transaksi per import.",
     "importCreateCategoryOption": "+ Buat Kategori: \"{name}\"",
     "historySearchLabel": "Cari transaksi bulan ini",
     "historySearchPlaceholder": "Cari catatan, kategori, atau jenis",

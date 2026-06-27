@@ -576,6 +576,8 @@ function getTransactionSignature(happenedAt: string, note: string | null, amount
   return `${dateStr}|${cleanNote}|${amount.toFixed(2)}|${kind}`;
 }
 
+const MAX_IMPORT_ROWS = 500;
+
 export type ImportExcelTransactionRow = {
   happenedAt: string;
   note: string | null;
@@ -603,6 +605,10 @@ export async function importExcelTransactions(
 
   if (transactions.length === 0) {
     return errorResult(t("transactions.importNoTransactionsSelected"));
+  }
+
+  if (transactions.length > MAX_IMPORT_ROWS) {
+    return errorResult(t("transactions.importTooManyRows", { max: MAX_IMPORT_ROWS }));
   }
 
   const rateLimit = await consumeTransactionRateLimit(user.id);
