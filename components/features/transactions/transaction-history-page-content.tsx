@@ -9,6 +9,7 @@ import {
 import { deleteTransaction } from "@/app/actions/transactions";
 import { AppShell } from "@/components/app-shell";
 import { ExportExcelButton } from "@/components/features/transactions/export-excel-button";
+import { ImportExcelDialog } from "@/components/features/transactions/import-excel-dialog";
 import { TransactionEditDialog } from "@/components/features/transactions/transaction-edit-dialog";
 import { useLocale } from "@/components/providers/locale-provider";
 import { useTimezone } from "@/components/providers/timezone-provider";
@@ -298,6 +299,13 @@ export function TransactionHistoryPageContent({ data }: { data: TransactionHisto
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{t("transactions.historyDescription")}</p>
             </div>
             <div className="flex min-w-0 flex-col gap-2 sm:flex-row">
+              {canMutate && (
+                <ImportExcelDialog
+                  walletId={data.walletId}
+                  categories={data.categories}
+                  currency={data.walletCurrency}
+                />
+              )}
               <ExportExcelButton transactions={data.transactions} walletName={data.walletName} selectedMonth={data.selectedMonth} />
             </div>
           </div>

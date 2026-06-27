@@ -26,7 +26,9 @@ type AppIconName =
   | "edit"
   | "download"
   | "category"
-  | "debt";
+  | "debt"
+  | "upload"
+  | "refresh";
 
 type CategoryIconName =
   | "food"
@@ -255,6 +257,21 @@ export function AppIcon({
           <path d="M12 4.5v10" />
           <path d="m8.5 11.5 3.5 3.5 3.5-3.5" />
           <path d="M5 18.5h14" />
+        </StrokeIcon>
+      );
+    case "upload":
+      return (
+        <StrokeIcon className={className} tone={tone}>
+          <path d="M12 18.5v-10" />
+          <path d="m8.5 11.5 3.5-3.5 3.5 3.5" />
+          <path d="M5 4.5h14" />
+        </StrokeIcon>
+      );
+    case "refresh":
+      return (
+        <StrokeIcon className={className} tone={tone}>
+          <path d="M21.5 2v6h-6" />
+          <path d="M21.34 8a10 10 0 1 0-.45 4.4" />
         </StrokeIcon>
       );
     case "debt":

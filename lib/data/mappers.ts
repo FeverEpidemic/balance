@@ -1186,6 +1186,7 @@ export function createTransactionHistoryPageData(args: {
     shell,
     walletId: wallet.id,
     walletName: wallet.name,
+    walletCurrency: wallet.currency,
     currentUserRole: getCurrentUserRole(memberships, wallet.id),
     selectedMonth,
     categories: formCategories,

@@ -422,6 +422,7 @@ export type TransactionHistoryPageData = {
   shell: ShellData;
   walletId: string;
   walletName: string;
+  walletCurrency: string;
   currentUserRole: WalletRole;
   selectedMonth: string;
   categories: CategoryRow[];

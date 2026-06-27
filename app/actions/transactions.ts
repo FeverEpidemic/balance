@@ -27,6 +27,7 @@ import {
 } from "@/app/actions/_shared";
 import { combineDateAndTime, dateStringToISO, isValidDateString } from "@/lib/utils";
 import { parseNumberInput } from "@/lib/finance";
+import { DEFAULT_CATEGORY_COLOR, normalizeCategoryName } from "@/lib/categories";
 
 function readTransactionForm(formData: FormData) {
   return {
@@ -496,4 +497,221 @@ export async function createBatchTransactions(_prevState: ActionResult, formData
     sections: ["transactions", "budgets"]
   });
   return successResult(t("actionSuccess.transactionSaved"), { resetForm: true });
+}
+
+export type CandidateTransaction = {
+  happenedAt: string;
+  note: string | null;
+  amount: number;
+  kind: "income" | "expense";
+};
+
+export async function checkPotentialDuplicates(
+  walletId: string,
+  candidates: CandidateTransaction[]
+): Promise<{ success: boolean; data?: { duplicates: string[] }; error?: string }> {
+  const { supabase, user } = await requireUser();
+  const t = await getActionTranslator();
+
+  if (!walletId) {
+    return { success: false, error: "Wallet ID is required" };
+  }
+
+  const role = await getWalletWriteRole(supabase, walletId, user.id);
+  if (!role) {
+    return { success: false, error: t("actionErrors.transactionWriteForbidden") };
+  }
+
+  if (candidates.length === 0) {
+    return { success: true, data: { duplicates: [] } };
+  }
+
+  const timezone = await getActionTimezone();
+  const dates = candidates.map((c) => new Date(c.happenedAt).getTime()).filter((time) => !isNaN(time));
+  if (dates.length === 0) {
+    return { success: true, data: { duplicates: [] } };
+  }
+
+  const minDate = new Date(Math.min(...dates));
+  const maxDate = new Date(Math.max(...dates));
+  minDate.setHours(0, 0, 0, 0);
+  maxDate.setHours(23, 59, 59, 999);
+
+  const { data: existingTx, error } = await supabase
+    .from("transactions")
+    .select("happened_at, amount, note, kind")
+    .eq("wallet_id", walletId)
+    .gte("happened_at", minDate.toISOString())
+    .lte("happened_at", maxDate.toISOString());
+
+  if (error) {
+    return { success: false, error: safeDbError(error, "actionErrors.unexpectedError", t) };
+  }
+
+  const existingSignatures = new Set<string>();
+  for (const tx of existingTx || []) {
+    const sig = getTransactionSignature(tx.happened_at, tx.note, Number(tx.amount), tx.kind, timezone);
+    existingSignatures.add(sig);
+  }
+
+  const duplicates: string[] = [];
+  for (const candidate of candidates) {
+    const sig = getTransactionSignature(candidate.happenedAt, candidate.note, candidate.amount, candidate.kind, timezone);
+    if (existingSignatures.has(sig)) {
+      duplicates.push(sig);
+    }
+  }
+
+  return { success: true, data: { duplicates } };
+}
+
+function getTransactionSignature(happenedAt: string, note: string | null, amount: number, kind: string, timezone: string) {
+  let dateStr = "";
+  try {
+    dateStr = new Date(happenedAt).toLocaleDateString("en-CA", { timeZone: timezone });
+  } catch {
+    dateStr = happenedAt.split("T")[0];
+  }
+  const cleanNote = note?.trim() || "";
+  return `${dateStr}|${cleanNote}|${amount.toFixed(2)}|${kind}`;
+}
+
+export type ImportExcelTransactionRow = {
+  happenedAt: string;
+  note: string | null;
+  amount: number;
+  kind: "income" | "expense";
+  categoryName: string | null;
+  categoryId: string | null | "create-new";
+};
+
+export async function importExcelTransactions(
+  walletId: string,
+  transactions: ImportExcelTransactionRow[]
+): Promise<ActionResult> {
+  const { supabase, user } = await requireUser();
+  const t = await getActionTranslator();
+
+  if (!walletId) {
+    return errorResult("Wallet ID is required");
+  }
+
+  const role = await getWalletWriteRole(supabase, walletId, user.id);
+  if (role !== "owner" && role !== "editor") {
+    return errorResult(t("actionErrors.transactionWriteForbidden"));
+  }
+
+  if (transactions.length === 0) {
+    return errorResult(t("transactions.importNoTransactionsSelected"));
+  }
+
+  const rateLimit = await consumeTransactionRateLimit(user.id);
+  if (!rateLimit.allowed) {
+    return errorResult(t("actionErrors.transactionRateLimited"));
+  }
+
+  const newCategoriesToCreate = new Map<string, { name: string; kind: "income" | "expense" }>();
+  for (const tx of transactions) {
+    if (tx.categoryId === "create-new" && tx.categoryName) {
+      const normalizedName = normalizeCategoryName(tx.categoryName);
+      if (normalizedName) {
+        const key = `${normalizedName.toLowerCase()}|${tx.kind}`;
+        newCategoriesToCreate.set(key, { name: normalizedName, kind: tx.kind });
+      }
+    }
+  }
+
+  const { data: existingCategories, error: catError } = await supabase
+    .from("categories")
+    .select("id, name, kind")
+    .eq("wallet_id", walletId);
+
+  if (catError) {
+    return errorResult(safeDbError(catError, "actionErrors.unexpectedError", t));
+  }
+
+  const categoryMap = new Map<string, string>();
+  for (const cat of existingCategories || []) {
+    categoryMap.set(`${cat.name.toLowerCase()}|${cat.kind}`, cat.id);
+  }
+
+  for (const [key, catInfo] of newCategoriesToCreate.entries()) {
+    if (!categoryMap.has(key)) {
+      const { data: inserted, error: insertCatError } = await supabase
+        .from("categories")
+        .insert({
+          wallet_id: walletId,
+          name: catInfo.name,
+          kind: catInfo.kind,
+          color: DEFAULT_CATEGORY_COLOR,
+          is_system: false,
+          created_by: user.id,
+          updated_by: user.id
+        })
+        .select("id")
+        .single();
+
+      if (insertCatError) {
+        if (insertCatError.code === "23505") {
+          const { data: reFetched } = await supabase
+            .from("categories")
+            .select("id")
+            .eq("wallet_id", walletId)
+            .eq("kind", catInfo.kind)
+            .ilike("name", catInfo.name)
+            .maybeSingle();
+          if (reFetched) {
+            categoryMap.set(key, reFetched.id);
+          }
+        } else {
+          return errorResult(safeDbError(insertCatError, "actionErrors.unexpectedError", t));
+        }
+      } else if (inserted) {
+        categoryMap.set(key, inserted.id);
+      }
+    }
+  }
+
+  const insertRows = transactions.map((tx) => {
+    let resolvedCategoryId: string | null = null;
+    if (tx.categoryId && tx.categoryId !== "create-new") {
+      resolvedCategoryId = tx.categoryId;
+    } else if (tx.categoryName) {
+      const normalizedName = normalizeCategoryName(tx.categoryName);
+      const key = `${normalizedName.toLowerCase()}|${tx.kind}`;
+      resolvedCategoryId = categoryMap.get(key) || null;
+    }
+
+    return {
+      wallet_id: walletId,
+      category_id: resolvedCategoryId,
+      kind: tx.kind,
+      amount: tx.amount,
+      note: tx.note?.trim() || null,
+      happened_at: tx.happenedAt,
+      source: "manual" as const,
+      created_by: user.id,
+      updated_by: user.id
+    };
+  });
+
+  const { error: txInsertError } = await supabase.from("transactions").insert(insertRows);
+
+  if (txInsertError) {
+    return errorResult(safeDbError(txInsertError, "actionErrors.unexpectedError", t));
+  }
+
+  const dashboardUserIds = await getWalletMemberUserIds(supabase, walletId);
+  await invalidateWalletReadCaches(walletId, {
+    targets: ["overview", "transactions", "budgets"],
+    dashboardUserIds
+  });
+  await invalidateAiInsightCache(dashboardUserIds);
+  await revalidateWalletPaths(walletId, {
+    includeDashboard: true,
+    includeOverview: true,
+    sections: ["transactions", "budgets"]
+  });
+
+  return successResult(t("transactions.importSuccess", { count: insertRows.length }), { resetForm: true });
 }

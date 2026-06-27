@@ -13,6 +13,18 @@ export type ChangelogEntry = {
 
 export const changelogs: ChangelogEntry[] = [
   {
+    version: "1.18.4",
+    date: "2026-06-28",
+    title: "Fitur Import Excel baru untuk Transaksi",
+    description: "Kini Anda bisa mengimpor banyak transaksi secara massal langsung dari file Excel (.xlsx atau .xls). Sistem akan memproses file secara lokal, mendeteksi kategori baru, dan menyaring potensi duplikat secara pintar.",
+    features: [
+      { icon: "📥", text: "Import Excel Button: Bersebelahan dengan tombol Export di tab Riwayat Lengkap." },
+      { icon: "🔍", text: "Preview Interaktif: Tinjau data sebelum disimpan, ubah pemetaan kategori, atau batalkan pilihan baris data." },
+      { icon: "🛡️", text: "Deteksi Potensi Duplikat: Sistem otomatis menandai transaksi yang mirip (sama tanggal, catatan, nominal) untuk mencegah pencatatan ganda." },
+      { icon: "🏷️", text: "Auto-create Kategori: Kategori baru yang belum terdaftar di wallet bisa dibuat otomatis dengan warna default." }
+    ]
+  },
+  {
     version: "1.18.3",
     date: "2026-06-26",
     title: "DSML leak guard di AI Chat",
