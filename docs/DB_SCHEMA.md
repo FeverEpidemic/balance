@@ -1,14 +1,15 @@
 ---
 title: Balance — Database Schema & Data Flow
-version: 1.2.0
-last_updated: 2026-06-21
-migrations: 0001–0027
+version: 1.3.0
+last_updated: 2026-09-13
+migrations: 0001–0028
 ---
 
 # Balance — Database Schema & Data Flow
 
 > Diagram alur data, relasi tabel, RLS policies, dan business logic di database Supabase PostgreSQL.
 > Dokumen ini dibuat untuk dibaca oleh AI agent maupun manusia.
+> Ini adalah snapshot skema sampai migration 0028; file SQL di `supabase/migrations/` adalah source of truth.
 
 ---
 
@@ -104,6 +105,7 @@ user_api_keys (terikat ke auth.users, bukan profiles)
 | name | text | Nama dompet |
 | kind | wallet_kind | personal / shared |
 | currency | text | NOT NULL DEFAULT 'IDR' |
+| salary_cycle_day | smallint | NOT NULL DEFAULT 1; check 1–28. Awal periode gaji pada tanggal ini. |
 | owner_user_id | uuid FK → profiles | Pemilik |
 | is_archived | boolean DEFAULT false | |
 | created_by / updated_by | uuid? FK → profiles | Audit trail |
@@ -544,3 +546,4 @@ SELECT public.accept_wallet_invitation_atomic(token, user_id)
 | 0025 | push_notifications | Kolom daily_reminder_* di profiles, tabel push_subscriptions, RPC get_due_push_reminders/mark_reminders_sent/delete_push_subscription_by_endpoint |
 | 0026 | budget_carry_over | Kolom carry_over_enabled di budgets untuk toggle carry-over per kategori |
 | 0027 | debt_tracker | Enum debt_direction/debt_status, tabel debts + debt_payments, trigger auto-update status, RLS wallet-scoped |
+| 0028 | salary_period | Kolom `wallets.salary_cycle_day` untuk tanggal mulai periode gaji (1–28; default 1) |

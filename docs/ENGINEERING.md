@@ -1,8 +1,8 @@
 ---
 title: Balance — Engineering Architecture
-version: 1.1.0
-last_updated: 2026-06-17
-stack: Next.js 15.3 · React 19 · TypeScript 5.8 · Tailwind 3.4 · Supabase · Redis
+version: 1.2.0
+last_updated: 2026-09-13
+stack: Next.js 16 · React 19 · TypeScript 5.8 · Tailwind CSS 4 · Supabase · Redis
 ---
 
 # Balance — Engineering Architecture
@@ -14,163 +14,117 @@ stack: Next.js 15.3 · React 19 · TypeScript 5.8 · Tailwind 3.4 · Supabase ·
 
 ## 1. Tech Stack
 
-| Layer | Teknologi | Versi |
-|-------|-----------|-------|
-| **Framework** | Next.js (App Router) | ^15.3.2 |
-| **UI Library** | React | ^19.1.0 |
+| Layer | Teknologi | Versi/range |
+|-------|-----------|-------------|
+| **Framework** | Next.js (App Router) | ^16.2.9 |
+| **UI Library** | React | ^19.2.7 |
 | **Bahasa** | TypeScript (strict) | ^5.8.3 |
-| **Styling** | Tailwind CSS | ^3.4.17 |
+| **Styling** | Tailwind CSS + PostCSS plugin | ^4.3.0 |
 | **Database** | Supabase PostgreSQL (hosted atau self-hosted) | — |
-| **Auth** | Supabase Auth (email + Google OAuth) | — |
-| **Cache** | Redis (best-effort, optional) | ^4.7.1 |
-| **ORM / Client DB** | @supabase/supabase-js | ^2.56.0 |
-| **SSR Auth** | @supabase/ssr | ^0.10.3 |
-| **Tabel/data** | @tanstack/react-table | ^8.21.3 |
-| **Dialog** | @radix-ui/react-dialog | ^1.1.16 |
-| **Testing** | Vitest | ^0.34.6 |
-| **Linting** | ESLint 8 + eslint-config-next | — |
-| **Node** | >= 20.9.0 (di Docker: 22 Alpine) | |
+| **Auth** | Supabase Auth, `@supabase/ssr`, `@supabase/supabase-js` | ^0.12.0 / ^2.108.1 |
+| **Cache** | Redis client (best-effort, optional) | ^6.0.0 |
+| **Data table** | `@tanstack/react-table` | ^8.21.3 |
+| **Dialog** | `@radix-ui/react-dialog` | ^1.1.16 |
+| **Testing** | Vitest | ^4.1.8 |
+| **Linting** | ESLint + `eslint-config-next` | ^10.4.1 / ^16.2.9 |
+| **Node** | Node.js | >= 22.0.0 |
 
----
+Versi di atas mengikuti dependency ranges pada `package.json`. `package-lock.json` menyimpan resolusi install; perbarui tabel ini jika dependency utama berubah.
 
 ## 2. Struktur Direktori
 
+Peta ringkas repo saat ini:
+
 ```
 balance/
-├── app/                    # Next.js App Router
-│   ├── [locale]/           # i18n route segment
-│   │   ├── (app)/          # Authenticated layout group
-│   │   │   ├── dashboard/  # Dashboard page
-│   │   │   ├── settings/   # Settings page
-│   │   │   └── wallets/    # Wallet list + detail
-│   │   ├── auth/           # Auth callback pages
-│   │   ├── invite/         # Invitation acceptance
-│   │   ├── login/          # Login page
-│   │   ├── register/       # Register page
-│   │   ├── offline/        # PWA offline page
-│   │   └── privacy/        # Privacy page
-│   ├── actions/            # Server Actions (mutations)
-│   ├── api/chat/           # Chat API (rekap + transaksi)
-│   └── globals.css         # Global styles + theme tokens
-│
-├── components/             # React components
-│   ├── ui/                 # UI primitives
-│   ├── auth/               # Auth-related components
-│   ├── features/           # Feature-specific components
-│   │   ├── dashboard/
-│   │   ├── wallets/
-│   │   ├── transactions/
-│   │   ├── budgets/
-│   │   ├── savings/
-│   │   ├── recurring/
-│   │   └── settings/
-│   ├── providers/          # React context providers
-│   └── pwa/                # PWA components
-│
-├── lib/                    # Core business logic
-│   ├── data/               # Data layer (queries, mappers, cache)
-│   ├── supabase/           # Supabase client factories
-│   ├── auth.ts             # Auth helpers
-│   ├── finance.ts          # Finance utilities
-│   ├── redis.ts            # Redis client wrapper
-│   ├── recurring.ts        # Recurring transaction logic
-│   └── ...
-│
-├── messages/               # i18n translation files
-│   ├── en.json
-│   └── id.json
-│
-├── supabase/migrations/    # Database migrations (0014 files)
-│
-├── scripts/                # CLI scripts
-│   ├── run-recurring-scheduler.mjs
-│   └── backup.sh
-│
-├── tests/unit/             # Unit tests (Vitest)
-│
-├── infra/                  # Infrastructure configs
-│   ├── Caddyfile           # Caddy reverse proxy
-│   └── kong.yml            # Kong API gateway config
-│
-├── docs/                   # Documentation
-│   ├── AGENT_QUICKSTART.md # ← Agent quickstart (read first)
-│   ├── PRD.md              # ← Product Requirements Document
-│   ├── DB_SCHEMA.md        # ← Database Schema & Flow
-│   ├── ENGINEERING.md      # ← This document
-│   ├── SERVER_ACTION_PATTERNS.md  # ← Server action patterns
-│   ├── TESTING_GUIDE.md    # ← Testing guide
-│   ├── API_REFERENCE.md    # ← Chat API reference
-│   ├── TROUBLESHOOTING.md  # ← Troubleshooting guide
-│   ├── plan-upgrade.md     # ← Plan upgrade admin runbook
-│   └── plans/              # Product plans
-│       ├── PLAN.md         # ← Product vision & roadmap
-│       └── AGENT_HANDOFF.md # ← Agent handoff protocol
-│
-├── docker-compose.yml      # Production Docker stack
-├── docker-compose.self-hosted.yml  # Self-hosted Supabase stack
-└── Dockerfile              # Next standalone build + Node 22 Alpine
+├── app/
+│   ├── [locale]/             # Halaman dan layout localized
+│   │   ├── (app)/            # Dashboard, wallets, settings, chat
+│   │   ├── login/ register/  # Auth UI
+│   │   ├── invite/           # Invitation acceptance
+│   │   └── privacy/ terms/ refund-policy/ offline/
+│   ├── actions/              # Server actions untuk UI mutations
+│   ├── api/                  # AI, chat, reports, Midtrans, PWA, health
+│   ├── auth/                 # OAuth callback dan email confirmation
+│   └── globals.css
+├── components/               # UI primitives, features, providers, PWA
+├── lib/
+│   ├── ai/                   # Chat, insight, guard, OCR, prompt, tools
+│   ├── data/                 # Queries, mappers, loaders, cache
+│   ├── midtrans/             # Payment integration
+│   ├── pdf/                  # Report generation
+│   ├── supabase/             # Server, browser, admin clients
+│   └── i18n.ts, auth.ts, finance.ts, redis.ts, push-helper.ts, ...
+├── messages/                 # id.json and en.json
+├── supabase/migrations/      # Ordered SQL migrations
+├── scripts/                  # VAPID keys and recurring scheduler
+├── infra/                    # Caddyfile and Kong config
+├── tests/unit/               # Vitest unit tests
+└── docs/                     # Engineering, schema, API, testing, and product docs
 ```
 
----
+Route entrypoint: `proxy.ts`. Exact dependencies and command scripts: `package.json`; deployment service details: the Docker Compose files.
 
-## 3. Routing & Middleware
+## 3. Routing & Request Proxy
 
-### 3.1. Middleware (`middleware.ts`)
+### 3.1. Request entrypoint (`proxy.ts`)
 
-Middleware menangani 3 hal:
+`proxy.ts` is the Next.js request proxy. It selects or redirects locale paths, refreshes the Supabase session for protected requests, redirects unauthenticated page requests to the localized login page, and redirects signed-in users away from login/register. The matcher skips framework assets, metadata files, and common static images. Public path behavior and matcher details live in `proxy.ts`; check that file before changing route boundaries.
 
-1. **Locale detection & redirect** — Deteksi locale dari cookie, pathname, atau Accept-Language header. `GET /` → redirect ke `/{locale}/`
-2. **Auth guard** — Cek session via `supabase.auth.getUser()`. Jika tidak login dan path bukan public → redirect ke `/login?next=...`
-3. **Public paths** — `/login`, `/register`, `/auth/*`, `/invite/*`, `/api/chat/*`, `/privacy`, `/offline` — tanpa auth check
+Locale selection for bare or unlocalized paths uses an explicit locale path first, then the locale cookie, then the `Accept-Language` header, with Indonesian as the default.
 
-**Regex matcher:** `/((?!_next/static|_next/image|favicon.ico|manifest|sw\\.js|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)`
+### 3.2. Route map
 
-### 3.2. Route Structure
+The route group `(app)` is authenticated; the group name is not part of the URL.
 
 ```
-/{locale}/                 → Landing page (redirect ke dashboard)
-/{locale}/login            → Login page (email + Google OAuth)
-/{locale}/register         → Register page
-/{locale}/dashboard        → Main dashboard (authenticated)
-/{locale}/wallets          → Daftar dompet (redirect ke dashboard)
-/{locale}/wallets/[walletId] → Detail dompet (overview, transaksi, budget, member, tabungan)
-/{locale}/wallets/[walletId]/categories → Manajemen kategori
-/{locale}/settings         → Pengaturan (tema, bahasa, API keys, plan)
-/{locale}/chat             → Asisten AI chat
-/{locale}/changelogs       → Timeline changelog produk
-/{locale}/invite/[token]   → Accept invitation
-/{locale}/auth/callback    → OAuth callback
-/{locale}/auth/confirm     → Email confirmation
-/{locale}/privacy          → Privacy policy
-/{locale}/terms            → Terms of service
-/{locale}/refund-policy    → Refund policy
-/{locale}/offline          → PWA offline page
+/{locale}                                      → Public localized landing page
+/{locale}/login, /{locale}/register            → Authentication UI
+/{locale}/dashboard                            → Dashboard
+/{locale}/wallets                              → Wallet list
+/{locale}/wallets/[walletId]                   → Wallet overview
+/{locale}/wallets/[walletId]/transactions      → Transactions
+/{locale}/wallets/[walletId]/transactions/history → Transaction history
+/{locale}/wallets/[walletId]/budgets           → Budgets
+/{locale}/wallets/[walletId]/categories        → Categories
+/{locale}/wallets/[walletId]/members            → Members
+/{locale}/wallets/[walletId]/recurring          → Recurring transactions
+/{locale}/wallets/[walletId]/savings             → Savings
+/{locale}/wallets/[walletId]/settlements         → Settlements
+/{locale}/wallets/[walletId]/templates           → Transaction templates
+/{locale}/wallets/[walletId]/debts               → Debts
+/{locale}/wallets/[walletId]/reports             → Reports
+/{locale}/settings, /{locale}/chat, /{locale}/changelogs
+/{locale}/invite/[token], /{locale}/auth/error
+/{locale}/privacy, /{locale}/terms, /{locale}/refund-policy, /{locale}/offline
+/auth/callback, /auth/confirm                  → OAuth callback and email confirmation
 
-/api/chat/rekap            → Rekap API (GET)
-/api/chat/transaction      → Input transaksi API (POST)
-/api/ai/chat               → AI Chat streaming (POST)
-/api/ai/insight            → AI Dashboard insight (GET)
-/api/ai/confirm-transaction → Konfirmasi transaksi AI (POST)
-/api/reports/[walletId]/pdf → Export laporan PDF (GET)
+/api/chat/rekap, /api/chat/transaction         → External chat integration
+/api/ai/chat, /api/ai/insight                   → AI chat and dashboard insight
+/api/ai/confirm-transaction, /api/ai/ocr-scan   → AI transaction confirmation and receipt OCR
+/api/reports/[walletId]/pdf                     → PDF report download
+/api/midtrans/notification                      → Midtrans webhook
+/api/vapid-key, /api/health                     → PWA key and health endpoints
 ```
 
-### 3.3. Layout Tree
+Chat integration endpoints use per-user API keys. Other route handlers implement their own session, webhook, or input validation; inspect the handler when changing an endpoint.
+
+### 3.3. Layout tree
 
 ```
-app/layout.tsx (root — html, body, font loading)
-  └── app/[locale]/layout.tsx (locale provider, locale params)
-      ├── app/[locale]/login/page.tsx (public)
-      ├── app/[locale]/register/page.tsx (public)
-      ├── app/[locale]/(app)/layout.tsx (auth guard + app-shell + sidebar)
-      │   ├── dashboard/page.tsx
-      │   ├── wallets/page.tsx
-      │   ├── wallets/[walletId]/page.tsx
-      │   └── settings/page.tsx
-      ├── app/[locale]/invite/[token]/page.tsx
-      └── app/[locale]/auth/* (callback routes)
-```
+app/layout.tsx
+  └── app/[locale]/layout.tsx
+      ├── localized public pages
+      └── app/[locale]/(app)/layout.tsx
+          ├── dashboard/
+          ├── settings/
+          ├── chat/
+          └── wallets/[walletId]/*
 
----
+app/auth/callback/route.ts
+app/auth/confirm/route.ts
+app/api/*/route.ts
+```
 
 ## 4. Data Layer Architecture
 
@@ -190,82 +144,40 @@ Supabase (PostgreSQL + RLS)
 Redis Cache (best-effort read cache)
 ```
 
-### 4.2. Data Loaders (lib/data/index.ts)
+### 4.2. Data Loaders (`lib/data/index.ts`)
 
-| Loader | Fungsi | Caching |
-|--------|--------|---------|
-| `getShellData(userId)` | Data shell global (nama user, jumlah wallet, budget, member, onboarding state) | React cache |
-| `getDashboardData(userId, locale)` | Data dashboard lengkap (saldo, chart transaksi, budget progress, transaksi terbaru) | React cache + Redis (TTL 60s) |
-| `getWalletBundle(userId, walletId)` | Semua data untuk halaman detail dompet | React cache |
-| `getWalletOverviewData(userId, walletId, locale)` | Overview dompet spesifik | React cache + Redis (TTL 60s) |
-| `getTransactionsPageData(...)` | Data transaksi + pagination | React cache + Redis |
-| `getTransactionHistoryPageData(...)` | Riwayat transaksi | React cache + Redis |
-| `getBudgetsPageData(...)` | Data budget | React cache + Redis |
-| `getSavingsPageData(...)` | Data tabungan | React cache + Redis |
-| `getRecurringTransactionsPageData(...)` | Transaksi berulang | React cache + Redis |
-| `getSettingsData(userId, locale)` | Data settings (API keys) | React cache + Redis |
+The file composes request-scoped React cache with optional Redis-backed page data. Current loader groups include shell, dashboard, wallet bundle/overview, transactions/history, budgets, categories, recurring transactions, settings, savings, and debts. Check the exports in `lib/data/index.ts` when documenting a new loader. The wallet schema also includes `salary_cycle_day` (see `docs/DB_SCHEMA.md`), so verify period-boundary logic before changing budget or report date ranges.
 
 ### 4.3. Redis Cache Strategy
 
-- **Best-effort** — semua fitur harus tetap jalan saat Redis tidak tersedia (`REDIS_ENABLED=false`)
-- **TTL per key:** Dashboard 60s, wallet overview 60s, transactions 60s, budgets 60s, savings 60s, recurring 60s, settings 120s
-- **Invalidasi:** `invalidateWalletReadCaches(walletId, userId)` dipanggil setelah mutasi
-- **Key format:** `{userId}:{locale}:{page}`
+Redis is an optional best-effort cache; reads must continue to work if it is disabled or unavailable. Current TTL constants in `lib/data/cache.ts` are:
 
-### 4.4. Server Actions (lib/actions/)
+| Data | TTL |
+|------|-----|
+| Shell, dashboard, wallet overview, transactions/history, budgets, categories, recurring, savings | 300 seconds |
+| Wallet bundle | 120 seconds |
+| Settings | 600 seconds |
 
-| File | Fungsi Utama |
-|------|-------------|
-| `transactions.ts` | Create, update, delete transaksi + balance adjustments |
-| `wallets.ts` | Create, update, archive wallet; manage member roles |
-| `budgets.ts` | CRUD budget |
-| `savings.ts` | Create saving, deposit/withdraw |
-| `settlements.ts` | Create settlement |
-| `recurring-transactions.ts` | CRUD recurring + pause/resume |
-| `templates.ts` | CRUD template transaksi |
-| `categories.ts` | CRUD kategori per wallet |
-| `auth.ts` | Update profil |
-| `theme.ts` | Update tema & locale preference |
-| `api-keys.ts` | Generate & revoke API key |
-| `onboarding.ts` | Dismiss/selesaikan onboarding |
-| `_shared.ts` | Helpers: redirectWithMessage, revalidateWalletPaths, getActionLocale, safeDbError |
-| `action-result.ts` | Action result types (success/error) |
+Keys are scoped by user and wallet; locale is appended where a cached view depends on it. Transaction history keys also include page, search, and sort options. Use the helpers in `lib/data/cache.ts` and invalidate wallet data through `invalidateWalletReadCaches(walletId, { targets, dashboardUserIds })`. Check the source constants if cache policy changes.
 
-**Pola server action:**
-```typescript
-"use server";
-export async function createTransaction(formData: FormData) {
-  const { supabase, user } = await requireUser();
-  // ... validasi form via _shared.ts helpers
-  // ... insert ke supabase
-  // ... invalidate Redis cache
-  // ... revalidate path
-  // ... redirectWithMessage (success/error)
-}
-```
+### 4.4. Server Actions (`app/actions/`)
 
-### 4.5. Chat API (app/api/chat/)
+Server actions handle UI-originated mutations. Shared form parsing, locale, redirect, and revalidation helpers are in `app/actions/_shared.ts`; action result types are in `app/actions/action-result.ts`.
 
-Dua endpoint publik untuk integrasi AI / chatbot:
+Current action modules include transactions, wallets, budgets, savings, settlements, recurring transactions, templates, categories, auth/profile, theme, API keys, onboarding, debts, subscriptions, AI compliance, and reminders. Verify the current directory before adding or documenting an action.
 
-| Endpoint | Method | Query/Body | Auth |
-|----------|--------|------------|------|
-| `/api/chat/rekap` | GET | `?period=day|week|month`, optional `?wallet_id=` | Bearer token (API key) |
-| `/api/chat/transaction` | POST | `{wallet_id, amount, kind, category_id?, note?, happened_at?}` | Bearer token (API key) |
+For authenticated operations, use `requireUser()` and the authorization checks appropriate to that resource. Follow `docs/SERVER_ACTION_PATTERNS.md`; not every action has the same auth flow.
 
-**Autentikasi API:**
-```typescript
-// lib/chat-auth.ts
-// 1. Parse Bearer token dari header
-// 2. SHA256 hash token
-// 3. Query user_api_keys via service_role client
-// 4. Validasi: hash cocok, tidak revoked
-// 5. Set session user untuk RLS
-```
+### 4.5. Chat API (`app/api/chat/`)
 
-**Rate limiting** (`lib/rate-limit.ts`): Redis-based sliding window, default 30 request per menit per key.
+These endpoints support external chat integrations:
 
----
+| Endpoint | Method | Request | Auth |
+|----------|--------|---------|------|
+| `/api/chat/rekap` | GET | Period and optional wallet ID | Bearer API key |
+| `/api/chat/transaction` | POST | Transaction details and wallet ID | Bearer API key |
+
+Rate limits are configurable through `CHAT_API_RATE_LIMIT_*` environment variables. Redis-backed limits fail open if Redis is unavailable. See `docs/API_REFERENCE.md`, `lib/chat-auth.ts`, and `lib/rate-limit.ts` for current behavior.
 
 ## 5. Component Architecture
 
@@ -316,6 +228,10 @@ Dua endpoint publik untuk integrasi AI / chatbot:
 | **Settings** | `settings-page-content.tsx` | Settings page |
 | **PWA** | `install-prompt.tsx` | Ajak install PWA |
 | **PWA** | `service-worker-registration.tsx` | Daftarkan SW |
+| **AI Chat** | `chat-page-content.tsx`, `dashboard-ai-insight.tsx` | Chat dan insight dashboard |
+| **OCR** | `scan-receipt-button.tsx` | Pemindaian struk |
+| **Reports** | `export-pdf-button.tsx` | Export PDF |
+| **Transactions** | `import-excel-dialog.tsx`, `export-excel-button.tsx` | Import/export Excel |
 | **Locale** | `locale-provider.tsx` | React context locale |
 
 ---
@@ -326,7 +242,7 @@ Dua endpoint publik untuk integrasi AI / chatbot:
 ```
 Login form → supabase.auth.signInWithPassword()
     → Supabase Auth → set session cookies (via @supabase/ssr)
-    → Middleware membaca cookie → getUser() → user terdeteksi
+    → proxy.ts membaca cookie → getUser() → user terdeteksi
 ```
 
 ### 6.2. Google OAuth
@@ -370,13 +286,11 @@ Trigger on_auth_user_synced
 
 ## 8. i18n System
 
-- **Bahasa:** Indonesia (default) dan Inggris
-- **File:** `/messages/id.json`, `/messages/en.json`
-- **Fungsi:** `translate(locale, key)` — lookup sederhana (tanpa next-intl library, tanpa ICU)
-- **Deteksi locale:** cookie > pathname > Accept-Language header
-- **Penyimpanan:** `preferred_locale` di tabel profiles
-
----
+- Supported locales: Indonesian (`id`, default) and English (`en`).
+- Dictionaries: `messages/id.json` and `messages/en.json`; lookup helpers: `lib/i18n.ts`.
+- Use `translate(locale, key, values)` or `getTranslator(locale)`. Keys support nested paths and `{placeholder}` interpolation.
+- Missing English entries fall back to Indonesian; add or update both dictionaries for user-facing copy rather than relying on fallback.
+- `proxy.ts` handles localized path redirects and persists the locale cookie. The profile also stores a preferred locale; inspect the settings/action flow when changing preference behavior.
 
 ## 9. Deployment
 
@@ -417,77 +331,54 @@ Stack lengkap untuk development lokal:
 
 ## 10. Testing Strategy
 
-**Framework:** Vitest
-**Server-only mock:** `tests/support/server-only.ts` (alias untuk `server-only` package)
+Vitest runs the unit suite with `npm run test` (same script as `npm test`). The `server-only` package is aliased to `tests/support/server-only.ts`.
 
-| Test File | Coverage |
-|-----------|----------|
-| `finance.test.ts` | Format mata uang, parse angka, date helpers |
-| `data-mappers.test.ts` | Transformasi DB → view model |
-| `recurring.test.ts` | Logika recurring occurrence |
-| `redis-cache.test.ts` | Cache get/set/invalidate |
-| `auth-flow.test.ts` | Auth sync logic |
-| `chat-api-rate-limit.test.ts` | Rate limiting |
-| `chat-auth.test.ts` | API key authentication |
-| `wallet-capacity.test.ts` | Batas member per wallet |
-| `balance-adjustments.test.ts` | Balance adjustment helpers |
-| `theme.test.ts` | Theme resolution |
-| `theme-actions.test.ts` | Theme update actions |
-| `rate-limit.test.ts` | Rate limiter logic |
-| `onboarding-actions.test.ts` | Onboarding state mutations |
-| `action-results.test.ts` | Server action result types |
-| `utils.test.ts` | Generic utilities |
-| `i18n.test.ts` | Translation lookup |
+Tests cover finance/date helpers, data mapping, auth and action behavior, cache/rate limits, i18n/theme, AI chat and OCR helpers, and report generation. Follow the existing deterministic patterns in `tests/unit/`; avoid requiring live Supabase, Redis, or external AI services for unit tests.
 
-**Cara menjalankan:**
+For code changes, run:
+
 ```bash
-npm run test          # vitest run
-npm run test:unit     # vitest run (sama)
-npm run typecheck     # tsc --noEmit
+npm run lint
+npm run typecheck
+npm run test
 ```
 
----
+Run `npm run build` when changes affect routing, rendering, dependencies, environment handling, or deployment.
 
 ## 11. CI/CD
 
-### GitHub Actions Workflows:
+GitHub Actions uses `.github/workflows/ci.yml` for pushes to `main` and pull requests targeting `main`. It installs with `npm ci`, then runs lint → typecheck → test → build. Build receives placeholder public Supabase and site environment values in CI.
 
-| Workflow | File | Trigger |
-|----------|------|---------|
-| CI | `.github/workflows/ci.yml` | Push ke main/dev, PR ke main |
-| Docker Publish | `.github/workflows/docker-publish.yml` | Push tag/release |
+The Docker publish workflow is `.github/workflows/docker-publish.yml`; read it for the current release triggers.
 
-**CI steps:** `npm ci` → `npm run typecheck` → `npm run lint` → `npm run test` → `npm run build`
+## 12. Environment Variables (`.env.example`)
 
----
+Treat `.env.example` and `lib/env.ts` as the authoritative environment variable list and validation rules. Common variables include:
 
-## 12. Environment Variables (.env.example)
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Browser-safe Supabase key |
+| `SUPABASE_SECRET_KEY` | Server-only privileged Supabase key |
+| `NEXT_PUBLIC_SITE_URL` | Public app URL |
+| `REDIS_URL`, `REDIS_ENABLED` | Optional cache and rate-limit storage |
+| `DEEPSEEK_API_KEY`, `AI_CHAT_ENABLED` | AI chat provider and feature toggle |
+| `MIDTRANS_SERVER_KEY`, `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY` | Subscription payments |
+| `VISION_API_KEY`, `VISION_ENABLED` | Optional receipt OCR provider |
+| `RECURRING_SCHEDULER_INTERVAL_MS`, `RECURRING_SCHEDULER_BATCH_SIZE` | Recurring scheduler |
 
-| Variable | Required | Keterangan |
-|----------|----------|-----------|
-| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anon key |
-| `SUPABASE_SECRET_KEY` | ✅ | Service role key (server-only) |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Service role key alias |
-| `REDIS_URL` | ❌ | Redis connection string |
-| `REDIS_ENABLED` | ❌ | Default: false |
-| `DOMAIN` | ✅ | Domain untuk deploy |
-| `NEXT_PUBLIC_APP_URL` | ✅ | App URL |
-| `SCHEDULER_POLL_INTERVAL_SECONDS` | ❌ | Recurring scheduler interval |
-| `SCHEDULER_RUN_BATCH_SIZE` | ❌ | Recurring batch size |
-
----
+Do not expose server-only keys through client components or public environment variables.
 
 ## 13. Key Design Decisions
 
 | Keputusan | Alasan |
 |-----------|--------|
-| **Server Actions (bukan API routes)** | Mutasi langsung dari form, bundled code di server, tidak perlu endpoint REST untuk CRUD |
+| **Server actions dan route handlers** | UI mutations umumnya memakai server actions; webhooks, streaming, downloads, health, dan external integrations memakai route handlers |
 | **React.cache + Redis** | React cache untuk request-scoped caching, Redis untuk cache antar-request (best-effort) |
-| **RLS-based security** | Setiap query terjamin aman oleh database, server action tidak perlu manual check per row. ⚠️ Migration 0001 pake blanket GRANT — semua table harus ada RLS atau bocor |
+| **RLS-based security** | RLS melindungi akses data di tingkat database, dengan authorization/membership checks di server untuk operasi wallet. Migration 0001 memberi grant luas ke role authenticated, jadi setiap tabel yang dapat diakses role ini harus memiliki RLS dan policy yang benar |
 | **Supabase migrations** | Schema versioning, rollback support, dokumentasi otomatis |
 | **No ORM (raw Supabase JS)** | Supabase JS sudah mature, transparan, tidak perlu layer abstraksi tambahan |
-| **PostCSS (bukan Turbopack)** | kompatibilitas Tailwind 3 |
-| **Manual i18n (tanpa next-intl)** | Lebih ringan dari next-intl, cukup untuk 2 bahasa, tanpa SSR hydration mismatch |
+| **Tailwind CSS 4 + PostCSS** | Styling memakai Tailwind CSS 4 melalui plugin `@tailwindcss/postcss`; lihat `postcss.config.js` |
+| **Manual i18n (tanpa next-intl)** | Helper lokal `lib/i18n.ts` memakai dictionaries untuk locale `id` dan `en`; pertahankan kedua terjemahan pada perubahan copy |
 | **Area chart (bukan bar chart)** | Lebih tenang visualnya, cocok dengan Serene Capital design |
 | **Caddy (bukan Nginx)** | Auto HTTPS via Let's Encrypt, konfigurasi lebih sederhana |
