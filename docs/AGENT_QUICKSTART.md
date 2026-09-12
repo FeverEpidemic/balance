@@ -1,106 +1,78 @@
 ---
 title: Balance — Agent Quickstart
-version: 1.1.0
-last_updated: 2026-06-17
-purpose: "Bacaan pertama untuk AI agent baru di repo ini. 5 menit."
+version: 1.2.0
+last_updated: 2026-09-13
+purpose: "Orientasi ringkas untuk AI agent yang baru bekerja di repo ini."
 ---
 
 # Balance — Agent Quickstart
 
-> Selamat datang di repo Balance! Dokumen ini adalah titik awal yang harus kamu baca sebelum menyentuh kode apa pun.
+> Mulai dari panduan ini dan `AGENTS.md`. Baca dokumen lain sesuai area perubahan; tidak semua task perlu membaca seluruh dokumentasi.
 
----
+## Alur baca
 
-## 🗺️ Order Baca Dokumen
+1. Baca `AGENTS.md` untuk aturan repo, keamanan, dan verifikasi.
+2. Periksa source files yang akan diubah.
+3. Untuk perubahan database, baca `docs/DB_SCHEMA.md` dan migration terbaru.
+4. Untuk area khusus, ikuti `docs/SERVER_ACTION_PATTERNS.md`, `docs/API_REFERENCE.md`, `DESIGN.md`, atau `docs/TESTING_GUIDE.md` sesuai kebutuhan.
+5. Cocokkan versi dependency dan script dengan `package.json`; workflow CI di `.github/workflows/ci.yml` menentukan urutan checks.
 
-Baca dengan urutan ini untuk pemahaman maksimal:
-
-| # | Dokumen | Isi | Waktu |
-|---|---------|-----|-------|
-| 1 | `docs/PRD.md` | Visi produk, fitur, alur user | 10 menit |
-| 2 | `docs/DB_SCHEMA.md` | Semua tabel, relasi, RLS, data flow | 15 menit |
-| 3 | `docs/ENGINEERING.md` | Stack, routing, data layer, deployment | 15 menit |
-| 4 | `AGENTS.md` | Panduan coding, konvensi, testing | 5 menit |
-| 5 | `docs/plans/AGENT_HANDOFF.md` | Protokol handoff antar agent | 3 menit |
-| 6 | `DESIGN.md` | Design system Serene Capital | 5 menit |
-| 7 | `docs/SERVER_ACTION_PATTERNS.md` | Pola server action & error handling | 5 menit |
-| 8 | `docs/TESTING_GUIDE.md` | Cara testing & pola umum | 5 menit |
-| 9 | `docs/API_REFERENCE.md` | Dokumentasi chat API | 3 menit |
-| 10 | `docs/TROUBLESHOOTING.md` | Error umum & solusi | 5 menit |
-| 11 | `docs/plan-upgrade.md` | Runbook admin upgrade/downgrade plan | 3 menit |
-
-**Total:** ~66 menit. Tapi sangat penting untuk konteks yang benar.
-
----
-
-## ⚡ Commands Cepat
+## Perintah utama
 
 ```bash
-npm run dev              # Development server
-npm run typecheck        # TypeScript strict check
-npm run test             # Unit test
-npm run test:unit        # Sama
-npm run build            # Production build
-npm run lint             # ESLint
-npm run scheduler:recurring  # Generate recurring transactions
+npm ci
+npm run dev
+npm run lint
+npm run typecheck
+npm run test
+npm run build
 ```
 
----
+CI menjalankan lint, typecheck, test, lalu build. Jalankan checks yang sesuai dengan perubahan; perubahan dokumentasi cukup diverifikasi terhadap source dan link yang dirujuk.
 
-## 🏗️ Arsitektur dalam 30 Detik
+## Arsitektur singkat
 
 ```
-[Browser] ↔ Server Components (read) & Server Actions (write)
-    ↓
-[lib/data/index.ts]   ← React.cache + Redis (best-effort)
-    ↓
-[lib/data/queries.ts] → [Supabase + RLS]
-    ↓
-[app/actions/*.ts]    → Mutasi via server actions
+proxy.ts → locale routing dan session/auth boundary
+app/[locale]/ → halaman localized
+app/actions/ → mutasi UI
+app/api/ → AI, chat integration, webhook, report, dan HTTP endpoints
+lib/data/ → queries, mappers, loaders, Redis cache
+Supabase/Postgres + RLS → persistent data
 ```
 
-### Aturan Emas:
+Komponen domain penting berada di `lib/ai/`, `lib/midtrans/`, `lib/pdf/`, dan `lib/push-helper.ts`. Translation dictionaries ada di `messages/id.json` dan `messages/en.json`; helper-nya ada di `lib/i18n.ts`.
 
-1. **Jangan bypass RLS** — `SUPABASE_SECRET_KEY` hanya untuk admin/server-only. Semua mutasi user-facing harus lewat client yang terikat session.
-2. **Jangan hardcode warna** — Pakai semantic theme tokens dari `app/globals.css`. Light mode + Dark mode adalah first-class.
-3. **Jangan edit migration lama** — Migration baru saja untuk perubahan schema.
-4. **Redis optional** — Fitur harus tetap jalan saat Redis mati.
-5. **Semua mutasi = server action** — Bukan API route, bukan client-side mutation.
+## Aturan utama
 
----
+1. **Jaga RLS.** Jangan gunakan admin/service key untuk alur user-facing. Setiap tabel baru harus mengaktifkan RLS dan memiliki policy sebelum dipakai; migration awal memberi grant luas ke role `authenticated`.
+2. **Jaga kedua bahasa.** Tulis copy UI melalui helper i18n dan update terjemahan Indonesia serta Inggris dengan key dan placeholder yang sepadan.
+3. **Jangan edit migration lama.** Tambahkan migration baru untuk perubahan schema.
+4. **Redis tetap opsional.** Semua alur harus berfungsi jika Redis tidak tersedia atau dinonaktifkan.
+5. **Pilih boundary mutasi yang tepat.** UI CRUD umumnya memakai server actions; webhooks, streaming, integrasi eksternal, health checks, dan unduhan memakai route handlers.
+6. **Jaga Light dan Dark mode.** Gunakan semantic theme tokens dari `app/globals.css`, bukan warna hardcoded.
+7. **Jaga cache dan UI tetap segar.** Ikuti invalidasi Redis dan revalidation path yang digunakan oleh action terkait.
 
-## 📁 File Penting untuk Dihafal
+## Peta file
 
-| File | Kenapa Penting |
-|------|---------------|
-| `lib/data/queries.ts` | Semua read query ke Supabase |
-| `lib/data/mappers.ts` | Transform DB → UI model |
-| `lib/data/cache.ts` | Redis cache keys & TTL |
-| `lib/data/index.ts` | Composed loaders (pintu masuk data) |
-| `lib/auth.ts` | requireUser() — wajib dipanggil di setiap server action |
-| `lib/finance.ts` | Helper format mata uang & tanggal |
-| `lib/i18n.ts` | Translate & locale resolution |
-| `app/actions/_shared.ts` | Shared helpers: redirect, revalidate, form parsing |
-| `app/globals.css` | Theme tokens (light + dark) |
+| File | Kegunaan |
+|------|----------|
+| `proxy.ts` | Redirect locale dan pemeriksaan session pada request yang cocok |
+| `app/actions/_shared.ts` | Helpers untuk form/action, locale, redirect, dan revalidation |
+| `lib/auth.ts` | Auth helpers, termasuk `requireUser()` untuk alur yang memerlukan user |
+| `lib/data/queries.ts` | Query Supabase |
+| `lib/data/mappers.ts` | DB rows ke view model |
+| `lib/data/index.ts` | Page data loaders |
+| `lib/data/cache.ts` | Cache keys, TTLs, dan invalidation |
+| `lib/i18n.ts` | Locale dan translation helpers |
+| `lib/finance.ts` | Helper angka, mata uang, dan tanggal |
+| `app/globals.css` | Theme tokens dan global styles |
+| `supabase/migrations/` | Perubahan database berurutan |
+| `tests/unit/` | Unit tests |
 
----
+## Sebelum menyerahkan perubahan
 
-## 🧪 Saat Bikin Perubahan Baru
-
-1. Baca `AGENTS.md` → pahami konvensi coding
-2. Cek migration terakhir → pahami schema terkini
-3. Pastikan light mode + dark mode aman
-4. Tambah/update unit test di `tests/unit/`
-5. Update `CHANGELOG.md`
-6. `npm run typecheck && npm run test` sebelum push
-
----
-
-## 🚨 Hal yang Sering Bikin Agent Baru Salah
-
-- ❌ **Ngedit migration lama** — Jangan! Migration baru aja.
-- ❌ **Hardcode warna** — Pakai CSS variables dari globals.css.
-- ❌ **Lupa cek dark mode** — Semua UI harus aman di dua mode.
-- ❌ **Redis dianggap wajib** — Fitur harus jalan tanpa Redis.
-- ❌ **API key ditulis `bal_ro...Uk` di curl** — Terminal kirim literal, bukan full key. Selalu full key.
-- ❌ **Lupa panggil `requireUser()`** — Semua server action butuh auth check.
+- Ikuti pola authorization dan error handling pada action atau route yang serupa.
+- Tambahkan atau perbarui unit test untuk perubahan logic yang dapat diuji secara deterministik.
+- Jalankan lint, typecheck, dan tests untuk perubahan kode; lakukan build jika perubahan memengaruhi runtime atau konfigurasi.
+- Pastikan perubahan copy tersedia pada kedua locale dan perubahan schema dicatat dalam migration baru.
