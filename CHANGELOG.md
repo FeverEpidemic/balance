@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Fixed
+- **Webhook pembayaran Midtrans lebih aman dan idempotent** — Notifikasi yang sama sekarang aman diterima berkali-kali atau tidak berurutan: satu order hanya diaktifkan sekali, masa aktif tidak bergeser saat notifikasi dobel, dan `pending`/`expire` yang datang telat tidak lagi menurunkan order yang sudah lunas. Pembayaran kartu berstatus `capture` baru dianggap lunas kalau `fraud_status` = `accept`, nominal yang dibayar dicocokkan dengan nominal order, dan `refund`/`chargeback` sekarang ikut mencabut Premium. Masa aktif baru dimulai setelah trial atau periode berbayar yang masih berjalan. Kalau penulisan ke database gagal, webhook membalas 500 supaya Midtrans mengirim ulang.
 - **DSML leak guard di AI Chat** — Model `deepseek-v4-flash` kadang ngeluarin DSML syntax (`< | | DSML | | invoke name="..." >`) sebagai teks biasa alih-alih OpenAI `tool_calls` yang proper. Guard baru ngedeteksi DSML pattern di tool loop → `continue` biar loop retry. Safety net di final reply ganti ke fallback kalo masih lolos.
 - **Delete & edit transaksi sekarang 1 action** — Bug di mana delete dan edit (ganti kategori) perlu dilakukan dua kali sebelum perubahan tersimpan. Perbaikan: delete di halaman utama sekarang pakai `ActionForm` (konsisten dengan history page), dan semua form edit/delete dikasih `key` biar `useActionState` diremount tiap kali dibuka, fresh tiap submit.
 
