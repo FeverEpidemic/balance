@@ -55,7 +55,7 @@ For code changes, run `npm run lint`, `npm run typecheck`, and `npm run test`; r
 - `app/api/` contains HTTP endpoints for AI, chat integrations, PDF reports, Midtrans notifications, health checks, and PWA keys. Route handlers remain appropriate for webhooks, streaming, external integrations, and downloads.
 - `components/` contains reusable UI and feature components; `app/globals.css` defines global styles and theme tokens.
 - `messages/id.json`, `messages/en.json`, and `lib/i18n.ts` define the two supported locales and translation helpers.
-- `lib/data/` is the read-model layer: `queries.ts` reads Supabase, `mappers.ts` maps rows to view models, `index.ts` composes page loaders, and `cache.ts` defines Redis keys, TTLs, and invalidation.
+- `lib/data/` is the read-model layer: `queries.ts` reads Supabase, `mappers.ts` re-exports the row-to-view-model mappers that live per domain in `mappers/`, `index.ts` composes page loaders, and `cache.ts` defines Redis keys, TTLs, and invalidation.
 - `lib/supabase/` contains server, browser, and admin clients; `lib/auth.ts` contains shared auth helpers.
 - `lib/ai/`, `lib/midtrans/`, `lib/pdf/`, and `lib/push-helper.ts` hold AI, payment, report, and push-notification logic.
 - `supabase/migrations/` is the ordered database change history.
@@ -70,7 +70,7 @@ For code changes, run `npm run lint`, `npm run typecheck`, and `npm run test`; r
 - Prefer async Server Components for authenticated pages, calling `requireUser()` before loading protected data.
 - Keep form mutations as server actions with `"use server"` at the top of the file.
 - Use `redirectToWalletSection`, `redirectWithMessage`, and `revalidateWalletPaths` instead of ad hoc redirect/revalidation logic.
-- Keep pure calculations in `lib/*` or `lib/data/mappers.ts` so they can be unit tested without Supabase.
+- Keep pure calculations in `lib/*` or the matching file in `lib/data/mappers/` so they can be unit tested without Supabase. Export new public mappers from `lib/data/mappers.ts`.
 - Do not edit generated files such as `next-env.d.ts`, `.next/`, `tsconfig.tsbuildinfo`, or `node_modules/`.
 
 ## Data, Auth, and Cache Rules

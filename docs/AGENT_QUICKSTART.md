@@ -61,7 +61,7 @@ Komponen domain penting berada di `lib/ai/`, `lib/midtrans/`, `lib/pdf/`, dan `l
 | `app/actions/_shared.ts` | Helpers untuk form/action, locale, redirect, dan revalidation |
 | `lib/auth.ts` | Auth helpers, termasuk `requireUser()` untuk alur yang memerlukan user |
 | `lib/data/queries.ts` | Query Supabase |
-| `lib/data/mappers.ts` | DB rows ke view model |
+| `lib/data/mappers/` | DB rows ke view model, per domain (diekspor ulang lewat `lib/data/mappers.ts`) |
 | `lib/data/index.ts` | Page data loaders |
 | `lib/data/cache.ts` | Cache keys, TTLs, dan invalidation |
 | `lib/i18n.ts` | Locale dan translation helpers |

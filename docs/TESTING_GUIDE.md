@@ -171,7 +171,7 @@ describe("redisCache", () => {
 Setiap perubahan yang menyentuh:
 
 - **Pure helpers** — `lib/finance.ts`, `lib/utils.ts`, `lib/i18n.ts`
-- **Data mappers** — Transform DB → UI model di `lib/data/mappers.ts`
+- **Data mappers** — Transform DB → UI model di `lib/data/mappers/`
 - **Recurring logic** — Date math, boundary condition
 - **Cache behavior** — Redis fallback, invalidation
 - **Permission branching** — Role-based conditional logic
