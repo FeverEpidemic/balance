@@ -182,7 +182,7 @@ Setiap perubahan yang menyentuh:
 ## 5. Yang TIDAK Perlu di-test (saat ini)
 
 - **Komponen React** — Belum ada setup React Testing Library / jsdom
-- **Integrasi database** — Butuh Supabase live instance
+- **Integrasi aplikasi ↔ database** (server action + Supabase) — butuh Supabase live instance. Policy RLS dan function database sendiri sudah diuji, lihat bagian 7
 - **E2E flow** — Butuh Playwright/Cypress
 - **Server Actions** — Butuh mock supabase yang kompleks
 
@@ -202,10 +202,39 @@ export default serverOnly;
 
 ---
 
-## 7. Checklist Sebelum Push / PR
+## 7. Test Row Level Security (RLS)
+
+Unit test tidak menyentuh database, padahal RLS adalah batas keamanan utama. `tests/rls/` menguji policy dan function langsung di PostgreSQL.
+
+```bash
+# Butuh server PostgreSQL 15+ dan client psql. Koneksi lewat variabel PG*.
+PGHOST=localhost PGUSER=postgres PGPASSWORD=postgres npm run test:rls
+```
+
+Cara kerjanya:
+
+1. `run.sh` membuat database sekali pakai (`balance_rls_test`, di-drop tiap run).
+2. `00_supabase_shim.sql` menyediakan bagian Supabase yang dipakai migration: role `anon` / `authenticated` / `service_role`, schema `auth`, `auth.uid()`, dan default privileges yang sama longgarnya dengan Supabase.
+3. Semua file di `supabase/migrations/` dijalankan berurutan, jadi migration yang rusak ikut ketahuan.
+4. Tiap `*.test.sql` jalan dalam satu transaksi yang di-rollback. `tests.act_as('alice')` berpindah ke role `authenticated` dengan JWT user itu, sama seperti request lewat PostgREST.
+
+| File | Yang dijaga |
+|------|-------------|
+| `10_catalog.test.sql` | Semua tabel `public` punya RLS aktif dan minimal satu policy; tidak ada policy untuk `anon` |
+| `20_wallet_isolation.test.sql` | User di luar wallet tidak bisa baca/ubah apa pun; semua tabel ber-`wallet_id` wajib terdaftar di test ini |
+| `30_wallet_roles.test.sql` | Viewer hanya baca, editor menulis data, hanya owner yang mengelola wallet, anggota, dan undangan |
+| `40_user_scoped.test.sql` | Profil, API key, push subscription milik sendiri; tabel billing hanya ditulis server |
+| `50_rpc.test.sql` | Function `SECURITY DEFINER` mengecek akses sendiri |
+
+Saat menambah tabel, policy, atau function baru: tambahkan ke fixture (`02_fixtures.sql`) dan ke test yang sesuai. CI menjalankan job ini di setiap push dan PR.
+
+---
+
+## 8. Checklist Sebelum Push / PR
 
 - [ ] `npm run typecheck` — zero errors
 - [ ] `npm run test` — all tests pass
+- [ ] `npm run test:rls` — kalau mengubah migration, policy, atau function database
 - [ ] Test baru untuk logic yang berubah
 - [ ] Edge cases di-test (null, empty, boundary)
 - [ ] Redis fallback path tetap jalan

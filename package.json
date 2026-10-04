@@ -22,7 +22,8 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run",
+    "test:rls": "bash tests/rls/run.sh"
   },
   "dependencies": {
     "@radix-ui/react-alert-dialog": "^1.1.16",

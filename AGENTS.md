@@ -41,6 +41,7 @@ For an initial orientation, read `docs/AGENT_QUICKSTART.md` once per session —
 - Lint: `npm run lint`
 - Type-check: `npm run typecheck`
 - Run unit tests: `npm run test`
+- Run row level security tests (needs PostgreSQL and `psql`): `npm run test:rls`
 - Build production app: `npm run build`
 - Run recurring scheduler locally: `npm run scheduler:recurring`
 - Start production Docker stack: `docker compose up --build -d`
@@ -103,6 +104,7 @@ For code changes, run `npm run lint`, `npm run typecheck`, and `npm run test`; r
 
 - Add or update unit tests for pure helpers, mappers, recurring logic, cache behavior, date math, and permission-sensitive branching.
 - Prefer deterministic tests that do not require a live Supabase instance.
+- Database access rules are tested in `tests/rls/` against the real migrations on a plain PostgreSQL server. When a migration adds or changes a table, policy, or function, extend the fixtures and the matching `*.test.sql` file; see `docs/TESTING_GUIDE.md`.
 - Use the existing Vitest setup. The `server-only` package is aliased to `tests/support/server-only.ts`. For code changes, follow the CI checks: `npm run lint`, `npm run typecheck`, and `npm run test`; build when the changed area warrants it. For documentation-only work, verify paths, commands, versions, routes, and migrations against the repository instead.
 - If a change cannot be fully verified locally because it needs Supabase, Docker, SMTP, or Redis, state that clearly in the handoff and explain what was verified instead.
 
