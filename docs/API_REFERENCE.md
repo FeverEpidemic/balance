@@ -322,16 +322,16 @@ Kelola budget per kategori per bulan.
 
 ## 6. Rate Limiting
 
-- **Algoritma:** Sliding window (Redis-based)
-- **Limit:** 30 request per menit per API key
+- **Algoritma:** Fixed window (Redis; fallback in-memory bila Redis tidak tersedia)
+- **Limit:** 60 request per 60 detik per API key (default; atur lewat `CHAT_API_RATE_LIMIT_MAX_REQUESTS` dan `CHAT_API_RATE_LIMIT_WINDOW_SECONDS`)
 - **Response saat kena limit:**
 
 ```json
 HTTP 429
-{"error": "rate_limit_exceeded"}
+{"error": "rate_limited"}
 ```
 
-- **Best-effort:** Tanpa Redis, rate limit tidak aktif (semua request lolos)
+- **Tanpa Redis:** rate limit tetap aktif lewat penghitung in-memory per instance server (tidak dibagi antar instance, reset saat restart)
 
 ---
 
@@ -369,7 +369,7 @@ Setiap wallet punya kategori sendiri. Contoh dari wallet Personal:
 | 400 | `validation_error` | Field required / invalid format |
 | 400 | `wallet_not_found` | wallet_id tidak ditemukan / bukan member |
 | 403 | `ai_chat_consent_required` | AI Chat consent belum diaktifkan user |
-| 429 | `rate_limit_exceeded` | Terlalu banyak request (30/menit) |
+| 429 | `rate_limited` | Terlalu banyak request (default 60/menit per API key; penulisan transaksi juga dibatasi 30/menit per user) |
 | 429 | `daily_limit_exceeded` | Batas chat harian tercapai (free: 3, premium: 20) |
 | 500 | `internal_error` | Gagal load data / Supabase error / downstream AI failure |
 | 503 | `ai_chat_unavailable` | AI Chat tidak dikonfigurasi (API key missing) |
@@ -422,7 +422,7 @@ Tanpa User-Agent, Cloudflare bisa memblokir request sebagai bot.
 ## 10. Best Practices & Limitations
 
 ### Rate Limit & Cache
-- **30 req/min** per API key — handle `429` dengan exponential backoff
+- **60 req/min** per API key (default), dan **30 transaksi/menit** per user untuk penulisan — handle `429` dengan exponential backoff
 - Data rekap di-cache **30 detik** (Redis) — jangan spam
 - AI Chat daily limit: **3 chat/hari** (free), **20 chat/hari** (premium), **∞** (premium dengan plan tinggi)
 

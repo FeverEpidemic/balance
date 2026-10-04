@@ -3,7 +3,8 @@ import {
   applyRateLimitHeaders,
   consumeAiChatRateLimit,
   consumeRateLimit,
-  consumeTransactionRateLimit
+  consumeTransactionRateLimit,
+  resetInMemoryRateLimits
 } from "@/lib/rate-limit";
 import { redisCache } from "@/lib/redis";
 import { NextResponse } from "next/server";
@@ -11,6 +12,7 @@ import { NextResponse } from "next/server";
 describe("consumeRateLimit", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    resetInMemoryRateLimits();
   });
 
   it("allows requests until the configured limit", async () => {
@@ -92,24 +94,56 @@ describe("consumeRateLimit", () => {
     expect(secondWindow.resetAt).toBe(Date.UTC(2026, 5, 6, 10, 2, 0));
   });
 
-  it("fails open when redis is unavailable", async () => {
+  it("falls back to an in-process counter when redis is unavailable", async () => {
     vi.spyOn(redisCache, "increment").mockResolvedValue(null);
 
-    const result = await consumeRateLimit({
-      namespace: "rate-limit:chat",
-      key: "key-1",
-      limit: 60,
-      windowSeconds: 60,
-      now: Date.UTC(2026, 5, 6, 10, 0, 0)
-    });
+    const now = Date.UTC(2026, 5, 6, 10, 0, 0);
+    const options = { namespace: "rate-limit:chat", key: "key-fallback", limit: 2, windowSeconds: 60, now };
 
-    expect(result).toEqual({
+    const first = await consumeRateLimit(options);
+    const second = await consumeRateLimit(options);
+    const third = await consumeRateLimit(options);
+
+    expect(first).toEqual({
       allowed: true,
-      limit: 60,
-      remaining: 60,
+      limit: 2,
+      remaining: 1,
       resetAt: Date.UTC(2026, 5, 6, 10, 1, 0),
       usedRedis: false
     });
+    expect(second.allowed).toBe(true);
+    expect(second.remaining).toBe(0);
+    expect(third.allowed).toBe(false);
+    expect(third.usedRedis).toBe(false);
+  });
+
+  it("keeps in-process counters separate per key and per window", async () => {
+    vi.spyOn(redisCache, "increment").mockResolvedValue(null);
+
+    const now = Date.UTC(2026, 5, 6, 10, 0, 0);
+    const base = { namespace: "rate-limit:chat", limit: 1, windowSeconds: 60 };
+
+    await consumeRateLimit({ ...base, key: "user-a", now });
+    const blocked = await consumeRateLimit({ ...base, key: "user-a", now });
+    const otherUser = await consumeRateLimit({ ...base, key: "user-b", now });
+    const nextWindow = await consumeRateLimit({ ...base, key: "user-a", now: now + 60_000 });
+
+    expect(blocked.allowed).toBe(false);
+    expect(otherUser.allowed).toBe(true);
+    expect(nextWindow.allowed).toBe(true);
+  });
+
+  it("prefers redis over the in-process counter when redis answers", async () => {
+    vi.spyOn(redisCache, "increment").mockResolvedValue(1);
+
+    const now = Date.UTC(2026, 5, 6, 10, 0, 0);
+    const options = { namespace: "rate-limit:chat", key: "key-redis", limit: 1, windowSeconds: 60, now };
+
+    await consumeRateLimit(options);
+    const result = await consumeRateLimit(options);
+
+    expect(result.allowed).toBe(true);
+    expect(result.usedRedis).toBe(true);
   });
 });
 

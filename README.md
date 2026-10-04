@@ -93,7 +93,7 @@ The Docker Compose default is `SELF_HOSTED_MODE=true`. Override via `.env`.
 
 ```bash
 # Prerequisites
-nvm use                     # or Node.js >= 20.9.0
+nvm use                     # or Node.js >= 22
 cp .env.example .env        # edit with your credentials
 
 # Install and run
@@ -147,7 +147,7 @@ REDIS_METRICS_ENABLED=true
 REDIS_METRICS_INTERVAL_MS=60000
 ```
 
-The AI Chat endpoint (`/api/chat/*`) also uses Redis for rate limiting (default: 60 requests / 60s per API key). Rate limiting is best-effort — if Redis is unavailable, requests are served without blocking.
+The AI Chat endpoint (`/api/chat/*`) also uses Redis for rate limiting (default: 60 requests / 60s per API key). When Redis is disabled or unreachable, every rate limit falls back to an in-process counter: limits are still enforced, but per server instance and they reset on restart.
 
 ---
 

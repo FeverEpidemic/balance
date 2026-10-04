@@ -44,7 +44,8 @@ WHERE id = '<user-id>';
 
 ## Important Notes
 
-- Plan changes affect the AI Chat daily limit. Free users get the env-configured limit (default 20 messages/day). Premium users have no daily limit.
-- There is **no payment integration** in this phase. Premium is assigned manually by the admin.
+- Plan changes affect the AI Chat daily limit. Free users get the env-configured limit (`AI_CHAT_DAILY_LIMIT_MAX`, default 5 messages/day). Premium users have no daily limit.
+- Premium is normally bought through Midtrans (`createSubscription` in `app/actions/subscriptions.ts`, confirmed by `POST /api/midtrans/notification`). The SQL above is the manual admin override.
+- A manual upgrade has no row in `subscriptions`, so `process_expired_subscriptions()` never downgrades it. Downgrade it by hand when it should end.
 - API Key & AI integration via API endpoints is **always free** and not affected by plan changes.
 - Manual transactions are **unlimited** for both Free and Premium plans.

@@ -31,37 +31,78 @@ export type RateLimitResult = {
   usedRedis: boolean;
 };
 
+type MemoryCounter = {
+  count: number;
+  expiresAt: number;
+};
+
+/**
+ * In-process counters used when Redis is disabled or unreachable.
+ *
+ * Redis stays the source of truth whenever it is available. Without it the
+ * limits used to be skipped entirely, which also switched off login throttling
+ * and the AI quotas. This fallback keeps them enforced per server process: the
+ * counters are not shared between instances and reset on restart, so it is
+ * weaker than Redis, but an outage no longer removes every limit.
+ */
+const MEMORY_COUNTER_MAX_KEYS = 10_000;
+const memoryCounters = new Map<string, MemoryCounter>();
+
+function pruneMemoryCounters(now: number) {
+  for (const [key, counter] of memoryCounters) {
+    if (counter.expiresAt <= now) {
+      memoryCounters.delete(key);
+    }
+  }
+
+  // Still full of live windows: drop the oldest entries so memory stays bounded.
+  for (const key of memoryCounters.keys()) {
+    if (memoryCounters.size < MEMORY_COUNTER_MAX_KEYS) {
+      break;
+    }
+
+    memoryCounters.delete(key);
+  }
+}
+
+function incrementInMemory(key: string, expiresAt: number, now: number) {
+  const existing = memoryCounters.get(key);
+
+  if (existing && existing.expiresAt > now) {
+    existing.count += 1;
+    return existing.count;
+  }
+
+  if (memoryCounters.size >= MEMORY_COUNTER_MAX_KEYS) {
+    pruneMemoryCounters(now);
+  }
+
+  memoryCounters.set(key, { count: 1, expiresAt });
+  return 1;
+}
+
+/** Clears the in-process fallback counters. Intended for tests. */
+export function resetInMemoryRateLimits() {
+  memoryCounters.clear();
+}
+
 export async function consumeRateLimit(options: ConsumeRateLimitOptions): Promise<RateLimitResult> {
   const now = options.now ?? Date.now();
   const currentEpochSeconds = Math.floor(now / 1000);
   const windowStart = currentEpochSeconds - (currentEpochSeconds % options.windowSeconds);
   const resetAt = (windowStart + options.windowSeconds) * 1000;
+  const counterKey = `${options.namespace}:${options.key}:${windowStart}`;
 
-  const fallbackResult: RateLimitResult = {
-    allowed: true,
-    limit: options.limit,
-    remaining: options.limit,
-    resetAt,
-    usedRedis: false
-  };
-
-  const currentCount = await redisCache.increment(
-    `${options.namespace}:${options.key}:${windowStart}`,
-    options.windowSeconds
-  );
-
-  if (currentCount === null) {
-    return fallbackResult;
-  }
-
-  const remaining = Math.max(options.limit - currentCount, 0);
+  const redisCount = await redisCache.increment(counterKey, options.windowSeconds);
+  const usedRedis = redisCount !== null;
+  const currentCount = redisCount ?? incrementInMemory(counterKey, resetAt, now);
 
   return {
     allowed: currentCount <= options.limit,
     limit: options.limit,
-    remaining,
+    remaining: Math.max(options.limit - currentCount, 0),
     resetAt,
-    usedRedis: true
+    usedRedis
   };
 }
 

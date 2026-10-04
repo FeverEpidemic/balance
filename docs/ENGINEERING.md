@@ -177,7 +177,7 @@ These endpoints support external chat integrations:
 | `/api/chat/rekap` | GET | Period and optional wallet ID | Bearer API key |
 | `/api/chat/transaction` | POST | Transaction details and wallet ID | Bearer API key |
 
-Rate limits are configurable through `CHAT_API_RATE_LIMIT_*` environment variables. Redis-backed limits fail open if Redis is unavailable. See `docs/API_REFERENCE.md`, `lib/chat-auth.ts`, and `lib/rate-limit.ts` for current behavior.
+Rate limits are configurable through `CHAT_API_RATE_LIMIT_*` environment variables. Limits use Redis when it is available and fall back to an in-process counter (per instance, reset on restart) when it is not. See `docs/API_REFERENCE.md`, `lib/chat-auth.ts`, and `lib/rate-limit.ts` for current behavior.
 
 ## 5. Component Architecture
 

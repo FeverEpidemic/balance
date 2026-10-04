@@ -1,6 +1,6 @@
 {
   "name": "balance",
-  "version": "0.1.0",
+  "version": "1.18.4",
   "private": false,
   "license": "AGPL-3.0",
   "repository": {
@@ -51,7 +51,7 @@
     "tailwind-merge": "^3.6.0",
     "tailwindcss-animate": "^1.0.7",
     "web-push": "^3.6.7",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.0",

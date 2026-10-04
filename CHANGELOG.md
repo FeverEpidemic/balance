@@ -3,22 +3,50 @@
 ## [Unreleased]
 
 ### Fixed
-- **DSML leak guard di AI Chat** — Model `deepseek-v4-flash` kadang ngeluarin DSML syntax (`< | | DSML | | invoke name="..." >`) sebagai teks biasa alih-alih OpenAI `tool_calls` yang proper. Guard baru ngedeteksi DSML pattern di tool loop → `continue` biar loop retry. Safety net di final reply ganti ke fallback kalo masih lolos.
-- **Delete & edit transaksi sekarang 1 action** — Bug di mana delete dan edit (ganti kategori) perlu dilakukan dua kali sebelum perubahan tersimpan. Perbaikan: delete di halaman utama sekarang pakai `ActionForm` (konsisten dengan history page), dan semua form edit/delete dikasih `key` biar `useActionState` diremount tiap kali dibuka, fresh tiap submit.
+- **Webhook pembayaran Midtrans lebih aman dan idempotent** — Notifikasi yang sama sekarang aman diterima berkali-kali atau tidak berurutan: satu order hanya diaktifkan sekali, masa aktif tidak bergeser saat notifikasi dobel, dan `pending`/`expire` yang datang telat tidak lagi menurunkan order yang sudah lunas. Pembayaran kartu berstatus `capture` baru dianggap lunas kalau `fraud_status` = `accept`, nominal yang dibayar dicocokkan dengan nominal order, dan `refund`/`chargeback` sekarang ikut mencabut Premium. Masa aktif baru dimulai setelah trial atau periode berbayar yang masih berjalan. Kalau penulisan ke database gagal, webhook membalas 500 supaya Midtrans mengirim ulang.
 
 ### Changed
-- **Tampilan Budget Card didesain ulang** — Sekarang tampilannya mirip dengan card transaksi: ada lingkaran warna kategori dengan icon di kiri, nama kategori di atas, progress bar gradient, dan jumlah total budget di kanan (desktop). Tombol edit ada di dalam collapsible panel, dan tombol hapus lebih compact dengan ghost variant. Desktop menampilkan total budget (termasuk carry-over) di sisi kanan. 
-- **Halaman Transaksi disederhanakan** — Tab "Quick Input" dihapus. Transaksi Terbaru jadi tampilan default penuh. Form input transaksi bisa diakses via tombol "Tambah Transaksi" di header atau FAB "+".
-- **Sesuaikan Saldo dipindah ke Ringkasan Wallet** — Form balance adjustment sekarang ada di halaman Ringkasan Wallet sebagai section collapsible di bawah kartu saldo. Lebih intuitif karena terkait langsung dengan saldo wallet.
+- **Rate limit tetap aktif saat Redis tidak tersedia** — Sebelumnya semua limit (login, AI chat, API, scan struk, transaksi baru) otomatis lolos kalau Redis mati atau `REDIS_ENABLED=false`. Sekarang ada penghitung cadangan di memori per instance server, jadi limit tetap berlaku. Penghitung ini tidak dibagi antar instance dan reset saat server restart; Redis tetap dipakai kalau tersedia.
+
+### Security
+- **Library Excel diperbarui ke SheetJS 0.20.3** — Paket `xlsx` 0.18.5 di npm sudah tidak dipelihara dan punya celah yang diketahui (prototype pollution CVE-2023-30533 dan ReDoS CVE-2024-22363). Import dan export Excel sekarang memakai rilis resmi dari CDN SheetJS.
+
+## [1.18.4] - 2026-06-28
 
 ### Added
 - **Fitur Import Excel** — Impor data transaksi keuangan secara massal dari file Excel (.xlsx/.xls) ke wallet aktif. Fitur ini dapat diakses melalui tab Riwayat Lengkap di samping tombol Export Excel. Mendukung kolom dalam dua bahasa (id/en), auto-detect tipe pengeluaran dari nominal negatif, pencarian potensi duplikat pintar (membandingkan tanggal, catatan, nominal), serta auto-create kategori baru dengan warna default.
+
+## [1.18.3] - 2026-06-26
+
+### Fixed
+- **DSML leak guard di AI Chat** — Model `deepseek-v4-flash` kadang ngeluarin DSML syntax (`< | | DSML | | invoke name="..." >`) sebagai teks biasa alih-alih OpenAI `tool_calls` yang proper. Guard baru ngedeteksi DSML pattern di tool loop → `continue` biar loop retry. Safety net di final reply ganti ke fallback kalo masih lolos.
+
+## [1.18.2] - 2026-06-23
+
+### Added
 - **Dashboard per-wallet breakdown & filtering** — Pilih wallet spesifik dari dropdown dashboard → semua stat card, chart kategori, grafik pengeluaran harian, dan transaksi terbaru langsung menampilkan data wallet itu saja. "Semua Dompet" menunjukkan data agregat seluruh wallet. Wallet cards disembunyikan saat wallet spesifik terpilih. Ada tombol "Buka dompet" untuk navigasi cepat ke halaman wallet.
+
+### Changed
+- **Tampilan Budget Card didesain ulang** — Sekarang tampilannya mirip dengan card transaksi: ada lingkaran warna kategori dengan icon di kiri, nama kategori di atas, progress bar gradient, dan jumlah total budget di kanan (desktop). Tombol edit ada di dalam collapsible panel, dan tombol hapus lebih compact dengan ghost variant. Desktop menampilkan total budget (termasuk carry-over) di sisi kanan.
+
+### Fixed
+- **Delete & edit transaksi sekarang 1 action** — Bug di mana delete dan edit (ganti kategori) perlu dilakukan dua kali sebelum perubahan tersimpan. Perbaikan: delete di halaman utama sekarang pakai `ActionForm` (konsisten dengan history page), dan semua form edit/delete dikasih `key` biar `useActionState` diremount tiap kali dibuka, fresh tiap submit.
+
+## [1.18.1] - 2026-06-23
+
+### Added
 - **Sitemap XML untuk SEO** — Menambahkan sitemap.xml otomatis via Next.js App Router (`app/sitemap.ts`) yang mendaftarkan semua halaman publik (landing, login, register, privacy, terms, refund-policy) dalam dua bahasa (id/en) untuk membantu Google Search Console mengindeks konten Balance. Juga mengecualikan `/sitemap.xml` dari middleware redirect biar bisa di-crawl dengan benar.
+
+### Changed
+- **Halaman Transaksi disederhanakan** — Tab "Quick Input" dihapus. Transaksi Terbaru jadi tampilan default penuh. Form input transaksi bisa diakses via tombol "Tambah Transaksi" di header atau FAB "+".
+- **Sesuaikan Saldo dipindah ke Ringkasan Wallet** — Form balance adjustment sekarang ada di halaman Ringkasan Wallet sebagai section collapsible di bawah kartu saldo. Lebih intuitif karena terkait langsung dengan saldo wallet.
+
+## [1.18.0] - 2026-06-20
+
+### Added
 - **Budget Carry-Over** — Sisa budget yang tidak terpakai dari bulan sebelumnya bisa dibawa ke bulan berikutnya. Fitur ini bersifat opsional per kategori (toggle "Bawa sisa budget"). Perhitungan carry-over bersifat rekursif dan memoized, mendukung rantai carry-over berbulan-bulan. Carry-over amount ditampilkan sebagai informasi tambahan di daftar budget.
 - **Batch Transaction Input** — Input banyak transaksi sekaligus dalam satu form. Klik "Tambah baris" untuk menambahkan baris transaksi baru, isi semua field, dan submit sekali untuk semua baris. Insert bersifat atomic (all-or-nothing) dengan rate limit 1 token untuk seluruh batch.
 - **Debt Tracker (Utang-Piutang)** — Fitur baru untuk mencatat utang/piutang informal dengan siapapun (nama text bebas, tidak perlu terdaftar di Balance). Mendukung cicilan (partial payment) dengan trigger database yang auto-update status (unpaid → partially_paid → settled). Bisa dihubungkan ke saldo wallet untuk auto-create transaksi. Ringkasan total utang, piutang, dan selisih ditampilkan di halaman Utang-Piutang per wallet.
-
 
 ## [1.17.0] - 2026-06-20
 
@@ -46,7 +74,9 @@
 - **Section Pricing Glassmorphism** — Layout kartu paket Free dan Premium didesain ulang dengan gaya glassmorphic, memberikan diferensiasi visual yang tebal dan menonjolkan fitur Premium secara elegan.
 - **Penerapan Kelas CSS Kustom** — Menambahkan kelas `.fade-in-section`, `.card-interactive-glow`, dan `.glass-pricing-card` di globals.css untuk konsistensi token Serene Capital.
 
-## [Unreleased-Older]
+## [1.15.0 dan sebelumnya]
+
+> Entri di bagian ini belum dipisah per versi. Rincian per versi ada di `lib/changelogs.ts`.
 
 ### Changed
 
