@@ -136,7 +136,8 @@ Browser/Client
     ↓
 app/actions/*.ts           # Server Actions — form handling, supabase mutations, revalidate
 lib/data/queries.ts        # Supabase SELECT queries (read model)
-lib/data/mappers.ts        # Transform DB rows → UI view models
+lib/data/mappers.ts        # Public API: re-exports the mappers below
+lib/data/mappers/*.ts      # Transform DB rows → UI view models, one file per domain
 lib/data/index.ts          # Composed loaders with React.cache + Redis cache
     ↓
 Supabase (PostgreSQL + RLS)
