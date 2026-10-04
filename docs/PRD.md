@@ -1,7 +1,7 @@
 ---
 title: Balance — Product Requirements Document
-version: 1.2.0
-last_updated: 2026-06-22
+version: 1.3.0
+last_updated: 2026-10-05
 author: FeverEpidemic
 ---
 
@@ -73,6 +73,7 @@ author: FeverEpidemic
 | Budget per kategori per bulan | ✅ Selesai |
 | Progres budget vs realisasi di dashboard | ✅ Selesai |
 | **Carry-over toggle** — bawa sisa budget bulan sebelumnya ke bulan ini (opsional per kategori, rekursif antar bulan) | ✅ Selesai |
+| **Periode gaji** — siklus budget per wallet bisa dimulai di tanggal gajian (1–28), bukan hanya awal bulan | ✅ Selesai |
 
 ### 2.5. Tabungan (Saving)
 
@@ -135,6 +136,7 @@ author: FeverEpidemic
 | Fitur | Status |
 |-------|--------|
 | Export Excel (.xlsx) untuk transaksi | ✅ Selesai |
+| Import Excel (.xlsx/.xls) untuk transaksi — preview, deteksi potensi duplikat, auto-create kategori, maks 500 baris | ✅ Selesai |
 | Export PDF laporan bulanan (premium-only) | ✅ Selesai |
 | Changelog page + popup "Yang Baru" | ✅ Selesai |
 
@@ -277,7 +279,7 @@ author: FeverEpidemic
 - Cloudflare Managed Challenge dapat memblokir akses API dari script eksternal (solusi: WAF skip rule)
 - Belum ada anomaly detection (pola pengeluaran tidak wajar)
 - Belum ada cash flow forecast (prediksi saldo bulan depan)
-- Belum ada CSV mass import (upload file bank statement)
+- ~~Belum ada mass import~~ ✅ **Import Excel sudah ada** (.xlsx/.xls, maks 500 baris), tapi **import CSV / mutasi bank** belum
 
 ---
 
@@ -295,6 +297,9 @@ Lihat `docs/plan-upgrade.md` untuk rencana upgrade & runbook admin.
 - Midtrans payment integration (Premium)
 - Multi-currency wallet
 - Timezone auto-detect
+- Import Excel transaksi
+- Periode gaji (siklus budget mengikuti tanggal gajian)
+- Filter dashboard per wallet
 
 ### 🔮 Fitur Potensial ke Depan
 - Integrasi bank auto-import (via API partner / scraping)
@@ -303,6 +308,6 @@ Lihat `docs/plan-upgrade.md` untuk rencana upgrade & runbook admin.
 - Kategori AI auto-suggest
 - Spending anomaly detection
 - Cash flow forecast
-- CSV mass import (manual upload bank statement)
+- Import CSV / mutasi bank (import Excel manual sudah ada)
 - Monthly AI narrative report
 - Dark mode scheduler (auto-switch theme based on schedule)

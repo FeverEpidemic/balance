@@ -66,5 +66,5 @@ Lihat [`docs/plan-upgrade.md`](../plan-upgrade.md) untuk runbook admin upgrade/d
 - Family dashboard (gabungan view semua family wallet)
 - Kategori AI auto-suggest
 - Cash flow forecast (prediksi saldo bulan depan)
-- CSV mass import (upload bank statement)
+- Import CSV / mutasi bank (import Excel manual sudah ada)
 - Dark mode scheduler (theme-aware dengan jadwal)

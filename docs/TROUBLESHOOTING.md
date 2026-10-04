@@ -111,9 +111,9 @@ Trigger `validate_and_apply_saving_entry` akan handle update balance otomatis.
 3. Cek apakah key masih aktif (belum di-revoke)
 4. Generate key baru dari Settings → API Keys
 
-### HTTP 429 — "rate_limit_exceeded"
+### HTTP 429 — "rate_limited"
 
-**Penyebab:** Lebih dari 30 request per menit.
+**Penyebab:** Lebih dari 60 request per menit per API key (default), atau lebih dari 30 transaksi baru per menit per user.
 
 **Solusi:** Tunggu 1 menit atau kurangi frekuensi request.
 
