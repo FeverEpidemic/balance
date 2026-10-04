@@ -74,34 +74,3 @@ export function verifyNotificationSignature(
 
   return { valid: true };
 }
-
-/**
- * Determines whether the notification's transaction_status
- * represents a successful payment that should activate a subscription.
- */
-export function isSuccessfulPayment(status: string): boolean {
-  return status === "settlement" || status === "capture";
-}
-
-/**
- * Maps Midtrans transaction_status to our subscription_status values.
- */
-export function mapTransactionStatus(status: string): "pending" | "active" | "expired" | "cancelled" {
-  switch (status) {
-    case "settlement":
-    case "capture":
-      return "active";
-    case "pending":
-      return "pending";
-    case "expire":
-      return "expired";
-    case "cancel":
-    case "deny":
-      return "cancelled";
-    case "refund":
-    case "partial_refund":
-      return "cancelled";
-    default:
-      return "pending";
-  }
-}

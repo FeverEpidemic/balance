@@ -1,7 +1,27 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { verifyNotificationSignature, isSuccessfulPayment, mapTransactionStatus, type MidtransNotification } from "@/lib/midtrans/verify";
-import { getSubscriptionDurationDays, type SubscriptionPeriod, PREMIUM_MONTHLY_PRICE, PREMIUM_ANNUAL_PRICE } from "@/lib/plan-pricing";
+import { verifyNotificationSignature, type MidtransNotification } from "@/lib/midtrans/verify";
+import {
+  computeSubscriptionWindow,
+  isExpectedGrossAmount,
+  resolveNotificationAction,
+  type SubscriptionStatus,
+} from "@/lib/midtrans/notification";
+import { getSubscriptionDurationDays, type SubscriptionPeriod } from "@/lib/plan-pricing";
+
+type AdminClient = NonNullable<ReturnType<typeof createAdminClient>>;
+
+type SubscriptionRow = {
+  id: string;
+  user_id: string;
+  period: SubscriptionPeriod;
+  status: SubscriptionStatus;
+  amount: number | string;
+  started_at: string | null;
+  expires_at: string | null;
+};
+
+const SUBSCRIPTION_COLUMNS = "id, user_id, period, status, amount, started_at, expires_at";
 
 /**
  * POST /api/midtrans/notification
@@ -9,7 +29,13 @@ import { getSubscriptionDurationDays, type SubscriptionPeriod, PREMIUM_MONTHLY_P
  * Midtrans Payment Notification URL (webhook).
  * Called by Midtrans after a transaction status changes.
  *
- * Must return 200 OK quickly — Midtrans will retry if not acknowledged.
+ * Midtrans may deliver the same notification more than once and in any order,
+ * so every branch here is idempotent. The decision logic lives in
+ * `lib/midtrans/notification.ts`.
+ *
+ * Responses:
+ * - 200 for anything we have fully handled or deliberately ignored.
+ * - 500 when a database write failed, so Midtrans retries the notification.
  */
 export async function POST(request: Request) {
   // 1. Parse raw body
@@ -17,6 +43,10 @@ export async function POST(request: Request) {
   try {
     rawBody = await request.json();
   } catch {
+    return NextResponse.json({ message: "Invalid JSON" }, { status: 400 });
+  }
+
+  if (!rawBody || typeof rawBody !== "object") {
     return NextResponse.json({ message: "Invalid JSON" }, { status: 400 });
   }
 
@@ -30,150 +60,296 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid signature" }, { status: 200 });
   }
 
-  const { order_id, transaction_status, status_code, gross_amount, payment_type, transaction_id, custom_field1 } = notification;
+  const { order_id, transaction_status, status_code, gross_amount, fraud_status, payment_type, transaction_id } =
+    notification;
 
   if (!order_id || !transaction_status || !status_code) {
     console.warn("[midtrans-webhook] Missing required fields");
     return NextResponse.json({ message: "Missing required fields" }, { status: 200 });
   }
 
-  // 3. Store raw notification (best-effort, for audit trail)
   const admin = createAdminClient();
-  if (admin) {
-    await admin.from("payment_notifications").insert({
-      order_id,
-      transaction_id: transaction_id ?? null,
-      payment_status: transaction_status,
-      raw_payload: rawBody,
-      signature_verified: true,
-      processed: false,
-    }).maybeSingle();
-  }
-
-  // 4. Look up the subscription by order_id
   if (!admin) {
     console.error("[midtrans-webhook] No admin client available");
     return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 
+  // 3. Store raw notification (best-effort, for audit trail).
+  //    A duplicate delivery hits the dedup index and is skipped.
+  await admin.from("payment_notifications").insert({
+    order_id,
+    transaction_id: transaction_id ?? null,
+    payment_status: transaction_status,
+    raw_payload: rawBody,
+    signature_verified: true,
+    processed: false,
+  });
+
+  // 4. Look up the subscription by order_id
   const { data: subscription, error: subError } = await admin
     .from("subscriptions")
-    .select("id, status, user_id, period")
+    .select(SUBSCRIPTION_COLUMNS)
     .eq("order_id", order_id)
-    .maybeSingle();
+    .maybeSingle<SubscriptionRow>();
 
-  if (subError || !subscription) {
+  if (subError) {
+    console.error("[midtrans-webhook] Failed to load subscription:", subError.message);
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+  }
+
+  if (!subscription) {
     console.warn("[midtrans-webhook] Subscription not found:", order_id);
-    // Still return 200 to prevent Midtrans retries for unknown orders
+    // Return 200 to prevent Midtrans retries for unknown orders
     return NextResponse.json({ message: "Order not found" }, { status: 200 });
   }
 
-  // 5. Mark notification as processed
-  await admin
+  // 5. Decide what this notification means for the order, then apply it.
+  const action = resolveNotificationAction({
+    transactionStatus: transaction_status,
+    fraudStatus: typeof fraud_status === "string" ? fraud_status : null,
+    subscriptionStatus: subscription.status,
+    alreadyActivated: Boolean(subscription.started_at),
+  });
+
+  let ok = true;
+
+  switch (action.type) {
+    case "activate": {
+      if (!isExpectedGrossAmount(gross_amount, subscription.amount)) {
+        // Leave the notification unprocessed so it stands out for manual review.
+        console.error("[midtrans-webhook] Paid amount does not match the order:", {
+          order_id,
+          gross_amount,
+          expected: subscription.amount,
+        });
+        return NextResponse.json({ message: "Amount mismatch" }, { status: 200 });
+      }
+
+      ok = await activateSubscription(admin, subscription, notification);
+      break;
+    }
+
+    case "sync_profile": {
+      ok = await syncPremiumProfile(admin, subscription.user_id, subscription.expires_at);
+      break;
+    }
+
+    case "set_status": {
+      // Guarded by started_at so a concurrent activation is never overwritten.
+      const { error } = await admin
+        .from("subscriptions")
+        .update({ status: action.status, payment_channel: payment_type ?? null })
+        .eq("id", subscription.id)
+        .is("started_at", null);
+
+      if (error) {
+        console.error("[midtrans-webhook] Failed to update subscription status:", error.message);
+        ok = false;
+      }
+      break;
+    }
+
+    case "revoke": {
+      ok = await revokeSubscription(admin, subscription, transaction_status);
+      break;
+    }
+
+    case "ignore": {
+      console.info(`[midtrans-webhook] Ignored ${transaction_status} for order=${order_id}: ${action.reason}`);
+      break;
+    }
+  }
+
+  if (!ok) {
+    // Ask Midtrans to retry. Every branch above is safe to run again.
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+  }
+
+  // 6. Mark this notification as processed
+  let processedQuery = admin
     .from("payment_notifications")
     .update({ processed: true })
     .eq("order_id", order_id)
-    .eq("transaction_id", transaction_id ?? "")
-    .maybeSingle();
+    .eq("payment_status", transaction_status)
+    .eq("processed", false);
 
-  // 6. Handle successful payment
-  if (isSuccessfulPayment(transaction_status)) {
-    await handleSuccessfulPayment(admin, subscription, notification);
-  } else {
-    // 7. Handle non-successful statuses (expire, cancel, deny, pending, etc.)
-    const mappedStatus = mapTransactionStatus(transaction_status);
+  processedQuery = transaction_id
+    ? processedQuery.eq("transaction_id", transaction_id)
+    : processedQuery.is("transaction_id", null);
 
-    await admin
-      .from("subscriptions")
-      .update({ status: mappedStatus, payment_channel: payment_type ?? null })
-      .eq("id", subscription.id);
-  }
+  await processedQuery;
 
   return NextResponse.json({ message: "OK" }, { status: 200 });
 }
 
 /**
- * Process a successful Midtrans payment:
- * - Activate the subscription
- * - Handle trial overlap: if user has active trial, subscription starts after trial ends
- * - Update profile: plan_type = 'premium', subscription_expires_at = expires_at
- * - Invalidate relevant caches
+ * Activate a paid order exactly once.
+ *
+ * The subscription update is conditional on `started_at IS NULL`, so when two
+ * deliveries of the same notification race, only one of them writes the dates
+ * and the other falls through to a profile re-sync.
  */
-async function handleSuccessfulPayment(
-  admin: NonNullable<ReturnType<typeof createAdminClient>>,
-  subscription: { id: string; user_id: string; period: string },
+async function activateSubscription(
+  admin: AdminClient,
+  subscription: SubscriptionRow,
   notification: MidtransNotification
-) {
+): Promise<boolean> {
   const { id: subscriptionId, user_id: userId, period } = subscription;
-  const periodDays = getSubscriptionDurationDays(period as SubscriptionPeriod);
-  const { payment_type, transaction_id } = notification;
 
-  // Check if user has an active trial
-  const { data: profile } = await admin
+  const { data: profile, error: profileReadError } = await admin
     .from("profiles")
     .select("trial_ends_at, subscription_expires_at")
     .eq("id", userId)
-    .maybeSingle();
+    .maybeSingle<{ trial_ends_at: string | null; subscription_expires_at: string | null }>();
 
-  // Calculate subscription start/end dates respecting trial overlap
-  const now = new Date();
-  let startedAt: Date;
-  const trialEnd = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null;
-
-  if (trialEnd && trialEnd.getTime() > now.getTime()) {
-    // User still has active trial — subscription starts after trial ends
-    startedAt = trialEnd;
-  } else {
-    // No active trial — subscription starts now
-    startedAt = now;
+  if (profileReadError) {
+    console.error("[midtrans-webhook] Failed to load profile:", profileReadError.message);
+    return false;
   }
 
-  const expiresAt = new Date(startedAt.getTime() + periodDays * 24 * 60 * 60 * 1000);
+  // The paid period starts after any Premium time the user already has
+  // (an active trial or a still-running paid period).
+  const { startedAt, expiresAt } = computeSubscriptionWindow({
+    now: new Date(),
+    periodDays: getSubscriptionDurationDays(period),
+    trialEndsAt: profile?.trial_ends_at ?? null,
+    currentExpiresAt: profile?.subscription_expires_at ?? null,
+  });
 
-  // Update subscription to active
-  const { error: updateError } = await admin
+  const { data: activated, error: updateError } = await admin
     .from("subscriptions")
     .update({
       status: "active",
-      payment_channel: payment_type ?? null,
+      payment_channel: notification.payment_type ?? null,
       started_at: startedAt.toISOString(),
       expires_at: expiresAt.toISOString(),
     })
-    .eq("id", subscriptionId);
+    .eq("id", subscriptionId)
+    .is("started_at", null)
+    .select("id, expires_at");
 
   if (updateError) {
     console.error("[midtrans-webhook] Failed to update subscription:", updateError.message);
-    return;
+    return false;
   }
 
-  // Update profile: set plan_type to premium and record expiry
-  const { error: profileError } = await admin
+  if (!activated || activated.length === 0) {
+    // Another delivery of this notification activated the order first.
+    const { data: current, error: currentError } = await admin
+      .from("subscriptions")
+      .select("status, expires_at")
+      .eq("id", subscriptionId)
+      .maybeSingle<{ status: SubscriptionStatus; expires_at: string | null }>();
+
+    if (currentError) {
+      console.error("[midtrans-webhook] Failed to reload subscription:", currentError.message);
+      return false;
+    }
+
+    if (current?.status !== "active") {
+      return true;
+    }
+
+    return syncPremiumProfile(admin, userId, current.expires_at);
+  }
+
+  const synced = await syncPremiumProfile(admin, userId, expiresAt.toISOString());
+
+  if (synced) {
+    console.info(
+      `[midtrans-webhook] Subscription activated:`,
+      `user=${userId}, order=${notification.order_id}, period=${period}, expires=${expiresAt.toISOString()}`
+    );
+  }
+
+  return synced;
+}
+
+/**
+ * Make the profile reflect an active subscription. Safe to call repeatedly:
+ * it always writes the same values for the same subscription.
+ */
+async function syncPremiumProfile(admin: AdminClient, userId: string, expiresAt: string | null): Promise<boolean> {
+  if (!expiresAt) {
+    console.error("[midtrans-webhook] Active subscription has no expiry date:", userId);
+    return false;
+  }
+
+  const { error } = await admin
     .from("profiles")
     .update({
       plan_type: "premium",
-      subscription_expires_at: expiresAt.toISOString(),
+      subscription_expires_at: expiresAt,
     })
     .eq("id", userId);
 
-  if (profileError) {
-    console.error("[midtrans-webhook] Failed to update profile:", profileError.message);
+  if (error) {
+    console.error("[midtrans-webhook] Failed to update profile:", error.message);
+    return false;
   }
 
-  // Invalidate Redis caches for this user
+  await invalidateUserCaches(userId);
+
+  return true;
+}
+
+/**
+ * Undo an activation after a refund, chargeback, or voided capture:
+ * put the profile back on the Free plan and cancel the subscription.
+ *
+ * The profile is updated first. If the second write fails the subscription is
+ * still `active`, so the retried notification runs this again and finishes.
+ */
+async function revokeSubscription(
+  admin: AdminClient,
+  subscription: SubscriptionRow,
+  transactionStatus: string
+): Promise<boolean> {
+  const { error: profileError } = await admin
+    .from("profiles")
+    .update({
+      plan_type: "free",
+      subscription_expires_at: null,
+    })
+    .eq("id", subscription.user_id);
+
+  if (profileError) {
+    console.error("[midtrans-webhook] Failed to downgrade profile:", profileError.message);
+    return false;
+  }
+
+  const { error: updateError } = await admin
+    .from("subscriptions")
+    .update({ status: "cancelled" })
+    .eq("id", subscription.id);
+
+  if (updateError) {
+    console.error("[midtrans-webhook] Failed to cancel subscription:", updateError.message);
+    return false;
+  }
+
+  await invalidateUserCaches(subscription.user_id);
+
+  console.info(
+    `[midtrans-webhook] Subscription revoked:`,
+    `user=${subscription.user_id}, subscription=${subscription.id}, reason=${transactionStatus}`
+  );
+
+  return true;
+}
+
+/** Redis cache invalidation is best-effort and never fails the webhook. */
+async function invalidateUserCaches(userId: string) {
   try {
-    const { invalidateSettingsCache, invalidateShellDataCache, invalidateDashboardCache } = await import("@/lib/data/cache");
+    const { invalidateSettingsCache, invalidateShellDataCache, invalidateDashboardCache } = await import(
+      "@/lib/data/cache"
+    );
     await Promise.all([
       invalidateSettingsCache(userId),
       invalidateShellDataCache(userId),
       invalidateDashboardCache([userId]),
     ]);
   } catch (cacheError) {
-    // Cache invalidation is best-effort
     console.warn("[midtrans-webhook] Cache invalidation failed (non-fatal):", cacheError);
   }
-
-  console.info(
-    `[midtrans-webhook] Subscription activated:`,
-    `user=${userId}, order=${notification.order_id}, period=${period}, expires=${expiresAt.toISOString()}`
-  );
 }
